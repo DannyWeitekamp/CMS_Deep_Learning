@@ -1,0 +1,5 @@
+execfile("init.py")
+execfile("get_data.py")
+execfile("compile.py")
+execfile("train.py")
+execfile("view.py")

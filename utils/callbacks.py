@@ -16,19 +16,8 @@ class SmartCheckpoint(ModelCheckpoint):
         self.historyFilename = self.smartDir + name + "_history.json"
         self.max_epoch = max_epoch
         self.histobj = History()
-        ModelCheckpoint.__init__(self, self.checkpointFilename,
-                monitor, verbose, save_best_only, mode)
 
-        # self.model.load_weights(self.checkpointFilename);
-
-    # def on_epoch_begin(self, epoch, logs={}):
-
-    def on_train_begin(self, logs={}):
-        if not os.path.exists(self.smartDir):
-            os.makedirs(self.smartDir)
         histDict = {}
-        
-        # print('Load history?');
         try:
             histDict = json.load(open( self.historyFilename, "rb" ))
             print('Sucessfully loaded history at ' + self.historyFilename)
@@ -37,13 +26,21 @@ class SmartCheckpoint(ModelCheckpoint):
 
         self.histobj.history = histDict
 
-        # print(histDict)
-            # history = History()
-        # history.history = histDict
+        ModelCheckpoint.__init__(self, self.checkpointFilename,
+                monitor, verbose, save_best_only, mode)
+
+        # self.model.load_weights(self.checkpointFilename);
+
+    # def on_epoch_begin(self, epoch, logs={}):
+
+    def on_train_begin(self, logs={}):
+        histDict = self.histobj.history
+
+        if not os.path.exists(self.smartDir):
+            os.makedirs(self.smartDir)
+        
         self.epochOffset = histDict.get("last_epoch", 0);
         self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
-        # print('Load weights?');
-        # weightsloaded = False
         try:
             self.model.load_weights(self.checkpointFilename)
             # weightsloaded = True
@@ -54,6 +51,7 @@ class SmartCheckpoint(ModelCheckpoint):
 
     def on_epoch_end(self, epoch, logs={}):
         histDict = self.histobj.history
+        
         epoch = epoch + self.epochOffset + 1
         ModelCheckpoint.on_epoch_end(self, epoch, logs)
         histDict["last_epoch"] = epoch
