@@ -21,21 +21,93 @@ Note that the relative performance of the different `consume_less` modes
 can vary depending on your device, your model and the size of your data.
 '''
 #NOOOOOOOOP
-get_ipython().magic(u'matplotlib inline')
+# from IPython.core import debugger
+# from IPython import get_ipython
+# get_ipython().magic(u'matplotlib inline')
+import os
+import sys
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
+import json
+
 
 from keras.preprocessing import sequence
 from keras.models import Sequential
 from keras.layers import Embedding, Dense, LSTM
 from keras.datasets import imdb
+from keras.callbacks import History
+from keras.callbacks import ModelCheckpoint
 
+class SmartCheckpoint(ModelCheckpoint):
+    def __checkMaxEpoch(self, epoch):
+        if(epoch > self.max_epoch):
+            self.model.stop_training = True
+
+    def __init__(self, name, directory='', monitor='val_loss', verbose=0,
+                 save_best_only=False, mode='auto', max_epoch = sys.maxint):
+        self.name = name
+        self.smartDir = directory + 'SmartCheckpoint/'
+        self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
+        self.historyFilename = self.smartDir + name + "_history.json"
+        self.max_epoch = max_epoch
+        self.histDict = {}
+        
+
+     
+
+
+        ModelCheckpoint.__init__(self, self.checkpointFilename,
+                monitor, verbose, save_best_only, mode)
+
+        # self.model.load_weights(self.checkpointFilename);
+
+    # def on_epoch_begin(self, epoch, logs={}):
+
+    def on_train_begin(self, logs={}):
+        if not os.path.exists(self.smartDir):
+            os.makedirs(self.smartDir)
+
+        print('Load history?');
+        try:
+            self.histDict = json.load(open( self.historyFilename, "rb" ))
+            print(True)
+        except (IOError, EOFError):
+            print(False)
+            # history = History()
+        # history.history = histDict
+        self.epochOffset = self.histDict.get("last_epoch", 0);
+        self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
+        print('Load weights?');
+        # weightsloaded = False
+        try:
+            self.model.load_weights(self.checkpointFilename)
+            # weightsloaded = True
+            print(True)
+        except IOError:
+            print(False)
+
+    def on_epoch_end(self, epoch, logs={}):
+        epoch = epoch + self.epochOffset + 1
+        ModelCheckpoint.on_epoch_end(self, epoch, logs)
+        self.histDict["last_epoch"] = epoch
+        self.histDict["epoch_" + str(epoch)] = logs.copy();
+        json.dump(self.histDict,  open( self.historyFilename, "wb" ))
+
+        self.__checkMaxEpoch(epoch + self.epochOffset)
+        
+
+
+
+name = "lstm_benchmark"
+savedir = "hist"
+namePath = savedir + "/" + name
 max_features = 20000
-max_length = 80
+max_length = 5
 embedding_dim = 256
 batch_size = 128
-epochs = 1
+epochs = 5
 modes = ['gpu']
 
 print('Loading data...')
@@ -57,14 +129,52 @@ for mode in modes:
                   metrics=['accuracy'])
     
     start_time = time.time()
-    model.load_weights('lstm_benchmark_gpu_weights.h5')
-    print(model.get_weights());
-    if(model.get_weights() == False):
-        history = model.fit(X_train, y_train,
-                            batch_size=batch_size,
-                            nb_epoch=epochs,
-                            validation_data=(X_test, y_test))
-        model.save_weights('lstm_benchmark_gpu_weights.h5')
+    # historyFilePath = namePath + "_" + mode + "_" + "history.best.p"
+    # weightsfilepath = namePath + "_" + mode + "_" + "weights.best.hdf5"
+   
+    # histDict = None
+    # print('Load history?');
+    # try:
+    #     histDict = json.load(open( historyFilePath, "rb" ))
+    #     print(True)
+    # except (IOError, EOFError):
+    #     print(False)
+    #     # history = History()
+    # # history.history = histDict
+
+    # print('Load weights?');
+    # weightsloaded = False
+    # try:
+    #     model.load_weights(weightsfilepath)
+    #     weightsloaded = True
+    #     print(True)
+    # except IOError:
+    #     print(False)
+
+    # model.load_weights('hist/lstm_benchmark_gpu_weights.h5')
+    # print('Load weights?');
+    # print(model.get_weights() != False);
+   
+    # print(model.get_weights());
+
+    # model.stop_training = True
+    # if(model.stop_training != True):
+        
+    checkpoint = SmartCheckpoint(name,
+                                monitor='val_acc',
+                                verbose=1,
+                                save_best_only=True)
+    history = model.fit(X_train, y_train,
+                        batch_size=batch_size,
+                        nb_epoch=epochs,
+                        validation_data=(X_test, y_test),
+                        callbacks=[checkpoint])
+    # histDict = history.history
+        # model.save_weights()
+
+    # print()
+    
+    # json.dump(histDict,  open( historyFilePath, "wb" ))
     average_time_per_epoch = (time.time() - start_time) / epochs
 
     #results.append((history, average_time_per_epoch))
@@ -93,7 +203,4 @@ for mode in modes:
 # plt.show()
 
 
-# In[ ]:
-
-2
 
