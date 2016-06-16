@@ -24,79 +24,22 @@ can vary depending on your device, your model and the size of your data.
 # from IPython.core import debugger
 # from IPython import get_ipython
 # get_ipython().magic(u'matplotlib inline')
-import os
-import sys
+import sys, os
+sys.path.append(os.path.realpath("../../"))
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import json
+
 
 
 from keras.preprocessing import sequence
 from keras.models import Sequential
 from keras.layers import Embedding, Dense, LSTM
 from keras.datasets import imdb
-from keras.callbacks import History
-from keras.callbacks import ModelCheckpoint
-
-class SmartCheckpoint(ModelCheckpoint):
-    def __checkMaxEpoch(self, epoch):
-        if(epoch > self.max_epoch):
-            self.model.stop_training = True
-
-    def __init__(self, name, directory='', monitor='val_loss', verbose=0,
-                 save_best_only=False, mode='auto', max_epoch = sys.maxint):
-        self.name = name
-        self.smartDir = directory + 'SmartCheckpoint/'
-        self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
-        self.historyFilename = self.smartDir + name + "_history.json"
-        self.max_epoch = max_epoch
-        self.histDict = {}
-        
-
-     
+from CMS_SURF_2016.utils.callbacks import SmartCheckpoint
 
 
-        ModelCheckpoint.__init__(self, self.checkpointFilename,
-                monitor, verbose, save_best_only, mode)
-
-        # self.model.load_weights(self.checkpointFilename);
-
-    # def on_epoch_begin(self, epoch, logs={}):
-
-    def on_train_begin(self, logs={}):
-        if not os.path.exists(self.smartDir):
-            os.makedirs(self.smartDir)
-
-        print('Load history?');
-        try:
-            self.histDict = json.load(open( self.historyFilename, "rb" ))
-            print(True)
-        except (IOError, EOFError):
-            print(False)
-            # history = History()
-        # history.history = histDict
-        self.epochOffset = self.histDict.get("last_epoch", 0);
-        self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
-        print('Load weights?');
-        # weightsloaded = False
-        try:
-            self.model.load_weights(self.checkpointFilename)
-            # weightsloaded = True
-            print(True)
-        except IOError:
-            print(False)
-
-    def on_epoch_end(self, epoch, logs={}):
-        epoch = epoch + self.epochOffset + 1
-        ModelCheckpoint.on_epoch_end(self, epoch, logs)
-        self.histDict["last_epoch"] = epoch
-        self.histDict["epoch_" + str(epoch)] = logs.copy();
-        json.dump(self.histDict,  open( self.historyFilename, "wb" ))
-
-        self.__checkMaxEpoch(epoch + self.epochOffset)
-        
 
 
 
