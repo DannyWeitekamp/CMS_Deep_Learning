@@ -1,6 +1,16 @@
+'''
+metrics.py
+Contains custom metric utilities for ploting and displaying metrics.
+Author: Danny Weitekamp
+e-mail: dannyweitekamp@gmail.com
+''' 
+
 import matplotlib.pyplot as plt
 import numpy as np
 def plot_history( histories ):
+     """ Plots an array of training histories against each other
+        -input: [(String label, History hist), .... ]
+        -Adopted from Jean-Roch Vlimant's Kreas tutorial"""
     plt.figure(figsize=(10,10))
     #plt.ylim(bottom=0)
     plt.xlabel('Epoch')
@@ -42,13 +52,15 @@ def plot_history( histories ):
 
 
 def print_accuracy( p, test_target):
-    """ Prints the accuracy of a prediction array"""
+    """ Prints the accuracy of a prediction array.
+        -Taken from Jean-Roch Vlimant's Kreas tutorial"""
     p_cat = np.argmax(p,axis=1)
     print "Fraction of good prediction"
     print len(np.where( p_cat == test_target)[0])
     print len(np.where( p_cat == test_target )[0])/float(len(p_cat)),"%"
     
 def print_accuracy_m( model, test_data, test_target):
+    """ Prints the accuracy of a compiled model."""
     ##figure out the shape of the input expected
     if hasattr('input_dim', model.layers[0]):
         p=model.predict(test_data)

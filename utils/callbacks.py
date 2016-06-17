@@ -1,9 +1,21 @@
+''' 
+callbacks.py
+Contains custom callback objects.
+Author: Danny Weitekamp
+e-mail: dannyweitekamp@gmail.com
+''' 
+
+
 import os
 import sys
 import json
 from keras.callbacks import History
 from keras.callbacks import ModelCheckpoint
 class SmartCheckpoint(ModelCheckpoint):
+    ''' A smart checkpoint callback that automatically saves and loads training history, and weights
+        based on the name given at instantiation. Creates a SmartCheckpoint directory that stores
+        the data''' 
+
     def __checkMaxEpoch(self, epoch):
         if(epoch > self.max_epoch):
             self.model.stop_training = True
@@ -51,7 +63,7 @@ class SmartCheckpoint(ModelCheckpoint):
 
     def on_epoch_end(self, epoch, logs={}):
         histDict = self.histobj.history
-        
+
         epoch = epoch + self.epochOffset + 1
         ModelCheckpoint.on_epoch_end(self, epoch, logs)
         histDict["last_epoch"] = epoch
