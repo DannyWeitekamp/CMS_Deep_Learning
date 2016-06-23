@@ -11,6 +11,7 @@ import sys
 import json
 from keras.callbacks import History
 from keras.callbacks import ModelCheckpoint
+from keras.callbacks import EarlyStopping
 class SmartCheckpoint(ModelCheckpoint):
     ''' A smart checkpoint callback that automatically saves and loads training history, and weights
         based on the name given at instantiation. Creates a SmartCheckpoint directory that stores
