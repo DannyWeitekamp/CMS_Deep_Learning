@@ -103,7 +103,7 @@ class OverfitStopping(EarlyStopping):
     def __init__(self, monitor='val_loss', comparison_monitor="loss", max_percent_diff=.1, patience=0, verbose=0, mode='auto'):
         self.comparison_monitor = comparison_monitor
         self.max_percent_diff = max_percent_diff
-        EarlyStopping.__init__(monitor, patience=patience, verbose=verbose, mode=mode)
+        EarlyStopping.__init__(self,monitor, patience=patience, verbose=verbose, mode=mode)
         # self.monitor = monitor
         # self.patience = patience
         # self.verbose = verbose
