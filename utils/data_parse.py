@@ -7,8 +7,13 @@ e-mail: dannyweitekamp@gmail.com
 import ROOT
 from ROOT import TTree
 import pandas as pd
+# import e
 
-
+def generate_obj_leaves(objname, columns):
+	out = []
+	for col in columns:
+		out.append(objname + "." + col)
+	return out 
 
 def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 							trees=None,
@@ -52,7 +57,12 @@ def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 		tree = f.Get(tree_name)
 		l_leaves = []
 		for leaf in leaves:
-			l_leaves.append(tree.GetLeaf(leaf))
+			
+			l_leaf = tree.GetLeaf(leaf)
+			if(isinstance(l_leaf,ROOT.TLeafElement) == False):
+				raise ValueError("Leaf %r does not exist in tree %r." % (leaf,tree_name))
+
+			l_leaves.append(l_leaf)
 
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
