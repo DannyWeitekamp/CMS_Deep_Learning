@@ -8,7 +8,7 @@ e-mail: dannyweitekamp@gmail.com
 import matplotlib.pyplot as plt
 import numpy as np
 def plot_history( histories ):
-     """ Plots an array of training histories against each other
+    """ Plots an array of training histories against each other
         -input: [(String label, History hist), .... ]
         -Adopted from Jean-Roch Vlimant's Kreas tutorial"""
     plt.figure(figsize=(10,10))
