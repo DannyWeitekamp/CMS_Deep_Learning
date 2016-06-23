@@ -12,7 +12,6 @@ def plot_history( histories ):
         -input: [(String label, History hist), .... ]
         -Adopted from Jean-Roch Vlimant's Kreas tutorial"""
     plt.figure(figsize=(10,10))
-    #plt.ylim(bottom=0)
     plt.xlabel('Epoch')
     plt.ylabel('loss')
     plt.title('Training Error by Epoch')
