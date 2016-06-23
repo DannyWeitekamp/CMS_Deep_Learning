@@ -8,7 +8,6 @@ import ROOT
 from ROOT import TTree
 import pandas as pd
 
- 
 
 
 def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,

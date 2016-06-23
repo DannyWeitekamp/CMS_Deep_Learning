@@ -1,3 +1,10 @@
+''' 
+lorentz.py
+Contains the LorentzLayer
+Author: Danny Weitekamp
+e-mail: dannyweitekamp@gmail.com
+''' 
+
 from keras import backend as K
 from keras.constraints import maxnorm
 from keras.engine.topology import Layer
@@ -15,6 +22,9 @@ _K = K.variable(np_K)
 
 
 def _lorentz(x, boosts,weights=None, sphereCoords=False):
+    ''' Outputs a backend variable that Calculates the vectorial sum of 4-vectors
+        boosted individually into different reference frames
+    '''
     
     #Initialize Helpful variables
     x_shape = K.shape(x)
@@ -74,6 +84,13 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
     return out
 
 class LorentzLayer(Layer):
+    ''' A layer that uses the lorentz transformation to analyze input 4-vectors
+        in different relativistic frames.
+        Trains on a set of weights:
+            Bo (boost: which boosts each of any number of input 4-vectors)
+            W  (weight: applies a mulitplier to the boosted 4-vectors)
+            Bi (bias: boosts the vectorial sum of the input 4-vectors)
+    '''
     def __init__(self, cluster_size, sphereCoords=False, **kwargs):
         self.output_dim = 4
         self.sphereCoords = sphereCoords
