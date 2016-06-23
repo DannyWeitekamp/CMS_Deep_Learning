@@ -13,7 +13,7 @@ import pandas as pd
 def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 							trees=None,
 							columns=None,
-							entrylabel="Event",
+							entrylabel="Entry",
 							verbosity=1):
 	'''Extracts values from a .root file and writes them to pandas frame stored as an hdf5 file.
 		 Essentially takes root data out of its tree format and puts it in a table.
@@ -57,9 +57,9 @@ def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
 			#
-			entry_num = tree.GetEntry(entry)
+			tree.GetEntry(entry)
 			nValues = l_leaves[0].GetLen()
-			dataDict[entrylabel] = dataDict[entrylabel] + [entry_num]*nValues
+			dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
 			for j, l_leaf in enumerate(l_leaves):
 				assert l_leaf.GetLen() == nValues, "%r entries in leaf '%r' does not match  \
 					%r entries in leaf '%r'" % (l_leaf.GetLen(),l_leaf.GetName(), nValues, l_leaves[0].GetName())
