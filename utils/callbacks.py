@@ -17,17 +17,17 @@ class SmartCheckpoint(ModelCheckpoint):
         based on the name given at instantiation. Creates a SmartCheckpoint directory that stores
         the data''' 
 
-    def __checkMaxEpoch(self, epoch):
-        if(epoch > self.max_epoch):
-            self.model.stop_training = True
+    # def __checkMaxEpoch(self, epoch):
+    #     if(epoch > self.max_epoch):
+    #         self.model.stop_training = True
 
     def __init__(self, name, directory='', monitor='val_loss', verbose=0,
-                 save_best_only=False, mode='auto', max_epoch = sys.maxint):
+                 save_best_only=False, mode='auto'):
         self.name = name
         self.smartDir = directory + 'SmartCheckpoint/'
         self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
         self.historyFilename = self.smartDir + name + "_history.json"
-        self.max_epoch = max_epoch
+        # self.max_epoch = max_epoch
         self.histobj = History()
 
         histDict = {}
@@ -48,9 +48,8 @@ class SmartCheckpoint(ModelCheckpoint):
             for metric in metric_history:
                 if self.monitor_op(metric, self.best):
                     self.best = metric
-        # self.model.load_weights(self.checkpointFilename);
 
-    # def on_epoch_begin(self, epoch, logs={}):
+    
 
     def on_train_begin(self, logs={}):
         histDict = self.histobj.history
@@ -59,10 +58,9 @@ class SmartCheckpoint(ModelCheckpoint):
             os.makedirs(self.smartDir)
         
         self.epochOffset = histDict.get("last_epoch", 0);
-        self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
+        # self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
         try:
             self.model.load_weights(self.checkpointFilename)
-            # weightsloaded = True
             print('Sucessfully loaded weights at ' + self.checkpointFilename)
         except (IOError, EOFError):
             print('Failed to load weights at ' + self.checkpointFilename)
@@ -74,17 +72,13 @@ class SmartCheckpoint(ModelCheckpoint):
         epoch = epoch + self.epochOffset + 1
         ModelCheckpoint.on_epoch_end(self, epoch, logs)
         histDict["last_epoch"] = epoch
-        # print(histDict)
-        # self.histDict["epoch_" + str(epoch)] = logs.copy();
-        # self.epoch.append(epoch)
         for k, v in logs.items():
             if k not in histDict:
                 histDict[k] = []
             histDict[k].append(v)
-        # print(histDict)
         json.dump(histDict,  open( self.historyFilename, "wb" ))
 
-        self.__checkMaxEpoch(epoch + self.epochOffset)
+        # self.__checkMaxEpoch(epoch + self.epochOffset)
 
 
 class OverfitStopping(EarlyStopping):
@@ -104,25 +98,6 @@ class OverfitStopping(EarlyStopping):
         self.comparison_monitor = comparison_monitor
         self.max_percent_diff = max_percent_diff
         EarlyStopping.__init__(self,monitor, patience=patience, verbose=verbose, mode=mode)
-        # self.monitor = monitor
-        # self.patience = patience
-        # self.verbose = verbose
-        # self.wait = 0
-
-        # if mode not in ['auto', 'min', 'max']:
-        #     warnings.warn('EarlyStopping mode %s is unknown, '
-        #                   'fallback to auto mode.' % (self.mode), RuntimeWarning)
-        #     mode = 'auto'
-
-        # if mode == 'min':
-        #     self.monitor_op = np.less
-        # elif mode == 'max':
-        #     self.monitor_op = np.greater
-        # else:
-        #     if 'acc' in self.monitor:
-        #         self.monitor_op = np.greater
-        #     else:
-        #         self.monitor_op = np.less
 
     def on_train_begin(self, logs={}):
         self.wait = 0       # Allow instances to be re-used
