@@ -150,7 +150,7 @@ def ROOT_to_pandas(inputfilepath,
 			if(len(l_leaves) > 0 ):
 				nValues = l_leaves[0].GetLen()
 			elif(len(procedures) > 0):
-				nValues = get_leaf(procedures[0].input_leaves[0]).GetLen()
+				nValues = (procedures[0].input_leaf_objs[0]).GetLen()
 			else:
 				nValues = 0
 
