@@ -113,15 +113,22 @@ def ROOT_to_pandas(inputfilepath,
 	for name in columns:
 		dataDict[name] = []
 
+
+
 	for tree_name in trees:
 		tree = f.Get(tree_name)
+		def get_leaf(leaf):
+			try:
+				return tree.GetLeaf(leaf)
+			except ReferenceError:
+				raise ValueError("Tree %r has no leaf %r." % (tree.GetName(), leaf))
 		l_leaves = []
 		procedures = []
 		for leaf in leaves:
 			if(isinstance(leaf,DataProcessingProcedure)):
 				procedures.append(leaf)
 			else:
-				l_leaf = tree.GetLeaf(leaf)
+				l_leaf = get_leaf(leaf)
 				if(isinstance(l_leaf,ROOT.TLeafElement) == False):
 					raise ValueError("Leaf %r does not exist in tree %r." % (leaf,tree_name))
 				l_leaves.append(l_leaf)
@@ -132,7 +139,7 @@ def ROOT_to_pandas(inputfilepath,
 			if(len(l_leaves) > 0 ):
 				nValues = l_leaves[0].GetLen()
 			elif(len(procedures) > 0):
-				nValues = tree.GetLeaf(procedures[0].input_leaves[0]).GetLen()
+				nValues = get_leaf(procedures[0].input_leaves[0]).GetLen()
 			else:
 				nValues = 0
 
@@ -146,7 +153,7 @@ def ROOT_to_pandas(inputfilepath,
 				for i in range(nValues):
 					inputs = []
 					for k, leaf in enumerate(proc.input_leaves):
-						inputs.append(tree.GetLeaf(leaf).GetValue(i))
+						inputs.append(get_leaf(leaf).GetValue(i))
 					out = proc(inputs)
 					for k, name in enumerate(proc.output_names):
 						dataDict[name].append(out[k])
