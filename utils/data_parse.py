@@ -39,18 +39,16 @@ def generate_obj_leaves(objname, columns):
 			out_col.append(col)
 	return out, out_col
 
-def extract_ROOT_data_to_hdf(inputfilepath,
-							outputfilepath,
-							leaves,
-							trees=None,
-							columns=None,
-							entrylabel="Entry",
-							verbosity=1):
-	'''Extracts values from a .root file and writes them to pandas frame stored as an hdf5 file.
+def ROOT_to_pandas(inputfilepath,
+					leaves,
+					trees=None,
+					columns=None,
+					entrylabel="Entry",
+					verbosity=1):
+	'''Extracts values from a .root file and writes them to a pandas frame.
 		 Essentially takes root data out of its tree format and puts it in a table.
     # Arguments
         inputfilepath: The path to the .root file held locally or in a distributed system
-        outputfilepath: The path to the HDF5 file
         leaves: A list of the names of the leaves that need to be extracted 
         trees: A list of the trees in the .root file that need to be parsed.
         	Reads all trees in the file if not set.
@@ -161,9 +159,9 @@ def extract_ROOT_data_to_hdf(inputfilepath,
 	elif(verbosity > 0):
 		with pd.option_context('display.max_rows', 10 , 'display.max_columns', 10): 
 			print(dataframe)
-
-	if(verbosity > 0): print("Exporting To " + outputfilepath)
-	dataframe.to_hdf(outputfilepath,'data')
+	return dataframe
+	# if(verbosity > 0): print("Exporting To " + outputfilepath)
+	# dataframe.to_hdf(outputfilepath,'data')
 
 
 

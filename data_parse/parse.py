@@ -2,7 +2,7 @@ import sys, os
 if __package__ is None:
 	import sys, os
 	sys.path.append(os.path.realpath("../../"))
-from CMS_SURF_2016.utils.data_parse import extract_ROOT_data_to_hdf
+from CMS_SURF_2016.utils.data_parse import ROOT_to_pandas
 from CMS_SURF_2016.utils.data_parse import generate_obj_leaves
 from CMS_SURF_2016.utils.data_parse import DataProcessingProcedure
 import numpy as np
@@ -34,8 +34,8 @@ leaves, columns = generate_obj_leaves("Photon", columns)
 # print(leaves)
 # print(columns)
 # print()
-extract_ROOT_data_to_hdf("../data/ttbar_13TeV_80.root",
-						 "ttbar_13TeV_80.h5",
-						  leaves,
-						  columns=columns,
-						  verbosity=1)
+frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",
+					  leaves,
+					  columns=columns,
+					  verbosity=1)
+frame.to_hdf("ttbar_13TeV_80.h5", 'data')
