@@ -15,12 +15,17 @@ class DataProcessingProcedure():
 	 	self.func = func
 	 	self.input_leaves = input_leaves
 	 	self.output_names = output_names
+	 	self.input_leaf_objs = []
 	 
 
 	 def __call__(self, inputs):
 	 	# out = 
 	 	# print(out)
 	 	return self.func(inputs)
+
+	 def __str__(self):
+	 	return "%r -> %r" % (self.input_leaves, self.output_names)
+
 
 
 def generate_obj_leaves(objname, columns):
@@ -80,7 +85,7 @@ def ROOT_to_pandas(inputfilepath,
 			if(writeColumns):
 				columns = columns + leaf.output_names
 			if(verbosity > 0):
-				print("Procedure at column %r maps %r -> %r" % (col_iter+1, leaf.input_leaves, leaf.output_names))
+				print("Procedure at column %r maps %r" % (col_iter+1, str(leaf)))
 			col_iter += len(leaf.output_names)
 
 		else:
@@ -117,20 +122,26 @@ def ROOT_to_pandas(inputfilepath,
 
 	for tree_name in trees:
 		tree = f.Get(tree_name)
-		def get_leaf(leaf):
-			try:
-				return tree.GetLeaf(leaf)
-			except ReferenceError:
-				raise ValueError("Tree %r has no leaf %r." % (tree.GetName(), leaf))
+		
+
+
 		l_leaves = []
 		procedures = []
 		for leaf in leaves:
 			if(isinstance(leaf,DataProcessingProcedure)):
-				procedures.append(leaf)
+				proc = leaf
+				procedures.append(proc)
+				for l in proc.input_leaves:
+					obj = tree.GetLeaf(l)
+					# print(obj)
+					if(isinstance(obj,ROOT.TLeafElement) == False):
+						raise ValueError("Input Leaf %r in Procedure %r does not exist in Tree %r" % (l,str(proc), tree_name))
+					proc.input_leaf_objs.append(obj)
+
 			else:
-				l_leaf = get_leaf(leaf)
+				l_leaf = tree.GetLeaf(leaf)
 				if(isinstance(l_leaf,ROOT.TLeafElement) == False):
-					raise ValueError("Leaf %r does not exist in tree %r." % (leaf,tree_name))
+					raise ValueError("Leaf %r does not exist in Tree %r." % (leaf,tree_name))
 				l_leaves.append(l_leaf)
 
 		n_entries=tree.GetEntries()
@@ -152,8 +163,8 @@ def ROOT_to_pandas(inputfilepath,
 			for j, proc in enumerate(procedures):
 				for i in range(nValues):
 					inputs = []
-					for k, leaf in enumerate(proc.input_leaves):
-						inputs.append(get_leaf(leaf).GetValue(i))
+					for k, l_leaf in enumerate(proc.input_leaf_objs):
+						inputs.append(l_leaf.GetValue(i))
 					out = proc(inputs)
 					for k, name in enumerate(proc.output_names):
 						dataDict[name].append(out[k])
