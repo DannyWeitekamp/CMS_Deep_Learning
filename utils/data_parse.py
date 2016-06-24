@@ -28,7 +28,7 @@ class DataProcessingProcedure():
 
 
 
-def generate_obj_leaves(objname, columns):
+def leaves_from_obj(objname, columns):
 	out = []
 	out_col = []
 	for col in columns:
