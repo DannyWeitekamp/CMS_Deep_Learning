@@ -9,13 +9,39 @@ from ROOT import TTree
 import pandas as pd
 # import e
 
+class DataProcessingProcedure():
+
+	 def __init__(self, func, input_leaves, output_names):
+	 	self.func = func
+	 	self.input_leaves = input_leaves
+	 	self.output_names = output_names
+	 
+
+	 def __call__(self, inputs):
+	 	# out = 
+	 	# print(out)
+	 	return self.func(inputs)
+
+
 def generate_obj_leaves(objname, columns):
 	out = []
+	out_col = []
 	for col in columns:
-		out.append(objname + "." + col)
-	return out 
+		if(isinstance(col,str)):
+			out.append(objname + "." + col)
+			out_col.append(col)
+		elif(isinstance(col,DataProcessingProcedure)):
+			out.append(col)
+			for name in col.output_names:
+				out_col.append(name)
+		else:
+			out.append(col)
+			out_col.append(col)
+	return out, out_col
 
-def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
+def extract_ROOT_data_to_hdf(inputfilepath,
+							outputfilepath,
+							leaves,
 							trees=None,
 							columns=None,
 							entrylabel="Entry",
@@ -39,14 +65,50 @@ def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 	if(trees == None):
 		trees = [x.GetName() for x in f.GetListOfKeys() if isinstance(x.ReadObj(), TTree)]
 	if(verbosity > 0): print("Using trees: " + ', '.join(trees))
-	if(verbosity > 0): print("Extracting Leaves: " + ', '.join(leaves))
 	
+	writeColumns = False
 	if(columns == None):
-		columns = leaves
-	else:
-		assert len(leaves) == len(columns), "columns input length mismatch: \
-			len(leaves) = %r , len(columns) = %r" % (len(leaves), len(columns))
+		columns = []
+		writeColumns = True
+
+	columnmap = {}
+	output_length = 0
+	leaf_names = []
+	col_iter = 0
+	for leaf in leaves:
+		if(isinstance(leaf,DataProcessingProcedure)):
+			output_length += len(leaf.output_names)
+			leaf_names = leaf_names + leaf.input_leaves
+			if(writeColumns):
+				columns = columns + leaf.output_names
+			if(verbosity > 0):
+				print("Procedure at column %r maps %r -> %r" % (col_iter+1, leaf.input_leaves, leaf.output_names))
+			col_iter += len(leaf.output_names)
+
+		else:
+			leaf_names.append(leaf)
+			if(writeColumns):
+				columns.append(leaf)
+			try:
+				columnmap[leaf] = columns[col_iter]
+			except (IndexError):
+				raise ValueError("Too few Columns for evaluated output: \n Columns:%r" % columns)
+							
+			col_iter += 1
+			output_length += 1
+
+	if(columns == None):
+		columns = leaf_names
+		
+
+	if(verbosity > 0):
+		print("Extracting Leaves: " + ', '.join(leaf_names))
+	if(~writeColumns):
 		if(verbosity > 0): print("Renaming to: " + ', '.join(columns))
+
+	assert output_length == len(columns), "columns input length mismatch: \
+			len(leaves) = %r , len(columns) = %r" % (output_length, len(columns))
+
 
 	dataDict = {}
 	dataDict[entrylabel] = []
@@ -56,29 +118,43 @@ def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 	for tree_name in trees:
 		tree = f.Get(tree_name)
 		l_leaves = []
+		procedures = []
 		for leaf in leaves:
-			
-			l_leaf = tree.GetLeaf(leaf)
-			if(isinstance(l_leaf,ROOT.TLeafElement) == False):
-				raise ValueError("Leaf %r does not exist in tree %r." % (leaf,tree_name))
-
-			l_leaves.append(l_leaf)
+			if(isinstance(leaf,DataProcessingProcedure)):
+				procedures.append(leaf)
+			else:
+				l_leaf = tree.GetLeaf(leaf)
+				if(isinstance(l_leaf,ROOT.TLeafElement) == False):
+					raise ValueError("Leaf %r does not exist in tree %r." % (leaf,tree_name))
+				l_leaves.append(l_leaf)
 
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
-			#
 			tree.GetEntry(entry)
-			nValues = l_leaves[0].GetLen()
+			if(len(l_leaves) > 0 ):
+				nValues = l_leaves[0].GetLen()
+			elif(len(procedures) > 0):
+				nValues = tree.GetLeaf(procedures[0].input_leaves[0]).GetLen()
+			else:
+				nValues = 0
+
 			dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
 			for j, l_leaf in enumerate(l_leaves):
 				assert l_leaf.GetLen() == nValues, "%r entries in leaf '%r' does not match  \
 					%r entries in leaf '%r'" % (l_leaf.GetLen(),l_leaf.GetName(), nValues, l_leaves[0].GetName())
 				for i in range(nValues):
-					dataDict[columns[j]].append(l_leaf.GetValue(i))
+					dataDict[columnmap[l_leaf.GetName()]].append(l_leaf.GetValue(i))
+			for j, proc in enumerate(procedures):
+				for i in range(nValues):
+					inputs = []
+					for k, leaf in enumerate(proc.input_leaves):
+						inputs.append(tree.GetLeaf(leaf).GetValue(i))
+					out = proc(inputs)
+					for k, name in enumerate(proc.output_names):
+						dataDict[name].append(out[k])
 
-
+	
 	dataframe = pd.DataFrame(dataDict, columns=[entrylabel]+columns)
-	# if(verbosity > 0):
 	if(verbosity > 1):
 		with pd.option_context('display.max_rows', 999, 'display.max_columns', 10): 
 			print(dataframe)
@@ -88,3 +164,6 @@ def extract_ROOT_data_to_hdf(inputfilepath, outputfilepath , leaves,
 
 	if(verbosity > 0): print("Exporting To " + outputfilepath)
 	dataframe.to_hdf(outputfilepath,'data')
+
+
+
