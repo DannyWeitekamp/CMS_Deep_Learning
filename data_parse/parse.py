@@ -41,7 +41,7 @@ leaves, columns = leaves_from_obj("Photon", columns)
 # frame.to_hdf("ttbar_13TeV_80.h5", 'data')
 
 
-E_over_c_proc = DataProcessingProcedure(lambda x:(x[0]/C), ["Particle.E"], ["E/c"])
+E_over_c_proc = DataProcessingProcedure(lambda x:[x[0]/C], ["Particle.E"], ["E/c"])
 columns= [E_over_c_proc, "Px", "Py", "Pz", "PID", "Charge"]
 leaves, columns = leaves_from_obj("Particle", columns)
 particle_frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",

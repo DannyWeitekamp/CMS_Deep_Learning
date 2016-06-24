@@ -7,28 +7,54 @@ e-mail: dannyweitekamp@gmail.com
 import ROOT
 from ROOT import TTree
 import pandas as pd
-# import e
+import sys
+import time
+
 
 class DataProcessingProcedure():
-
-	 def __init__(self, func, input_leaves, output_names):
+	'''
+		An object that can be passed as a leaf in ROOT_to_pandas. Instead of simply grabbing a
+		leaf, it takes in data and applies a function to it. The outputs of that function are
+		written instead of the leaf to the pandas frame.
+	'''
+	def __init__(self, func, input_leaves, output_names):
+	 	'''
+	 		Initialization
+	 	# Arguments
+        	func: a function that maps the inputs (a list or tuple)
+        		 to the outputs (a list or tuple).
+        	input_leaves: The fully qualifed names of the leaves whose
+        		values func will take as inputs
+        	output_names: The names of the column headers for the outputs
+	 	'''
 	 	self.func = func
 	 	self.input_leaves = input_leaves
 	 	self.output_names = output_names
 	 	self.input_leaf_objs = []
 	 
 
-	 def __call__(self, inputs):
-	 	# out = 
-	 	# print(out)
+	def __call__(self, inputs):
 	 	return self.func(inputs)
 
-	 def __str__(self):
+	def __str__(self):
 	 	return "%r -> %r" % (self.input_leaves, self.output_names)
 
 
 
 def leaves_from_obj(objname, columns):
+	'''
+		Takes the name of an object and a list of properties (Columns). Expands like So 
+		leaves_from_obj("ObjectName", ["Prop1, "Prop2", "Prop3"]) ->
+		 ["ObjectName.Prop1, "ObjectName.Prop2", "ObjectName.Prop3"] , ["Prop1, "Prop2", "Prop3"]
+		Can also take in DataProcessingProcedures which it will properly expand in the column output
+		# Arguments
+        	objname: The name of the object
+        	input_leaves: The name of its properties 
+        # Returns
+        	leaves, columns
+        	leaves: The a list of fully qualified leaf names
+        	columns: The a list of column names. Expanded if a DataProcessingProcedure was given.
+	'''
 	out = []
 	out_col = []
 	for col in columns:
@@ -48,6 +74,7 @@ def ROOT_to_pandas(inputfilepath,
 					leaves,
 					trees=None,
 					columns=None,
+					addEntry=True,
 					entrylabel="Entry",
 					verbosity=1):
 	'''Extracts values from a .root file and writes them to a pandas frame.
@@ -61,8 +88,11 @@ def ROOT_to_pandas(inputfilepath,
         	if not seet
         verbosity: 0:No print output, 1:Some, 2:A lot of the table is printed
     '''
+    #Open the root file
 	f = ROOT.TFile.Open(inputfilepath)
 
+	if(verbosity > 0):
+		last_time = start_time = time.clock()
 	if(verbosity > 0): print("Extracting data from " + inputfilepath)
 
 	if(trees == None):
@@ -74,6 +104,7 @@ def ROOT_to_pandas(inputfilepath,
 		columns = []
 		writeColumns = True
 
+	#Loop over the leaves, and make sure they are in the correct format. Also do some preprocessing.
 	columnmap = {}
 	output_length = 0
 	leaf_names = []
@@ -100,6 +131,7 @@ def ROOT_to_pandas(inputfilepath,
 			col_iter += 1
 			output_length += 1
 
+	#if we didn't get any column names, just names just use the fully qualified leaf names
 	if(columns == None):
 		columns = leaf_names
 		
@@ -119,12 +151,11 @@ def ROOT_to_pandas(inputfilepath,
 		dataDict[name] = []
 
 
-
+	#Loop over the tree
 	for tree_name in trees:
 		tree = f.Get(tree_name)
-		
 
-
+		#Make sure that the leaves all exist in the tree
 		l_leaves = []
 		procedures = []
 		for leaf in leaves:
@@ -133,7 +164,6 @@ def ROOT_to_pandas(inputfilepath,
 				procedures.append(proc)
 				for l in proc.input_leaves:
 					obj = tree.GetLeaf(l)
-					# print(obj)
 					if(isinstance(obj,ROOT.TLeafElement) == False):
 						raise ValueError("Input Leaf %r in Procedure %r does not exist in Tree %r" % (l,str(proc), tree_name))
 					proc.input_leaf_objs.append(obj)
@@ -144,9 +174,25 @@ def ROOT_to_pandas(inputfilepath,
 					raise ValueError("Leaf %r does not exist in Tree %r." % (leaf,tree_name))
 				l_leaves.append(l_leaf)
 
+		#Loop over all the entries 
+		percent = 0.
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
+			if(verbosity > 0):
+				c = time.clock() 
+				if(c > last_time + .25):
+					percent = float(entry)/float(n_entries)
+					sys.stdout.write('\r')
+					# the exact output you're looking for:
+					sys.stdout.write("[%-20s] %r/%r" % ('='*int(20*percent), entry, int(n_entries)))
+					sys.stdout.flush()
+					last_time = c
+
+
+			#Point the tree to the next entry <- IMPORTANT this is how we loop
 			tree.GetEntry(entry)
+
+			#Entries have multiple values that we need to extract. Get that number
 			if(len(l_leaves) > 0 ):
 				nValues = l_leaves[0].GetLen()
 			elif(len(procedures) > 0):
@@ -154,35 +200,53 @@ def ROOT_to_pandas(inputfilepath,
 			else:
 				nValues = 0
 
-			dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
+			#In case the entries are grouped in some way, store what entry we are in in the table
+			if(addEntry):
+				dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
+
+			#Loop over all the leaves that we just need to copy
 			for j, l_leaf in enumerate(l_leaves):
 				assert l_leaf.GetLen() == nValues, "%r entries in leaf '%r' does not match  \
 					%r entries in leaf '%r'" % (l_leaf.GetLen(),l_leaf.GetName(), nValues, l_leaves[0].GetName())
+				#Place all the values in the dictionary
 				for i in range(nValues):
 					dataDict[columnmap[l_leaf.GetName()]].append(l_leaf.GetValue(i))
+
+			#Loop over all the DataProcessingProcedures
 			for j, proc in enumerate(procedures):
 				for i in range(nValues):
 					inputs = []
+
+					#Loop over all the leaves that we for DataProcessingProcedure inputs
 					for k, l_leaf in enumerate(proc.input_leaf_objs):
 						inputs.append(l_leaf.GetValue(i))
+
+					#Apply the mapping function
 					out = proc(inputs)
+
+					#If we forgot to make the output of our function a list, fix that.
 					if isinstance(out, (list, tuple)) == False:
 						out = [out]
-					# print(out)
+
+					#Put our outputs in the dictionary
 					for k, name in enumerate(proc.output_names):
 						dataDict[name].append(out[k])
-
+	if(addEntry):
+		columns = [entrylabel]+columns
 	
-	dataframe = pd.DataFrame(dataDict, columns=[entrylabel]+columns)
+	#Make the dataframe from the dictionary
+	dataframe = pd.DataFrame(dataDict, columns=columns)
 	if(verbosity > 1):
 		with pd.option_context('display.max_rows', 999, 'display.max_columns', 10): 
 			print(dataframe)
 	elif(verbosity > 0):
 		with pd.option_context('display.max_rows', 10 , 'display.max_columns', 10): 
 			print(dataframe)
+	if(verbosity > 0):
+		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
 	return dataframe
-	# if(verbosity > 0): print("Exporting To " + outputfilepath)
-	# dataframe.to_hdf(outputfilepath,'data')
 
 
+
+    
 
