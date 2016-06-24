@@ -166,6 +166,9 @@ def ROOT_to_pandas(inputfilepath,
 					for k, l_leaf in enumerate(proc.input_leaf_objs):
 						inputs.append(l_leaf.GetValue(i))
 					out = proc(inputs)
+					if isinstance(out, (list, tuple)) == False:
+						out = [out]
+					# print(out)
 					for k, name in enumerate(proc.output_names):
 						dataDict[name].append(out[k])
 

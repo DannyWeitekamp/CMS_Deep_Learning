@@ -34,14 +34,14 @@ leaves, columns = generate_obj_leaves("Photon", columns)
 # print(leaves)
 # print(columns)
 # print()
-frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",
-					  leaves,
-					  columns=columns,
-					  verbosity=1)
-frame.to_hdf("ttbar_13TeV_80.h5", 'data')
+# frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",
+# 					  leaves,
+# 					  columns=columns,
+# 					  verbosity=1)
+# frame.to_hdf("ttbar_13TeV_80.h5", 'data')
 
 
-E_over_c_proc = DataProcessingProcedure(lambda x:x[0]/C, ["E"], ["E/c"])
+E_over_c_proc = DataProcessingProcedure(lambda x:(x[0]/C), ["Particle.E"], ["E/c"])
 columns= [E_over_c_proc, "Px", "Py", "Pz", "PID", "Charge"]
 leaves, columns = generate_obj_leaves("Particle", columns)
 particle_frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",
