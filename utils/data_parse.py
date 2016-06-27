@@ -162,6 +162,7 @@ def ROOT_to_pandas(inputfilepath,
 			if(isinstance(leaf,DataProcessingProcedure)):
 				proc = leaf
 				procedures.append(proc)
+				proc.input_leaf_objs = []
 				for l in proc.input_leaves:
 					obj = tree.GetLeaf(l)
 					if(isinstance(obj,ROOT.TLeafElement) == False):
@@ -193,7 +194,7 @@ def ROOT_to_pandas(inputfilepath,
 			tree.GetEntry(entry)
 
 			#Entries have multiple values that we need to extract. Get that number
-			if(len(l_leaves) > 0 ):
+			if(len(l_leaves) > 0):
 				nValues = l_leaves[0].GetLen()
 			elif(len(procedures) > 0):
 				nValues = (procedures[0].input_leaf_objs[0]).GetLen()
