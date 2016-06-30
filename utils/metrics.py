@@ -63,4 +63,4 @@ def print_accuracy_m( model, test_data, test_target):
     ##figure out the shape of the input expected
     #if hasattr('input_dim', model.layers[0]):
     p=model.predict(test_data)
-    accuracy(p)
+    print_accuracy(p, test_target)
