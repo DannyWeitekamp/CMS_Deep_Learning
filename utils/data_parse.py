@@ -9,6 +9,7 @@ from ROOT import TTree
 import pandas as pd
 import sys
 import time
+import gc
 
 
 class DataProcessingProcedure():
@@ -88,6 +89,7 @@ def ROOT_to_pandas(inputfilepath,
         	if not seet
         verbosity: 0:No print output, 1:Some, 2:A lot of the table is printed
     '''
+    gc.disable()
     #Open the root file
 	f = ROOT.TFile.Open(inputfilepath)
 
@@ -200,8 +202,11 @@ def ROOT_to_pandas(inputfilepath,
 				nValues = (procedures[0].input_leaf_objs[0]).GetLen()
 			else:
 				nValues = 0
-
-			#In case the entries are grouped in some way, store what entry we are in in the table
+			if(entry == 8):
+				#print(l_leaves[0].GetLen())
+				print((procedures[0].input_leaf_objs[0]).GetLen())
+				print(entry, nValues)
+			#Store what entry we are in in the table
 			if(addEntry):
 				dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
 
@@ -245,6 +250,7 @@ def ROOT_to_pandas(inputfilepath,
 			print(dataframe)
 	if(verbosity > 0):
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
+	gc.enable()
 	return dataframe
 
 
