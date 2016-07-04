@@ -89,9 +89,9 @@ def ROOT_to_pandas(inputfilepath,
         	if not seet
         verbosity: 0:No print output, 1:Some, 2:A lot of the table is printed
     '''
-    gc.disable()
     #Open the root file
 	f = ROOT.TFile.Open(inputfilepath)
+	gc.disable()
 
 	if(verbosity > 0):
 		last_time = start_time = time.clock()
