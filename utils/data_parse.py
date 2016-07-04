@@ -91,7 +91,6 @@ def ROOT_to_pandas(inputfilepath,
     '''
     #Open the root file
 	f = ROOT.TFile.Open(inputfilepath)
-	gc.disable()
 
 	if(verbosity > 0):
 		last_time = start_time = time.clock()
@@ -156,6 +155,7 @@ def ROOT_to_pandas(inputfilepath,
 	#Loop over the tree
 	for tree_name in trees:
 		tree = f.Get(tree_name)
+		tree.SetCacheSize(30*1024*1024)
 
 		#Make sure that the leaves all exist in the tree
 		l_leaves = []
@@ -247,7 +247,6 @@ def ROOT_to_pandas(inputfilepath,
 			print(dataframe)
 	if(verbosity > 0):
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
-	gc.enable()
 	return dataframe
 
 
