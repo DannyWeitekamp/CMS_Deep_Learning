@@ -202,10 +202,7 @@ def ROOT_to_pandas(inputfilepath,
 				nValues = (procedures[0].input_leaf_objs[0]).GetLen()
 			else:
 				nValues = 0
-			if(entry == 8):
-				#print(l_leaves[0].GetLen())
-				print((procedures[0].input_leaf_objs[0]).GetLen())
-				print(entry, nValues)
+			
 			#Store what entry we are in in the table
 			if(addEntry):
 				dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
