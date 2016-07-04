@@ -338,3 +338,67 @@ qcd_jobs = makeJobs("qcd_lepFilter_13TeV", ["unjoined"])
 jobs = roundrobin(ttbar_jobs, WJet_jobs, qcd_jobs)
 
 
+from multiprocessing.dummy import Pool
+from multiprocessing import Process, Queue
+import time
+
+#queue = Queue()
+
+#for job in jobs:
+#    queue.put(job)
+
+#def getAndDoJob(queue):
+#    job = queue.get()
+#    print(job[2])
+
+job_itr = iter(jobs)
+
+def doJob(job):
+    #time.sleep(int(1))
+    if(job[0] == "unjoined"):
+        #print()
+        #print(job[0])
+        print(job[1])
+        #print(job[2])
+        #storeAllUnjoined(job[1], job[2])
+    elif(job[0] == "joined"):
+        print(job)
+    return job[1]
+
+pool = Pool(4)
+
+def mycallback(x):
+    print(x)
+    sys.stdout.flush()
+
+results = []
+for job in jobs:
+    r = pool.apply_async(doJob, args=[job], callback=mycallback)
+    results.append(r)
+#pool.close()
+#pool.join() 
+for r in results:
+    r.wait()
+#processes = []
+#for i in range(4):
+#    p = Process(target=getAndDoJob, args=(queue,))
+#    p.daemon = True
+#    p.start()
+#    processes.append(p)
+    #p.join()
+#for p in processes:
+#    p.join()
+#pool = ThreadPool(4)
+
+
+#pool.map_async(doJob, jobs, callback=mycallback)
+
+
+#for job in jobs:
+    
+        #frame = getPandasAll(job[1])
+        #frame.to_hdf(job[2], 'data', mode='w')
+#print(job[0])
+#print(job[1])
+#print(job[2])
+#storeAllUnjoined(job[1], job[2])
