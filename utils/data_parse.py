@@ -135,10 +135,13 @@ def ROOT_to_pandas(inputfilepath,
 	#if we didn't get any column names, just names just use the fully qualified leaf names
 	if(columns == None):
 		columns = leaf_names
-		
+
+	seen = set()
+    seen_add = seen.add
+    leaf_names_no_repeat = [x for x in seq if not (x in seen or seen_add(x))]
 
 	if(verbosity > 0):
-		print("Extracting Leaves: " + ', '.join(leaf_names))
+		print("Extracting Leaves: " + ', '.join(leaf_names_no_repeat))
 	if(~writeColumns):
 		if(verbosity > 0): print("Renaming to: " + ', '.join(columns))
 
@@ -156,6 +159,8 @@ def ROOT_to_pandas(inputfilepath,
 	for tree_name in trees:
 		tree = f.Get(tree_name)
 		tree.SetCacheSize(30*1024*1024)
+		for(leaf_name in leaf_names_no_repeat):
+			tree.AddBranchToCache(leaf_name)
 
 		#Make sure that the leaves all exist in the tree
 		l_leaves = []
@@ -241,6 +246,9 @@ def ROOT_to_pandas(inputfilepath,
 	
 	#Make the dataframe from the dictionary
 	dataframe = pd.DataFrame(dataDict, columns=columns)
+	f = None
+	t = None
+	dataDict = None
 	if(verbosity > 1):
 		with pd.option_context('display.max_rows', 999, 'display.max_columns', 10): 
 			print(dataframe)
