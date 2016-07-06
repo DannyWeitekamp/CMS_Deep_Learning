@@ -295,7 +295,150 @@ def ROOT_to_pandas(inputfilepath,
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
 	return dataframe
 
+def four_vec_from_PT(inputs, M):
+	'''Helper function that converts (PT, Eta, Phi) -> (E/c, Px, Py, Pz)'''
+    PT = inputs[0] 
+    Eta = inputs[1]
+    Phi = inputs[2]
+    #M has units of eV/(c^2)
+    if(M == None):
+        M = inputs[3]
+    momentum_mag = PT * np.cosh(Eta)
+   
+    E_over_c = np.sqrt(np.square(M) + np.square(momentum_mag))
+    px = PT * np.cos(Phi) 
+    py = PT * np.sin(Phi) 
+    pz = PT * np.sinh(Eta)
+    return [E_over_c, px, py, pz]
 
+#DEGENERATE
+def getPandasParticles(filename, cull=True):
+    #C=1 in natural units so no processing needs to be done
+    E_over_c_proc = DataProcessingProcedure(lambda x:x[0], ["Particle.E"], ["E/c"])
+    columns= [E_over_c_proc, "Px", "Py", "Pz", "PID", "Charge"]#, "Status"]
+    leaves, columns = leaves_from_obj("Particle", columns+["Phi", "Eta"] + dxy_proc + elfow_proc)
+    original_frame = ROOT_to_pandas(filename,
+                                 leaves,
+                                  columns=columns,
+                                  verbosity=1)
+    if(cull):
+        particle_frame = cullNonObservables(original_frame)
+    else:
+        particle_frame = original_frame
+    return particle_frame
+
+
+def getPandasSpecificObject(filename, name, mass=None, pid=None, chrg_def=-1, charge=None, XT="PT", Dxy_Ehad_Eem=None):
+	'''Converts a particular type of ROOT object to table format
+		Arguements:
+		filaname      -- Path to the .root filen
+		name          -- The name of the object being converted
+		mass=None     -- The mass of the object being converted, by default reads the mass from the object
+		pid=None      -- The pid of the object, by default reads the pid from the object
+		chrg_def=-1   -- The default charge of a particle, (e.g. an electron would be -1) as opposed to its anti-particle
+		charge=None   -- The charge, by default reads it from object
+		XT="PT"       -- The transverse measurement. Can be PT, ET, or MET. Used to compute the 4-momentum
+		Dxy_Ehad_Eem=None -- A string indicating if the Dxy,Ehad, or Eem properties should be read. They occupy one column since
+								they are never mutually non-zero.
+		Returns:
+		A pandas frame of the format: [E/c, Px, Py, Pz, PID, Charge, PT_ET, Eta, Phi, Dxy_Ehad_Eem]
+	'''
+    assert Dxy_Ehad_Eem in [None, "Dxy", "Ehad", "Eem"]
+    assert XT in ["PT", "ET", "MET"]
+    assert mass >= 0.0
+    
+    if(mass != None):
+        four_vec_inputs, dummy = leaves_from_obj(name, [XT, "Eta", "Phi"])
+    else:
+        four_vec_inputs, dummy = leaves_from_obj(name, [XT, "Eta", "Phi", "Mass"])
+        
+    four_vec_proc = DataProcessingProcedure(lambda x: four_vec_from_PT(x,mass)
+                                            , four_vec_inputs, ["E/c", "Px","Py","Pz"])
+    
+    #status_proc = DataProcessingProcedure(lambda x:[1], [], ["Status"])
+    
+    if(charge == None):
+        if(pid != None):
+            PID_charge_proc = DataProcessingProcedure(lambda x: [pid*chrg_def*x[0], x[0]]
+                                                      , [name + ".Charge"], ["PID", "Charge"])
+            columns=[four_vec_proc, PID_charge_proc]#, status_proc]
+        else:
+            columns=[four_vec_proc, "PID", "Charge"]#, status_proc]
+    else:
+        charge_proc = DataProcessingProcedure(lambda x: [charge], [], ["Charge"])
+        if(pid != None):
+            PID_proc = DataProcessingProcedure(lambda x: [pid], [], ["PID"])
+            columns=[four_vec_proc, PID_proc, charge_proc]#,status_proc]
+        else:
+            columns=[four_vec_proc, "PID", charge_proc]#,status_proc]
+        
+        
+    xt_proc = DataProcessingProcedure(lambda x: [x[0]], [name + "." + XT], ["PT_ET"])
+    if(Dxy_Ehad_Eem == None):
+        dxy_eflow_proc = DataProcessingProcedure(lambda x: [0], [], ["Dxy_Ehad_Eem"])
+    else:
+        dxy_eflow_proc = DataProcessingProcedure(lambda x: [x[0]], [name + "."+ Dxy_Ehad_Eem], ["Dxy_Ehad_Eem"])
+        
+    
+    leaves, columns = leaves_from_obj(name, columns+[xt_proc] + ["Phi", "Eta"] + [dxy_eflow_proc])
+
+    #Extract the tables from the root file
+    frame = ROOT_to_pandas(filename,
+                          leaves,
+                          columns=columns,
+                          verbosity=1)
+    return frame
+
+def getPandasPhotons(filename):
+	''' Returns a pandas frame derived from the Photon objects in the given ROOT file'''
+    return getPandasSpecificObject(filename, "Photon", mass=0, pid=22, charge=0)
+
+def getPandasElectrons(filename):
+	''' Returns a pandas frame derived from the Electron objects in the given ROOT file'''
+    return getPandasSpecificObject(filename, "Electron", mass=mass_of_electron, pid=11)
+
+def getPandasTightMuons(filename):
+	''' Returns a pandas frame derived from the MuonTight objects in the given ROOT file'''
+    return getPandasSpecificObject(filename, "MuonTight", mass=mass_of_muon, pid=13)
+
+def getPandasJets(filename):
+	''' Returns a pandas frame derived from the Jet objects in the given ROOT file'''
+    return getPandasSpecificObject(filename, "Jet", pid=100, chrg_def=1)
+
+def getPandasMissingET(filename, name="MissingET"):  
+	''' Returns a pandas frame derived from the MissingET objects in the given ROOT file'''
+    pid = 83
+    if(name == "PuppiMissingET"): pid=84
+    return getPandasSpecificObject(filename, name, mass=0, pid=pid,charge=0, XT="MET")
+
+def getPandasEFlowParticle(filename, name="EFlowPhoton"):  
+	''' Returns a pandas frame derived from the EFlowPhoton objects in the given ROOT file'''
+    pid = 90
+    Dxy_Ehad_Eem = "Eem"
+    if(name == "EFlowNeutralHadron"):
+        pid=91
+        Dxy_Ehad_Eem = "Ehad"
+    return getPandasSpecificObject(filename, name, mass=0, charge=0, pid=pid, XT="ET", Dxy_Ehad_Eem=Dxy_Ehad_Eem)
+
+def getPandasEFlowTrack(filename):  
+	''' Returns a pandas frame derived from the EFlowTrack objects in the given ROOT file'''
+    return getPandasSpecificObject(filename, "EFlowTrack", mass=0, charge=0, pid=89, XT="PT", Dxy_Ehad_Eem="Dxy")
+
+def getPandasAll(filename, cull=False, includePuppi=False):
+	''' Returns a pandas frame derived from several objects in the given ROOT file'''
+    lst = [getPandasPhotons(filename),
+                    getPandasElectrons(filename),
+                    getPandasTightMuons(filename),
+                    getPandasEFlowParticle(filename, name="EFlowNeutralHadron"),
+                    getPandasEFlowParticle(filename, name="EFlowPhoton"),
+                    getPandasEFlowTrack(filename),
+                    getPandasMissingET(filename)]
+    
+    if(includePuppi):
+        lst = lst + [getPandasMissingET(filename, "PuppiMissingET")]
+    #Merge all these frames
+    out = pd.concat(lst)
+    return out
 
     
 
