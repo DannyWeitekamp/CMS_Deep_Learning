@@ -137,8 +137,8 @@ def ROOT_to_pandas(inputfilepath,
 		columns = leaf_names
 
 	seen = set()
-    seen_add = seen.add
-    leaf_names_no_repeat = [x for x in seq if not (x in seen or seen_add(x))]
+	seen_add = seen.add
+	leaf_names_no_repeat = [x for x in leaf_names if not (x in seen or seen_add(x))]
 
 	if(verbosity > 0):
 		print("Extracting Leaves: " + ', '.join(leaf_names_no_repeat))
@@ -159,8 +159,12 @@ def ROOT_to_pandas(inputfilepath,
 	for tree_name in trees:
 		tree = f.Get(tree_name)
 		tree.SetCacheSize(30*1024*1024)
-		for(leaf_name in leaf_names_no_repeat):
-			tree.AddBranchToCache(leaf_name)
+		branches = []
+		for leaf_name in leaf_names_no_repeat: 
+			b = tree.GetBranch(leaf_name)
+			branches.append(b)
+			tree.AddBranchToCache(b)
+		tree.StopCacheLearningPhase()
 
 		#Make sure that the leaves all exist in the tree
 		l_leaves = []
@@ -182,10 +186,32 @@ def ROOT_to_pandas(inputfilepath,
 					raise ValueError("Leaf %r does not exist in Tree %r." % (leaf,tree_name))
 				l_leaves.append(l_leaf)
 
+		total_values = 0
+		n_entries=tree.GetEntries()
+		for entry in range(n_entries):
+			tree.LoadTree(entry)
+			for b in branches:
+				b.GetEntry(entry)
+
+			tree.GetEntry(entry)
+			#Entries have multiple values that we need to extract. Get that number
+			if(len(l_leaves) > 0):
+				nValues = l_leaves[0].GetLen()
+			elif(len(procedures) > 0):
+				nValues = (procedures[0].input_leaf_objs[0]).GetLen()
+			else:
+				nValues = 0
+			total_values += nValues
+
+		for key in dataDict:
+			dataDict[key] = dataDict[key] + [None]*total_values
+
+
 		#Loop over all the entries 
 		percent = 0.
 		prev_entry = 0
-		n_entries=tree.GetEntries()
+		val_num = 0
+		#n_entries=tree.GetEntries()
 		for entry in range(n_entries):
 			if(verbosity > 0):
 				c = time.clock() 
@@ -200,6 +226,9 @@ def ROOT_to_pandas(inputfilepath,
 
 
 			#Point the tree to the next entry <- IMPORTANT this is how we loop
+			tree.LoadTree(entry)
+			for b in branches:
+				b.GetEntry(entry)
 			tree.GetEntry(entry)
 
 			#Entries have multiple values that we need to extract. Get that number
@@ -212,7 +241,9 @@ def ROOT_to_pandas(inputfilepath,
 			
 			#Store what entry we are in in the table
 			if(addEntry):
-				dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
+				for i in range(nValues):
+					# dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues
+					dataDict[entrylabel][val_num + i] = entry
 
 			#Loop over all the leaves that we just need to copy
 			for j, l_leaf in enumerate(l_leaves):
@@ -220,7 +251,8 @@ def ROOT_to_pandas(inputfilepath,
 					%r entries in leaf '%r'" % (l_leaf.GetLen(),l_leaf.GetName(), nValues, l_leaves[0].GetName())
 				#Place all the values in the dictionary
 				for i in range(nValues):
-					dataDict[columnmap[l_leaf.GetName()]].append(l_leaf.GetValue(i))
+					#dataDict[columnmap[l_leaf.GetName()]].append(l_leaf.GetValue(i))
+					dataDict[columnmap[l_leaf.GetName()]][val_num + i] = l_leaf.GetValue(i)
 
 			#Loop over all the DataProcessingProcedures
 			for j, proc in enumerate(procedures):
@@ -240,14 +272,17 @@ def ROOT_to_pandas(inputfilepath,
 
 					#Put our outputs in the dictionary
 					for k, name in enumerate(proc.output_names):
-						dataDict[name].append(out[k])
+						#dataDict[name].append(out[k])
+						dataDict[name][val_num + i] = (out[k])
+
+			val_num += nValues
 	if(addEntry):
 		columns = [entrylabel]+columns
 	
 	#Make the dataframe from the dictionary
 	dataframe = pd.DataFrame(dataDict, columns=columns)
-	f = None
-	t = None
+	# f = None
+	# t = None
 	dataDict = None
 	if(verbosity > 1):
 		with pd.option_context('display.max_rows', 999, 'display.max_columns', 10): 
@@ -256,6 +291,7 @@ def ROOT_to_pandas(inputfilepath,
 		with pd.option_context('display.max_rows', 10 , 'display.max_columns', 10): 
 			print(dataframe)
 	if(verbosity > 0):
+		print("Reading %r bytes in %d transactions\n" % (f.GetBytesRead(),  f.GetReadCalls()));
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
 	return dataframe
 

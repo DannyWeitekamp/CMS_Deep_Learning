@@ -48,3 +48,5 @@ particle_frame = ROOT_to_pandas("../data/ttbar_13TeV_80.root",
                              leaves,
                               columns=columns,
                               verbosity=1)
+
+print(particle_frame)
