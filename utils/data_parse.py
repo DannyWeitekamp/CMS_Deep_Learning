@@ -179,6 +179,7 @@ def ROOT_to_pandas(inputfilepath,
 
 		#Loop over all the entries 
 		percent = 0.
+		prev_entry = 0
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
 			if(verbosity > 0):
@@ -187,9 +188,10 @@ def ROOT_to_pandas(inputfilepath,
 					percent = float(entry)/float(n_entries)
 					sys.stdout.write('\r')
 					# the exact output you're looking for:
-					sys.stdout.write("[%-20s] %r/%r" % ('='*int(20*percent), entry, int(n_entries)))
+					sys.stdout.write("[%-20s] %r/%r  %r(Entry/sec)" % ('='*int(20*percent), entry, int(n_entries), 4 * (entry-prev_entry)))
 					sys.stdout.flush()
 					last_time = c
+					prev_entry = entry
 
 
 			#Point the tree to the next entry <- IMPORTANT this is how we loop
