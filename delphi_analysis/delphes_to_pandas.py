@@ -133,8 +133,8 @@ def main(data_dir, argv):
    print(t)
    jobs = makeJobs( data_dir, [t])
    for job in jobs:
-      print(job)
-      # doJob(job)
+      #print(job)
+      doJob(job)
 
 
 

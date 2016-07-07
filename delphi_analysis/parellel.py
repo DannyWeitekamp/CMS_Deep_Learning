@@ -354,13 +354,13 @@ import time
 job_itr = iter(jobs)
 
 def doJob(job):
-    #time.sleep(int(1))
+    time.sleep(int(1))
     if(job[0] == "unjoined"):
         #print()
         #print(job[0])
-        print(job[1])
+        print("Starting Job:", job[1])
         #print(job[2])
-        #storeAllUnjoined(job[1], job[2])
+        storeAllUnjoined(job[1], job[2])
     elif(job[0] == "joined"):
         print(job)
     return job[1]
@@ -368,7 +368,7 @@ def doJob(job):
 pool = Pool(4)
 
 def mycallback(x):
-    print(x)
+    print("Finished Job:", job[1])
     sys.stdout.flush()
 
 results = []
