@@ -69,6 +69,7 @@ def storeAllUnjoined(filepath, outputdir, rerun=False):
             frame = eval(tup[1])
             print(frame)
             store.put(tup[0], frame, format='table')
+   store.close()
             
         
 
