@@ -296,6 +296,10 @@ def ROOT_to_pandas(inputfilepath,
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
 	return dataframe
 
+
+
+mass_of_electron = np.float64(0.0005109989461) #eV/c
+mass_of_muon = np.float64(0.1056583715)      #eV/c
 def four_vec_from_PT(inputs, M):
 	'''Helper function that converts (PT, Eta, Phi) -> (E/c, Px, Py, Pz)'''
 	PT = inputs[0] 
