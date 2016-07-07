@@ -7,6 +7,7 @@ e-mail: dannyweitekamp@gmail.com
 import ROOT
 from ROOT import TTree
 import pandas as pd
+import numpy as np
 import sys
 import time
 import gc
