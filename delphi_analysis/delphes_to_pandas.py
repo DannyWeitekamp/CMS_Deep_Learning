@@ -77,7 +77,7 @@ def storeAllJoined(filepath, outputfile, rerun=False):
     if(rerun or os.path.isfile(outputfile) == False):
         #print(rerun, ~os.path.isfile(out_file), out_file)
         frame = getPandasAll(filepath)
-        frame.to_hdf(outputfile, 'data', mode='w')
+        frame.to_hdf(outputfile, 'data', mode='w', data_columns=True)
     
 
     

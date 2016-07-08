@@ -72,6 +72,66 @@ def leaves_from_obj(objname, columns):
 			out_col.append(col)
 	return out, out_col
 
+def ROOT_NumValues_to_pandas(inputfilepath,leaves, columns=None, tree_name="Delphes"):
+	f = ROOT.TFile.Open(inputfilepath)
+	# if(trees == None):
+	# 	trees = [x.GetName() for x in f.GetListOfKeys() if isinstance(x.ReadObj(), TTree)]
+	#Loop over the tree
+
+	out = {}
+	# for tree_name in trees:
+	# tree_out = {}
+	# out[tree_name] = tree_out
+	#if we didn't get any column names, just names just use the fully qualified leaf names
+	if(columns == None):
+		columns = leaves
+	assert len(leaves) == len(columns), "columns input length mismatch: \
+			len(leaves) = %r , len(columns) = %r" % (len(leaves), len(columns))
+
+	tree = f.Get(tree_name)
+	tree.SetCacheSize(30*1024*1024)
+	branches = []
+	for leaf_name in leaves: 
+		b = tree.GetBranch(leaf_name)
+		branches.append(b)
+		tree.AddBranchToCache(b)
+	tree.StopCacheLearningPhase()
+
+	columnmap = {}
+	l_leaves = []
+	for i,leaf in enumerate(leaves):
+		columnmap[leaf] = columns[i]
+		l_leaf = tree.GetLeaf(leaf)
+		if(isinstance(l_leaf,ROOT.TLeafElement) == False):
+			raise ValueError("Leaf %r does not exist in Tree %r." % (leaf,tree_name))
+		l_leaves.append(l_leaf)
+
+	total_values = 0
+	n_entries=tree.GetEntries()
+	for l_leaf in l_leaves:
+		name = l_leaf.GetName()
+		out[columnmap[name]] = [None] * n_entries
+	for entry in range(n_entries):
+		tree.LoadTree(entry)
+		for b in branches:
+			b.GetEntry(entry)
+		tree.GetEntry(entry)
+		#Entries have multiple values that we need to extract. Get that number
+		
+		for l_leaf in l_leaves:
+			name = l_leaf.GetName()
+			nValues = l_leaf.GetLen()
+			out[columnmap[name]][entry] = nValues
+	return pd.DataFrame(out)
+			
+
+
+
+		
+		
+
+				
+
 def ROOT_to_pandas(inputfilepath,
 					leaves,
 					trees=None,
@@ -187,13 +247,14 @@ def ROOT_to_pandas(inputfilepath,
 					raise ValueError("Leaf %r does not exist in Tree %r." % (leaf,tree_name))
 				l_leaves.append(l_leaf)
 
+		#Iterate over all the data and figure out how many total values there are
 		total_values = 0
 		n_entries=tree.GetEntries()
 		for entry in range(n_entries):
+
 			tree.LoadTree(entry)
 			for b in branches:
 				b.GetEntry(entry)
-
 			tree.GetEntry(entry)
 			#Entries have multiple values that we need to extract. Get that number
 			if(len(l_leaves) > 0):
@@ -204,6 +265,7 @@ def ROOT_to_pandas(inputfilepath,
 				nValues = 0
 			total_values += nValues
 
+		#Prepopulate every array in the dictionary with values
 		for key in dataDict:
 			dataDict[key] = dataDict[key] + [None]*total_values
 
@@ -296,6 +358,11 @@ def ROOT_to_pandas(inputfilepath,
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
 	return dataframe
 
+
+def getPandasNumValues(filename):
+	return ROOT_NumValues_to_pandas(filename,
+		["Photon.Phi","Electron.Phi","MuonTight.Phi","MissingET.Phi","EFlowPhoton.Phi","EFlowNeutralHadron.Phi","EFlowTrack.Phi"],
+		columns=["Photon","Electron","MuonTight","MissingET","EFlowPhoton","EFlowNeutralHadron","EFlowTrack"]
 
 
 mass_of_electron = np.float64(0.0005109989461) #eV/c
