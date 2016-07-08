@@ -122,6 +122,7 @@ def ROOT_NumValues_to_pandas(inputfilepath,leaves, columns=None, tree_name="Delp
 			name = l_leaf.GetName()
 			nValues = l_leaf.GetLen()
 			out[columnmap[name]][entry] = nValues
+	f.Close()
 	return pd.DataFrame(out)
 			
 
@@ -344,6 +345,7 @@ def ROOT_to_pandas(inputfilepath,
 	
 	#Make the dataframe from the dictionary
 	dataframe = pd.DataFrame(dataDict, columns=columns)
+
 	# f = None
 	# t = None
 	dataDict = None
@@ -356,6 +358,7 @@ def ROOT_to_pandas(inputfilepath,
 	if(verbosity > 0):
 		print("Reading %r bytes in %d transactions\n" % (f.GetBytesRead(),  f.GetReadCalls()));
 		print("Elapse time: %.2f seconds" % float(time.clock()-start_time))
+	f.Close()
 	return dataframe
 
 
