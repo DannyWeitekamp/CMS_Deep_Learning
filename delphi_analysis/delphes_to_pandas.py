@@ -49,7 +49,8 @@ def roundrobin(*iterables):
 
 
 def storeAllUnjoined(filepath, outputdir, rerun=False):
-    lst = [         ("Photon", "getPandasPhotons(filepath)"),
+    lst = [         ("NumValues", "getPandasNumValues(filepath)"),
+                    ("Photon", "getPandasPhotons(filepath)"),
                     ("Electron", "getPandasElectrons(filepath)"),
                     ("MuonTight", "getPandasTightMuons(filepath)"),
                     ("MissingET", "getPandasMissingET(filepath)"),
