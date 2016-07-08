@@ -104,7 +104,7 @@ def makeJobs(filename, job_types,
          elif(j_type == "joined"):
             jobs.append((j_type,f, joined_dir + f_name + ".h5"))
 
-    return jobs
+   return jobs
 
 def doJob(job):
    if(job[0] == "unjoined"):
