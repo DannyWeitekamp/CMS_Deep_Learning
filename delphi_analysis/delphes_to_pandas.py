@@ -54,8 +54,8 @@ def storeAllUnjoined(filepath, outputdir, rerun=False):
                   ("Electron", "getPandasElectrons(filepath)"),
                   ("MuonTight", "getPandasTightMuons(filepath)"),
                   ("MissingET", "getPandasMissingET(filepath)"),
-                  ("EFlowPhoton", "getPandasEFlowParticle(filepath, name='EFlowNeutralHadron')"),
-                  ("EFlowNeutralHadron", "getPandasEFlowParticle(filepath, name='EFlowPhoton')"),
+                  ("EFlowPhoton", "getPandasEFlowParticle(filepath, name='EFlowPhoton')"),
+                  ("EFlowNeutralHadron", "getPandasEFlowParticle(filepath, name='EFlowNeutralHadron')"),
                   ("EFlowTrack", "getPandasEFlowTrack(filepath)")]
     
    filename = os.path.splitext(ntpath.basename(filepath))[0]
