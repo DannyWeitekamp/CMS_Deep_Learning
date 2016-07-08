@@ -362,7 +362,7 @@ def ROOT_to_pandas(inputfilepath,
 def getPandasNumValues(filename):
 	return ROOT_NumValues_to_pandas(filename,
 		["Photon.Phi","Electron.Phi","MuonTight.Phi","MissingET.Phi","EFlowPhoton.Phi","EFlowNeutralHadron.Phi","EFlowTrack.Phi"],
-		columns=["Photon","Electron","MuonTight","MissingET","EFlowPhoton","EFlowNeutralHadron","EFlowTrack"]
+		columns=["Photon","Electron","MuonTight","MissingET","EFlowPhoton","EFlowNeutralHadron","EFlowTrack"])
 
 
 mass_of_electron = np.float64(0.0005109989461) #eV/c
