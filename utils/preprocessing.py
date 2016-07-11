@@ -36,7 +36,7 @@ class ObjectProfile():
 	
 	__repr__ = __str__
 
-def padItem(x,max_size, shuffle=False):
+def padItem(x,max_size, vecsize, shuffle=False):
 	'''Pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. Shuffle, shuffles the padded output before returning'''
 	if(len(x) > max_size):
 		out = x[:max_size]
@@ -51,6 +51,7 @@ def preprocessFromPandas_file_label_pairs(files_dict,num_samples, object_profile
 	y_train = []
 	X_train_indices = {}
 	
+    vecsize = len(observ_types)
 	num_labels = len(files_dict.keys())
 
     #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
@@ -116,7 +117,7 @@ def preprocessFromPandas_file_label_pairs(files_dict,num_samples, object_profile
 						x = x.query(profile.query)
 					if(profile.sort_columns != None):
 						x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
-					x = padItem(x[observ_types].values, max_size, shuffle=profile.shuffle)
+					x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
 					arr[start + entry] = x
 				
 				#Go through the all of the entries that were empty for this datatype and make sure we pad them
