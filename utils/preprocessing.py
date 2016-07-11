@@ -51,19 +51,19 @@ def preprocessFromPandas_file_label_pairs(files_dict,num_samples, object_profile
 	y_train = []
 	X_train_indices = {}
 	
-    vecsize = len(observ_types)
+	vecsize = len(observ_types)
 	num_labels = len(files_dict.keys())
 
-    #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
+	#Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
 	label_vecs = {}
 	for i, label in enumerate(files_dict):
 		arr = np.zeros((num_labels,))
 		arr[i] = 1
 		label_vecs[label] = arr
-   
+
 	print(label_vecs)
 	
-    #Prefil; the arrays so that we don't waste time resizing lists
+	#Prefil; the arrays so that we don't waste time resizing lists
 	for profile in object_profiles:
 		key = profile.name
 		X_train[key] = [None] * (num_samples * num_labels)
