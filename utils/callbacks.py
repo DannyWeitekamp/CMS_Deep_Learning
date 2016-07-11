@@ -9,6 +9,7 @@ e-mail: dannyweitekamp@gmail.com
 import os
 import sys
 import json
+import time
 from keras.callbacks import History
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import EarlyStopping
@@ -27,6 +28,7 @@ class SmartCheckpoint(ModelCheckpoint):
         self.smartDir = directory + 'SmartCheckpoint/'
         self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
         self.historyFilename = self.smartDir + name + "_history.json"
+        self.startTime = 0
         # self.max_epoch = max_epoch
         self.histobj = History()
 
@@ -38,6 +40,8 @@ class SmartCheckpoint(ModelCheckpoint):
             print('Failed to load history at ' + self.historyFilename)
 
         self.histobj.history = histDict
+
+        self.elapse_time = histDict.get("elapse_time", 0)
 
         ModelCheckpoint.__init__(self, self.checkpointFilename,
                 monitor, verbose, save_best_only, mode)
@@ -52,6 +56,7 @@ class SmartCheckpoint(ModelCheckpoint):
     
 
     def on_train_begin(self, logs={}):
+        self.startTime = time.clock()
         histDict = self.histobj.history
 
         if not os.path.exists(self.smartDir):
@@ -78,6 +83,15 @@ class SmartCheckpoint(ModelCheckpoint):
             histDict[k].append(v)
         json.dump(histDict,  open( self.historyFilename, "wb" ))
 
+    def on_train_end(self, logs={}):
+        histDict = self.histobj.history
+        elapse = histDict.get("elapse_time", 0)
+
+        histDict["elapse_time"] = elapse + time.clock() - self.startTime 
+        json.dump(histDict,  open( self.historyFilename, "wb" ))
+        print("DONE!")
+        print(logs)
+        print(histDict)
         # self.__checkMaxEpoch(epoch + self.epochOffset)
 
 
