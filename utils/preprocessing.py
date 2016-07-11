@@ -1,3 +1,7 @@
+import numpy as np
+import pandas as pd
+
+
 class ObjectProfile():
 	def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
 		''' Processing instructions for each type of our data types
