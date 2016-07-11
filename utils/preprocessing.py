@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import glob
 
 
 class ObjectProfile():
@@ -46,17 +47,17 @@ def padItem(x,max_size, vecsize, shuffle=False):
 	return out
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
-def preprocessFromPandas_file_label_pairs(files_dict,num_samples, object_profiles, observ_types):
+def preprocessFromPandas_file_label_pairs(label_dir_pairs,num_samples, object_profiles, observ_types):
 	X_train = {}
 	y_train = []
 	X_train_indices = {}
 	
 	vecsize = len(observ_types)
-	num_labels = len(files_dict.keys())
+	num_labels = len(label_dir_pairs)
 
 	#Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
 	label_vecs = {}
-	for i, label in enumerate(files_dict):
+	for i, (label, data_dir) in enumerate(label_dir_pairs):
 		arr = np.zeros((num_labels,))
 		arr[i] = 1
 		label_vecs[label] = arr
@@ -71,7 +72,8 @@ def preprocessFromPandas_file_label_pairs(files_dict,num_samples, object_profile
 	y_train = [None] * (num_samples * num_labels)
 	
 	y_train_start = 0
-	for label,files in files_dict.iteritems():
+	for (label,data_dir) in label_dir_pairs:
+		files = glob.glob(data_dir+"*.h5")
 		samples_read = 0
 		for f in files:
 		  
