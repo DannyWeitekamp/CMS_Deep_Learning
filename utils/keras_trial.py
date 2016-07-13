@@ -181,7 +181,7 @@ class KerasTrial():
                                              verbose=1,
                                              save_best_only=True,
                                              mode='auto'))
-        print callbacks
+        # print callbacks
         model.fit(x_train, y_train,
             batch_size=self.batch_size,
             nb_epoch=self.nb_epoch,

@@ -106,9 +106,9 @@ class SmartCheckpoint(ModelCheckpoint):
         histDict['stops'] = stops
 
         json.dump(histDict,  open( self.historyFilename, "wb" ))
-        print("DONE!")
-        print(logs)
-        print(histDict)
+        # print("DONE!")
+        # print(logs)
+        # print(histDict)
         # self.__checkMaxEpoch(epoch + self.epochOffset)
 
 
