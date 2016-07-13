@@ -22,13 +22,19 @@ class SmartCheckpoint(ModelCheckpoint):
     #     if(epoch > self.max_epoch):
     #         self.model.stop_training = True
 
-    def __init__(self, name, directory='', monitor='val_loss', verbose=0,
-                 save_best_only=False, mode='auto'):
+    def __init__(self, name, directory='', associated_trial=None, monitor='val_loss', verbose=0,
+                 save_best_only=True, mode='auto'):
         self.name = name
-        self.smartDir = directory + 'SmartCheckpoint/'
-        self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
-        self.historyFilename = self.smartDir + name + "_history.json"
-        self.startTime = 0
+        if(associated_trial != None):
+            
+            self.smartDir = associated_trial.get_path()
+            self.checkpointFilename = self.smartDir + "weights.hdf5"
+            self.historyFilename = self.smartDir + "history.json"
+        else:
+            self.smartDir = directory + 'SmartCheckpoint/'
+            self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
+            self.historyFilename = self.smartDir + name + "_history.json"
+        self.startTime = 0  
         # self.max_epoch = max_epoch
         self.histobj = History()
 
@@ -87,7 +93,18 @@ class SmartCheckpoint(ModelCheckpoint):
         histDict = self.histobj.history
         elapse = histDict.get("elapse_time", 0)
 
+        #Elapse Time
         histDict["elapse_time"] = elapse + time.clock() - self.startTime 
+
+        #Stops
+        if(self.model.stop_training == True):
+            stop = "callback"
+        else:
+            stop = "finished"
+        stops = histDict.get("stops", [])
+        stops.append( (stop,  histDict.get("last_epoch", 0)) )
+        histDict['stops'] = stops
+
         json.dump(histDict,  open( self.historyFilename, "wb" ))
         print("DONE!")
         print(logs)
