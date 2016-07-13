@@ -47,7 +47,7 @@ def padItem(x,max_size, vecsize, shuffle=False):
 	return out
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
-def preprocessFromPandas_file_label_pairs(label_dir_pairs,num_samples, object_profiles, observ_types):
+def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_profiles, observ_types):
 	X_train = {}
 	y_train = []
 	X_train_indices = {}
