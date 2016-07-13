@@ -240,6 +240,18 @@ class KerasTrial():
                     trial_dict[key] = dct[key]
         index[hashcode] = trial_dict
         write_index(index, self.trial_dir)  
+    def is_complete(self):
+        blob_path = get_blob_path(self, self.trial_dir)
+        history_path = blob_path+"history.json"
+        if(os.path.exists(history_path)):
+
+            histDict = json.load(open( history_path, "rb" ))
+            if(len(histDict.get('stops', [])) > 0):
+                return True
+            else:
+                return False
+        else:
+            return False
 
 
 
@@ -354,18 +366,7 @@ def get_blob_path(*args, **kwargs):
     blob_path = trial_dir + "blobs/" +  blob_dir + '/' + blob + "/"
     return blob_path
 
-def is_complete(trial, trial_dir):
-    blob_path = get_blob_path(trial, trial_dir)
-    history_path = blob_path+"history.json"
-    if(os.path.exists(history_path)):
 
-        histDict = json.load(open( history_path, "rb" ))
-        if(len(histDict.get('stops', [])) > 0):
-            return True
-        else:
-            return False
-    else:
-        return False
 def read_index(trial_dir):
     try:
         index = json.load(open( trial_dir + 'index.json', "rb" ))
