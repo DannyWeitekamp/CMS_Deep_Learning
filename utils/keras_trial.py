@@ -193,8 +193,10 @@ class KerasTrial():
             class_weight=self.class_weight,
             sample_weight=self.sample_weight)
 
-        history_path = self.get_path()+"history.json"
-        if(os.path.exists(history_path)):
+        histDict = self.get_history()
+        # history_path = self.get_path()+"history.json"
+        # if(os.path.exists(history_path)):
+        if(histDict != None):
             histDict = json.load(open( history_path, "rb" ))
             dct = {} 
             for x in index_store:
@@ -241,12 +243,12 @@ class KerasTrial():
         index[hashcode] = trial_dict
         write_index(index, self.trial_dir) 
 
-    def get_index_entry(self):
-        index = read_index(self.trial_dir)
+    def get_index_entry(self, verbose=0):
+        index = read_index(self.trial_dir, verbose=verbose)
         return index[self.hash()]
 
-    def get_from_index(self, keys):
-        indexDict = self.get_index_entry()
+    def get_from_index(self, keys, verbose=0):
+        indexDict = self.get_index_entry(verbose=verbose)
         if(isinstance(keys, list)):
             out = []
             for key in keys:
@@ -254,6 +256,17 @@ class KerasTrial():
         else:
             out = indexDict[keys]
         return out
+
+    def get_history(self, verbose=0):
+        history_path = self.get_path()+"history.json"
+        try:
+            history = json.load(open( history_path, "rb" ))
+            if(verbose >= 1): print('Sucessfully loaded history.json at ' + trial_dir)
+        except (IOError, EOFError):
+            history = None
+            if(verbose >= 1): print('Failed to load history.json  at ' + trial_dir)
+        return history
+
 
     def is_complete(self):
         blob_path = get_blob_path(self, self.trial_dir)
