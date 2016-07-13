@@ -382,21 +382,21 @@ def get_blob_path(*args, **kwargs):
     return blob_path
 
 
-def read_index(trial_dir):
+def read_index(trial_dir, verbose=0):
     try:
         index = json.load(open( trial_dir + 'index.json', "rb" ))
-        print('Sucessfully loaded index.json at ' + trial_dir)
+        if(verbose >= 1): print('Sucessfully loaded index.json at ' + trial_dir)
     except (IOError, EOFError):
         index = {}
-        print('Failed to load index.json  at ' + trial_dir)
+        if(verbose >= 1): print('Failed to load index.json  at ' + trial_dir)
     return index
 
-def write_index(index,trial_dir):
+def write_index(index,trial_dir, verbose=0):
     try:
         json.dump(index,  open( trial_dir + 'index.json', "wb" ))
-        print('Sucessfully wrote index.json at ' + trial_dir)
+        if(verbose >= 1): print('Sucessfully wrote index.json at ' + trial_dir)
     except (IOError, EOFError):
-        print('Failed to write index.json  at ' + trial_dir)
+        if(verbose >= 1): print('Failed to write index.json  at ' + trial_dir)
 
 def write_to_index(key, value):
 
@@ -406,7 +406,7 @@ def write_to_index(key, value):
     index[hashcode] = trial_dict
     write_index(index, trial_dir)
 
-def write_trial(trial, trial_dir):
+def write_trial(trial, trial_dir, verbose=0):
     json_str = trial.to_JSON()
     hashcode = compute_hash(json_str)
     blob_path = get_blob_path(hashcode=hashcode, trial_dir=trial_dir)
@@ -416,9 +416,9 @@ def write_trial(trial, trial_dir):
     try:
         f = open(trial_path, 'w')
         f.write(json_str)
-        print('Sucessfully wrote index.json at ' + trial_dir)
+        if(verbose >= 1): print('Sucessfully wrote trial.json at ' + trial_dir)
     except (IOError, EOFError):
-        print('Failed to write index.json  at ' + trial_dir)
+        if(verbose >= 1): print('Failed to write trial.json  at ' + trial_dir)
     f.close()
     trial.to_index({'name' : trial.name}, append=True)
     # index = read_index(trial_dir)
