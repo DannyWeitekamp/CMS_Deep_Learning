@@ -33,7 +33,8 @@ class KerasTrial():
                     sample_weight=None
                 ):
     	
-
+        if(trial_dir[len(trial_dir)] != "/"):
+            trial_dir = trial_dir + "/"
         self.trial_dir = trial_dir
         self.name = name
         self.hashcode = None
