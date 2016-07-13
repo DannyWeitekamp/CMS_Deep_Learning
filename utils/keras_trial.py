@@ -239,7 +239,22 @@ class KerasTrial():
                 if(replace == True or (key in trial_dict) == False):
                     trial_dict[key] = dct[key]
         index[hashcode] = trial_dict
-        write_index(index, self.trial_dir)  
+        write_index(index, self.trial_dir) 
+
+    def get_index_entry(self):
+        index = read_index(self.trial_dir)
+        return index[self.hash()]
+
+    def get_from_index(self, keys):
+        indexDict = self.get_index_entry()
+        if(isinstance(keys, list)):
+            out = []
+            for key in keys:
+                out.append(index.get(indexDict[key]))
+        else:
+            out = indexDict[keys]
+        return out
+
     def is_complete(self):
         blob_path = get_blob_path(self, self.trial_dir)
         history_path = blob_path+"history.json"
