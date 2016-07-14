@@ -197,7 +197,7 @@ class KerasTrial():
         # history_path = self.get_path()+"history.json"
         # if(os.path.exists(history_path)):
         if(histDict != None):
-            histDict = json.load(open( history_path, "rb" ))
+            # histDict = json.load(open( history_path, "rb" ))
             dct = {} 
             for x in index_store:
                 dct[x] = max(histDict[x])
