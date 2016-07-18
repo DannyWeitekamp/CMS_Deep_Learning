@@ -24,14 +24,14 @@ class ObjectProfile():
 
 
 	def __str__(self):
-		main_clause = "name:%r max_size=%r " % (self.name, self.max_size)
-		sort_clause = ""
-		query_clause = ""
+		main_clause = 'name:%r max_size=%r ' % (self.name, self.max_size)
+		sort_clause = ''
+		query_clause = ''
 		if(self.sort_columns != None):
-			sort_clause = "sort_columns=%r sort_ascending=%r " % (self.sort_columns, self.sort_ascending)
+			sort_clause = 'sort_columns=%r sort_ascending=%r ' % (self.sort_columns, self.sort_ascending)
 		if(self.query != None):
-			query_clause = "query=%r " % (self.query)
-		shuffle_clause = "shuffle=%r" % self.shuffle
+			query_clause = 'query=%r ' % (self.query)
+		shuffle_clause = 'shuffle=%r' % self.shuffle
 
 		return main_clause + sort_clause + query_clause + shuffle_clause
 	

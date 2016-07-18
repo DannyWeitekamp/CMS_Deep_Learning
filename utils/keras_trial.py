@@ -42,7 +42,7 @@ class PreprocessingProcedure(Storable):
         self.func_module = func.__module__
         self.args = args
         self.kargs = kargs
-        self.encoder = json.JSONEncoder(sort_keys=True, indent=4)
+        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=lambda x: x.__dict__)
         self.X = None
         self.Y = None
 
