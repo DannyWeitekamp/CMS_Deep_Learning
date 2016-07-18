@@ -47,12 +47,9 @@ class PreprocessingProcedure(Storable):
         self.Y = None
 
     def set_encoder(self, encoder):
-        '''Set the json encoder for the procedure incase its arguements are not json encodable'''
+        '''Set the json encoder for the procedure in case its arguements are not json encodable'''
         self.encoder = encoder
 
-    def set_decoder(self, decoder):
-        '''Set the json decoder for the procedure incase its arguements are not json encodable'''
-        self.decoder = decoder
 
     def to_json(self):
         '''Returns the json string for the Procedure with only its essential characteristics'''
@@ -150,13 +147,13 @@ class PreprocessingProcedure(Storable):
         return prep_func
 
     @staticmethod
-    def from_json(trial_dir ,json_str):
+    def from_json(trial_dir ,json_str, arg_decode_func=None):
         '''Get a PreprocessingProcedure object from its json string'''
         d = json.loads(json_str)
         func = PreprocessingProcedure.get_func(d['func'], d['func_module'])
         args, kargs = d['args'], d['kargs']
-        if(self.decoder != None):
-            args, kargs = self.decoder(args, kargs)
+        if(arg_decode_func != None):
+            args, kargs = arg_decode_func(args, kargs)
         return PreprocessingProcedure(trial_dir,  func, *args, **kargs)
 
     @staticmethod
