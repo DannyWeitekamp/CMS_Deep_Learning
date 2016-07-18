@@ -135,7 +135,7 @@ class PreprocessingProcedure(Storable):
                 h5f.close()
                 print("Preprocessing step %r read from archive" % self.hash())
             except:
-                if(h5f != None) h5f.close()
+                if(h5f != None): h5f.close()
                 print("Failed to load archive %r running from scratch" % self.hash())
                 return self.get_XY(archive=archive, redo=True)
         else:
