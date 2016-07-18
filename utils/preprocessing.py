@@ -189,7 +189,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 	
 	indices = np.arange(len(y_train))
 	np.random.shuffle(indices)
-	for index in len(X_train):
+	for index in range(len(X_train)):
 		X_train[index] = np.array(X_train[index])[indices]
 
 	y_train = y_train[indices]
