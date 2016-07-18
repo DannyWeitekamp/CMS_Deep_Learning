@@ -50,8 +50,8 @@ class PreprocessingProcedure(Storable):
         '''Set the json encoder for the procedure incase its arguements are not json encodable'''
         self.encoder = encoder
 
-     def set_decoder(self, decoder):
-        '''Set the json encoder for the procedure incase its arguements are not json encodable'''
+    def set_decoder(self, decoder):
+        '''Set the json decoder for the procedure incase its arguements are not json encodable'''
         self.decoder = decoder
 
     def to_json(self):
