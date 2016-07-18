@@ -115,6 +115,7 @@ class PreprocessingProcedure(Storable):
     def get_XY(self, archive=True, redo=False):
         '''Apply the PreprocessingProcedure either getting the archived result or computing it fully'''
         if(self.is_archived() and redo == False):
+            h5f = None
             try:
                 h5f = h5py.File(self.get_path() + 'archive.h5', 'r')
                 self.X = []
@@ -134,6 +135,7 @@ class PreprocessingProcedure(Storable):
                 h5f.close()
                 print("Preprocessing step %r read from archive" % self.hash())
             except:
+                if(h5f != None) h5f.close()
                 print("Failed to load archive %r running from scratch" % self.hash())
                 return self.get_XY(archive=archive, redo=True)
         else:
