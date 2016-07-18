@@ -61,9 +61,9 @@ def padItem(x,max_size, vecsize, shuffle=False):
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
 def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, object_profiles, observ_types):
-	X_train = []
-	y_train = []
-	X_train_indices = []
+	# X_train = []
+	# y_train = []
+	# X_train_indices = []
 	
 	vecsize = len(observ_types)
 	num_labels = len(label_dir_pairs)
@@ -77,14 +77,17 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 
 	print(label_vecs)
 	
+	X_train_indices = []
+	X_train = [None] * (num_labels)
+	y_train = [None] * (num_samples * num_labels)
+
 	#Prefill the arrays so that we don't waste time resizing lists
 	for index, profile in enumerate(object_profiles):
 		# key = profile.name
 		# X_train[key] = [None] * (num_samples * num_labels)
 		X_train[index] = [None] * (num_samples * num_labels)
 		X_train_indices[index] = 0
-	X_train = [None] * (num_labels)
-	y_train = [None] * (num_samples * num_labels)
+	
 	
 	y_train_start = 0
 	for (label,data_dir) in label_dir_pairs:
