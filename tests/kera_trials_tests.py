@@ -30,32 +30,66 @@ model.add(merged)
 model.add(Dense(10, activation='softmax'))
 model.add(Dense(10, activation='softmax'))
 
-trial = KerasTrial(trial_dir, name="CHEEESEs", model=model)
-trial.setPreprocessing()
+
+
+import numpy as np
+from keras.utils.np_utils import to_categorical
+
+def myGetXY(thousand, one, b=784, d=10):
+	data_1 = np.random.random((thousand, b))
+	data_2 = np.random.random((thousand, b))
+	# these are integers between 0 and 9
+	labels = np.random.randint(d, size=(thousand, one))
+	# we convert the labels to a binary matrix of size (1000, 10)
+	# for use with categorical_crossentropy
+	labels = to_categorical(labels, d)
+	X = [data_1, data_2]
+	Y = labels
+	return X, Y
+
+preprocessing = [PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+
+trial = KerasTrial(trial_dir, name="Duffles", model=model)
+trial.setPreprocessing(preprocessing)
 trial.setCompilation(optimizer='rmsprop',
               loss='categorical_crossentropy',
               metrics=['accuracy']
               )
-trial.setFit(callbacks = [earlystopping], nb_epoch=100, batch_size=32, validation_split=.2)
-write_trial(trial, trial_dir)
+trial.setFit(callbacks = [earlystopping], nb_epoch=110, batch_size=32, validation_split=.2)
+# write_trial(trial, trial_dir)
+# trial.write()
 
-import numpy as np
-from keras.utils.np_utils import to_categorical
-data_1 = np.random.random((1000, 784))
-data_2 = np.random.random((1000, 784))
 
-# these are integers between 0 and 9
-labels = np.random.randint(10, size=(1000, 1))
-# we convert the labels to a binary matrix of size (1000, 10)
-# for use with categorical_crossentropy
-labels = to_categorical(labels, 10)
+# 
+# X,Y = cache.get_XY(redo=True)
 
-model = trial.compile()
+# print(X[0].shape, Y.shape)
+# print(cache.to_json())
+# print(cache.hash())
+
+
+trial.execute()
+
+js_str = trial.to_json()
+# print(js_str)
+trial = None
+trial = KerasTrial.from_json(trial_dir, js_str)
+trial.execute()
+# trial.summary()
+
+# trials = get_trials_by_name('Duff*', trial_dir)
+trials = get_all_trials(trial_dir)
+print(trials)
+for t in trials:
+	t.summary()
+
+
+# model = trial.compile()
 # trial.fit(model, x_train, y_train)
-if(is_complete(trial, trial_dir) == False):
-	trial.fit(model,[data_1, data_2], labels,)
-else:
-	print("Trial %r Already Complete" % trial.hash())
+# if(trial.is_complete() == False):
+# 	trial.fit(model,X, Y)
+# else:
+	# print("Trial %r Already Complete" % trial.hash())
 # train the model
 # note that we are passing a list of Numpy arrays as training data
 # since the model has 2 inputs
@@ -67,9 +101,9 @@ else:
 
 
 
-print(trial.to_JSON())
+# print(trial.to_json())
 
-# json_str = trial.to_JSON()
+# json_str = trial.to_json()
 # print("JSON_STR:", json_str)
 # hashcode1 = compute_hash(trial)
 # print("Hashcode1:", hashcode1)
@@ -88,7 +122,7 @@ print(trial.to_JSON())
 
 
 
-# print(trial.to_JSON())
+# print(trial.to_json())
 # print(compute_hash(trial))
 
 

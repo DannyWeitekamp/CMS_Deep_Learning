@@ -47,7 +47,7 @@ def padItem(x,max_size, vecsize, shuffle=False):
 	return out
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
-def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_profiles, observ_types):
+def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, object_profiles, observ_types):
 	X_train = {}
 	y_train = []
 	X_train_indices = {}
@@ -64,7 +64,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_pro
 
 	print(label_vecs)
 	
-	#Prefil; the arrays so that we don't waste time resizing lists
+	#Prefill the arrays so that we don't waste time resizing lists
 	for profile in object_profiles:
 		key = profile.name
 		X_train[key] = [None] * (num_samples * num_labels)
@@ -74,7 +74,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_pro
 	y_train_start = 0
 	for (label,data_dir) in label_dir_pairs:
 		files = glob.glob(data_dir+"*.h5")
+		files.sort()
 		samples_read = 0
+		location = 0
 		for f in files:
 		  
             #Get the HDF Store for the file
@@ -83,8 +85,20 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_pro
             #Get the NumValues frame which lists the number of values for each entry
 			num_val_frame = store.get('/NumValues')
 			max_entries = len(num_val_frame.index)
-			samples_to_read = min(num_samples-samples_read, max_entries)
-			num_val_frame = num_val_frame[:samples_to_read]
+			
+			if(location + max_entries < start):
+				location += samples_to_read
+				continue
+
+			
+			file_start_read = start-location
+			samples_to_read = min(num_samples-samples_read, max_entries-file_start_read)
+
+			# file_end_read = s + 
+			skip_val_frame = num_val_frame[:file_start_read]
+			num_val_frame = num_val_frame[file_start_read : file_start_read+samples_to_read]
+
+			
 			assert samples_to_read >= 0
 			
 			
@@ -95,13 +109,15 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,num_samples, object_pro
 				key = profile.name
 				max_size = profile.max_size
 				print("Mapping %r Values/Sample from %r" % (max_size, key))
+				skip = skip_val_frame[key]
+				start = skip.sum()
 				nums = num_val_frame[key]
-				stop = nums.sum()
+				stop = start + nums.sum()
 				
 				if(samples_to_read == max_entries):
 					frame = store.get('/'+key)
 				else:
-					frame = store.select('/'+key, start=0, stop=stop)
+					frame = store.select('/'+key, start=start, stop=stop)
 			   
 				
 				start = X_train_indices[key]
