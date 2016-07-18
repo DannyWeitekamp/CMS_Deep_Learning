@@ -61,9 +61,9 @@ def padItem(x,max_size, vecsize, shuffle=False):
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
 def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, object_profiles, observ_types):
-	X_train = {}
+	X_train = []
 	y_train = []
-	X_train_indices = {}
+	X_train_indices = []
 	
 	vecsize = len(observ_types)
 	num_labels = len(label_dir_pairs)
@@ -78,10 +78,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 	print(label_vecs)
 	
 	#Prefill the arrays so that we don't waste time resizing lists
-	for profile in object_profiles:
-		key = profile.name
-		X_train[key] = [None] * (num_samples * num_labels)
-		X_train_indices[key] = 0
+	for index, profile in enumerate(object_profiles):
+		# key = profile.name
+		# X_train[key] = [None] * (num_samples * num_labels)
+		X_train[index] = [None] * (num_samples * num_labels)
+		X_train_indices[index] = 0
 	y_train = [None] * (num_samples * num_labels)
 	
 	y_train_start = 0
@@ -119,7 +120,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 			print("Reading %r samples from %r:" % (samples_to_read,f))
 			
 			
-			for profile in object_profiles:
+			for index, profile in enumerate(object_profiles):
 				key = profile.name
 				max_size = profile.max_size
 				print("Mapping %r Values/Sample from %r" % (max_size, key))
@@ -134,10 +135,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 					frame = store.select('/'+key, start=select_start, stop=select_stop)
 			   
 				
-				arr_start = X_train_indices[key]
+				arr_start = X_train_indices[index]
 				# print(selec_start)
 				# print()
-				arr = X_train[key]
+				arr = X_train[index]
 
 				#Group by Entry
 				groups = frame.groupby(["Entry"], group_keys=True)#[observ_types]
@@ -160,7 +161,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 				for i in range(arr_start, arr_start+samples_to_read):
 					if(arr[i] == None):
 						arr[i] = np.array(np.zeros((max_size, vecsize)))
-				X_train_indices[key] += samples_to_read
+				X_train_indices[index] += samples_to_read
 				frame = None
 				groups = None
 
@@ -184,8 +185,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 	
 	indices = np.arange(len(y_train))
 	np.random.shuffle(indices)
-	for key in X_train:
-		X_train[key] = np.array(X_train[key])[indices]
+	for index in len(X_train):
+		X_train[index] = np.array(X_train[index])[indices]
 
 	y_train = y_train[indices]
 	return X_train, y_train

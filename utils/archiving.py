@@ -628,20 +628,40 @@ def get_blob_path(*args, **kwargs):
 
 
 def read_index(trial_dir, verbose=0):
-    try:
-        index = json.load(open( trial_dir + 'index.json', "rb" ))
-        if(verbose >= 1): print('Sucessfully loaded index.json at ' + trial_dir)
-    except (IOError, EOFError):
-        index = {}
-        if(verbose >= 1): print('Failed to load index.json  at ' + trial_dir)
-    return index
+    return read_json_obj(trial_dir, 'index.json')
+#     try:
+#         index = json.load(open( trial_dir + 'index.json', "rb" ))
+#         if(verbose >= 1): print('Sucessfully loaded index.json at ' + trial_dir)
+#     except (IOError, EOFError):
+#         index = {}
+#         if(verbose >= 1): print('Failed to load index.json  at ' + trial_dir)
+#     return index
 
 def write_index(index,trial_dir, verbose=0):
+    write_json_obj(index, trial_dir, 'index.json')
+#     try:
+#         json.dump(index,  open( trial_dir + 'index.json', "wb" ))
+#         if(verbose >= 1): print('Sucessfully wrote index.json at ' + trial_dir)
+#     except (IOError, EOFError):
+#         if(verbose >= 1): print('Failed to write index.json  at ' + trial_dir)
+
+
+def read_json_obj(directory, filename, verbose=0):
     try:
-        json.dump(index,  open( trial_dir + 'index.json', "wb" ))
-        if(verbose >= 1): print('Sucessfully wrote index.json at ' + trial_dir)
+        obj = json.load(open( directory + filename, "rb" ))
+        if(verbose >= 1): print('Sucessfully loaded ' + filename +'  at ' + directory)
     except (IOError, EOFError):
-        if(verbose >= 1): print('Failed to write index.json  at ' + trial_dir)
+        obj = {}
+        if(verbose >= 1): print('Failed to load '+ filename +'  at ' + directory)
+    return obj
+
+def write_json_obj(obj,directory, filename, verbose=0):
+    try:
+        json.dump(obj,  open( directory + filename, "wb" ))
+        if(verbose >= 1): print('Sucessfully wrote ' + filename +'  at ' + directory)
+    except (IOError, EOFError):
+        if(verbose >= 1): print('Failed to write '+ filename +'  at ' + directory)
+
 
 def write_to_index(key, value):
 
@@ -663,6 +683,8 @@ def write_object(directory, filename, data, verbose=0):
     except (IOError, EOFError):
         if(verbose >= 1): print('Failed to write %r at %r' + (filename, directory))
     f.close()
+
+
 
 
 
