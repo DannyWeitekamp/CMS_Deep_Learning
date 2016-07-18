@@ -37,6 +37,19 @@ class ObjectProfile():
 	
 	__repr__ = __str__
 
+def label_dir_pairs_args_decoder(*args, **kargs):
+	profiles = args[3]
+	out = []
+	for profile in profiles:
+		out.append(ObjectProfile(profile['name'],
+									profile.get('max_size', 100),
+									profile.get('sort_columns', None),
+									profile.get('sort_ascending', True),
+									profile.get('query', None),
+									profile.get('shuffle', False)))
+	args[3] = out
+	return (args, kargs)
+
 def padItem(x,max_size, vecsize, shuffle=False):
 	'''Pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. Shuffle, shuffles the padded output before returning'''
 	if(len(x) > max_size):

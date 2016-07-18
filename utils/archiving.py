@@ -50,12 +50,17 @@ class PreprocessingProcedure(Storable):
         '''Set the json encoder for the procedure incase its arguements are not json encodable'''
         self.encoder = encoder
 
+     def set_decoder(self, decoder):
+        '''Set the json encoder for the procedure incase its arguements are not json encodable'''
+        self.decoder = decoder
+
     def to_json(self):
         '''Returns the json string for the Procedure with only its essential characteristics'''
         d = self.__dict__
         d = copy.deepcopy(d)
         del d["trial_dir"]
-        del d["encoder"]
+        if('encoder' in d): del d["encoder"]
+        if('decoder' in d): del d["decoder"]
         del d["hashcode"]
         del d["X"]
         del d["Y"]
@@ -149,7 +154,10 @@ class PreprocessingProcedure(Storable):
         '''Get a PreprocessingProcedure object from its json string'''
         d = json.loads(json_str)
         func = PreprocessingProcedure.get_func(d['func'], d['func_module'])
-        return PreprocessingProcedure(trial_dir,  func, *d['args'], **d['kargs'])
+        args, kargs = d['args'], d['kargs']
+        if(self.decoder != None):
+            args, kargs = self.decoder(args, kargs)
+        return PreprocessingProcedure(trial_dir,  func, *args, **kargs)
 
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir, verbose=0 ):
