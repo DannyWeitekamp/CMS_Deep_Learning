@@ -110,17 +110,17 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 				max_size = profile.max_size
 				print("Mapping %r Values/Sample from %r" % (max_size, key))
 				skip = skip_val_frame[key]
-				start = skip.sum()
+				select_start = skip.sum()
 				nums = num_val_frame[key]
-				stop = start + nums.sum()
+				select_stop = select_start + nums.sum()
 				
 				if(samples_to_read == max_entries):
 					frame = store.get('/'+key)
 				else:
-					frame = store.select('/'+key, start=start, stop=stop)
+					frame = store.select('/'+key, start=select_start, stop=select_stop)
 			   
 				
-				start = X_train_indices[key]
+				prep_start = X_train_indices[key]
 				arr = X_train[key]
 
 				#Group by Entry
@@ -136,10 +136,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 					if(profile.sort_columns != None):
 						x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
 					x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
-					arr[start + entry] = x
+					arr[prep_start + entry] = x
 				
 				#Go through the all of the entries that were empty for this datatype and make sure we pad them
-				for i in range(start, start+samples_to_read):
+				for i in range(prep_start, prep_start+samples_to_read):
 					if(arr[i] == None):
 						arr[i] = np.array(np.zeros((max_size, vecsize)))
 				X_train_indices[key] += samples_to_read
