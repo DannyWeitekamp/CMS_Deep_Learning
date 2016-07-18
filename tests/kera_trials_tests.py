@@ -2,7 +2,7 @@ import sys, os
 if __package__ is None:
 	import sys, os
 	sys.path.append(os.path.realpath("../../"))
-from CMS_SURF_2016.utils.keras_trial import *
+from CMS_SURF_2016.utils.archiving import *
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
 from keras.callbacks import EarlyStopping

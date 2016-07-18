@@ -282,12 +282,12 @@ class KerasTrial(Storable):
         return encoder.encode(self)
     
 
-    def preprocess(self):
-        return preprocessFromPandas_label_dir_pairs(
-                label_dir_pairs=self.label_dir_pairs,
-                num_samples=self.num_samples,
-                object_profiles=self.object_profiles,
-                observ_types=self.observ_types)
+    # def preprocess(self):
+    #     return preprocessFromPandas_label_dir_pairs(
+    #             label_dir_pairs=self.label_dir_pairs,
+    #             num_samples=self.num_samples,
+    #             object_profiles=self.object_profiles,
+    #             observ_types=self.observ_types)
     def compile(self):
         model = model_from_json(self.model)
         model.compile(
