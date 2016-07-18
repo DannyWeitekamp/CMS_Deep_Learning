@@ -49,6 +49,8 @@ def myGetXY(thousand, one, b=784, d=10):
 
 preprocessing = [PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
 
+preprocessing[0].summary()
+
 trial = KerasTrial(trial_dir, name="Duffles", model=model)
 trial.setPreprocessing(preprocessing)
 trial.setCompilation(optimizer='rmsprop',
@@ -83,6 +85,9 @@ print(trials)
 for t in trials:
 	t.summary()
 
+pps = get_all_preprocessing(trial_dir)
+for p in pps:
+	p.summary()
 
 # model = trial.compile()
 # trial.fit(model, x_train, y_train)

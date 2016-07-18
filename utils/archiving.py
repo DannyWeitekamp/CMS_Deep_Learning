@@ -106,10 +106,29 @@ class PreprocessingProcedure(Storable):
                 h5f.create_dataset('Y/'+str(i), data=y)
             
             h5f.close()
+            pp_archive = read_ppArchive(self.trial_dir)
+
+            pp_dict = {}
+            pp_dict['func'] = self.func
+            pp_dict['module'] = self.func_module
+            pp_dict['args'] = self.args
+            pp_dict['kargs'] = self.kargs
+            pp_archive[self.hash()] = pp_dict
+
+            write_ppArchive(pp_archive, self.trial_dir)
+            # def read_json_obj(directory, filename, verbose=0):
                 
         else:
             raise ValueError("Cannot archive PreprocessingProcedure with NoneType X or Y")
         # self.to_index({'name' : self.name}, append=True)
+
+    def remove_from_archive(self):
+        pp_archive = read_ppArchive(self.trial_dir)
+        if(self.hash() in  pp_archive): del pp_archive[self.hash()] 
+        write_ppArchive(pp_archive, self.trial_dir)
+
+
+
 
 
     def get_XY(self, archive=True, redo=False):
@@ -146,6 +165,17 @@ class PreprocessingProcedure(Storable):
             if(archive == True): self.archive()
         return self.X, self.Y
 
+    def get_summary(self):
+        str_args = ','.join([str(x) for x in self.args])
+        str_kargs = ','.join([str(x) + "=" + str(self.kargs[x]) for x in self.kargs])
+        arguments = ','.join([str_args, str_kargs])
+        return self.func_module + "." + self.func +"(" + arguments + ")"
+    def summary(self):
+        print("-"*50)
+        print("PreprocessingProcedure (%r)" % self.hash())
+        print("    " + self.get_summary())
+        print("-"*50) 
+
     @staticmethod
     def get_func(name, module):
         '''Get a function from its name and module path'''
@@ -170,7 +200,7 @@ class PreprocessingProcedure(Storable):
             json_str = f.read()
             f.close()
             # print(json_str)
-            out = KerasTrial.from_json(trial_dir,json_str)
+            out = PreprocessingProcedure.from_json(trial_dir,json_str)
             if(verbose >= 1): print('Sucessfully loaded procedure.json at ' + trial_dir)
         except (IOError, EOFError):
             out = None
@@ -477,11 +507,11 @@ class KerasTrial(Storable):
             preps = []
             for s in self.pp_procedure:
                 p = PreprocessingProcedure.from_json(self.trial_dir, s)
-                str_args = ','.join([str(x) for x in p.args])
-                str_kargs = ','.join([str(x) + "=" + str(p.kargs[x]) for x in p.kargs])
-                arguments = ','.join([str_args, str_kargs])
-                preps.append(p.func_module + "." + p.func +
-                 "(" + arguments + ")")
+                # str_args = ','.join([str(x) for x in p.args])
+                # str_kargs = ','.join([str(x) + "=" + str(p.kargs[x]) for x in p.kargs])
+                # arguments = ','.join([str_args, str_kargs])
+                # preps.append(p.func_module + "." + p.func +"(" + arguments + ")")
+                preps.append(p.get_summary())
             print(indent*2 + sep.join(preps))
 
         if(showCompilation):
@@ -633,6 +663,11 @@ def get_blob_path(*args, **kwargs):
     return blob_path
 
 
+def read_ppArchive(trial_dir, verbose=0):
+    return read_json_obj(trial_dir, 'pp_archive.json')
+def write_ppArchive(pp_archive, trial_dir, verbose=0):
+    write_json_obj(pp_archive, trial_dir, 'pp_archive.json')
+
 def read_index(trial_dir, verbose=0):
     return read_json_obj(trial_dir, 'index.json')
 #     try:
@@ -695,6 +730,31 @@ def write_object(directory, filename, data, verbose=0):
 
 
 #Reading Trials
+
+def get_all_preprocessing(trial_dir):
+    return get_preprocessing_by_function('.', trial_dir)
+
+def get_preprocessing_by_function(func, trial_dir):
+    pp_archive = read_ppArchive(trial_dir)
+    out = []
+    if(isinstance(func, str)):
+        func_name = func
+        func_module = None
+    else:
+        func_name = func.__name__
+        func_module = func.__module__
+    for key in pp_archive:
+        t_func = pp_archive[key].get("func", 'unknown')
+        t_module = pp_archive[key].get("func_module", 'unknown')
+        # print(pp_archive)
+        # print(t_name, name.decode("UTF-8"))
+        # print([re.match(name, x) for x in t_name])
+        if(re.match(func_name, t_func) != None and (func_module == None or re.match(func_module, t_module) != None)):
+            # blob_path = get_blob_path(key, trial_dir)
+            out.append(PreprocessingProcedure.find_by_hashcode(key, trial_dir))
+
+    return out
+
 
 def get_all_trials(trial_dir):
     return get_trials_by_name('.', trial_dir)
