@@ -147,13 +147,13 @@ class PreprocessingProcedure(Storable):
         return prep_func
 
     @staticmethod
-    def from_json(trial_dir ,json_str, arg_decode_func=None):
+    def from_json(trial_dir ,json_str, arg_decode_func=None):  
         '''Get a PreprocessingProcedure object from its json string'''
         d = json.loads(json_str)
         func = PreprocessingProcedure.get_func(d['func'], d['func_module'])
         args, kargs = d['args'], d['kargs']
         if(arg_decode_func != None):
-            args, kargs = arg_decode_func(args, kargs)
+            args, kargs = arg_decode_func(*args, **kargs)
         return PreprocessingProcedure(trial_dir,  func, *args, **kargs)
 
     @staticmethod
