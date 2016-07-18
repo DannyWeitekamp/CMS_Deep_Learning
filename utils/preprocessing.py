@@ -38,16 +38,20 @@ class ObjectProfile():
 	__repr__ = __str__
 
 def label_dir_pairs_args_decoder(*args, **kargs):
+	#print(args)
 	profiles = args[3]
 	out = []
 	for profile in profiles:
+		print(profile)
 		out.append(ObjectProfile(profile['name'],
 									profile.get('max_size', 100),
 									profile.get('sort_columns', None),
 									profile.get('sort_ascending', True),
 									profile.get('query', None),
 									profile.get('shuffle', False)))
+	args = list(args)
 	args[3] = out
+	args = tuple(args)
 	return (args, kargs)
 
 def padItem(x,max_size, vecsize, shuffle=False):
