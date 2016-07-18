@@ -115,23 +115,26 @@ class PreprocessingProcedure(Storable):
     def get_XY(self, archive=True, redo=False):
         '''Apply the PreprocessingProcedure either getting the archived result or computing it fully'''
         if(self.is_archived() and redo == False):
-            h5f = h5py.File(self.get_path() + 'archive.h5', 'r')
-            self.X = []
-            X_group = h5f['X']
-            keys = list(X_group.keys())
-            keys.sort()
-            for key in keys:
-                self.X.append(X_group[key][:])
+            try:
+                h5f = h5py.File(self.get_path() + 'archive.h5', 'r')
+                self.X = []
+                X_group = h5f['X']
+                keys = list(X_group.keys())
+                keys.sort()
+                for key in keys:
+                    self.X.append(X_group[key][:])
 
-            self.Y = []
-            Y_group = h5f['Y']
-            keys = list(Y_group.keys())
-            keys.sort()
-            for key in keys:
-                self.Y.append(Y_group[key][:])
+                self.Y = []
+                Y_group = h5f['Y']
+                keys = list(Y_group.keys())
+                keys.sort()
+                for key in keys:
+                    self.Y.append(Y_group[key][:])
 
-            h5f.close()
-            print("Preprocessing step %r read from archive" % self.hash())
+                h5f.close()
+                print("Preprocessing step %r read from archive" % self.hash())
+            except:
+                raise IOError("Failed to load archive %r " % self.hash())
         else:
             prep_func = self.get_func(self.func, self.func_module)
             self.X, self.Y = prep_func(*self.args, **self.kargs)
