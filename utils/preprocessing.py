@@ -83,6 +83,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 		# X_train[key] = [None] * (num_samples * num_labels)
 		X_train[index] = [None] * (num_samples * num_labels)
 		X_train_indices[index] = 0
+	X_train = [None] * (num_labels)
 	y_train = [None] * (num_samples * num_labels)
 	
 	y_train_start = 0
