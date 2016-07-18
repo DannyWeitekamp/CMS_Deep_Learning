@@ -77,8 +77,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 
 	print(label_vecs)
 	
-	X_train_indices = [None] * (num_labels)
-	X_train = [None] * (num_labels)
+	X_train_indices = [None] * (len(object_profiles))
+	X_train = [None] * (len(object_profiles))
 	y_train = [None] * (num_samples * num_labels)
 
 	#Prefill the arrays so that we don't waste time resizing lists
