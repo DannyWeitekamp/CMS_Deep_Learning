@@ -87,12 +87,13 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 			max_entries = len(num_val_frame.index)
 			
 			if(location + max_entries < start):
-				location += samples_to_read
+				location += max_entries
 				continue
 
 			
 			file_start_read = start-location
 			samples_to_read = min(num_samples-samples_read, max_entries-file_start_read)
+
 
 			# file_end_read = s + 
 			skip_val_frame = num_val_frame[:file_start_read]
@@ -120,7 +121,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 					frame = store.select('/'+key, start=select_start, stop=select_stop)
 			   
 				
-				prep_start = X_train_indices[key]
+				arr_start = X_train_indices[key]
+				# print(selec_start)
+				# print()
 				arr = X_train[key]
 
 				#Group by Entry
@@ -136,21 +139,25 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 					if(profile.sort_columns != None):
 						x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
 					x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
-					arr[prep_start + entry] = x
+					# print(entry)
+					# print(arr_start + entry - start)
+					arr[arr_start + entry - start] = x
 				
 				#Go through the all of the entries that were empty for this datatype and make sure we pad them
-				for i in range(prep_start, prep_start+samples_to_read):
+				for i in range(arr_start, arr_start+samples_to_read):
 					if(arr[i] == None):
 						arr[i] = np.array(np.zeros((max_size, vecsize)))
 				X_train_indices[key] += samples_to_read
 				frame = None
 				groups = None
-			
+
+			location += samples_to_read
 			num_val_frame = None
 			store.close()
 			samples_read += samples_to_read
-			print(samples_read, num_samples)
+			print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, num_samples, start, num_samples+start))
 			if(samples_read >= num_samples):
+				print('-' * 50)
 				assert samples_read == num_samples
 				break
 		
