@@ -134,7 +134,8 @@ class PreprocessingProcedure(Storable):
                 h5f.close()
                 print("Preprocessing step %r read from archive" % self.hash())
             except:
-                raise IOError("Failed to load archive %r " % self.hash())
+                print("Failed to load archive %r running from scratch" % self.hash())
+                return self.get_XY(archive=archive, redo=True)
         else:
             prep_func = self.get_func(self.func, self.func_module)
             self.X, self.Y = prep_func(*self.args, **self.kargs)
