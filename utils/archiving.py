@@ -11,9 +11,10 @@ import os
 import copy
 import h5py
 import re
+import shutil
 
 class Storable( object ):
-    """An object that we can hash store as a json String and reconstitute"""
+    """An object that we can hash archive as a json String and reconstitute"""
     def __init__(self):
         self.hashcode = None
     def hash(self, rehash=False):
@@ -28,6 +29,18 @@ class Storable( object ):
         raise NotImplementedError( "Should have implemented to_json" )
     def write( self ):
         raise NotImplementedError( "Should have implemented write" )
+    def remove_from_archive(self):
+        folder = self.get_path()
+        blob_dir, blob = split_hash(self.hash()) 
+        parentfolder = self.trial_dir + "blobs/" +  blob_dir + '/'
+        try:
+            if(os.path.isdir(folder)):
+                shutil.rmtree(folder)
+            if(os.path.isdir(parentfolder) and os.listdir(parentfolder) == []):
+                shutil.rmtree(parentfolder)
+        except Exception as e:
+            print(e)
+
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir ):
         raise NotImplementedError( "Should have implemented find_by_hashcode" )
@@ -126,6 +139,21 @@ class PreprocessingProcedure(Storable):
         pp_archive = read_ppArchive(self.trial_dir)
         if(self.hash() in  pp_archive): del pp_archive[self.hash()] 
         write_ppArchive(pp_archive, self.trial_dir)
+
+        Storable.remove_from_archive(self)
+      
+
+        # folder = '/path/to/folder'
+        # for the_file in os.listdir(folder):
+        #     file_path = os.path.join(folder, the_file)
+        #     try:
+        #         if os.path.isfile(file_path):
+        #             os.unlink(file_path)
+        #         #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        #     except Exception as e:
+        #         print(e)
+
+
 
 
 
@@ -530,6 +558,13 @@ class KerasTrial(Storable):
 
         print("-"*50)
 
+    def remove_from_archive(self):
+        index = read_index(self.trial_dir)
+        if(self.hash() in  index): del index[self.hash()] 
+        write_index(index, self.trial_dir)
+
+        Storable.remove_from_archive(self)
+
 
     @staticmethod
     def from_json(trial_dir,json_str, name='trial'):
@@ -743,15 +778,21 @@ def get_preprocessing_by_function(func, trial_dir):
     else:
         func_name = func.__name__
         func_module = func.__module__
+
+    print(func_name, func_module)
+    print(len(pp_archive))
     for key in pp_archive:
         t_func = pp_archive[key].get("func", 'unknown')
         t_module = pp_archive[key].get("func_module", 'unknown')
+        print(t_func, t_module)
         # print(pp_archive)
         # print(t_name, name.decode("UTF-8"))
         # print([re.match(name, x) for x in t_name])
         if(re.match(func_name, t_func) != None and (func_module == None or re.match(func_module, t_module) != None)):
             # blob_path = get_blob_path(key, trial_dir)
-            out.append(PreprocessingProcedure.find_by_hashcode(key, trial_dir))
+            app =PreprocessingProcedure.find_by_hashcode(key, trial_dir)
+            if(app != None):
+                out.append(app)
 
     return out
 
@@ -770,7 +811,9 @@ def get_trials_by_name(name, trial_dir):
         # print([re.match(name, x) for x in t_name])
         if True in [re.match(name, x) != None for x in t_name]:
             # blob_path = get_blob_path(key, trial_dir)
-            out.append(KerasTrial.find_by_hashcode(key, trial_dir))
+            app = KerasTrial.find_by_hashcode(key, trial_dir)
+            if(app != None):
+                out.append(app)
 
     return out
 
