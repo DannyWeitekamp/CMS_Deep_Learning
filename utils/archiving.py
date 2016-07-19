@@ -225,7 +225,7 @@ class PreprocessingProcedure(Storable):
             #     exec('prep_func = ' + name)
             # except Exception:
             raise ValueError("PreprocessingProcedure function %r does not exist in %r. \
-                Functions should be importable and not locally defined." % (str(name), str(module)))
+                For best results functions should be importable and not locally defined." % (str(name), str(module)))
         return prep_func
 
     @staticmethod
@@ -848,12 +848,12 @@ def get_preprocessing_by_function(func, trial_dir):
         func_name = func.__name__
         func_module = func.__module__
 
-    print(func_name, func_module)
-    print(len(pp_archive))
+    # print(func_name, func_module)
+    # print(len(pp_archive))
     for key in pp_archive:
         t_func = pp_archive[key].get("func", 'unknown')
         t_module = pp_archive[key].get("func_module", 'unknown')
-        print(t_func, t_module)
+        # print(t_func, t_module)
         # print(pp_archive)
         # print(t_name, name.decode("UTF-8"))
         # print([re.match(name, x) for x in t_name])
