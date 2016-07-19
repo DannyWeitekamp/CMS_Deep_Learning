@@ -217,18 +217,35 @@ class PreprocessingProcedure(Storable):
     @staticmethod
     def get_func(name, module):
         '''Get a function from its name and module path'''
-        exec("from " + module +  " import " + name + " as prep_func")
+        # print("from " + module +  " import " + name + " as prep_func")
+        try:
+            exec("from " + module +  " import " + name + " as prep_func")
+        except ImportError:
+            # try:
+            #     exec('prep_func = ' + name)
+            # except Exception:
+            raise ValueError("PreprocessingProcedure function %r does not exist in %r. \
+                Functions should be importable and not locally defined." % (str(name), str(module)))
         return prep_func
 
     @staticmethod
     def from_json(trial_dir ,json_str, arg_decode_func=None):  
         '''Get a PreprocessingProcedure object from its json string'''
         d = json.loads(json_str)
-        func = PreprocessingProcedure.get_func(d['func'], d['func_module'])
+        func = None
+        temp = lambda x: 0
+        try:
+            func = PreprocessingProcedure.get_func(d['func'], d['func_module'])
+        except ValueError:
+            func = temp
         args, kargs = d['args'], d['kargs']
         if(arg_decode_func != None):
             args, kargs = arg_decode_func(*args, **kargs)
-        return PreprocessingProcedure(trial_dir,  func, *args, **kargs)
+        pp = PreprocessingProcedure(trial_dir,  func, *args, **kargs)
+        if(func == temp):
+            pp.func = d['func']
+            pp.func_module = d['func_module']
+        return pp
 
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir, verbose=0 ):
@@ -488,15 +505,17 @@ class KerasTrial(Storable):
 
     def get_history(self, verbose=0):
         '''Get the training history for this trial'''
-        history_path = self.get_path()+"history.json"
-        try:
-            history = json.load(open( history_path, "rb" ))
-            if(verbose >= 1): print('Sucessfully loaded history.json at ' + trial_dir)
-        except (IOError, EOFError):
+        # history_path = self.get_path()+"history.json"
+        history = read_json_obj(self.get_path(), "history.json")
+        if(history == {}):
             history = None
-            if(verbose >= 1): print('Failed to load history.json  at ' + trial_dir)
         return history
 
+    def get_model(self, loadweights=False):
+        '''Gets the model, optionally with the best set of weights'''
+        model = model_from_json(self.model)
+        if(loadweights): model.load_weights(self.get_path()+"weights.h5")
+        return model
 
     def is_complete(self):
         '''Return True if the trial has completed'''
@@ -523,7 +542,12 @@ class KerasTrial(Storable):
                 showModelPic=False,
                 showNoneType=False,
                 squat=True):
-        '''Print a summary of the trial'''
+        '''Print a summary of the trial
+            #Arguments:
+                showName=False,showDirectory=False, showIndex=True, showPreprocessing=True, showCompilation=True, showFit=True,
+                 showModelPic=False, showNoneType=False -- Control what data is printed
+                squat=True -- If False shows data on separate lines
+        '''
         indent = "    "     
         d = self.__dict__
         def _listIfNotNone(keys):

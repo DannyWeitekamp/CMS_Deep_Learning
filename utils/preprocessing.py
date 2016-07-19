@@ -5,7 +5,7 @@ import glob
 
 class ObjectProfile():
 	def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
-		''' Processing instructions for each type of our data types
+		''' An object containing processing instructions for each observable object type
 			#Arguements:
 				name	   -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
 				max_size   -- The maximum number of objects to use in training
@@ -13,7 +13,6 @@ class ObjectProfile():
 				sort_ascending -- Whether each column will be sorted ascending or decending (See pandas.DataFrame.sort)
 				query		-- A selection query string to use before truncating the data (See pands.DataFrame.query)
 				shuffle 	-- Whether or not to shuffle the data
-
 		'''
 		self.name = name
 		self.max_size = max_size
@@ -76,6 +75,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 			object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and
 								its preprocessing steps
 			observ_types	-- The column headers for the data to be read from the panadas table
+		#Returns:
+			Training data with its correspoinding labels
+			(X_train, Y_train)
 	'''
 	# X_train = []
 	# y_train = []

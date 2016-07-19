@@ -7,6 +7,7 @@ e-mail: dannyweitekamp@gmail.com
 
 import matplotlib.pyplot as plt
 import numpy as np
+from keras.callbacks import History
 def plot_history( histories ):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist), .... ]
@@ -17,20 +18,22 @@ def plot_history( histories ):
     plt.title('Training Error by Epoch')
     colors=[]
     do_acc=False
-    for label,histobj in histories:
+    for label,history in histories:
+        if(isinstance(history, History)):
+            history = history.history
         color = tuple(np.random.random(3))
         colors.append(color)
         l = label
         vl= label+" validation"
-        if 'acc' in histobj.history:
-            l+=' (acc %2.4f)'% (histobj.history['acc'][-1])
+        if 'acc' in history:
+            l+=' (acc %2.4f)'% (history['acc'][-1])
             do_acc = True
-        if 'val_acc' in histobj.history:
-            vl+=' (acc %2.4f)'% (histobj.history['val_acc'][-1])
+        if 'val_acc' in history:
+            vl+=' (acc %2.4f)'% (history['val_acc'][-1])
             do_acc = True
-        plt.plot(histobj.history['loss'], label=l, color=color)
-        if 'val_loss' in histobj.history:
-            plt.plot(histobj.history['val_loss'], lw=2, ls='dashed', label=vl, color=color)
+        plt.plot(history['loss'], label=l, color=color)
+        if 'val_loss' in history:
+            plt.plot(history['val_loss'], lw=2, ls='dashed', label=vl, color=color)
 
 
     plt.legend()
@@ -40,12 +43,14 @@ def plot_history( histories ):
     plt.figure(figsize=(10,10))
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')
-    for i,(label,histobj) in enumerate(histories):
+    for i,(label,history) in enumerate(histories):
+        if(isinstance(history, History)):
+            history = history.history
         color = colors[i]
-        if 'acc' in histobj.history:
-            plt.plot(histobj.history['acc'], lw=2, label=label+" accuracy", color=color)
-        if 'val_acc' in histobj.history:
-            plt.plot(histobj.history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
+        if 'acc' in history:
+            plt.plot(history['acc'], lw=2, label=label+" accuracy", color=color)
+        if 'val_acc' in history:
+            plt.plot(history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
     plt.legend(loc='lower right')
     plt.show()
 

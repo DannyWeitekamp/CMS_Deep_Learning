@@ -2,81 +2,87 @@ import sys, os
 if __package__ is None:
 	import sys, os
 	sys.path.append(os.path.realpath("../../"))
-from CMS_SURF_2016.utils.archiving import *
+from CMS_SURF_2016.utils.archiving import PreprocessingProcedure, KerasTrial, get_all_preprocessing, get_all_trials
+from CMS_SURF_2016.utils.metrics import plot_history
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
 from keras.callbacks import EarlyStopping
-from CMS_SURF_2016.utils.callbacks import *
+from keras.utils.np_utils import to_categorical
 import numpy as np
+
 
 trial_dir = 'MyTrialDir/'
 
+#Define callback
 earlystopping = EarlyStopping(patience=10, verbose=1)
-# smartCheckpoint = SmartCheckpoint('moop')
-# model = Sequential()
-# model.add(Dense(10, input_dim=10))
-# model.add(Dense(1, activation='sigmoid'))
 
+#Make two input branches
 left_branch = Sequential()
 left_branch.add(Dense(32, input_dim=784))
-
 right_branch = Sequential()
 right_branch.add(Dense(32, input_dim=784))
-
 merged = Merge([left_branch, right_branch], mode='concat')
 
+#Make two layer dense model
 model = Sequential()
 model.add(merged)
 model.add(Dense(10, activation='softmax'))
 model.add(Dense(10, activation='softmax'))
 
-
-
-import numpy as np
-from keras.utils.np_utils import to_categorical
-
+#Define a function for our PreprocessingProcedure. Note: it must return X,Y
 def myGetXY(thousand, one, b=784, d=10):
 	data_1 = np.random.random((thousand, b))
 	data_2 = np.random.random((thousand, b))
-	# these are integers between 0 and 9
 	labels = np.random.randint(d, size=(thousand, one))
-	# we convert the labels to a binary matrix of size (1000, 10)
-	# for use with categorical_crossentropy
 	labels = to_categorical(labels, d)
 	X = [data_1, data_2]
 	Y = labels
 	return X, Y
 
+#Define a list of two preprocessing procedures for the model to be fit on one after the other 
+#We include as arguments to PreprocessingProcedure the function that generates our training data its arguments
 preprocessing = [PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
 
-# preprocessing[0].summary()
-
-trial = KerasTrial(trial_dir, name="Duffles", model=model)
+#Build our KerasTrial object and name it
+trial = KerasTrial(trial_dir, name="MyKerasTrial", model=model)
+#Set the preprocessing data
 trial.setPreprocessing(preprocessing)
+#Set the compilation paramters
 trial.setCompilation(optimizer='rmsprop',
               loss='categorical_crossentropy',
               metrics=['accuracy']
               )
+#Set the fit parameters
 trial.setFit(callbacks = [earlystopping], nb_epoch=19, batch_size=32, validation_split=.2)
-# write_trial(trial, trial_dir)
-# trial.write()
 
-
-# 
-# X,Y = cache.get_XY(redo=True)
-
-# print(X[0].shape, Y.shape)
-# print(cache.to_json())
-# print(cache.hash())
-
-
+#Execute the trial running fitting on each preprocessing procedure in turn 
 trial.execute()
+print("OK IT FINISHED!")
 
+#To demonstrate that we will never rerun the same trial twice we get the trial's json string
 js_str = trial.to_json()
-# print(js_str)
+#Then delete it
 trial = None
+#Reload it from that string
 trial = KerasTrial.from_json(trial_dir, js_str)
+#And then try to run it again. But this time it says that the trial is already done
 trial.execute()
+
+
+from keras.utils.visualize_util import plot
+from IPython.display import Image, display
+#Luckily no information was lost. We can still get the training history for the trial.
+history = trial.get_history()
+plot_history([('myhistory', history)])
+
+#And even the model and weights are still intact
+model = trial.get_model(loadweights=True)
+
+plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
+display(Image("model3.png"))
+
+
+
 # trial.summary()
 
 # trials = get_trials_by_name('Duff*', trial_dir)
@@ -87,16 +93,11 @@ for t in trials:
 	t.remove_from_archive()
 
 pps = get_all_preprocessing(trial_dir)
-print("PPPPS", pps)
 for p in pps:
-	print("YOOOO")
 	p.summary()
 	p.remove_from_archive()
 
 pps = get_all_preprocessing(trial_dir)
-print("PPPPS", pps)
-
-
 for p in pps:
 	p.summary()
 # model = trial.compile()

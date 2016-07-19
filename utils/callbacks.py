@@ -28,11 +28,11 @@ class SmartCheckpoint(ModelCheckpoint):
         if(associated_trial != None):
             
             self.smartDir = associated_trial.get_path()
-            self.checkpointFilename = self.smartDir + "weights.hdf5"
+            self.checkpointFilename = self.smartDir + "weights.h5"
             self.historyFilename = self.smartDir + "history.json"
         else:
             self.smartDir = directory + 'SmartCheckpoint/'
-            self.checkpointFilename = self.smartDir + name + "_weights.hdf5"
+            self.checkpointFilename = self.smartDir + name + "_weights.h5"
             self.historyFilename = self.smartDir + name + "_history.json"
         self.startTime = 0  
         # self.max_epoch = max_epoch
