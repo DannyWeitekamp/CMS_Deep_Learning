@@ -38,6 +38,8 @@ class ObjectProfile():
 	__repr__ = __str__
 
 def label_dir_pairs_args_decoder(*args, **kargs):
+	'''Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are 
+		properly reconstituted'''
 	#print(args)
 	profiles = args[3]
 	out = []
@@ -65,6 +67,16 @@ def padItem(x,max_size, vecsize, shuffle=False):
    
 	#arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
 def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, object_profiles, observ_types):
+	'''Gets training data from folders of pandas tables
+		#Arguements:
+			label_dir_pairs -- a list of tuples of the form (label, directory) where the directory contains
+								tables containing data of all the same event types.
+			start 			--	Where to start reading (as if all of the files are part of one long list)
+			num_samples 	-- The number of samples to reading
+			object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and
+								its preprocessing steps
+			observ_types	-- The column headers for the data to be read from the panadas table
+	'''
 	# X_train = []
 	# y_train = []
 	# X_train_indices = []
