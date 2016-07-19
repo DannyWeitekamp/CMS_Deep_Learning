@@ -14,22 +14,28 @@ import re
 import shutil
 
 class Storable( object ):
-    """An object that we can hash archive as a json String and reconstitute"""
+    """An object that we can hash, archive as a json String, and reconstitute"""
     def __init__(self):
+        '''Initialize the Storable'''
         self.hashcode = None
     def hash(self, rehash=False):
+        '''Compute the hashcode for the Storable from its json string'''
         if(self.hashcode == None):
             self.hashcode = compute_hash(self.to_json())
         return self.hashcode
     def get_path(self):
+        '''Gets the archive (blob) path from its hash'''
         json_str = self.to_json()
         hashcode = compute_hash(json_str)
         return get_blob_path(hashcode=hashcode, trial_dir=self.trial_dir) 
     def to_json( self ):
+        '''Must implement a function that returns the json string corresponding to the Storable'''
         raise NotImplementedError( "Should have implemented to_json" )
     def write( self ):
+        '''Must implement a function that write the Storable's json sring to its archive (blob) path'''
         raise NotImplementedError( "Should have implemented write" )
     def remove_from_archive(self):
+        '''Removes all the data that the Storable has archived in its archive path'''
         folder = self.get_path()
         blob_dir, blob = split_hash(self.hash()) 
         parentfolder = self.trial_dir + "blobs/" +  blob_dir + '/'
@@ -43,6 +49,7 @@ class Storable( object ):
 
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir ):
+        '''Must implement function that find a Storable by its hashcode'''
         raise NotImplementedError( "Should have implemented find_by_hashcode" )
 
 class PreprocessingProcedure(Storable):
@@ -136,6 +143,7 @@ class PreprocessingProcedure(Storable):
         # self.to_index({'name' : self.name}, append=True)
 
     def remove_from_archive(self):
+        '''Removes the PreprocessingProcedure from the pp_archive and destroys its blob directory'''
         pp_archive = read_ppArchive(self.trial_dir)
         if(self.hash() in  pp_archive): del pp_archive[self.hash()] 
         write_ppArchive(pp_archive, self.trial_dir)
@@ -160,7 +168,7 @@ class PreprocessingProcedure(Storable):
 
 
     def get_XY(self, archive=True, redo=False):
-        '''Apply the PreprocessingProcedure either getting the archived result or computing it fully'''
+        '''Apply the PreprocessingProcedure returning X,Y from the archive or generating them from func'''
         if(self.is_archived() and redo == False):
             h5f = None
             try:
@@ -194,11 +202,13 @@ class PreprocessingProcedure(Storable):
         return self.X, self.Y
 
     def get_summary(self):
+        '''Get the summary for the PreprocessingProcedure as a string'''
         str_args = ','.join([str(x) for x in self.args])
         str_kargs = ','.join([str(x) + "=" + str(self.kargs[x]) for x in self.kargs])
         arguments = ','.join([str_args, str_kargs])
         return self.func_module + "." + self.func +"(" + arguments + ")"
     def summary(self):
+        '''Print a summary'''
         print("-"*50)
         print("PreprocessingProcedure (%r)" % self.hash())
         print("    " + self.get_summary())
@@ -222,6 +232,7 @@ class PreprocessingProcedure(Storable):
 
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir, verbose=0 ):
+        '''Returns the archived PreprocessingProcedure with the given hashcode or None if one is not found'''
         path = get_blob_path(hashcode, trial_dir) + 'procedure.json'
         try:
             f = open( path, "rb" )
@@ -239,6 +250,7 @@ class PreprocessingProcedure(Storable):
 
 
 class KerasTrial(Storable):
+    '''An archivable object representing a machine learning trial in keras'''
     def __init__(self,
                     trial_dir,
                     name = 'trial',
@@ -284,6 +296,7 @@ class KerasTrial(Storable):
        
 
     def setModel(self, model):
+        '''Set the model used by the trial (either the object or derived json string)'''
         self.model = model
         if(isinstance(model, Model)):
             self.model = model.to_json()
@@ -291,6 +304,7 @@ class KerasTrial(Storable):
 
     def setPreprocessing(self,
                    pp_procedure=None):
+        '''Sets the preprocessing function and arguements for the trial'''
         if(pp_procedure != None):
             if(isinstance(pp_procedure, list) == False):
                 pp_procedure = [pp_procedure]
@@ -310,7 +324,7 @@ class KerasTrial(Storable):
                     loss,
                     metrics=[],
                     sample_weight_mode=None):
-
+        '''Sets the compilation arguments for the trial'''
         metrics.sort()
         self.optimizer=optimizer
         self.loss=loss
@@ -326,6 +340,7 @@ class KerasTrial(Storable):
                 shuffle=True,
                 class_weight=None,
                 sample_weight=None):
+        '''Sets the fit arguments for the trial'''
     	#Fit
         strCallbacks = []
         for c in callbacks:
@@ -347,6 +362,7 @@ class KerasTrial(Storable):
         self.sample_weight=sample_weight
 
     def to_json(self):
+        '''Converts the trial to a json string '''
         encoder = TrialEncoder()
         return encoder.encode(self)
     
@@ -358,6 +374,7 @@ class KerasTrial(Storable):
     #             object_profiles=self.object_profiles,
     #             observ_types=self.observ_types)
     def compile(self):
+        '''Compiles the model set for this trial'''
         model = model_from_json(self.model)
         model.compile(
             optimizer=self.optimizer,
@@ -367,6 +384,7 @@ class KerasTrial(Storable):
         return model
 
     def fit(self, model, x_train, y_train, index_store=["val_acc"], verbose=1):
+        '''Runs model.fit(x_train, y_train) for the trial using the arguments passed to trial.setFit(...)'''
         callbacks = []
         # print(self.callbacks)
         for c in self.callbacks:
@@ -399,6 +417,7 @@ class KerasTrial(Storable):
             self.to_index(dct)
 
     def write(self, verbose=0):
+        '''Writes the model's json string to its archive location''' 
         json_str = self.to_json()
         hashcode = compute_hash(json_str)
         blob_path = self.get_path()
@@ -408,6 +427,7 @@ class KerasTrial(Storable):
                  
 
     def execute(self):
+        '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
     	if(self.pp_procedure == None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
         if(self.is_complete() == False):
@@ -425,7 +445,7 @@ class KerasTrial(Storable):
 
 
     def to_index(self, dct, append=False, replace=True):
-
+        '''Pushes a dictionary of values to the archive index ('index' like in a book not a list) for this trial'''
         index = read_index(self.trial_dir)
         hashcode = self.hash()
         trial_dict = index.get(hashcode, {})
@@ -451,10 +471,12 @@ class KerasTrial(Storable):
         write_index(index, self.trial_dir) 
 
     def get_index_entry(self, verbose=0):
+        '''Get the dictionary containing all the index values for this trial  ('index' like in a book not a list)'''
         index = read_index(self.trial_dir, verbose=verbose)
         return index[self.hash()]
 
     def get_from_index(self, keys, verbose=0):
+        '''Get a value from the index  ('index' like in a book not a list)'''
         indexDict = self.get_index_entry(verbose=verbose)
         if(isinstance(keys, list)):
             out = []
@@ -465,6 +487,7 @@ class KerasTrial(Storable):
         return out
 
     def get_history(self, verbose=0):
+        '''Get the training history for this trial'''
         history_path = self.get_path()+"history.json"
         try:
             history = json.load(open( history_path, "rb" ))
@@ -476,6 +499,7 @@ class KerasTrial(Storable):
 
 
     def is_complete(self):
+        '''Return True if the trial has completed'''
         blob_path = get_blob_path(self, self.trial_dir)
         history_path = blob_path+"history.json"
         if(os.path.exists(history_path)):
@@ -499,6 +523,7 @@ class KerasTrial(Storable):
                 showModelPic=False,
                 showNoneType=False,
                 squat=True):
+        '''Print a summary of the trial'''
         indent = "    "     
         d = self.__dict__
         def _listIfNotNone(keys):
@@ -559,6 +584,7 @@ class KerasTrial(Storable):
         print("-"*50)
 
     def remove_from_archive(self):
+        '''Remove the trial from the index and destroys its archive including the trial.json, weights.h5 and history.json'''
         index = read_index(self.trial_dir)
         if(self.hash() in  index): del index[self.hash()] 
         write_index(index, self.trial_dir)
@@ -568,6 +594,7 @@ class KerasTrial(Storable):
 
     @staticmethod
     def from_json(trial_dir,json_str, name='trial'):
+        '''Reconsitute a KerasTrial object from its json string'''
         d = json.loads(json_str)
         # print(d['callbacks'])
         trial = KerasTrial(
@@ -591,6 +618,7 @@ class KerasTrial(Storable):
 
     @staticmethod
     def find_by_hashcode( hashcode, trial_dir, verbose=0 ):
+        '''Returns the archived KerasTrial with the given hashcode or None if one is not found'''
         path = get_blob_path(hashcode, trial_dir) + 'trial.json'
         try:
             f = open( path, "rb" )
@@ -605,6 +633,7 @@ class KerasTrial(Storable):
         return out
 
 class TrialEncoder(json.JSONEncoder):
+    '''A json encoder for KerasTrials. Doesn't store name,trial_dir,hashcode etc since they don't affect how it functions'''
     def __init__(self):
         json.JSONEncoder.__init__(self,sort_keys=True, indent=4)
     def default(self, obj):
@@ -618,6 +647,7 @@ class TrialEncoder(json.JSONEncoder):
 
 #TODO: Stopping Callbacks can't infer mode -> only auto works
 def encodeCallback(c):
+    '''Encodes callbacks so that they can be decoded later'''
     d = {}
     if(isinstance(c, EarlyStopping)):
         d['monitor'] = c.monitor
@@ -636,6 +666,7 @@ def encodeCallback(c):
 
 
 def decodeCallback(d):
+    '''Decodes callbacks into usable objects'''
     # if(d == None):
     # print(d)
     if(d['type'] == "OverfitStopping"):
@@ -654,6 +685,7 @@ def decodeCallback(d):
 
 
 def compute_hash(inp):
+    '''Computes a SHA1 hash string from a json string or Storable'''
     json_str = inp
     if(isinstance(inp, Storable)):
         json_str = inp.to_json()
@@ -662,9 +694,12 @@ def compute_hash(inp):
     return h.hexdigest()
 
 def split_hash(hashcode):
+    '''Splits a SHA1 hash string into two strings. One with the first 5 characters and another with the rest'''
     return hashcode[:5], hashcode[5:]
 
 def get_blob_path(*args, **kwargs):
+    '''Blob path (archive location) from either (storable,trial_dir), (hashcode, trial_dir), or
+        (json_str=?, trial_dir=?)'''
     def _helper(a):
         if(isinstance(a, Storable)):
             return split_hash(a.hash())
@@ -699,11 +734,14 @@ def get_blob_path(*args, **kwargs):
 
 
 def read_ppArchive(trial_dir, verbose=0):
+    '''Returns the preprocessing archive read from the trial directory'''
     return read_json_obj(trial_dir, 'pp_archive.json')
 def write_ppArchive(pp_archive, trial_dir, verbose=0):
+    '''Writes the preprocessing archive to the trial directory'''
     write_json_obj(pp_archive, trial_dir, 'pp_archive.json')
 
 def read_index(trial_dir, verbose=0):
+    '''Returns the index read from the trial directory'''
     return read_json_obj(trial_dir, 'index.json')
 #     try:
 #         index = json.load(open( trial_dir + 'index.json', "rb" ))
@@ -714,6 +752,7 @@ def read_index(trial_dir, verbose=0):
 #     return index
 
 def write_index(index,trial_dir, verbose=0):
+    '''Writes the index to the trial directory'''
     write_json_obj(index, trial_dir, 'index.json')
 #     try:
 #         json.dump(index,  open( trial_dir + 'index.json', "wb" ))
@@ -723,6 +762,7 @@ def write_index(index,trial_dir, verbose=0):
 
 
 def read_json_obj(directory, filename, verbose=0):
+    '''Return a json object read from the given directory'''
     try:
         obj = json.load(open( directory + filename, "rb" ))
         if(verbose >= 1): print('Sucessfully loaded ' + filename +'  at ' + directory)
@@ -732,6 +772,7 @@ def read_json_obj(directory, filename, verbose=0):
     return obj
 
 def write_json_obj(obj,directory, filename, verbose=0):
+    '''Writes a json object to the given directory'''
     try:
         json.dump(obj,  open( directory + filename, "wb" ))
         if(verbose >= 1): print('Sucessfully wrote ' + filename +'  at ' + directory)
@@ -739,16 +780,18 @@ def write_json_obj(obj,directory, filename, verbose=0):
         if(verbose >= 1): print('Failed to write '+ filename +'  at ' + directory)
 
 
-def write_to_index(key, value):
+# def write_to_index(key, value):
+#     '''Writes a value to the index'''
 
-    index = read_index(trial_dir)
-    trial_dict = index.get(hashcode, {})
-    trial_dict['name'] = name
-    index[hashcode] = trial_dict
-    write_index(index, trial_dir)
+#     index = read_index(trial_dir)
+#     trial_dict = index.get(hashcode, {})
+#     trial_dict['name'] = name
+#     index[hashcode] = trial_dict
+#     write_index(index, trial_dir)
 
 
 def write_object(directory, filename, data, verbose=0):
+    '''Writes an object from the given data with the given filename in the given directory'''
     if not os.path.exists(directory):
         os.makedirs(directory)
     path = directory + filename
@@ -767,9 +810,11 @@ def write_object(directory, filename, data, verbose=0):
 #Reading Trials
 
 def get_all_preprocessing(trial_dir):
+    '''Gets all the PreprocessingProcedures in the pp_archive'''
     return get_preprocessing_by_function('.', trial_dir)
 
 def get_preprocessing_by_function(func, trial_dir):
+    '''Gets a list of PreprocessingProcedures that use a certain function'''
     pp_archive = read_ppArchive(trial_dir)
     out = []
     if(isinstance(func, str)):
@@ -798,9 +843,11 @@ def get_preprocessing_by_function(func, trial_dir):
 
 
 def get_all_trials(trial_dir):
+    '''Get all the trials listed in the index'''
     return get_trials_by_name('.', trial_dir)
 
 def get_trials_by_name(name, trial_dir):
+    '''Get all the trials with a particluar name or that match a given regular expression'''
     index = read_index(trial_dir)
     out = []
     for key in index:
