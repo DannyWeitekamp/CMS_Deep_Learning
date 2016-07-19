@@ -73,10 +73,19 @@ from keras.utils.visualize_util import plot
 from IPython.display import Image, display
 #Luckily no information was lost. We can still get the training history for the trial.
 history = trial.get_history()
-plot_history([('myhistory', history)])
+# plot_history([('myhistory', history)])
 
+test_pp = PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10)
+test_X, test_Y = test_pp.get_XY()
 #And even the model and weights are still intact
-model = trial.get_model(loadweights=True)
+model = trial.compile(loadweights=True)
+ev = model.evaluate(test_X, test_Y)
+loss = ev[0]
+accuracy = ev[1]
+
+print('\n')
+print("Test_Loss:",loss)
+print("Test_Accuracy:",accuracy)
 
 plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
 display(Image("model3.png"))

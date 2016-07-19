@@ -390,9 +390,9 @@ class KerasTrial(Storable):
     #             num_samples=self.num_samples,
     #             object_profiles=self.object_profiles,
     #             observ_types=self.observ_types)
-    def compile(self):
+    def compile(self, loadweights=False):
         '''Compiles the model set for this trial'''
-        model = model_from_json(self.model)
+        model = self.get_model(loadweights=loadweights)#model_from_json(self.model)
         model.compile(
             optimizer=self.optimizer,
             loss=self.loss,
