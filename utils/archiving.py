@@ -475,7 +475,7 @@ class KerasTrial(Storable):
                     }
             self.to_index( dct, replace=True)
             if(test_proc != None):
-                if(isinstance(test_proc, PreprocessingProcedure) == false):
+                if(isinstance(test_proc, PreprocessingProcedure) == False):
                     proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
                 else:
                     proc = test_proc
