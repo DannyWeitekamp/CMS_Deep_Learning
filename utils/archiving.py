@@ -201,7 +201,6 @@ class PreprocessingProcedure(Storable):
         else:
             prep_func = self.get_func(self.func, self.func_module)
             self.X, self.Y = prep_func(*self.args, **self.kargs)
-
             # print("WRITE:", self.X.shape, self.Y.shape)
             if(archive == True): self.archive()
         return self.X, self.Y
@@ -449,7 +448,7 @@ class KerasTrial(Storable):
         self.to_index({'name' : self.name}, append=True)
                  
 
-    def execute(self, archivePreprocess=True, arg_decode_func=None):
+    def execute(self, archivePreprocess=True, arg_decode_func=None, test_proc=None):
         '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
     	if(self.pp_procedure == None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
@@ -458,11 +457,33 @@ class KerasTrial(Storable):
             pps = self.pp_procedure
             if(isinstance(pps, list) == False): pps = [pps]
             # print(pps)
+            totalN = 0
             for p in pps:
                 proc = PreprocessingProcedure.from_json(self.trial_dir,p, arg_decode_func=arg_decode_func)
                 X, Y = proc.get_XY(archive=archivePreprocess)
+                if(isinstance(X, list) == False): X = [X]
+                if(isinstance(Y, list) == False): Y = [Y]
+                totalN += Y[0].shape[0]
                 self.fit(model,X, Y)
             self.write()
+
+            if(self.validation_split != 0.0)
+            dct =  {'num_test' : totalN*(1.0-self.validation_split),
+                    'num_validation' : totalN*(self.validation_split),
+                    'elapse_time' : self.get_history()['elapse_time'],
+                    'fit_cycles' : len(pps)
+                    }
+            self.to_index( dct, replace=True)
+            if(test_procs != None):
+                if(isinstance(test_proc, PreprocessingProcedure) == false):
+                    proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
+                else:
+                    proc = test_proc
+                X, Y = proc.get_XY(archive=archivePreprocess)
+                metrics = model.evauluate(X, Y)
+                self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0]}, replace=True)
+                return metrics
+
         else:
             print("Trial %r Already Complete" % self.hash())
 
