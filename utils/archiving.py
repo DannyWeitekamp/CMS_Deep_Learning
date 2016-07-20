@@ -127,14 +127,14 @@ class PreprocessingProcedure(Storable):
             
             h5f.close()
             pp_archive = read_ppArchive(self.trial_dir)
-
+            print(pp_archive)
             pp_dict = {}
             pp_dict['func'] = self.func
             pp_dict['module'] = self.func_module
             pp_dict['args'] = self.args
             pp_dict['kargs'] = self.kargs
             pp_archive[self.hash()] = pp_dict
-
+            print(pp_archive)
             write_ppArchive(pp_archive, self.trial_dir)
             # def read_json_obj(directory, filename, verbose=0):
                 
@@ -240,7 +240,7 @@ class PreprocessingProcedure(Storable):
             func = temp
         args, kargs = d['args'], d['kargs']
         if(arg_decode_func != None):
-            print('arg_decode_func_ENABLED:', arg_decode_func.__name__)
+            # print('arg_decode_func_ENABLED:', arg_decode_func.__name__)
             args, kargs = arg_decode_func(*args, **kargs)
         pp = PreprocessingProcedure(trial_dir,  func, *args, **kargs)
         if(func == temp):
