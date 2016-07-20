@@ -127,14 +127,17 @@ class PreprocessingProcedure(Storable):
             
             h5f.close()
             pp_archive = read_ppArchive(self.trial_dir)
+
+            #TODO: this is a really backward way of doing this
             jstr = self.to_json()
             d = json.loads(jstr)
-            print(d)
+
+            # print(d)
             pp_dict = {}
-            pp_dict['func'] = self.func
-            pp_dict['module'] = self.func_module
-            pp_dict['args'] = self.args
-            pp_dict['kargs'] = self.kargs
+            pp_dict['func'] = d['func']
+            pp_dict['module'] = d['func_module']
+            pp_dict['args'] = d['args']
+            pp_dict['kargs'] = d['kargs']
             pp_archive[self.hash()] = pp_dict
 
             write_ppArchive(pp_archive, self.trial_dir)
