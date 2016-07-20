@@ -467,7 +467,7 @@ class KerasTrial(Storable):
                 self.fit(model,X, Y)
             self.write()
 
-            if(self.validation_split != 0.0)
+            if(self.validation_split != 0.0):
             dct =  {'num_test' : totalN*(1.0-self.validation_split),
                     'num_validation' : totalN*(self.validation_split),
                     'elapse_time' : self.get_history()['elapse_time'],
