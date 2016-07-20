@@ -240,6 +240,7 @@ class PreprocessingProcedure(Storable):
             func = temp
         args, kargs = d['args'], d['kargs']
         if(arg_decode_func != None):
+            print('arg_decode_func_ENABLED:', arg_decode_func.__name__)
             args, kargs = arg_decode_func(*args, **kargs)
         pp = PreprocessingProcedure(trial_dir,  func, *args, **kargs)
         if(func == temp):
@@ -443,7 +444,7 @@ class KerasTrial(Storable):
         self.to_index({'name' : self.name}, append=True)
                  
 
-    def execute(self, archivePreprocess=True):
+    def execute(self, archivePreprocess=True, arg_decode_func=None):
         '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
     	if(self.pp_procedure == None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
@@ -453,7 +454,7 @@ class KerasTrial(Storable):
             if(isinstance(pps, list) == False): pps = [pps]
             # print(pps)
             for p in pps:
-                proc = PreprocessingProcedure.from_json(self.trial_dir,p)
+                proc = PreprocessingProcedure.from_json(self.trial_dir,p, arg_decode_func=arg_decode_func)
                 X, Y = proc.get_XY(archive=archivePreprocess)
                 self.fit(model,X, Y)
             self.write()
