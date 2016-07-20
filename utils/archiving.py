@@ -468,7 +468,7 @@ class KerasTrial(Storable):
             self.write()
 
             # if(self.validation_split != 0.0):
-            dct =  {'num_test' : totalN*(1.0-self.validation_split),
+            dct =  {'num_train' : totalN*(1.0-self.validation_split),
                     'num_validation' : totalN*(self.validation_split),
                     'elapse_time' : self.get_history()['elapse_time'],
                     'fit_cycles' : len(pps)
@@ -480,8 +480,10 @@ class KerasTrial(Storable):
                 else:
                     proc = test_proc
                 X, Y = proc.get_XY(archive=archivePreprocess)
+                if(isinstance(X, list) == False): X = [X]
+                if(isinstance(Y, list) == False): Y = [Y]
                 metrics = model.evauluate(X, Y)
-                self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0]}, replace=True)
+                self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0], 'num_test' : Y[0].shape[0]}, replace=True)
                 return metrics
 
         else:
