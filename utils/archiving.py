@@ -493,7 +493,7 @@ class KerasTrial(Storable):
         if(isinstance(X, list) == False): X = [X]
         if(isinstance(Y, list) == False): Y = [Y]
         metrics = model.evaluate(X, Y)
-        self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0], 'num_test' : Y[0].shape[0]}, replace=True)
+        self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : Y[0].shape[0]}, replace=True)
         return metrics
 
     def to_index(self, dct, append=False, replace=True):
