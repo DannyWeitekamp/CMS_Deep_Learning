@@ -12,6 +12,8 @@ import copy
 import h5py
 import re
 import shutil
+from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
+from CMS_SURF_2016.layers.slice import Slice
 
 class Storable( object ):
     """An object that we can hash, archive as a json String, and reconstitute"""
@@ -540,7 +542,7 @@ class KerasTrial(Storable):
 
     def get_model(self, loadweights=False):
         '''Gets the model, optionally with the best set of weights'''
-        model = model_from_json(self.model)
+        model = model_from_json(self.model, custom_objects={'Lorentz': Lorentz, 'Slice': Slice})
         if(loadweights): model.load_weights(self.get_path()+"weights.h5")
         return model
 
