@@ -43,7 +43,7 @@ def label_dir_pairs_args_decoder(*args, **kargs):
 	profiles = args[3]
 	out = []
 	for profile in profiles:
-		print(profile)
+		# print(profile)
 		out.append(ObjectProfile(profile['name'],
 									profile.get('max_size', 100),
 									profile.get('sort_columns', None),
@@ -196,7 +196,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 				print('-' * 50)
 				assert samples_read == num_samples
 				break
-		
+		if(samples_read != num_samples):
+			raise IOError("Not enough data in %r to read in range(%r, %r)" % (data_dir, start, num_samples+start))
 		
 		
 		for i in range(num_samples):

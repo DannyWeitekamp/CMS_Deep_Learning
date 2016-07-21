@@ -478,7 +478,7 @@ class KerasTrial(Storable):
             self.to_index( dct, replace=True)
         else:
             print("Trial %r Already Complete" % self.hash())
-    def test(self,test_proc):
+    def test(self,test_proc, archivePreprocess=True):
         if(isinstance(test_proc, PreprocessingProcedure) == False):
             proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
         else:
