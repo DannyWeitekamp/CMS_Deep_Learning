@@ -448,7 +448,7 @@ class KerasTrial(Storable):
         self.to_index({'name' : self.name}, append=True)
                  
 
-    def execute(self, archivePreprocess=True, arg_decode_func=None, test_proc=None):
+    def execute(self, archivePreprocess=True, arg_decode_func=None):
         '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
     	if(self.pp_procedure == None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
@@ -474,21 +474,19 @@ class KerasTrial(Storable):
                     'fit_cycles' : len(pps)
                     }
             self.to_index( dct, replace=True)
-            if(test_proc != None):
-                if(isinstance(test_proc, PreprocessingProcedure) == False):
-                    proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
-                else:
-                    proc = test_proc
-                X, Y = proc.get_XY(archive=archivePreprocess)
-                if(isinstance(X, list) == False): X = [X]
-                if(isinstance(Y, list) == False): Y = [Y]
-                metrics = model.evaluate(X, Y)
-                self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0], 'num_test' : Y[0].shape[0]}, replace=True)
-                return metrics
-
         else:
             print("Trial %r Already Complete" % self.hash())
-
+    def test(self,test_proc):
+        if(isinstance(test_proc, PreprocessingProcedure) == False):
+            proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
+        else:
+            proc = test_proc
+        X, Y = proc.get_XY(archive=archivePreprocess)
+        if(isinstance(X, list) == False): X = [X]
+        if(isinstance(Y, list) == False): Y = [Y]
+        metrics = model.evaluate(X, Y)
+        self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[0], 'num_test' : Y[0].shape[0]}, replace=True)
+        return metrics
 
     def to_index(self, dct, append=False, replace=True):
         '''Pushes a dictionary of values to the archive index ('index' like in a book not a list) for this trial'''
