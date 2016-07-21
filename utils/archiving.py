@@ -397,9 +397,9 @@ class KerasTrial(Storable):
     #             num_samples=self.num_samples,
     #             object_profiles=self.object_profiles,
     #             observ_types=self.observ_types)
-    def compile(self, loadweights=False):
+    def compile(self, loadweights=False, custom_objects={}):
         '''Compiles the model set for this trial'''
-        model = self.get_model(loadweights=loadweights)#model_from_json(self.model)
+        model = self.get_model(loadweights=loadweights, custom_objects=custom_objects)#model_from_json(self.model)
         model.compile(
             optimizer=self.optimizer,
             loss=self.loss,
@@ -450,12 +450,12 @@ class KerasTrial(Storable):
         self.to_index({'name' : self.name}, append=True)
                  
 
-    def execute(self, archivePreprocess=True, arg_decode_func=None):
+    def execute(self, archivePreprocess=True, arg_decode_func=None, custom_objects={}):
         '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
     	if(self.pp_procedure == None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
         if(self.is_complete() == False):
-            model = self.compile()
+            model = self.compile(custom_objects=custom_objects)
             pps = self.pp_procedure
             if(isinstance(pps, list) == False): pps = [pps]
             # print(pps)
@@ -540,9 +540,9 @@ class KerasTrial(Storable):
             history = None
         return history
 
-    def get_model(self, loadweights=False):
+    def get_model(self, loadweights=False,custom_objects={}):
         '''Gets the model, optionally with the best set of weights'''
-        model = model_from_json(self.model, custom_objects={'Lorentz': Lorentz, 'Slice': Slice})
+        model = model_from_json(self.model, custom_objects=custom_objects)
         if(loadweights): model.load_weights(self.get_path()+"weights.h5")
         return model
 
