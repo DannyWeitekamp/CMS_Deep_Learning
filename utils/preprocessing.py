@@ -122,7 +122,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 			num_val_frame = store.get('/NumValues')
 			max_entries = len(num_val_frame.index)
 			
-			if(location + max_entries < start):
+			if(location + max_entries <= start):
 				location += max_entries
 				continue
 

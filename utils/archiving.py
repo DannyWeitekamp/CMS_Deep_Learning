@@ -322,6 +322,7 @@ class KerasTrial(Storable):
     def setModel(self, model):
         '''Set the model used by the trial (either the object or derived json string)'''
         self.model = model
+        self.compiled_model = None
         if(isinstance(model, Model)):
             self.model = model.to_json()
 
@@ -397,14 +398,18 @@ class KerasTrial(Storable):
     #             num_samples=self.num_samples,
     #             object_profiles=self.object_profiles,
     #             observ_types=self.observ_types)
-    def compile(self, loadweights=False, custom_objects={}):
+    def compile(self, loadweights=False, redo=False, custom_objects={}):
         '''Compiles the model set for this trial'''
-        model = self.get_model(loadweights=loadweights, custom_objects=custom_objects)#model_from_json(self.model)
-        model.compile(
-            optimizer=self.optimizer,
-            loss=self.loss,
-            metrics=self.metrics,
-            sample_weight_mode=self.sample_weight_mode)
+        if(self.compiled_model == None or redo): 
+            model = self.get_model(loadweights=loadweights, custom_objects=custom_objects)#model_from_json(self.model)
+            model.compile(
+                optimizer=self.optimizer,
+                loss=self.loss,
+                metrics=self.metrics,
+                sample_weight_mode=self.sample_weight_mode)
+            self.compiled_model = model
+        else:
+            model = self.compiled_model
         return model
 
     def fit(self, model, x_train, y_train, index_store=["val_acc"], verbose=1):
@@ -478,7 +483,8 @@ class KerasTrial(Storable):
             self.to_index( dct, replace=True)
         else:
             print("Trial %r Already Complete" % self.hash())
-    def test(self,test_proc, archivePreprocess=True):
+    def test(self,test_proc, archivePreprocess=True, custom_objects={}):
+        model = self.compile(custom_objects=custom_objects)
         if(isinstance(test_proc, PreprocessingProcedure) == False):
             proc = PreprocessingProcedure.from_json(self.trial_dir,test_proc, arg_decode_func=arg_decode_func)
         else:
