@@ -701,6 +701,7 @@ class TrialEncoder(json.JSONEncoder):
         if('name' in d): del d['name']
         if('trial_dir' in d): del d['trial_dir']
         if('hashcode' in d): del d['hashcode']
+        if('compiled_model' in d): del d['compiled_model']
         return d
 
 
