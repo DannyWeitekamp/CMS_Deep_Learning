@@ -533,9 +533,9 @@ class KerasTrial(Storable):
         if(isinstance(keys, list)):
             out = []
             for key in keys:
-                out.append(indexDict[key])
+                out.append(indexDict.get(key, None))
         else:
-            out = indexDict[keys]
+            out = indexDict.get(keys, None)
         return out
 
     def get_history(self, verbose=0):
