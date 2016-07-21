@@ -696,12 +696,15 @@ class TrialEncoder(json.JSONEncoder):
     def __init__(self):
         json.JSONEncoder.__init__(self,sort_keys=True, indent=4)
     def default(self, obj):
+        temp = self.compiled_model
+        self.compiled_model = None
         d = obj.__dict__
         d = copy.deepcopy(d)
         if('name' in d): del d['name']
         if('trial_dir' in d): del d['trial_dir']
         if('hashcode' in d): del d['hashcode']
         if('compiled_model' in d): del d['compiled_model']
+        self.compiled_model = temp
         return d
 
 
