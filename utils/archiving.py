@@ -22,7 +22,7 @@ class Storable( object ):
         self.hashcode = None
     def hash(self, rehash=False):
         '''Compute the hashcode for the Storable from its json string'''
-        if(self.hashcode == None):
+        if(self.hashcode is None):
             self.hashcode = compute_hash(self.to_json())
         return self.hashcode
     def get_path(self):
@@ -400,7 +400,7 @@ class KerasTrial(Storable):
     #             observ_types=self.observ_types)
     def compile(self, loadweights=False, redo=False, custom_objects={}):
         '''Compiles the model set for this trial'''
-        if(self.compiled_model == None or redo): 
+        if(self.compiled_model is None or redo): 
             model = self.get_model(loadweights=loadweights, custom_objects=custom_objects)#model_from_json(self.model)
             model.compile(
                 optimizer=self.optimizer,
@@ -420,7 +420,7 @@ class KerasTrial(Storable):
             if(c != None):
                 callbacks.append(decodeCallback(c))
         monitor = 'val_acc'
-        if(self.validation_split == 0.0 or self.validation_data == None):
+        if(self.validation_split == 0.0 or self.validation_data is None):
             monitor = 'acc'
         callbacks.append(SmartCheckpoint('weights', associated_trial=self,
                                              monitor=monitor,
@@ -457,7 +457,7 @@ class KerasTrial(Storable):
 
     def execute(self, archivePreprocess=True, arg_decode_func=None, custom_objects={}):
         '''Executes the trial, fitting on the X, and Y for training for each given PreprocessingProcedure in series'''
-    	if(self.pp_procedure == None):
+    	if(self.pp_procedure is None):
             raise ValueError("Cannot execute trial without PreprocessingProcedure")
         if(self.is_complete() == False):
             model = self.compile(custom_objects=custom_objects)
@@ -896,7 +896,7 @@ def get_preprocessing_by_function(func, trial_dir):
         # print(pp_archive)
         # print(t_name, name.decode("UTF-8"))
         # print([re.match(name, x) for x in t_name])
-        if(re.match(func_name, t_func) != None and (func_module == None or re.match(func_module, t_module) != None)):
+        if(re.match(func_name, t_func) != None and (func_module is None or re.match(func_module, t_module) != None)):
             # blob_path = get_blob_path(key, trial_dir)
             app =PreprocessingProcedure.find_by_hashcode(key, trial_dir)
             if(app != None):

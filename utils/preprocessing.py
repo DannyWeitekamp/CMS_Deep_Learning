@@ -118,7 +118,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
             store = pd.HDFStore(f)
 
             #Get the NumValues frame which lists the number of values for each entry
-            num_val_frame = store.get('/NumValues')
+            try:
+                num_val_frame = store.get('/NumValues')
+            except KeyError as e:
+                raise KeyError(str(e) + " " + f)
+
             file_total_entries = len(num_val_frame.index)
             
             #print(start)
@@ -184,7 +188,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
                 for i in range(arr_start, arr_start+samples_to_read):
-                    if(arr[i] == None):
+                    if(arr[i] is None):
                         arr[i] = np.array(np.zeros((max_size, vecsize)))
                         
                 #Iterate by samples to read so that we know how many are left when we read the next file
