@@ -115,12 +115,12 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 
             #Get the NumValues frame which lists the number of values for each entry
             num_val_frame = store.get('/NumValues')
-            max_entries = len(num_val_frame.index)
+            file_total_entries = len(num_val_frame.index)
             
             #print(start)
-            if(location + max_entries <= start):
-                location += max_entries
-                #print(location, max_entries)
+            if(location + file_total_entries <= start):
+                location += file_total_entries
+                #print(location, file_total_entries)
                 continue
             
             #Determine what row to start reading the num_val table which contains
@@ -128,7 +128,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
             file_start_read = start-location
             
             #How many rows we will read from this table each corresponds to one entry
-            samples_to_read = min(num_samples-samples_read, max_entries-file_start_read)
+            samples_to_read = min(num_samples-samples_read, file_total_entries-file_start_read)
             
             #Get information about how many rows there are for each entry for the rows we want to skip and read
             skip_val_frame = num_val_frame[:file_start_read]
@@ -154,7 +154,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
                 
                 #If we are reading all the samples use get since it might be faster
                 #TODO: check if it is actually faster
-                if(samples_to_read == max_entries):
+                if(samples_to_read == file_total_entries):
                     frame = store.get('/'+key)
                 else:
                     frame = store.select('/'+key, start=select_start, stop=select_stop)
