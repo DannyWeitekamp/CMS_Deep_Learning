@@ -79,7 +79,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
             Training data with its correspoinding labels
             (X_train, Y_train)
     '''
-   
+    labels = [x[0] for x in label_dir_pairs]
+    duplicates = list(set([x for x in labels if labels.count(x) > 1]))
+    if(len(duplicates) != 0):
+        raise ValueError("Cannot have duplicate lables %r" % duplicates)
+
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
 
