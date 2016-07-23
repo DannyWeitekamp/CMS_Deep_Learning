@@ -80,7 +80,7 @@ def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1
                 maxes[profile.name] = max(num_val_frame[profile.name].max(), maxes[profile.name])
     
     for profile in unresolved:
-        profile.max_size = int(np.ceil(maxes[profile.name] * padding_ratio))
+        profile.max_size = int(np.ceil(maxes[profile.name] * padding_multiplier))
 
 def label_dir_pairs_args_decoder(*args, **kargs):
     '''Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are 
@@ -102,7 +102,7 @@ def label_dir_pairs_args_decoder(*args, **kargs):
     return (args, kargs)
 
 def padItem(x,max_size, vecsize, shuffle=False):
-    '''Pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
+    '''A helper function that pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
         shuffles the padded output before returning'''
     if(len(x) > max_size):
         out = x[:max_size]
