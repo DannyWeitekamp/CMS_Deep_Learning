@@ -14,6 +14,8 @@ class ObjectProfile():
                 query        -- A selection query string to use before truncating the data (See pands.DataFrame.query)
                 shuffle     -- Whether or not to shuffle the data
         '''
+        if(max_size < -1):
+            raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
         self.name = name
         self.max_size = max_size
         self.sort_columns = sort_columns
@@ -36,6 +38,50 @@ class ObjectProfile():
     
     __repr__ = __str__
 
+def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1.0):
+    '''Resolves the maximum number of objects for each ObjectProfile. Only runs if ObjectProfile.max_size
+        is equal to -1 or None indicating that the value is unresolved. By resolving our max_size(s) we
+        can make our preprocessing data sets as small as possible without truncating any data.
+        #Arguments:
+            object_profiles -- The list of ObjectProfile(s) to resolve
+            label_dir_pairs -- A list of tuples of the form (label, data_directory) that contain
+                                the directories to look through to find the global maximum for each
+                                Object type.
+            padding_ratio   -- A muliplier to either shrink or increase the size of the maxes
+                                in case you are worried about previously unseen realworld data 
+                                being larger than what is availiable at preprocessing.
+        #Returns (void)
+                '''
+    unresolved = []
+    maxes = {}
+    for profile in object_profiles:
+         if(profile.max_size == -1 or profile.max_size == None):
+                unresolved.append(profile)
+                maxes[profile.name] = 0
+    if(len(unresolved) == 0): return
+    
+    for (label,data_dir) in label_dir_pairs:
+        files = glob.glob(data_dir+"*.h5")
+        files.sort()
+        
+         #Loop the files associated with the current label
+        for f in files:
+          
+            #Get the HDF Store for the file
+            store = pd.HDFStore(f)
+
+            #Get the NumValues frame which lists the number of values for each entry
+            try:
+                num_val_frame = store.get('/NumValues')
+            except KeyError as e:
+                raise KeyError(str(e) + " " + f)
+
+            for profile in unresolved:
+                maxes[profile.name] = max(num_val_frame[profile.name].max(), maxes[profile.name])
+    
+    for profile in unresolved:
+        profile.max_size = int(np.ceil(maxes[profile.name] * padding_ratio))
+
 def label_dir_pairs_args_decoder(*args, **kargs):
     '''Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are 
         properly reconstituted'''
@@ -56,7 +102,8 @@ def label_dir_pairs_args_decoder(*args, **kargs):
     return (args, kargs)
 
 def padItem(x,max_size, vecsize, shuffle=False):
-    '''Pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. Shuffle, shuffles the padded output before returning'''
+    '''Pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
+        shuffles the padded output before returning'''
     if(len(x) > max_size):
         out = x[:max_size]
     else:
@@ -86,6 +133,12 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
+
+    #Make sure that all the profiles have resolved max_sizes
+    for profile in object_profiles:
+        if(profile.max_size == -1 or profile.max_size == None):
+            raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
+                         Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
 
     #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
     label_vecs = {}
