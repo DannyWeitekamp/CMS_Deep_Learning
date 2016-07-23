@@ -55,7 +55,7 @@ class Storable( object ):
         raise NotImplementedError( "Should have implemented find_by_hashcode" )
 
 class PreprocessingProcedure(Storable):
-    '''A wrapper for caching the results of preprocessing functions of the type X,Y getXY where are X is the training
+    '''A wrapper for archiving the results of preprocessing functions of the type X,Y getXY where are X is the training
         data and Y contains the labels/targets for each entry'''
     def __init__(self, trial_dir, func,  *args, **kargs):
         Storable.__init__(self)
@@ -77,6 +77,10 @@ class PreprocessingProcedure(Storable):
         '''Returns the json string for the Procedure with only its essential characteristics'''
         d = self.__dict__
         d = copy.deepcopy(d)
+        #Don't hash on verbose or verbosity if they are in the function
+        if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
+        if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
+
         del d["trial_dir"]
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
@@ -108,7 +112,7 @@ class PreprocessingProcedure(Storable):
 
     def archive(self):
         '''Store the PreprocessingProcedure in a directory computed by its hashcode'''
-        if(self.X != None and self.Y != None):
+        if((self.X is None or self.Y is None) == False):
             blob_path = self.get_path()
             if( os.path.exists(blob_path) == False):
                 os.makedirs(blob_path)
@@ -174,7 +178,7 @@ class PreprocessingProcedure(Storable):
 
 
 
-    def get_XY(self, archive=True, redo=False):
+    def get_XY(self, archive=True, redo=False, verbose=1):
         '''Apply the PreprocessingProcedure returning X,Y from the archive or generating them from func'''
         if(self.is_archived() and redo == False):
             h5f = None
@@ -195,10 +199,10 @@ class PreprocessingProcedure(Storable):
                     self.Y.append(Y_group[key][:])
 
                 h5f.close()
-                print("Preprocessing step %r read from archive" % self.hash())
+                if(verbose >= 1): print("Preprocessing step %r read from archive" % self.hash())
             except:
                 if(h5f != None): h5f.close()
-                print("Failed to load archive %r running from scratch" % self.hash())
+                if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
                 return self.get_XY(archive=archive, redo=True)
         else:
             prep_func = self.get_func(self.func, self.func_module)

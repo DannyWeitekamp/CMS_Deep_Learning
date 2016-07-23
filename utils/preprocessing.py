@@ -65,13 +65,13 @@ def padItem(x,max_size, vecsize, shuffle=False):
     return out
    
     #arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
-def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, object_profiles, observ_types):
+def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_label, object_profiles, observ_types, verbose=1):
     '''Gets training data from folders of pandas tables
         #Arguements:
             label_dir_pairs -- a list of tuples of the form (label, directory) where the directory contains
                                 tables containing data of all the same event types.
             start             --    Where to start reading (as if all of the files are part of one long list)
-            num_samples     -- The number of samples to reading
+            samples_per_label -- The number of samples to read for each label
             object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and
                                 its preprocessing steps
             observ_types    -- The column headers for the data to be read from the panadas table
@@ -96,11 +96,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
     
     X_train_indices = [None] * (len(object_profiles))
     X_train = [None] * (len(object_profiles))
-    y_train = [None] * (num_samples * num_labels)
+    y_train = [None] * (samples_per_label * num_labels)
 
     #Prefill the arrays so that we don't waste time resizing lists
     for index, profile in enumerate(object_profiles):
-        X_train[index] = [None] * (num_samples * num_labels)
+        X_train[index] = [None] * (samples_per_label * num_labels)
         X_train_indices[index] = 0
     
     #Loop over label dir pairs and get the file list for each directory
@@ -137,7 +137,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
             if(file_start_read < 0): file_start_read = 0
             
             #How many rows we will read from this table each corresponds to one entry
-            samples_to_read = min(num_samples-samples_read, file_total_entries-file_start_read)
+            samples_to_read = min(samples_per_label-samples_read, file_total_entries-file_start_read)
             assert samples_to_read >= 0
             
             #Get information about how many rows there are for each entry for the rows we want to skip and read
@@ -146,13 +146,13 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
 
             
             #Sample is another word for entry
-            print("Reading %r samples from %r:" % (samples_to_read,f))
+            if(verbose >= 1): print("Reading %r samples from %r:" % (samples_to_read,f))
             
             #Loop over every profile and read the corresponding tables in the pandas_unjoined file
             for index, profile in enumerate(object_profiles):
                 key = profile.name
                 max_size = profile.max_size
-                print("Mapping %r Values/Sample from %r" % (max_size, key))
+                if(verbose >= 1): print("Mapping %r Values/Sample from %r" % (max_size, key))
                 skip = skip_val_frame[key]
                 
                 #Where to start reading the table based on the sum of the selection start 
@@ -203,18 +203,18 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, num_samples, obj
             store.close()
             location     += samples_to_read
             samples_read += samples_to_read
-            print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, num_samples, start, num_samples+start))
-            if(samples_read >= num_samples):
+            if(verbose >= 1): print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, samples_per_label, start, samples_per_label+start))
+            if(samples_read >= samples_per_label):
                 print('-' * 50)
-                assert samples_read == num_samples
+                assert samples_read == samples_per_label
                 break
-        if(samples_read != num_samples):
-            raise IOError("Not enough data in %r to read in range(%r, %r)" % (data_dir, start, num_samples+start))
+        if(samples_read != samples_per_label):
+            raise IOError("Not enough data in %r to read in range(%r, %r)" % (data_dir, start, samples_per_label+start))
         
         #Generate the target data as vectors like [1,0,0], [0,1,0], [0,0,1]
-        for i in range(num_samples):
+        for i in range(samples_per_label):
             y_train[y_train_start+i] = label_vecs[label]
-        y_train_start += num_samples
+        y_train_start += samples_per_label
     
     #Turn everything into numpy arrays and shuffle them just in case.
     #Although, we probably don't need to shuffle since keras shuffles by default.
