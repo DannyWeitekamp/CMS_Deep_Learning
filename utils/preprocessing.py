@@ -181,6 +181,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             #print(start)
             if(location + file_total_entries <= start):
                 location += file_total_entries
+                print("Skip file: " + f)
                 #print(location, file_total_entries)
                 continue
             
