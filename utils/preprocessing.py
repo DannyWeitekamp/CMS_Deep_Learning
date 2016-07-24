@@ -178,20 +178,14 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
             file_total_entries = len(num_val_frame.index)
             
-            #print(start)
             if(location + file_total_entries <= start):
                 location += file_total_entries
-                print("Skip file: " + f)
-                #print(location, file_total_entries)
                 continue
             
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
-            print(start, location, start-location)
             file_start_read = start-location
             if(file_start_read < 0): file_start_read = 0
-            print(file_start_read)
-            print(samples_per_label,samples_read,file_total_entries)
             #How many rows we will read from this table each corresponds to one entry
             samples_to_read = min(samples_per_label-samples_read, file_total_entries-file_start_read)
             assert samples_to_read >= 0
