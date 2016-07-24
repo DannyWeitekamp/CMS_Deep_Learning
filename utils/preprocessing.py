@@ -190,6 +190,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             file_start_read = start-location
             if(file_start_read < 0): file_start_read = 0
             
+            print(samples_per_label,samples_read)
             #How many rows we will read from this table each corresponds to one entry
             samples_to_read = min(samples_per_label-samples_read, file_total_entries-file_start_read)
             assert samples_to_read >= 0
