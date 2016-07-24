@@ -257,7 +257,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             #Free this (probably not necessary)
             num_val_frame = None
             store.close()
-            location     += samples_to_read
+            location     += file_total_entries
             samples_read += samples_to_read
             if(verbose >= 1): print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, samples_per_label, start, samples_per_label+start))
             if(samples_read >= samples_per_label):
