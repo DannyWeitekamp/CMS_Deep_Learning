@@ -262,6 +262,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 assert samples_read == samples_per_label
                 break
         if(samples_read != samples_per_label):
+            print(samples_read, samples_per_label)
             raise IOError("Not enough data in %r to read in range(%r, %r)" % (data_dir, start, samples_per_label+start))
         
         #Generate the target data as vectors like [1,0,0], [0,1,0], [0,0,1]
