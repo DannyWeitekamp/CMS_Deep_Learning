@@ -1,9 +1,11 @@
-%matplotlib inline
+#%matplotlib inline
 import sys, os
 if __package__ is None:
 	import sys, os
 	sys.path.append(os.path.realpath("/data/shared/Software/"))
-from CMS_SURF_2016.utils.archiving import PreprocessingProcedure, KerasTrial, get_all_preprocessing, get_all_trials
+	sys.path.append(os.path.realpath("../.."))
+
+from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial, get_all_data, get_all_trials
 from CMS_SURF_2016.utils.metrics import plot_history
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
@@ -21,7 +23,7 @@ class LayerNamer:
 
 namer = LayerNamer()
 
-trial_dir = 'MyTrialDir/'
+archive_dir = 'MyTrialDir/'
 
 #Define callback
 earlystopping = EarlyStopping(patience=10, verbose=1)
@@ -41,7 +43,7 @@ model.add(merged)
 model.add(Dense(10, activation='softmax', name=namer.get('dense')))
 model.add(Dense(10, activation='softmax', name=namer.get('dense')))
 
-#Define a function for our PreprocessingProcedure. Note: it must return X,Y
+#Define a function for our DataProcedure. Note: it must return X,Y
 def myGetXY(thousand, one, b=784, d=10):
 	data_1 = np.random.random((thousand, b))
 	data_2 = np.random.random((thousand, b))
@@ -51,14 +53,14 @@ def myGetXY(thousand, one, b=784, d=10):
 	Y = labels
 	return X, Y
 
-#Define a list of two preprocessing procedures for the model to be fit on one after the other 
-#We include as arguments to PreprocessingProcedure the function that generates our training data its arguments
-preprocessing = [PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+#Define a list of two DataProcedures for the model to be fit on one after the other 
+#We include as arguments to DataProcedures the function that generates our training data its arguments
+data = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
 
 #Build our KerasTrial object and name it
-trial = KerasTrial(trial_dir, name="MyKerasTrial", model=model)
-#Set the preprocessing data
-trial.setPreprocessing(preprocessing)
+trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+#Set the training data
+trial.setTrain(data)
 #Set the compilation paramters
 trial.setCompilation(optimizer='rmsprop',
               loss='categorical_crossentropy',
@@ -67,7 +69,7 @@ trial.setCompilation(optimizer='rmsprop',
 #Set the fit parameters
 trial.setFit(callbacks = [earlystopping], nb_epoch=19, batch_size=32, validation_split=.2)
 
-#Execute the trial running fitting on each preprocessing procedure in turn 
+#Execute the trial running fitting on each DataProcedure in turn 
 trial.execute()
 print("OK IT FINISHED!")
 
@@ -77,7 +79,7 @@ from IPython.display import Image, display
 history = trial.get_history()
 plot_history([('myhistory', history)])
 
-test_pp = PreprocessingProcedure(trial_dir, myGetXY, 1000, 1, b=784, d=10)
+test_pp = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
 test_X, test_Y = test_pp.get_XY()
 #And even the model and weights are still intact
 model = trial.compile(loadweights=True)
@@ -92,17 +94,17 @@ print("Test_Accuracy:",accuracy)
 plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
 display(Image("model3.png"))
 
-trials = get_all_trials(trial_dir)
+trials = get_all_trials(archive_dir)
 for t in trials:
 	t.summary()
 	t.remove_from_archive()
-trials = get_all_trials(trial_dir)
+trials = get_all_trials(archive_dir)
 print("Deleted all trials?:", len(trials) == 0)
 
-pps = get_all_preprocessing(trial_dir)
+pps = get_all_data(archive_dir)
 for p in pps:
 	p.summary()
 	p.remove_from_archive()
 
-pps = get_all_preprocessing(trial_dir)
-print("Deleted all preprocessing?:", len(pps) == 0)
+pps = get_all_data(archive_dir)
+print("Deleted all data?:", len(pps) == 0)
