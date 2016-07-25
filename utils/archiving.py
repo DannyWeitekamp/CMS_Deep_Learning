@@ -11,6 +11,7 @@ import os
 import copy
 import h5py
 import re
+import types
 import shutil
 from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
 from CMS_SURF_2016.layers.slice import Slice
@@ -64,9 +65,18 @@ class DataProcedure(Storable):
         self.func_module = func.__module__
         self.args = args
         self.kargs = kargs
-        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=lambda x: x.__dict__)
+        self.store_on_getXY = True
+
+        def recurseStore(x):
+            if(isinstance(x,Storable)):
+                return x.to_json()
+            else:
+                return x.__dict__ 
+                
+        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurseStore)
         self.X = None
         self.Y = None
+    
 
     def set_encoder(self, encoder):
         '''Set the json encoder for the procedure in case its arguements are not json encodable'''
@@ -77,6 +87,8 @@ class DataProcedure(Storable):
         '''Returns the json string for the Procedure with only its essential characteristics'''
         d = self.__dict__
         d = copy.deepcopy(d)
+
+        d["class_name"] = self.__class__.__name__
         #Don't hash on verbose or verbosity if they are in the function
         if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
         if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
@@ -85,6 +97,7 @@ class DataProcedure(Storable):
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
+        del d["store_on_getXY"]
         del d["X"]
         del d["Y"]
         return self.encoder.encode(d)
@@ -132,7 +145,7 @@ class DataProcedure(Storable):
                 h5f.create_dataset('Y/'+str(i), data=y)
             
             h5f.close()
-            data_archive = read_dataArchive(self.archive_dir)
+            data_archive = DataProcedure.read_record(self.archive_dir)
 
             #TODO: this is a really backward way of doing this
             jstr = self.to_json()
@@ -146,23 +159,27 @@ class DataProcedure(Storable):
             proc_dict['kargs'] = d['kargs']
             data_archive[self.hash()] = proc_dict
 
-            write_dataArchive(data_archive, self.archive_dir)
+            DataProcedure.write_record(data_archive, self.archive_dir)
             # def read_json_obj(directory, filename, verbose=0):
                 
         else:
             raise ValueError("Cannot archive DataProcedure with NoneType X or Y")
-        # self.to_index({'name' : self.name}, append=True)
+        
+
+
+        # self.to_record({'name' : self.name}, append=True)
 
     def remove_from_archive(self):
         '''Removes the DataProcedure from the data_archive and destroys its blob directory'''
-        data_archive = read_dataArchive(self.archive_dir)
+        data_archive = DataProcedure.read_record(self.archive_dir)
         if(self.hash() in  data_archive): del data_archive[self.hash()] 
-        write_dataArchive(data_archive, self.archive_dir)
+        DataProcedure.write_record(data_archive, self.archive_dir)
 
         Storable.remove_from_archive(self)
 
-    def get_XY(self, archive=True, redo=False, verbose=1):
+    def getXY(self, archive=True, redo=False, verbose=1):
         '''Apply the DataProcedure returning X,Y from the archive or generating them from func'''
+
         if(self.is_archived() and redo == False):
             h5f = None
             try:
@@ -182,17 +199,40 @@ class DataProcedure(Storable):
                     self.Y.append(Y_group[key][:])
 
                 h5f.close()
+
+                out = (self.X, self.Y)
+
                 if(verbose >= 1): print("DataProcedure results %r read from archive" % self.hash())
             except:
                 if(h5f != None): h5f.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
-                return self.get_XY(archive=archive, redo=True)
+                return self.getXY(archive=archive, redo=True, verbose=verbose)
         else:
             prep_func = self.get_func(self.func, self.func_module)
-            self.X, self.Y = prep_func(*self.args, **self.kargs)
+
+            out = prep_func(*self.args, **self.kargs)
+            
+
+            if(isinstance(out, tuple)):
+                if(len(out) == 2):
+                    if( (isinstance(out[0], list) or isinstance(out[0], np.ndarray)) 
+                        and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
+                        self.X, self.Y = out
+                else:
+                    raise ValueError("getXY returned too many arguments expected 2 got %r" % len(out))
+            elif(isinstance(out, types.GeneratorType)):
+                    print("GOT GENTYPE")
+                    self.store_on_getXY = False
+                    archive = False
+            else:
+                raise ValueError("getXY did not return (X,Y) or Generator got types (%r,%r)"
+                                    % ( type(out[0]), type(out[1]) ))
+
+            
             # print("WRITE:", self.X.shape, self.Y.shape)
-            if(archive == True): self.archive()
-        return self.X, self.Y
+            print(self.store_on_getXY == True, archive == True)
+            if(self.store_on_getXY == True or archive == True): self.archive()
+        return out
 
     def get_summary(self):
         '''Get the summary for the DataProcedure as a string'''
@@ -221,21 +261,36 @@ class DataProcedure(Storable):
                 For best results functions should be importable and not locally defined." % (str(name), str(module)))
         return prep_func
 
-    @staticmethod
-    def from_json(archive_dir ,json_str, arg_decode_func=None):  
+    @classmethod
+    def from_json(cls, archive_dir ,json_str, arg_decode_func=None):  
         '''Get a DataProcedure object from its json string'''
         d = json.loads(json_str)
         func = None
         temp = lambda x: 0
         try:
-            func = DataProcedure.get_func(d['func'], d['func_module'])
+            func = cls.get_func(d['func'], d['func_module'])
         except ValueError:
             func = temp
         args, kargs = d['args'], d['kargs']
+        for i,arg in enumerate(args):
+            islist = True
+            if(isinstance(arg, list) == False):
+                islist = False
+                arg = [arg]
+            for j ,a in enumerate(arg):
+                if(isinstance(a, str) or isinstance(a, unicode)):
+                    obj = json.loads(a)
+                    if(isinstance(obj, dict)):
+                        # print(type(a), type(obj))
+                        if(obj.get('class_name', None) == "DataProcedure"):
+                            arg[j] = DataProcedure.from_json(archive_dir, a)
+            if(islist == False):
+                arg = arg[0]
+            args[i] = arg
         if(arg_decode_func != None):
             # print('arg_decode_func_ENABLED:', arg_decode_func.__name__)
             args, kargs = arg_decode_func(*args, **kargs)
-        dp = DataProcedure(archive_dir,  func, *args, **kargs)
+        dp = cls(archive_dir,  func, *args, **kargs)
         if(func == temp):
             dp.func = d['func']
             dp.func_module = d['func_module']
@@ -257,6 +312,16 @@ class DataProcedure(Storable):
             if(verbose >= 1): print('Failed to load procedure.json  at ' + archive_dir)
         return out
 
+    @staticmethod
+    def read_record(archive_dir, verbose=0):
+        '''Returns the record read from the trial directory'''
+        return read_json_obj(archive_dir, 'data_record.json')
+
+    @staticmethod
+    def write_record(record,archive_dir, verbose=0):
+        '''Writes the record to the trial directory'''
+        write_json_obj(record, archive_dir, 'data_record.json')
+
 
 
 
@@ -267,6 +332,11 @@ class KerasTrial(Storable):
                     name = 'trial',
     				model=None,
                     train_procedure=None,
+                    samples_per_epoch=None,
+                    validation_split=0.0,
+                    val_procedure=None,
+                    nb_val_samples=None,
+
                     optimizer=None,
                     loss=None,
                     metrics=[],
@@ -274,8 +344,11 @@ class KerasTrial(Storable):
                     batch_size=32,
                     nb_epoch=10,
                     callbacks=[],
-                    validation_split=0.0,
-                    validation_data=None,
+                    
+                    max_q_size=None,
+                    nb_worker=None,
+                    pickle_safe=False,
+
                     shuffle=True,
                     class_weight=None,
                     sample_weight=None
@@ -288,7 +361,9 @@ class KerasTrial(Storable):
         self.name = name
         self.setModel(model)
 
-        self.setTrain(train_procedure=train_procedure)
+        self.setTrain(train_procedure=train_procedure,samples_per_epoch=samples_per_epoch)
+
+        self.setValidation(validation_split=validation_split,val_procedure=val_procedure,nb_val_samples=nb_val_samples)
 
         self.setCompilation(optimizer=optimizer,
                                 loss=loss,
@@ -299,12 +374,17 @@ class KerasTrial(Storable):
         self.setFit(    batch_size=batch_size,
                         nb_epoch=nb_epoch,
                         callbacks=callbacks,
-                        validation_split=validation_split,
-                        validation_data=validation_data,
                         shuffle=shuffle,
                         class_weight=class_weight,
                         sample_weight=sample_weight)
-       
+
+        self.setFit_Generator(  nb_epoch=nb_epoch,
+                                callbacks=callbacks,
+                                class_weight=class_weight,
+                                max_q_size=max_q_size,
+                                nb_worker=nb_worker,
+                                pickle_safe=pickle_safe)
+    
 
     def setModel(self, model):
         '''Set the model used by the trial (either the object or derived json string)'''
@@ -313,23 +393,51 @@ class KerasTrial(Storable):
         if(isinstance(model, Model)):
             self.model = model.to_json()
 
-
-    def setTrain(self,
-                   train_procedure=None):
-        '''Sets the training data for the trial'''
-        if(train_procedure != None):
-            if(isinstance(train_procedure, list) == False):
-                train_procedure = [train_procedure]
+    def _prep_procedure(self, procedure):
+        if(procedure != None):
+            if(isinstance(procedure, list) == False):
+                procedure = [procedure]
             l = []
-            for p in train_procedure:
+            for p in procedure:
                 if(isinstance(p, DataProcedure)):
                     l.append(p.to_json())
-                else:
+                elif(isinstance(p, str) or isinstance(p, unicode)):
                     l.append(p)
-            train_procedure = l    
+                else:
+                    raise ValueError("train_procedure must be DataProcedure, but got %r" % (type(p)))
+            return l
         else:
-            train_procedure = None
-        self.train_procedure = train_procedure
+            return None
+
+    def setTrain(self,
+                   train_procedure=None, samples_per_epoch=None):
+        '''Sets the training data for the trial'''
+        self.train_procedure = self._prep_procedure(train_procedure)
+        self.samples_per_epoch = samples_per_epoch
+    
+    def setValidation(self,
+                  val_procedure=None, validation_split=0.0, nb_val_samples=None):
+        '''Sets the training data for the trial'''
+        # if(isinstance(val_procedure, list) and len(val_procedure) == 1):
+        #     val_procedure = val_procedure[0]
+        # if((isinstance(val_procedure, DataProcedure) or val_procedure is None) == False):
+        #     raise TypeError("val_procedure must have type DataProcedure, but got list %r" % type(val_procedure))
+        if(isinstance(val_procedure, float)):
+            validation_split = val_procedure
+            val_procedure = None
+        if(isinstance(validation_split, float) == False):
+            raise TypeError("validation_split must have type float, but got %r" % type(validation_split))
+        if((isinstance(nb_val_samples, int) or nb_val_samples is None) == False):
+            raise TypeError("nb_val_samples must have type int, but got %r" % type(nb_val_samples))
+        # if(isinstance(val_procedure, float)):
+        #     self.validation_split = val_procedure
+        #     self.val_procedure = None
+        # else:
+        #     self.validation_split = 0.0
+        #     self.val_procedure = self._prep_procedure(val_procedure)
+        self.validation_split = validation_split
+        self.val_procedure = self._prep_procedure(val_procedure)
+        self.nb_val_samples = nb_val_samples
 
     def setCompilation(self,
     				optimizer,
@@ -347,8 +455,6 @@ class KerasTrial(Storable):
                 batch_size=32,
                 nb_epoch=10,
                 callbacks=[],
-                validation_split=0.0,
-                validation_data=None,
                 shuffle=True,
                 class_weight=None,
                 sample_weight=None):
@@ -365,13 +471,40 @@ class KerasTrial(Storable):
 
         self.batch_size=batch_size
         self.nb_epoch=nb_epoch
-        # self.verbose=verbose
         self.callbacks=callbacks
-        self.validation_split=validation_split
-        self.validation_data=validation_data
+        # self.validation_split=validation_split
+        # self.validation_data=validation_data
         self.shuffle=shuffle
         self.class_weight=class_weight
         self.sample_weight=sample_weight
+
+    def setFit_Generator(self,
+                nb_epoch=10,
+                callbacks=[],
+                class_weight=True,
+                max_q_size=None,
+                nb_worker=None,
+                pickle_safe=False):
+        '''Sets the fit arguments for the trial'''
+        #Fit
+        strCallbacks = []
+        for c in callbacks:
+            if(isinstance(c, SmartCheckpoint) == False):
+                if(isinstance(c, Callback) == True):
+                    strCallbacks.append(encodeCallback(c))
+                else:
+                    strCallbacks.append(c)
+        callbacks = strCallbacks
+
+        # self.samples_per_epoch=samples_per_epoch
+        self.nb_epoch=nb_epoch
+        self.callbacks=callbacks
+        # self.validation_data=validation_data
+        # self.nb_val_samples=nb_val_samples
+        self.class_weight=class_weight
+        self.max_q_size=max_q_size
+        self.nb_worker=nb_worker
+        self.pickle_safe=pickle_safe
 
     def to_json(self):
         '''Converts the trial to a json string '''
@@ -399,38 +532,64 @@ class KerasTrial(Storable):
             model = self.compiled_model
         return model
 
-    def fit(self, model, x_train, y_train, index_store=["val_acc"], verbose=1):
-        '''Runs model.fit(x_train, y_train) for the trial using the arguments passed to trial.setFit(...)'''
+    def _generateCallbacks(self, verbose):
         callbacks = []
-        # print(self.callbacks)
         for c in self.callbacks:
             if(c != None):
                 callbacks.append(decodeCallback(c))
         monitor = 'val_acc'
-        if(self.validation_split == 0.0 or self.validation_data is None):
+        if(self.validation_split == 0.0 or self.val_procedure is None):
             monitor = 'acc'
         callbacks.append(SmartCheckpoint('weights', associated_trial=self,
                                              monitor=monitor,
                                              verbose=verbose,
                                              save_best_only=True,
                                              mode='auto'))
-        model.fit(x_train, y_train,
-            batch_size=self.batch_size,
-            nb_epoch=self.nb_epoch,
-            # verbose=self.verbose,
-            callbacks=callbacks,
-            validation_split=self.validation_split,
-            validation_data=self.validation_data,
-            shuffle=self.shuffle,
-            class_weight=self.class_weight,
-            sample_weight=self.sample_weight)
+        return callbacks
 
+    def _history_to_record(self, record_store):
         histDict = self.get_history()
         if(histDict != None):
             dct = {} 
-            for x in index_store:
+            for x in record_store:
+                if(histDict.get(x, None) is None):
+                    continue
                 dct[x] = max(histDict[x])
-            self.to_index(dct)
+            self.to_record(dct)
+
+    def fit(self, model, x_train, y_train, record_store=["val_acc"], verbose=1):
+        '''Runs model.fit(x_train, y_train) for the trial using the arguments passed to trial.setFit(...)'''
+        
+        # print(self.callbacks)
+        callbacks = self._generateCallbacks(verbose)
+
+        model.fit(x_train, y_train,
+            batch_size=self.batch_size,
+            nb_epoch=self.nb_epoch,
+            verbose=verbose,
+            callbacks=callbacks,
+            validation_split=self.validation_split,
+            #validation_data=self.validation_data,
+            shuffle=self.shuffle,
+            class_weight=self.class_weight,
+            sample_weight=self.sample_weight)
+        self._history_to_record(record_store)
+       
+
+    def fit_generator(self, model, generator, validation_data=None, record_store=["val_acc"] ,verbose=1):
+
+        callbacks = self._generateCallbacks(verbose)
+
+        model.fit_generator(generator, self.samples_per_epoch,
+                    nb_epoch=self.nb_epoch,
+                    verbose=verbose,
+                    callbacks=callbacks,
+                    validation_data=validation_data,
+                    nb_val_samples=self.nb_val_samples)
+#                      validation_data=None, nb_val_samples=None,
+#                      class_weight={}, max_q_size=10, nb_worker=1, pickle_safe=False):
+        self._history_to_record(record_store)
+
 
     def write(self, verbose=0):
         '''Writes the model's json string to its archive location''' 
@@ -439,10 +598,10 @@ class KerasTrial(Storable):
         blob_path = self.get_path()
         write_object(blob_path, 'trial.json', json_str, verbose=verbose)
 
-        self.to_index({'name' : self.name}, append=True)
+        self.to_record({'name' : self.name}, append=True)
                  
 
-    def execute(self, archiveTraining=True, arg_decode_func=None, custom_objects={}):
+    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}):
         '''Executes the trial, fitting on the X, and Y for training for each given DataProcedure in series'''
     	if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
@@ -452,13 +611,35 @@ class KerasTrial(Storable):
             if(isinstance(train_procs, list) == False): train_procs = [train_procs]
             # print(train_procs)
             totalN = 0
+            if(self.val_procedure != None):
+                if(len(self.val_procedure) != 1):
+                    raise ValueError("val_procedure must be single procedure, but got list")
+                val_proc = DataProcedure.from_json(self.archive_dir,self.val_procedure[0], arg_decode_func=val_arg_decode_func)
+                val = val_proc.getXY(archive=archiveValidation)
+            else:
+                val = None
+
+
             for p in train_procs:
-                proc = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
-                X, Y = proc.get_XY(archive=archiveTraining)
-                if(isinstance(X, list) == False): X = [X]
-                if(isinstance(Y, list) == False): Y = [Y]
-                totalN += Y[0].shape[0]
-                self.fit(model,X, Y)
+                train_proc = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=train_arg_decode_func)
+
+                
+
+                train = train_proc.getXY(archive=archiveTraining)
+
+                if(isinstance(train, types.GeneratorType)):
+                    self.fit_generator(model,train, val)
+                    totalN += self.samples_per_epoch
+                elif(isinstance(train, tuple)):
+                    if(isinstance(val,  types.GeneratorType)):
+                        raise ValueError("Fit() cannot take generator for validation_data. Try fit_generator()")
+                    X,Y = train
+                    if(isinstance(X, list) == False): X = [X]
+                    if(isinstance(Y, list) == False): Y = [Y]
+                    totalN += Y[0].shape[0]
+                    self.fit(model,X, Y)
+                else:
+                    raise ValueError("Traning DataProcedure returned useable type %r" % type(train))
             self.write()
 
             # if(self.validation_split != 0.0):
@@ -467,7 +648,7 @@ class KerasTrial(Storable):
                     'elapse_time' : self.get_history()['elapse_time'],
                     'fit_cycles' : len(train_procs)
                     }
-            self.to_index( dct, replace=True)
+            self.to_record( dct, replace=True)
         else:
             print("Trial %r Already Complete" % self.hash())
     def test(self,test_proc, archiveTraining=True, custom_objects={}):
@@ -476,18 +657,18 @@ class KerasTrial(Storable):
             proc = DataProcedure.from_json(self.archive_dir,test_proc, arg_decode_func=arg_decode_func)
         else:
             proc = test_proc
-        X, Y = proc.get_XY(archive=archiveTraining)
+        X, Y = proc.getXY(archive=archiveTraining)
         if(isinstance(X, list) == False): X = [X]
         if(isinstance(Y, list) == False): Y = [Y]
         metrics = model.evaluate(X, Y)
-        self.to_index({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : Y[0].shape[0]}, replace=True)
+        self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : Y[0].shape[0]}, replace=True)
         return metrics
 
-    def to_index(self, dct, append=False, replace=True):
-        '''Pushes a dictionary of values to the archive index ('index' like in a book not a list) for this trial'''
-        index = read_index(self.archive_dir)
+    def to_record(self, dct, append=False, replace=True):
+        '''Pushes a dictionary of values to the archive record for this trial'''
+        record = self.read_record(self.archive_dir)
         hashcode = self.hash()
-        trial_dict = index.get(hashcode, {})
+        trial_dict = record.get(hashcode, {})
         for key in dct:
             if(append == True):
                 if((key in trial_dict) == True):
@@ -506,23 +687,23 @@ class KerasTrial(Storable):
             else:
                 if(replace == True or (key in trial_dict) == False):
                     trial_dict[key] = dct[key]
-        index[hashcode] = trial_dict
-        write_index(index, self.archive_dir) 
+        record[hashcode] = trial_dict
+        self.write_record(record, self.archive_dir) 
 
-    def get_index_entry(self, verbose=0):
-        '''Get the dictionary containing all the index values for this trial  ('index' like in a book not a list)'''
-        index = read_index(self.archive_dir, verbose=verbose)
-        return index[self.hash()]
+    def get_record_entry(self, verbose=0):
+        '''Get the dictionary containing all the record values for this trial '''
+        record = self.read_record(self.archive_dir, verbose=verbose)
+        return record.get(self.hash(), None)
 
-    def get_from_index(self, keys, verbose=0):
-        '''Get a value from the index  ('index' like in a book not a list)'''
-        indexDict = self.get_index_entry(verbose=verbose)
+    def get_from_record(self, keys, verbose=0):
+        '''Get a value from the record '''
+        recordDict = self.get_record_entry(verbose=verbose)
         if(isinstance(keys, list)):
             out = []
             for key in keys:
-                out.append(indexDict.get(key, None))
+                out.append(recordDict.get(key, None))
         else:
-            out = indexDict.get(keys, None)
+            out = recordDict.get(keys, None)
         return out
 
     def get_history(self, verbose=0):
@@ -557,7 +738,7 @@ class KerasTrial(Storable):
     def summary(self,
                 showName=False,
                 showDirectory=False,
-                showIndex=True,
+                showRecord=True,
                 showTraining=True,
                 showCompilation=True,
                 showFit=True,
@@ -566,7 +747,7 @@ class KerasTrial(Storable):
                 squat=True):
         '''Print a summary of the trial
             #Arguments:
-                showName=False,showDirectory=False, showIndex=True, showTraining=True, showCompilation=True, showFit=True,
+                showName=False,showDirectory=False, showRecord=True, showTraining=True, showCompilation=True, showFit=True,
                  showModelPic=False, showNoneType=False -- Control what data is printed
                 squat=True -- If False shows data on separate lines
         '''
@@ -590,16 +771,22 @@ class KerasTrial(Storable):
         print("TRIAL SUMMARY (" + self.hash() + ")" )
         if(showDirectory):print(indent + "Directory: " + self.archive_dir)
         if(showName):  print(indent + "Name: " + self.name)
-            # n = self.get_from_index(['name'])
+            # n = self.get_from_record(['name'])
            
 
-        if(showIndex):
-            print(indent + "Index_Info:")
-            index = self.get_index_entry()
-            indexes = []
-            for key in index:
-                indexes.append(str(key) + " = " + str(index[key]))
-            print(indent*2 + sep.join(indexes))
+        if(showRecord):
+            print(indent + "Record_Info:")
+            #try:
+            record = self.get_record_entry()
+            #except KeyError as e:
+                
+            if(record != None):
+                records = []
+                for key in record:
+                    records.append(str(key) + " = " + str(record[key]))
+                print(indent*2 + sep.join(records))
+            else:
+                print(indent*2 + "No record. Not stored in archive.")
 
         if(showTraining):
             print(indent + "Training:")
@@ -630,24 +817,29 @@ class KerasTrial(Storable):
         print("-"*50)
 
     def remove_from_archive(self):
-        '''Remove the trial from the index and destroys its archive including the trial.json, weights.h5 and history.json'''
-        index = read_index(self.archive_dir)
-        if(self.hash() in  index): del index[self.hash()] 
-        write_index(index, self.archive_dir)
+        '''Remove the trial from the record and destroys its archive including the trial.json, weights.h5 and history.json'''
+        record = self.read_record(self.archive_dir)
+        if(self.hash() in  record): del record[self.hash()] 
+        self.write_record(record, self.archive_dir)
 
         Storable.remove_from_archive(self)
 
 
-    @staticmethod
-    def from_json(archive_dir,json_str, name='trial'):
+    @classmethod
+    def from_json(cls,archive_dir,json_str, name='trial'):
         '''Reconsitute a KerasTrial object from its json string'''
         d = json.loads(json_str)
         # print(d['callbacks'])
-        trial = KerasTrial(
+        trial = cls(
                 archive_dir,
                 name = name,
                 model = d.get('model', None),
                 train_procedure=d.get('train_procedure', None),
+                samples_per_epoch=d.get('samples_per_epoch', None),
+                validation_split=d.get('validation_split', 0.0),
+                val_procedure=d.get('val_procedure', None),
+                nb_val_samples=d.get('nb_val_samples', None),
+
                 optimizer=d.get('optimizer', None),
                 loss=d.get('loss', None),
                 metrics=d.get('metrics', []),
@@ -655,15 +847,18 @@ class KerasTrial(Storable):
                 batch_size=d.get('batch_size', 32),
                 nb_epoch=d.get('nb_epoch', 10),
                 callbacks=d.get('callbacks', []),
-                validation_split=d.get('validation_split', 0.0),
-                validation_data=d.get('validation_data', None),
+
+                max_q_size=d.get('max_q_size', True),
+                nb_worker=d.get('nb_worker', None),
+                pickle_safe=d.get('pickle_safe', None),
+
                 shuffle=d.get('shuffle', True),
                 class_weight=d.get('class_weight', None),
                 sample_weight=d.get('sample_weight', None))
         return trial
-
-    @staticmethod
-    def find_by_hashcode( hashcode, archive_dir, verbose=0 ):
+         
+    @classmethod
+    def find_by_hashcode(cls, hashcode, archive_dir, verbose=0 ):
         '''Returns the archived KerasTrial with the given hashcode or None if one is not found'''
         path = get_blob_path(hashcode, archive_dir) + 'trial.json'
         try:
@@ -671,12 +866,22 @@ class KerasTrial(Storable):
             json_str = f.read()
             f.close()
             # print(json_str)
-            out = KerasTrial.from_json(archive_dir,json_str)
+            out = cls.from_json(archive_dir,json_str)
             if(verbose >= 1): print('Sucessfully loaded trial.json at ' + archive_dir)
         except (IOError, EOFError):
             out = None
             if(verbose >= 1): print('Failed to load trial.json  at ' + archive_dir)
         return out
+
+    @staticmethod
+    def read_record(archive_dir, verbose=0):
+        '''Returns the record read from the trial directory'''
+        return read_json_obj(archive_dir, 'trial_record.json')
+
+    @staticmethod
+    def write_record(record,archive_dir, verbose=0):
+        '''Writes the record to the trial directory'''
+        write_json_obj(record, archive_dir, 'trial_record.json')
 
 class TrialEncoder(json.JSONEncoder):
     '''A json encoder for KerasTrials. Doesn't store name,archive_dir,hashcode etc since they don't affect how it functions'''
@@ -790,25 +995,7 @@ def write_dataArchive(data_archive, archive_dir, verbose=0):
     '''Writes the data archive to the trial directory'''
     write_json_obj(data_archive, archive_dir, 'data_archive.json')
 
-def read_index(archive_dir, verbose=0):
-    '''Returns the index read from the trial directory'''
-    return read_json_obj(archive_dir, 'index.json')
-#     try:
-#         index = json.load(open( archive_dir + 'index.json', "rb" ))
-#         if(verbose >= 1): print('Sucessfully loaded index.json at ' + archive_dir)
-#     except (IOError, EOFError):
-#         index = {}
-#         if(verbose >= 1): print('Failed to load index.json  at ' + archive_dir)
-#     return index
 
-def write_index(index,archive_dir, verbose=0):
-    '''Writes the index to the trial directory'''
-    write_json_obj(index, archive_dir, 'index.json')
-#     try:
-#         json.dump(index,  open( archive_dir + 'index.json', "wb" ))
-#         if(verbose >= 1): print('Sucessfully wrote index.json at ' + archive_dir)
-#     except (IOError, EOFError):
-#         if(verbose >= 1): print('Failed to write index.json  at ' + archive_dir)
 
 
 def read_json_obj(directory, filename, verbose=0):
@@ -829,15 +1016,6 @@ def write_json_obj(obj,directory, filename, verbose=0):
     except (IOError, EOFError):
         if(verbose >= 1): print('Failed to write '+ filename +'  at ' + directory)
 
-
-# def write_to_index(key, value):
-#     '''Writes a value to the index'''
-
-#     index = read_index(archive_dir)
-#     trial_dict = index.get(hashcode, {})
-#     trial_dict['name'] = name
-#     index[hashcode] = trial_dict
-#     write_index(index, archive_dir)
 
 
 def write_object(directory, filename, data, verbose=0):
@@ -865,7 +1043,7 @@ def get_all_data(archive_dir):
 
 def get_data_by_function(func, archive_dir):
     '''Gets a list of DataProcedure that use a certain function'''
-    data_archive = read_dataArchive(archive_dir)
+    data_archive = DataProcedure.read_record(archive_dir)
     out = []
     if(isinstance(func, str)):
         func_name = func
@@ -893,15 +1071,15 @@ def get_data_by_function(func, archive_dir):
 
 
 def get_all_trials(archive_dir):
-    '''Get all the trials listed in the index'''
+    '''Get all the trials listed in the trial_record'''
     return get_trials_by_name('.', archive_dir)
 
 def get_trials_by_name(name, archive_dir):
     '''Get all the trials with a particluar name or that match a given regular expression'''
-    index = read_index(archive_dir)
+    record = KerasTrial.read_record(archive_dir)
     out = []
-    for key in index:
-        t_name = index[key].get("name", 'unknown')
+    for key in record:
+        t_name = record[key].get("name", 'unknown')
         # print(t_name, name.decode("UTF-8"))
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
