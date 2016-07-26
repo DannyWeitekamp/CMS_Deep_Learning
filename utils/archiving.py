@@ -672,7 +672,7 @@ class KerasTrial(Storable):
         else:
             print("Trial %r Already Complete" % self.hash())
     def test(self,test_proc, test_samples=None, archiveTraining=True, custom_objects={}, max_q_size=10, nb_worker=1, pickle_safe=False, arg_decode_func=None):
-        model = self.compile(custom_objects=custom_objects)
+        model = self.compile(loadweights=True,custom_objects=custom_objects)
         if(isinstance(test_proc, list) == False): test_proc = [test_proc]
         # test_proc = self._prep_procedure(test_proc)
 
@@ -736,6 +736,7 @@ class KerasTrial(Storable):
         '''Get the dictionary containing all the record values for this trial '''
         record = self.read_record(self.archive_dir, verbose=verbose)
         return record.get(self.hash(), None)
+
 
     def get_from_record(self, keys, verbose=0):
         '''Get a value from the record '''

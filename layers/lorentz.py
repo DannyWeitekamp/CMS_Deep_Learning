@@ -6,6 +6,7 @@ e-mail: dannyweitekamp@gmail.com
 ''' 
 
 from keras import backend as K
+from keras.backend.common import _EPSILON
 from keras.constraints import maxnorm
 from keras.engine.topology import Layer
 import theano
@@ -25,7 +26,7 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
     ''' Outputs a backend variable that Calculates the vectorial sum of 4-vectors
         boosted individually into different reference frames
     '''
-    
+    # K.clip(boosts, 0.0, .33-_EPSILON)
     #Initialize Helpful variables
     x_shape = K.shape(x)
     # printed_x = theano.printing.Print('this is a very important value')(x_shape)
@@ -114,6 +115,8 @@ class Lorentz(Layer):
             Bi (bias: boosts the vectorial sum of the input 4-vectors)
     '''
     def __init__(self,sphereCoords=False, vec_start=0, **kwargs):
+        if(isinstance(sphereCoords, bool) == False):
+            raise TypeError("sphereCoords should be bool type, but got %r" % type(sphereCoords))
         self.output_dim = 4
         self.sphereCoords = sphereCoords
         self.vec_start = vec_start
