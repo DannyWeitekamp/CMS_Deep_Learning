@@ -617,7 +617,7 @@ class KerasTrial(Storable):
                  
 
     def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}):
-        '''Executes the trial, fitting on the X, and Y for training for each given DataProcedure in series'''
+        '''Executes the trial, fitting the traing data in each DataProcedure in series'''
     	if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
         if(self.is_complete() == False):
@@ -760,7 +760,9 @@ class KerasTrial(Storable):
     def get_model(self, loadweights=False,custom_objects={}):
         '''Gets the model, optionally with the best set of weights'''
         model = model_from_json(self.model, custom_objects=custom_objects)
-        if(loadweights): model.load_weights(self.get_path()+"weights.h5")
+        print("LOAD WEIGHTS:", loadweights)
+        if(loadweights):
+            model.load_weights(self.get_path()+"weights.h5")
         return model
 
     def is_complete(self):
