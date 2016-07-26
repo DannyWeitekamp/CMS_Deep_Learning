@@ -68,8 +68,7 @@ val_data = DataProcedure(archive_dir, True,myGetXY, 1000, 1, b=784, d=10)
 #Build our KerasTrial object and name it
 trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
 #Set the training data
-trial.setTrain(train_procedure=data,
-				samples_per_epoch=1000)
+trial.setTrain(train_procedure=data)
 trial.setValidation(.2)
 #Set the compilation paramters
 trial.setCompilation(optimizer='rmsprop',
@@ -122,7 +121,7 @@ def myGen(dps, batch_size):
             raise TypeError("Only takes DataProcedure got" % type(dp))
     while True:
         for i in range(0,len(dps)):            
-            X,Y = dps[i].getXY()
+            X,Y = dps[i].getData()
             if(isinstance(X,list) == False): X = [X]
             if(isinstance(Y,list) == False): Y = [Y]
             tot = Y[0].shape[0]

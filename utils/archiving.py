@@ -66,6 +66,13 @@ class DataProcedure(Storable):
         data and Y contains the labels/targets for each entry'''
     def __init__(self, archive_dir,archive_getData, func,  *args, **kargs):
         Storable.__init__(self)
+        if(isinstance(archive_dir, str) == False and isinstance(archive_dir, unicode) == False):
+            raise TypeError("archive_dir must be str, but got %r" %type(archive_dir))
+        if(isinstance(archive_getData, bool) == False):
+            raise TypeError("archive_getData must be bool, but got %r" % type(archive_getData))
+        if(isinstance(func, types.FunctionType) == False):
+            raise TypeError("func must be function, but got %r" % type(func))
+
         self.archive_dir = archive_dir
         self.func = func.__name__
         self.func_module = func.__module__
@@ -103,7 +110,6 @@ class DataProcedure(Storable):
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
-        del d["archive_getData"]
         del d["X"]
         del d["Y"]
         return self.encoder.encode(d)
