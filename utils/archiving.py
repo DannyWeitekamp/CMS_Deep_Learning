@@ -680,10 +680,10 @@ class KerasTrial(Storable):
             test_data = p.getData(archive=archiveTraining)
             n_samples = 0
             if(isinstance(test_data, types.GeneratorType)):
-                metrics = model.evaluate_generator(test_data, test_samples,
-                                                    max_q_size=max_q_size,
-                                                    nb_worker=nb_worker,
-                                                    pickle_safe=pickle_safe)
+                metrics = model.evaluate_generator(test_data, test_samples)
+#                                                    max_q_size=max_q_size,
+#                                                    nb_worker=nb_worker,
+#                                                    pickle_safe=pickle_safe)
                 n_samples = test_samples
             else:
                 X,Y = test_data
