@@ -9,7 +9,6 @@ import json
 import hashlib
 from keras.models import model_from_json
 from keras.engine.training import Model
-from CMS_SURF_2016.utils.preprocessing import preprocessFromPandas_label_dir_pairs
 from CMS_SURF_2016.utils.callbacks import *
 from keras.models import model_from_json
 from keras.callbacks import *
