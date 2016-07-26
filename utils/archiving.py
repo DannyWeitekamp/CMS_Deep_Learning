@@ -233,7 +233,6 @@ class DataProcedure(Storable):
                 else:
                     raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
-                    print("GOT GENTYPE")
                     self.archive_getData = False
                     archive = False
             else:
