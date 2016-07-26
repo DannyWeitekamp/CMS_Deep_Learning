@@ -625,12 +625,14 @@ class KerasTrial(Storable):
             train_procs = self.train_procedure
             if(isinstance(train_procs, list) == False): train_procs = [train_procs]
             # print(train_procs)
-            totalN = 0
+            num_train = 0
+            num_val = None
             if(self.val_procedure != None):
                 if(len(self.val_procedure) != 1):
                     raise ValueError("val_procedure must be single procedure, but got list")
                 val_proc = DataProcedure.from_json(self.archive_dir,self.val_procedure[0], arg_decode_func=val_arg_decode_func)
                 val = val_proc.getData(archive=archiveValidation)
+                num_val = self.nb_val_samples
             else:
                 val = None
 
@@ -644,22 +646,25 @@ class KerasTrial(Storable):
 
                 if(isinstance(train, types.GeneratorType)):
                     self.fit_generator(model,train, val)
-                    totalN += self.samples_per_epoch
+                    num_train += self.samples_per_epoch
                 elif(isinstance(train, tuple)):
                     if(isinstance(val,  types.GeneratorType)):
                         raise ValueError("Fit() cannot take generator for validation_data. Try fit_generator()")
                     X,Y = train
                     if(isinstance(X, list) == False): X = [X]
                     if(isinstance(Y, list) == False): Y = [Y]
-                    totalN += Y[0].shape[0]
+                    num_train += Y[0].shape[0]
                     self.fit(model,X, Y)
                 else:
                     raise ValueError("Traning DataProcedure returned useable type %r" % type(train))
             self.write()
 
+            if(num_val == None):
+                num_val = num_train*(self.validation_split)
+
             # if(self.validation_split != 0.0):
-            dct =  {'num_train' : totalN*(1.0-self.validation_split),
-                    'num_validation' : totalN*(self.validation_split),
+            dct =  {'num_train' : int(num_train*(1.0-self.validation_split)),
+                    'num_validation' : num_val,
                     'elapse_time' : self.get_history()['elapse_time'],
                     'fit_cycles' : len(train_procs)
                     }
@@ -810,15 +815,51 @@ class KerasTrial(Storable):
         if(showDirectory):print(indent + "Directory: " + self.archive_dir)
         if(showName):  print(indent + "Name: " + self.name)
             # n = self.get_from_record(['name'])
-           
+        def _getPairsFromKeys(record,keys):
+            # record_pairs = [(key,record[key]) for key in record] 
+            # p_keys, p_values = tuple(zip(*record_pairs))
+            p_keys = [key for key in record]
+            # print(p_keys, p_values)
+            out = []
+            for key in keys:
+                if key in p_keys:
+                    out.append( (key, record[key]) )
+                    del record[key]
+            return out
+
+                # for key, val in l
+
 
         if(showRecord):
             print(indent + "Record_Info:")
             #try:
             record = self.get_record_entry()
             #except KeyError as e:
-                
+            
             if(record != None):
+                groups = [  _getPairsFromKeys(record, ["name","elapse_time","fit_cycles"]),
+                            _getPairsFromKeys(record, ["test_acc","val_acc", "acc", "test_loss", "val_loss", "loss"]) ,
+                            _getPairsFromKeys(record, ["num_train","num_validation", "num_test"])
+                        ]
+
+
+                for group in groups:
+                    records = []
+                    for key, value in group:
+                        if(key == "elapse_time"):
+                            # print("Time:",key)
+                            m, s = divmod(value, 60)
+                            h, m = divmod(m, 60)
+                            records.append(str(key) + " = " + "%d:%02d:%02d" % (h, m, s))
+                        elif(re.match(".*_(acc|loss)", key) != None):
+                            # print("MECTRIC:",key)
+
+                            records.append(str(key) + " = " + "%.4f" % value)
+                        else:
+                            # print("Normal:",key)
+
+                            records.append(str(key) + " = " + str(value))
+                    print(indent*2 + sep.join(records))
                 records = []
                 for key in record:
                     records.append(str(key) + " = " + str(record[key]))
