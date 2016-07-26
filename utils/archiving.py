@@ -62,7 +62,7 @@ class Storable( object ):
         raise NotImplementedError( "Should have implemented find_by_hashcode" )
 
 class DataProcedure(Storable):
-    '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getXY where are X is the training
+    '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
         data and Y contains the labels/targets for each entry'''
     def __init__(self, archive_dir, func,  *args, **kargs):
         Storable.__init__(self)
@@ -71,7 +71,7 @@ class DataProcedure(Storable):
         self.func_module = func.__module__
         self.args = args
         self.kargs = kargs
-        self.store_on_getXY = True
+        self.store_on_getData = True
 
         def recurseStore(x):
             if(isinstance(x,Storable)):
@@ -103,7 +103,7 @@ class DataProcedure(Storable):
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
-        del d["store_on_getXY"]
+        del d["store_on_getData"]
         del d["X"]
         del d["Y"]
         return self.encoder.encode(d)
@@ -183,7 +183,7 @@ class DataProcedure(Storable):
 
         Storable.remove_from_archive(self)
 
-    def getXY(self, archive=True, redo=False, verbose=1):
+    def getData(self, archive=True, redo=False, verbose=1):
         '''Apply the DataProcedure returning X,Y from the archive or generating them from func'''
 
         if(self.is_archived() and redo == False):
@@ -212,7 +212,7 @@ class DataProcedure(Storable):
             except:
                 if(h5f != None): h5f.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
-                return self.getXY(archive=archive, redo=True, verbose=verbose)
+                return self.getData(archive=archive, redo=True, verbose=verbose)
         else:
             prep_func = self.get_func(self.func, self.func_module)
 
@@ -225,19 +225,19 @@ class DataProcedure(Storable):
                         and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
                         self.X, self.Y = out
                 else:
-                    raise ValueError("getXY returned too many arguments expected 2 got %r" % len(out))
+                    raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
                     print("GOT GENTYPE")
-                    self.store_on_getXY = False
+                    self.store_on_getData = False
                     archive = False
             else:
-                raise ValueError("getXY did not return (X,Y) or Generator got types (%r,%r)"
+                raise ValueError("getData did not return (X,Y) or Generator got types (%r,%r)"
                                     % ( type(out[0]), type(out[1]) ))
 
             
             # print("WRITE:", self.X.shape, self.Y.shape)
-            print(self.store_on_getXY == True, archive == True)
-            if(self.store_on_getXY == True or archive == True): self.archive()
+            print(self.store_on_getData == True, archive == True)
+            if(self.store_on_getData == True or archive == True): self.archive()
         return out
 
     def get_summary(self):
@@ -621,7 +621,7 @@ class KerasTrial(Storable):
                 if(len(self.val_procedure) != 1):
                     raise ValueError("val_procedure must be single procedure, but got list")
                 val_proc = DataProcedure.from_json(self.archive_dir,self.val_procedure[0], arg_decode_func=val_arg_decode_func)
-                val = val_proc.getXY(archive=archiveValidation)
+                val = val_proc.getData(archive=archiveValidation)
             else:
                 val = None
 
@@ -631,7 +631,7 @@ class KerasTrial(Storable):
 
                 
 
-                train = train_proc.getXY(archive=archiveTraining)
+                train = train_proc.getData(archive=archiveTraining)
 
                 if(isinstance(train, types.GeneratorType)):
                     self.fit_generator(model,train, val)
@@ -669,7 +669,7 @@ class KerasTrial(Storable):
             elif(isinstance(p, DataProcedure) == False):
                  raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
 
-            test_data = p.getXY(archive=archiveTraining)
+            test_data = p.getData(archive=archiveTraining)
             n_samples = 0
             if(isinstance(test_data, types.GeneratorType)):
                 metrics = model.evaluate_generator(test_data, test_samples,
