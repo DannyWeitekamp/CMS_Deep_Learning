@@ -671,40 +671,44 @@ class KerasTrial(Storable):
             self.to_record( dct, replace=True)
         else:
             print("Trial %r Already Complete" % self.hash())
-    def test(self,test_proc, test_samples=None, archiveTraining=True, custom_objects={}, max_q_size=10, nb_worker=1, pickle_safe=False, arg_decode_func=None):
-        model = self.compile(loadweights=True,custom_objects=custom_objects)
-        if(isinstance(test_proc, list) == False): test_proc = [test_proc]
-        # test_proc = self._prep_procedure(test_proc)
+    def test(self,test_proc, test_samples=None, redo=False, archiveTraining=True, custom_objects={}, max_q_size=10, nb_worker=1, pickle_safe=False, arg_decode_func=None):
+        record_loss, record_acc = tuple(self.get_from_record(['test_loss', 'test_acc'] ))
+        if(redo == True or record_loss == None or record_acc == None):
+            model = self.compile(loadweights=True,custom_objects=custom_objects)
+            if(isinstance(test_proc, list) == False): test_proc = [test_proc]
+            # test_proc = self._prep_procedure(test_proc)
 
-        sum_metrics = []
-        for p in test_proc:
-            if(isinstance(p, str) or isinstance(p, unicode)):
-                p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
-            elif(isinstance(p, DataProcedure) == False):
-                 raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
+            sum_metrics = []
+            for p in test_proc:
+                if(isinstance(p, str) or isinstance(p, unicode)):
+                    p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
+                elif(isinstance(p, DataProcedure) == False):
+                     raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
 
-            test_data = p.getData(archive=archiveTraining)
-            n_samples = 0
-            if(isinstance(test_data, types.GeneratorType)):
-                metrics = model.evaluate_generator(test_data, test_samples)
-#                                                    max_q_size=max_q_size,
-#                                                    nb_worker=nb_worker,
-#                                                    pickle_safe=pickle_safe)
-                n_samples = test_samples
-            else:
-                X,Y = test_data
-                if(isinstance(X, list) == False): X = [X]
-                if(isinstance(Y, list) == False): Y = [Y]
-                metrics = model.evaluate(X, Y)
-                n_samples = Y[0].shape[0]
-            if(sum_metrics == []):
-                sum_metrics = metrics
-            else:
-                sum_metrics = [sum(x) for x in zip(sum_metrics, metrics)]
-        metrics = [x/len(test_proc) for x in sum_metrics]
+                test_data = p.getData(archive=archiveTraining)
+                n_samples = 0
+                if(isinstance(test_data, types.GeneratorType)):
+                    metrics = model.evaluate_generator(test_data, test_samples)
+    #                                                    max_q_size=max_q_size,
+    #                                                    nb_worker=nb_worker,
+    #                                                    pickle_safe=pickle_safe)
+                    n_samples = test_samples
+                else:
+                    X,Y = test_data
+                    if(isinstance(X, list) == False): X = [X]
+                    if(isinstance(Y, list) == False): Y = [Y]
+                    metrics = model.evaluate(X, Y)
+                    n_samples = Y[0].shape[0]
+                if(sum_metrics == []):
+                    sum_metrics = metrics
+                else:
+                    sum_metrics = [sum(x) for x in zip(sum_metrics, metrics)]
+            metrics = [x/len(test_proc) for x in sum_metrics]
 
-        self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
-        return metrics
+            self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
+            return metrics
+        else:
+            print("Test %r already Complete with test_loss: %0.4f, test_acc: %0.4f" % (self.hash(), record_loss, record_acc)
 
     def to_record(self, dct, append=False, replace=True):
         '''Pushes a dictionary of values to the archive record for this trial'''
