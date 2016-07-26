@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import glob
 import threading
-
+from CMS_SURF_2016.utils.archiving import DataProcedure
 
 class ObjectProfile():
     def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
