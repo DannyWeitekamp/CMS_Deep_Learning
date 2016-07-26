@@ -229,6 +229,7 @@ class DataProcedure(Storable):
                     if( (isinstance(out[0], list) or isinstance(out[0], np.ndarray)) 
                         and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
                         self.X, self.Y = out
+                        if(self.archive_getData == True or archive == True): self.archive()
                 else:
                     raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
@@ -241,8 +242,7 @@ class DataProcedure(Storable):
 
             
             # print("WRITE:", self.X.shape, self.Y.shape)
-            print(self.archive_getData == True, archive == True)
-            if(self.archive_getData == True or archive == True): self.archive()
+            
         return out
 
     def get_summary(self):
