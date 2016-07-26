@@ -144,7 +144,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
     #Make sure that all the profile are proper objects and have resolved max_sizes
     for i,profile in enumerate(object_profiles):
-        if(isinstance(profile, dict) and a.get('class_name', None) == "ObjectProfile"):
+        if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
             profile = ObjectProfile(profile['name'],
                                             profile.get('max_size', 100),
                                             profile.get('sort_columns', None),
