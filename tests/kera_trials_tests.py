@@ -23,7 +23,7 @@ class LayerNamer:
 
 namer = LayerNamer()
 
-archive_dir = 'MyTrialDir/'
+archive_dir = 'MyArchiveDir/'
 
 #Define callback
 earlystopping = EarlyStopping(patience=10, verbose=1)
