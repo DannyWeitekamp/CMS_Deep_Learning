@@ -63,7 +63,7 @@ class Storable( object ):
 class DataProcedure(Storable):
     '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
         data and Y contains the labels/targets for each entry'''
-    def __init__(self, archive_dir,archive_getData, func,  *args, **kargs):
+    def __init__(self, _archive_dir,archive_getData, func,  *args, **kargs):
         Storable.__init__(self)
         if(isinstance(archive_dir, str) == False and isinstance(archive_dir, unicode) == False):
             raise TypeError("archive_dir must be str, but got %r" %type(archive_dir))
@@ -72,7 +72,7 @@ class DataProcedure(Storable):
         if(isinstance(func, types.FunctionType) == False):
             raise TypeError("func must be function, but got %r" % type(func))
 
-        self.archive_dir = archive_dir
+        self.archive_dir = _archive_dir
         self.func = func.__name__
         self.func_module = func.__module__
         self.args = args
