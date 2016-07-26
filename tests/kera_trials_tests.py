@@ -62,8 +62,8 @@ def myGetXY(thousand, one, b=784, d=10):
 
 #Define a list of two DataProcedures for the model to be fit on one after the other 
 #We include as arguments to DataProcedures the function that generates our training data its arguments
-data = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
-val_data = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
+data = [DataProcedure(archive_dir, True, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+val_data = DataProcedure(archive_dir, True,myGetXY, 1000, 1, b=784, d=10)
 
 #Build our KerasTrial object and name it
 trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
@@ -96,7 +96,7 @@ from IPython.display import Image, display
 history = trial.get_history()
 # plot_history([('myhistory', history)])
 
-test_pp = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+test_pp = [DataProcedure(archive_dir,True, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
 # test_X, test_Y = test_pp.getXY()
 #And even the model and weights are still intact
 model = trial.compile(loadweights=True)
@@ -131,7 +131,7 @@ def myGen(dps, batch_size):
                 end = start+min(batch_size, tot-start)
                 yield [x[start:end] for x in X], [y[start:end] for y in Y]
 
-train_proc = DataProcedure(archive_dir,myGen,data,100)
+train_proc = DataProcedure(archive_dir,True,myGen,data,100)
 
 #Build our KerasTrial object and name it
 trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)

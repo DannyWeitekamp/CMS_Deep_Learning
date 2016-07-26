@@ -64,14 +64,14 @@ class Storable( object ):
 class DataProcedure(Storable):
     '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
         data and Y contains the labels/targets for each entry'''
-    def __init__(self, archive_dir, func,  *args, **kargs):
+    def __init__(self, archive_dir,archive_getData, func,  *args, **kargs):
         Storable.__init__(self)
         self.archive_dir = archive_dir
         self.func = func.__name__
         self.func_module = func.__module__
         self.args = args
         self.kargs = kargs
-        self.store_on_getData = True
+        self.archive_getData = archive_getData
 
         def recurseStore(x):
             if(isinstance(x,Storable)):
@@ -103,7 +103,7 @@ class DataProcedure(Storable):
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
-        del d["store_on_getData"]
+        del d["archive_getData"]
         del d["X"]
         del d["Y"]
         return self.encoder.encode(d)
@@ -228,7 +228,7 @@ class DataProcedure(Storable):
                     raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
                     print("GOT GENTYPE")
-                    self.store_on_getData = False
+                    self.archive_getData = False
                     archive = False
             else:
                 raise ValueError("getData did not return (X,Y) or Generator got types (%r,%r)"
@@ -236,8 +236,8 @@ class DataProcedure(Storable):
 
             
             # print("WRITE:", self.X.shape, self.Y.shape)
-            print(self.store_on_getData == True, archive == True)
-            if(self.store_on_getData == True or archive == True): self.archive()
+            print(self.archive_getData == True, archive == True)
+            if(self.archive_getData == True or archive == True): self.archive()
         return out
 
     def get_summary(self):
@@ -296,7 +296,9 @@ class DataProcedure(Storable):
         if(arg_decode_func != None):
             # print('arg_decode_func_ENABLED:', arg_decode_func.__name__)
             args, kargs = arg_decode_func(*args, **kargs)
-        dp = cls(archive_dir,  func, *args, **kargs)
+
+        archive_getData = d['archive_getData']
+        dp = cls(archive_dir, archive_getData, func, *args, **kargs)
         if(func == temp):
             dp.func = d['func']
             dp.func_module = d['func_module']
