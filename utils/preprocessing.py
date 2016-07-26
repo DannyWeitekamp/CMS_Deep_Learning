@@ -278,3 +278,176 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
     y_train = y_train[indices]
     return X_train, y_train
+
+
+def maxMutualLength(label_dir_pairs, object_profiles):
+    '''Gets the mamximum number of samples that can mutually be read in the directories listed by
+        label_dir_pairs. Must also input object_profiles so that it knows what keys to check '''
+    label_totals = {}
+    for (label,data_dir) in label_dir_pairs:
+        files = glob.glob(data_dir+"*.h5")
+        files.sort()
+        
+        keys = None
+        if(object_profiles != None):
+            keys = ["/" + o.name for o in object_profiles]
+        
+        label_totals[label] = 0
+         #Loop the files associated with the current label
+        
+        for f in files:
+            #Get the HDF Store for the file
+            store = pd.HDFStore(f)
+            #print(keys)
+            #print(store.keys())
+            #print(set(keys).issubset(set(store.keys())))
+            if(keys != None and set(keys).issubset(set(store.keys())) == False):
+                raise KeyError('File: ' + f + ' may be corrupted:' + os.linesep + 
+                                'Requested keys: ' + str(keys) + os.linesep + 
+                                'But found keys: ' + str(store.keys()) )
+            
+            #Get file_total_entries
+            try:
+                num_val_frame = store.get('/NumValues')
+            except KeyError as e:
+                raise KeyError(str(e) + " " + f)
+            file_total_entries = len(num_val_frame.index)
+            label_totals[label] += file_total_entries
+    #print(label_totals)
+    return min(label_totals.items())[1]
+
+def start_num_fromSplits(splits, length):
+    '''Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of
+        samples for each split'''
+    if(np.isclose(sum(splits),1.0) == False):
+        raise ValueError("Sum of splits %r must equal 1.0" % sum(splits))
+    if(True in [x < 0.0 for x in splits]):
+        raise ValueError("Splits cannot be negative") 
+    nums = [int(s*length) for s in splits]
+    out = []
+    start = 0
+    for n in nums:
+        out.append((start, n))
+        start += n
+    return out
+
+def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
+    '''Gets a list of DataProcedures that use preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
+        #Arguments
+            start -- Where to start reading in the filesystem (if we treat it as one long list for each directory)
+            samples_per_label -- How many samples to read from the filesystem per event type
+            stride -- How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid 
+                    excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably
+                    in memory.
+            archive_dir -- the archive directory to store the preprocessed data.
+            label_dir_pairs -- A list of tuples like (label_name, pandas_data_directory) telling us what to call the data
+                                and where to find it.
+            object_profiles -- A list of ObjectProfiles, used to determine what preprocessing steps need to be taken
+            observ_types -- A list of the observable quantities in our pandas tables i.e ['E/c', "Px" ,,,etc.]
+            verbose -- Whether or not to print
+    '''
+    procs = []
+    end = start+samples_per_label
+    if(verbose >= 1): print("Generating DataProcedure in range(%r,%r):" % (start, end))
+    for proc_start in range(start, end, stride):
+        proc_num = min(stride, end-proc_start)
+        dp = DataProcedure(
+                archive_dir,
+                True,
+                preprocessFromPandas_label_dir_pairs,
+                label_dir_pairs,
+                proc_start,
+                proc_num,
+                object_profiles,
+                observ_types
+            )
+        procs.append(dp)
+        #print(proc_start, samples_per_label, stride)
+        if(verbose >= 1):
+            num_lables = len(label_dir_pairs)
+            print("   From %r labels in range(%r,%r) for %rx%r = %r Samples"
+                     % (num_lables,proc_start, proc_start+proc_num, num_lables,proc_num,num_lables*proc_num))
+    #print([p.hash() for p in procs])
+    return procs
+
+class dataFetchThread(threading.Thread):
+
+    def __init__(self, proc, group=None, target=None, name=None,
+                 args=(), kwargs=None, verbose=None):
+        threading.Thread.__init__(self, group=group, target=target, name=name,
+                                  verbose=verbose)
+        self.proc = proc
+        self.args = args
+        self.kwargs = kwargs
+        self.X = None
+        self.Y = None
+        return
+
+    def run(self):
+        self.X, self.Y = self.proc.getData()
+        return
+
+def genFromPPs(pps, batch_size, threading=False):
+    '''Gets a generator that generates data of batch_size from a list of DataProcedures.
+        Optionally uses threading to apply getData in parellel, although this may be obsolete
+        with the proper fit_generator settings'''
+    for pp in pps:
+        if(isinstance(pp, DataProcedure) == False):
+            raise TypeError("Only takes DataProcedure got" % type(pp))
+            
+    
+    while True:
+        if(threading == True):
+            datafetch = dataFetchThread(pps[0])
+            datafetch.start()
+        for i in range(0,len(pps)):
+            if(threading == True):
+                #Wait for the data to come in
+                while(datafetch.isAlive()):
+                    pass
+                X,Y = datafetch.X, datafetch.Y
+
+                #Start the next dataFetch
+                if(i != len(pps)-1):
+                    datafetch = dataFetchThread(pps[i+1])
+                else:
+                    datafetch = dataFetchThread(pps[0])
+                datafetch.start()
+            else:
+                X,Y = pps[i].getData()
+                                   
+            if(isinstance(X,list) == False): X = [X]
+            if(isinstance(Y,list) == False): Y = [Y]
+            tot = Y[0].shape[0]
+            assert tot == X[0].shape[0]
+            for start in range(0, tot, batch_size):
+                end = start+min(batch_size, tot-start)
+                yield [x[start:end] for x in X], [y[start:end] for y in Y]
+                
+
+def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archive_dir,label_dir_pairs, object_profiles, observ_types):
+    '''Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
+        and archive the results.
+        #Arguments
+            start -- Where to start reading in the filesystem (if we treat it as one long list for each directory)
+            samples_per_label -- How many samples to read from the filesystem per event type
+            stride -- How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid 
+                    excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably
+                    in memory.
+            batch_size -- The batch size of the generator. How many samples it grabs in each batch.
+            archive_dir -- the archive directory to store the preprocessed data.
+            label_dir_pairs -- A list of tuples like (label_name, pandas_data_directory) telling us what to call the data
+                                and where to find it.
+            object_profiles -- A list of ObjectProfiles, used to determine what preprocessing steps need to be taken
+            observ_types -- A list of the observable quantities in our pandas tables i.e ['E/c', "Px" ,,,etc.]
+            verbose -- Whether or not to print
+    '''
+    pps = procsFrom_label_dir_pairs(start,
+                                    samples_per_label,
+                                    stride,
+                                    archive_dir,
+                                    label_dir_pairs,
+                                    object_profiles,
+                                    observ_types)
+    gen = genFromPPs(pps, batch_size, threading = False)
+    return (gen, len(label_dir_pairs)*samples_per_label)
