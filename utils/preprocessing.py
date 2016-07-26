@@ -23,6 +23,7 @@ class ObjectProfile():
         self.sort_ascending = sort_ascending
         self.query = query
         self.shuffle = shuffle
+        self.class_name = self.__class__.__name__
 
 
     def __str__(self):
@@ -87,19 +88,25 @@ def label_dir_pairs_args_decoder(*args, **kargs):
     '''Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are 
         properly reconstituted'''
     #print(args)
-    profiles = args[3]
     out = []
-    for profile in profiles:
-        # print(profile)
-        out.append(ObjectProfile(profile['name'],
-                                    profile.get('max_size', 100),
-                                    profile.get('sort_columns', None),
-                                    profile.get('sort_ascending', True),
-                                    profile.get('query', None),
-                                    profile.get('shuffle', False)))
-    args = list(args)
-    args[3] = out
-    args = tuple(args)
+    for a in args:
+        if(isinstance(a, dict) and a.get('class_name', None) == "ObjectProfile"):
+            profiles = a
+            decoded = []
+            for profile in profiles:
+                # print(profile)
+                decoded.append(ObjectProfile(profile['name'],
+                                            profile.get('max_size', 100),
+                                            profile.get('sort_columns', None),
+                                            profile.get('sort_ascending', True),
+                                            profile.get('query', None),
+                                            profile.get('shuffle', False)))
+            out.append(decoded)
+        else:
+            out.append(a)
+    # args = list(args)
+    # args[3] = out
+    args = tuple(out)
     return (args, kargs)
 
 def padItem(x,max_size, vecsize, shuffle=False):
