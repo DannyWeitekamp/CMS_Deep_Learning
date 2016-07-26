@@ -43,15 +43,7 @@ model.add(merged)
 model.add(Dense(10, activation='softmax', name=namer.get('dense')))
 model.add(Dense(10, activation='softmax', name=namer.get('dense')))
 
-#Define a function for our DataProcedure. Note: it must return X,Y
-def myGetXY(thousand, one, b=784, d=10):
-	data_1 = np.random.random((thousand, b))
-	data_2 = np.random.random((thousand, b))
-	labels = np.random.randint(d, size=(thousand, one))
-	labels = to_categorical(labels, d)
-	X = [data_1, data_2]
-	Y = labels
-	return X, Y
+
 
 # def getGen(dps, batch_size):
 # 	return (myGen(dps,batch_size), 1000)
@@ -72,22 +64,28 @@ def myGen(dps, batch_size):
                 end = start+min(batch_size, tot-start)
                 yield [x[start:end] for x in X], [y[start:end] for y in Y]
 
-
+#Define a function for our DataProcedure. Note: it must return X,Y
+def myGetXY(thousand, one, b=784, d=10):
+	data_1 = np.random.random((thousand, b))
+	data_2 = np.random.random((thousand, b))
+	labels = np.random.randint(d, size=(thousand, one))
+	labels = to_categorical(labels, d)
+	X = [data_1, data_2]
+	Y = labels
+	return X, Y
 
 #Define a list of two DataProcedures for the model to be fit on one after the other 
 #We include as arguments to DataProcedures the function that generates our training data its arguments
 data = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
-
-# for X,Y in myGen(data,100):
-# 	print(X,Y)
-# 	pass
+val_data = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
 
 #Build our KerasTrial object and name it
 trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
 #Set the training data
 train_proc = DataProcedure(archive_dir,myGen,data,100)
-trial.setTrain(train_procedure=train_proc,
+trial.setTrain(train_procedure=data,
 				samples_per_epoch=1000)
+trial.setValidation(val_data)
 #Set the compilation paramters
 trial.setCompilation(optimizer='rmsprop',
               loss='categorical_crossentropy',
@@ -95,11 +93,34 @@ trial.setCompilation(optimizer='rmsprop',
               )
 #Set the fit parameters
 trial.setFit_Generator(callbacks = [earlystopping], nb_epoch=18)
-trial.setValidation(data[0])
+
+
+# #Define a list of two DataProcedures for the model to be fit on one after the other 
+# #We include as arguments to DataProcedures the function that generates our training data its arguments
+# data = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+# val_data = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
+
+# #Build our KerasTrial object and name it
+# trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+# #Set the training data
+# train_proc = DataProcedure(archive_dir,myGen,data,100)
+# trial.setTrain(train_procedure=train_proc,
+# 				samples_per_epoch=1000)
+# trial.setValidation(val_data)
+# #Set the compilation paramters
+# trial.setCompilation(optimizer='rmsprop',
+#               loss='categorical_crossentropy',
+#               metrics=['accuracy']
+#               )
+# #Set the fit parameters
+# trial.setFit_Generator(callbacks = [earlystopping], nb_epoch=18)
+
 # print(trial.to_json())
 #Execute the trial running fitting on each DataProcedure in turn 
 trial.execute()
 print("OK IT FINISHED!")
+
+
 # print(trial.to_json())
 
 from keras.utils.visualize_util import plot
