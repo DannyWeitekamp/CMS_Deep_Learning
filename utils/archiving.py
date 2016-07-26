@@ -393,7 +393,7 @@ class KerasTrial(Storable):
         if(isinstance(model, Model)):
             self.model = model.to_json()
 
-    def _prep_procedure(self, procedure):
+    def _prep_procedure(self, procedure, name='train'):
         if(procedure != None):
             if(isinstance(procedure, list) == False):
                 procedure = [procedure]
@@ -404,7 +404,7 @@ class KerasTrial(Storable):
                 elif(isinstance(p, str) or isinstance(p, unicode)):
                     l.append(p)
                 else:
-                    raise ValueError("train_procedure must be DataProcedure, but got %r" % (type(p)))
+                    raise TypeError("%r_procedure must be DataProcedure, but got %r" % (name,type(p)))
             return l
         else:
             return None
@@ -412,7 +412,7 @@ class KerasTrial(Storable):
     def setTrain(self,
                    train_procedure=None, samples_per_epoch=None):
         '''Sets the training data for the trial'''
-        self.train_procedure = self._prep_procedure(train_procedure)
+        self.train_procedure = self._prep_procedure(train_procedure, 'train')
         self.samples_per_epoch = samples_per_epoch
     
     def setValidation(self,
@@ -436,7 +436,7 @@ class KerasTrial(Storable):
         #     self.validation_split = 0.0
         #     self.val_procedure = self._prep_procedure(val_procedure)
         self.validation_split = validation_split
-        self.val_procedure = self._prep_procedure(val_procedure)
+        self.val_procedure = self._prep_procedure(val_procedure, 'val')
         self.nb_val_samples = nb_val_samples
 
     def setCompilation(self,
@@ -651,17 +651,40 @@ class KerasTrial(Storable):
             self.to_record( dct, replace=True)
         else:
             print("Trial %r Already Complete" % self.hash())
-    def test(self,test_proc, archiveTraining=True, custom_objects={}):
+    def test(self,test_proc, test_samples=None, archiveTraining=True, custom_objects={}, max_q_size=10, nb_worker=1, pickle_safe=False, arg_decode_func=None):
         model = self.compile(custom_objects=custom_objects)
-        if(isinstance(test_proc, DataProcedure) == False):
-            proc = DataProcedure.from_json(self.archive_dir,test_proc, arg_decode_func=arg_decode_func)
-        else:
-            proc = test_proc
-        X, Y = proc.getXY(archive=archiveTraining)
-        if(isinstance(X, list) == False): X = [X]
-        if(isinstance(Y, list) == False): Y = [Y]
-        metrics = model.evaluate(X, Y)
-        self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : Y[0].shape[0]}, replace=True)
+        if(isinstance(test_proc, list) == False): test_proc = [test_proc]
+        # test_proc = self._prep_procedure(test_proc)
+       
+
+        sum_metrics = []
+        for p in test_proc:
+            if(isinstance(p, str) or isinstance(p, unicode)):
+                p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
+            elif(isinstance(p, DataProcedure) == False):
+                 raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
+                 
+            test_data = p.getXY(archive=archiveTraining)
+            n_samples = 0
+            if(isinstance(test_data, types.GeneratorType)):
+                metrics = model.evaluate_generator(test_data, test_samples,
+                                                    max_q_size=max_q_size,
+                                                    nb_worker=nb_worker,
+                                                    pickle_safe=pickle_safe)
+                n_samples = test_samples
+            else:
+                X,Y = test_data
+                if(isinstance(X, list) == False): X = [X]
+                if(isinstance(Y, list) == False): Y = [Y]
+                metrics = model.evaluate(X, Y)
+                n_samples = Y[0].shape[0]
+            if(sum_metrics == []):
+                sum_metrics = metrics
+            else:
+                sum_metrics = [sum(x) for x in zip(sum_metrics, metrics)]
+        metrics = [x/len(test_proc) for x in sum_metrics]
+
+        self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
         return metrics
 
     def to_record(self, dct, append=False, replace=True):
@@ -740,6 +763,7 @@ class KerasTrial(Storable):
                 showDirectory=False,
                 showRecord=True,
                 showTraining=True,
+                showValidation=True,
                 showCompilation=True,
                 showFit=True,
                 showModelPic=False,
@@ -784,6 +808,7 @@ class KerasTrial(Storable):
                 records = []
                 for key in record:
                     records.append(str(key) + " = " + str(record[key]))
+                records.sort()
                 print(indent*2 + sep.join(records))
             else:
                 print(indent*2 + "No record. Not stored in archive.")
@@ -793,12 +818,23 @@ class KerasTrial(Storable):
             preps = []
             for s in self.train_procedure:
                 p = DataProcedure.from_json(self.archive_dir, s)
-                # str_args = ','.join([str(x) for x in p.args])
-                # str_kargs = ','.join([str(x) + "=" + str(p.kargs[x]) for x in p.kargs])
-                # arguments = ','.join([str_args, str_kargs])
-                # preps.append(p.func_module + "." + p.func +"(" + arguments + ")")
                 preps.append(p.get_summary())
             print(indent*2 + sep.join(preps))
+            if(self.samples_per_epoch != None):
+                print(indent*2 + "samples_per_epoch = %r" % self.samples_per_epoch)
+
+        if(showValidation):
+            print(indent + "Validation:")
+            if(self.val_procedure == None):
+                print(indent*2 + "validation_split = %r" % self.validation_split)
+            else:
+                preps = []
+                for s in self.val_procedure:
+                    p = DataProcedure.from_json(self.archive_dir, s)
+                    preps.append(p.get_summary())
+                print(indent*2 + sep.join(preps))
+                if(self.nb_val_samples != None):
+                    print(indent*2 + "nb_val_samples = %r" % self.nb_val_samples)
 
         if(showCompilation):
             print(indent + "Compilation:")

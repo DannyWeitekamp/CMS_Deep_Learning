@@ -48,21 +48,7 @@ model.add(Dense(10, activation='softmax', name=namer.get('dense')))
 # def getGen(dps, batch_size):
 # 	return (myGen(dps,batch_size), 1000)
 
-def myGen(dps, batch_size):
-    if(isinstance(dps, list) == False): dps = [dps]
-    for dp in dps:
-        if(isinstance(dp, DataProcedure) == False):
-            raise TypeError("Only takes DataProcedure got" % type(dp))
-    while True:
-        for i in range(0,len(dps)):            
-            X,Y = dps[i].getXY()
-            if(isinstance(X,list) == False): X = [X]
-            if(isinstance(Y,list) == False): Y = [Y]
-            tot = Y[0].shape[0]
-            assert tot == X[0].shape[0]
-            for start in range(0, tot, batch_size):
-                end = start+min(batch_size, tot-start)
-                yield [x[start:end] for x in X], [y[start:end] for y in Y]
+
 
 #Define a function for our DataProcedure. Note: it must return X,Y
 def myGetXY(thousand, one, b=784, d=10):
@@ -82,10 +68,77 @@ val_data = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
 #Build our KerasTrial object and name it
 trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
 #Set the training data
-train_proc = DataProcedure(archive_dir,myGen,data,100)
 trial.setTrain(train_procedure=data,
 				samples_per_epoch=1000)
-trial.setValidation(val_data)
+trial.setValidation(.2)
+#Set the compilation paramters
+trial.setCompilation(optimizer='rmsprop',
+              loss='categorical_crossentropy',
+              metrics=['accuracy']
+              )
+#Set the fit parameters
+trial.setFit(callbacks = [earlystopping], nb_epoch=18)
+
+
+
+
+
+trial.execute()
+print("OK IT FINISHED!")
+
+
+
+
+
+from keras.utils.visualize_util import plot
+from IPython.display import Image, display
+#Luckily no information was lost. We can still get the training history for the trial.
+history = trial.get_history()
+# plot_history([('myhistory', history)])
+
+test_pp = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
+# test_X, test_Y = test_pp.getXY()
+#And even the model and weights are still intact
+model = trial.compile(loadweights=True)
+ev = trial.test(test_pp)
+loss = ev[0]
+accuracy = ev[1]
+
+print('\n')
+print("Test_Loss:",loss)
+print("Test_Accuracy:",accuracy)
+
+# plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
+# display(Image("model3.png"))
+
+
+
+
+
+def myGen(dps, batch_size):
+    if(isinstance(dps, list) == False): dps = [dps]
+    for dp in dps:
+        if(isinstance(dp, DataProcedure) == False):
+            raise TypeError("Only takes DataProcedure got" % type(dp))
+    while True:
+        for i in range(0,len(dps)):            
+            X,Y = dps[i].getXY()
+            if(isinstance(X,list) == False): X = [X]
+            if(isinstance(Y,list) == False): Y = [Y]
+            tot = Y[0].shape[0]
+            assert tot == X[0].shape[0]
+            for start in range(0, tot, batch_size):
+                end = start+min(batch_size, tot-start)
+                yield [x[start:end] for x in X], [y[start:end] for y in Y]
+
+train_proc = DataProcedure(archive_dir,myGen,data,100)
+
+#Build our KerasTrial object and name it
+trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+#Set the training data
+trial.setTrain(train_procedure=train_proc,
+				samples_per_epoch=1000)
+trial.setValidation(train_proc, nb_val_samples=100)
 #Set the compilation paramters
 trial.setCompilation(optimizer='rmsprop',
               loss='categorical_crossentropy',
@@ -94,46 +147,11 @@ trial.setCompilation(optimizer='rmsprop',
 #Set the fit parameters
 trial.setFit_Generator(callbacks = [earlystopping], nb_epoch=18)
 
-
-# #Define a list of two DataProcedures for the model to be fit on one after the other 
-# #We include as arguments to DataProcedures the function that generates our training data its arguments
-# data = [DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10) for i in range(2)]
-# val_data = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
-
-# #Build our KerasTrial object and name it
-# trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
-# #Set the training data
-# train_proc = DataProcedure(archive_dir,myGen,data,100)
-# trial.setTrain(train_procedure=train_proc,
-# 				samples_per_epoch=1000)
-# trial.setValidation(val_data)
-# #Set the compilation paramters
-# trial.setCompilation(optimizer='rmsprop',
-#               loss='categorical_crossentropy',
-#               metrics=['accuracy']
-#               )
-# #Set the fit parameters
-# trial.setFit_Generator(callbacks = [earlystopping], nb_epoch=18)
-
-# print(trial.to_json())
 #Execute the trial running fitting on each DataProcedure in turn 
 trial.execute()
 print("OK IT FINISHED!")
 
-
-# print(trial.to_json())
-
-from keras.utils.visualize_util import plot
-from IPython.display import Image, display
-#Luckily no information was lost. We can still get the training history for the trial.
-history = trial.get_history()
-#plot_history([('myhistory', history)])
-
-test_pp = DataProcedure(archive_dir, myGetXY, 1000, 1, b=784, d=10)
-test_X, test_Y = test_pp.getXY()
-#And even the model and weights are still intact
-model = trial.compile(loadweights=True)
-ev = model.evaluate(test_X, test_Y)
+ev = trial.test(train_proc, 1000)
 loss = ev[0]
 accuracy = ev[1]
 
@@ -141,13 +159,11 @@ print('\n')
 print("Test_Loss:",loss)
 print("Test_Accuracy:",accuracy)
 
-#plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
-#display(Image("model3.png"))
+
 
 trials = get_all_trials(archive_dir)
 for t in trials:
 	t.summary()
-	# print(t.to_json())
 	t.remove_from_archive()
 trials = get_all_trials(archive_dir)
 print("Deleted all trials?:", len(trials) == 0)
