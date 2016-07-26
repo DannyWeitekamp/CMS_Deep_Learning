@@ -289,7 +289,10 @@ class DataProcedure(Storable):
                 arg = [arg]
             for j ,a in enumerate(arg):
                 if(isinstance(a, str) or isinstance(a, unicode)):
-                    obj = json.loads(a)
+                    try:
+                        obj = json.loads(a)
+                    except ValueError as e:
+                        continue
                     if(isinstance(obj, dict)):
                         # print(type(a), type(obj))
                         if(obj.get('class_name', None) == "DataProcedure"):
