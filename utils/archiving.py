@@ -760,7 +760,6 @@ class KerasTrial(Storable):
     def get_model(self, loadweights=False,custom_objects={}):
         '''Gets the model, optionally with the best set of weights'''
         model = model_from_json(self.model, custom_objects=custom_objects)
-        print("LOAD WEIGHTS:", loadweights)
         if(loadweights):
             model.load_weights(self.get_path()+"weights.h5")
         return model
