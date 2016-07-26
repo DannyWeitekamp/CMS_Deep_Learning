@@ -128,7 +128,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             start             --    Where to start reading (as if all of the files are part of one long list)
             samples_per_label -- The number of samples to read for each label
             object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and
-                                its preprocessing steps
+                                its preprocessing steps. 
             observ_types    -- The column headers for the data to be read from the panadas table
         #Returns:
             Training data with its correspoinding labels
@@ -142,8 +142,16 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
 
-    #Make sure that all the profiles have resolved max_sizes
-    for profile in object_profiles:
+    #Make sure that all the profile are proper objects and have resolved max_sizes
+    for i,profile in enumerate(object_profiles):
+        if(isinstance(profile, dict) and a.get('class_name', None) == "ObjectProfile"):
+            profile = ObjectProfile(profile['name'],
+                                            profile.get('max_size', 100),
+                                            profile.get('sort_columns', None),
+                                            profile.get('sort_ascending', True),
+                                            profile.get('query', None),
+                                            profile.get('shuffle', False)))
+            object_profiles[i] = profile
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
                          Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
