@@ -1,4 +1,10 @@
-# from __future__ import unicode_literals
+''' 
+archive.py
+A system for archiving keras trials and input data
+Author: Danny Weitekamp
+e-mail: dannyweitekamp@gmail.com
+''' 
+
 import json
 import hashlib
 from keras.models import model_from_json
@@ -283,7 +289,7 @@ class DataProcedure(Storable):
                     if(isinstance(obj, dict)):
                         # print(type(a), type(obj))
                         if(obj.get('class_name', None) == "DataProcedure"):
-                            arg[j] = DataProcedure.from_json(archive_dir, a)
+                            arg[j] = DataProcedure.from_json(archive_dir, a,arg_decode_func)
             if(islist == False):
                 arg = arg[0]
             args[i] = arg
@@ -655,7 +661,6 @@ class KerasTrial(Storable):
         model = self.compile(custom_objects=custom_objects)
         if(isinstance(test_proc, list) == False): test_proc = [test_proc]
         # test_proc = self._prep_procedure(test_proc)
-       
 
         sum_metrics = []
         for p in test_proc:
@@ -663,7 +668,7 @@ class KerasTrial(Storable):
                 p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
             elif(isinstance(p, DataProcedure) == False):
                  raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
-                 
+
             test_data = p.getXY(archive=archiveTraining)
             n_samples = 0
             if(isinstance(test_data, types.GeneratorType)):
