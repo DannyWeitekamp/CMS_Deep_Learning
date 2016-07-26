@@ -65,8 +65,8 @@ class DataProcedure(Storable):
         data and Y contains the labels/targets for each entry'''
     def __init__(self, _archive_dir,archive_getData, func,  *args, **kargs):
         Storable.__init__(self)
-        if(isinstance(archive_dir, str) == False and isinstance(archive_dir, unicode) == False):
-            raise TypeError("archive_dir must be str, but got %r" %type(archive_dir))
+        if(isinstance(_archive_dir, str) == False and isinstance(_archive_dir, unicode) == False):
+            raise TypeError("_archive_dir must be str, but got %r" %type(_archive_dir))
         if(isinstance(archive_getData, bool) == False):
             raise TypeError("archive_getData must be bool, but got %r" % type(archive_getData))
         if(isinstance(func, types.FunctionType) == False):
