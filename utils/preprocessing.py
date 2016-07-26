@@ -451,4 +451,4 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
                                     object_profiles,
                                     observ_types)
     gen = genFromPPs(pps, batch_size, threading = False)
-    return (gen, len(label_dir_pairs)*samples_per_label)
+    return gen
