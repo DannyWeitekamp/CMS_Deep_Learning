@@ -125,10 +125,11 @@ def myGen(dps, batch_size):
             if(isinstance(X,list) == False): X = [X]
             if(isinstance(Y,list) == False): Y = [Y]
             tot = Y[0].shape[0]
-            assert tot == X[0].shape[0]
+            assert tot == X[0].shape[0], "X shape: %r, Y shape: %r" % ( X[0].shape[0], tot)
             for start in range(0, tot, batch_size):
                 end = start+min(batch_size, tot-start)
                 yield [x[start:end] for x in X], [y[start:end] for y in Y]
+
 
 train_proc = DataProcedure(archive_dir,True,myGen,data,100)
 

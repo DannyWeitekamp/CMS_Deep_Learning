@@ -86,8 +86,8 @@ class DataProcedure(Storable):
                 return x.__dict__ 
                 
         self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurseStore)
-        self.X = None
-        self.Y = None
+        # self.X = None
+        # self.Y = None
     
 
     def set_encoder(self, encoder):
@@ -109,8 +109,8 @@ class DataProcedure(Storable):
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
-        del d["X"]
-        del d["Y"]
+        # del d["X"]
+        # del d["Y"]
         return self.encoder.encode(d)
 
     # def hash(self, rehash=False):
@@ -134,19 +134,19 @@ class DataProcedure(Storable):
         else:
             return False
 
-    def archive(self):
+    def archive(self, X, Y):
         '''Store the DataProcedure in a directory computed by its hashcode'''
-        if((self.X is None or self.Y is None) == False):
+        if((not X is None) and (not Y is None)):
             blob_path = self.get_path()
             if( os.path.exists(blob_path) == False):
                 os.makedirs(blob_path)
             if( os.path.exists(blob_path + 'procedure.json') == False):
                 self.write()
-            X = self.X
-            Y = self.Y
+            # X = self.X
+            # Y = self.Y
 
-            if(isinstance(self.X, list) == False): X = [X]
-            if(isinstance(self.Y, list) == False): Y = [Y]
+            if(isinstance(X, list) == False): X = [X]
+            if(isinstance(Y, list) == False): Y = [Y]
             h5f = h5py.File(self.get_path() + 'archive.h5', 'w')
             h5f.create_group("X")
             for i, x in enumerate(X):
@@ -156,7 +156,7 @@ class DataProcedure(Storable):
                 h5f.create_dataset('Y/'+str(i), data=y)
             
             h5f.close()
-            data_archive = DataProcedure.read_record(self.archive_dir)
+            data_record = DataProcedure.read_record(self.archive_dir)
 
             #TODO: this is a really backward way of doing this
             jstr = self.to_json()
@@ -168,9 +168,9 @@ class DataProcedure(Storable):
             proc_dict['module'] = d['func_module']
             proc_dict['args'] = d['args']
             proc_dict['kargs'] = d['kargs']
-            data_archive[self.hash()] = proc_dict
+            data_record[self.hash()] = proc_dict
 
-            DataProcedure.write_record(data_archive, self.archive_dir)
+            DataProcedure.write_record(data_record, self.archive_dir)
             # def read_json_obj(directory, filename, verbose=0):
                 
         else:
@@ -195,26 +195,26 @@ class DataProcedure(Storable):
             h5f = None
             try:
                 h5f = h5py.File(self.get_path() + 'archive.h5', 'r')
-                self.X = []
+                X = []
                 X_group = h5f['X']
                 keys = list(X_group.keys())
                 keys.sort()
                 for key in keys:
-                    self.X.append(X_group[key][:])
+                    X.append(X_group[key][:])
 
-                self.Y = []
+
+                Y = []
                 Y_group = h5f['Y']
                 keys = list(Y_group.keys())
                 keys.sort()
                 for key in keys:
-                    self.Y.append(Y_group[key][:])
+                    Y.append(Y_group[key][:])
 
                 h5f.close()
-
-                out = (self.X, self.Y)
-
+                out = (X, Y)
                 if(verbose >= 1): print("DataProcedure results %r read from archive" % self.hash())
-            except:
+            except Exception as e:
+                print(e)
                 if(h5f != None): h5f.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
                 return self.getData(archive=archive, redo=True, verbose=verbose)
@@ -228,8 +228,11 @@ class DataProcedure(Storable):
                 if(len(out) == 2):
                     if( (isinstance(out[0], list) or isinstance(out[0], np.ndarray)) 
                         and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
-                        self.X, self.Y = out
-                        if(self.archive_getData == True or archive == True): self.archive()
+                        # self.X, self.Y = out
+                        if(self.archive_getData == True or archive == True):
+                            print("ARCHIVE")
+                            # print(out[0], out[1])
+                            self.archive(out[0], out[1])
                 else:
                     raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
@@ -708,7 +711,8 @@ class KerasTrial(Storable):
             self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
             return metrics
         else:
-            print("Test %r already Complete with test_loss: %0.4f, test_acc: %0.4f" % (self.hash(), record_loss, record_acc)
+            print("Test %r already Complete with test_loss: %0.4f, test_acc: %0.4f" % (self.hash(), record_loss, record_acc))
+            return [record_loss, record_acc]
 
     def to_record(self, dct, append=False, replace=True):
         '''Pushes a dictionary of values to the archive record for this trial'''
