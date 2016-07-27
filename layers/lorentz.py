@@ -44,6 +44,7 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
         #split up the boost by components. dtype='int64' is to cast to a theano.tensor.lvector
         _splits = K.variable([1,1,1], dtype='int64') #theano.tensor.lvector([1,1,1])
         _theta, _phi,_mag = theano.tensor.split(boosts,_splits, 3, axis=1)
+        K.clip(_mag, 0.0, 1.0-_EPSILON)
         _theta = _theta * np.pi
         _phi = _phi * (2 * np.pi)
         _nx = K.sin(_theta) * K.cos(_phi) 
@@ -52,6 +53,7 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
         _n = K.concatenate([_nx, _ny, _nz], axis=1)
     else:
         _mag = K.sqrt(K.sum(K.square(boosts), axis=1,keepdims=True))
+        K.clip(_mag, 0.0, 1.0-_EPSILON)
         _inv_mag = 1/_mag
         _n = boosts *  _inv_mag
     

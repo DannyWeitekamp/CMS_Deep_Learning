@@ -862,8 +862,6 @@ class KerasTrial(Storable):
                             h, m = divmod(m, 60)
                             records.append(str(key) + " = " + "%d:%02d:%02d" % (h, m, s))
                         elif(re.match(".*_(acc|loss)", key) != None):
-                            # print("MECTRIC:",key)
-
                             records.append(str(key) + " = " + "%.4f" % value)
                         else:
                             # print("Normal:",key)
