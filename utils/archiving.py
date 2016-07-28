@@ -606,7 +606,7 @@ class KerasTrial(Storable):
                     class_weight=self.class_weight,
                     max_q_size=self.max_q_size,
                     nb_worker=self.nb_worker,
-                     pickle_safe=self.pickle_safe)
+                    pickle_safe=self.pickle_safe)
         self._history_to_record(record_store)
 
 
@@ -692,7 +692,7 @@ class KerasTrial(Storable):
                 test_data = p.getData(archive=archiveTraining)
                 n_samples = 0
                 if(isinstance(test_data, types.GeneratorType)):
-                    metrics = model.evaluate_generator(test_data, test_samples)
+                    metrics = model.evaluate_generator(test_data, test_samples,
                                                         max_q_size=max_q_size,
                                                         nb_worker=nb_worker,
                                                         pickle_safe=pickle_safe)
