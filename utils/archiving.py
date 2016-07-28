@@ -587,7 +587,6 @@ class KerasTrial(Storable):
             verbose=verbose,
             callbacks=callbacks,
             validation_split=self.validation_split,
-            #validation_data=self.validation_data,
             shuffle=self.shuffle,
             class_weight=self.class_weight,
             sample_weight=self.sample_weight)
@@ -603,9 +602,11 @@ class KerasTrial(Storable):
                     verbose=verbose,
                     callbacks=callbacks,
                     validation_data=validation_data,
-                    nb_val_samples=self.nb_val_samples,#)
-#                      validation_data=None, nb_val_samples=None,
-                      class_weight={}, max_q_size=10, nb_worker=1, pickle_safe=False):
+                    nb_val_samples=self.nb_val_samples,
+                    class_weight=self.class_weight,
+                    max_q_size=self.max_q_size,
+                    nb_worker=self.nb_worker,
+                     pickle_safe=self.pickle_safe):
         self._history_to_record(record_store)
 
 
@@ -692,9 +693,9 @@ class KerasTrial(Storable):
                 n_samples = 0
                 if(isinstance(test_data, types.GeneratorType)):
                     metrics = model.evaluate_generator(test_data, test_samples)
-    #                                                    max_q_size=max_q_size,
-    #                                                    nb_worker=nb_worker,
-    #                                                    pickle_safe=pickle_safe)
+                                                        max_q_size=max_q_size,
+                                                        nb_worker=nb_worker,
+                                                        pickle_safe=pickle_safe)
                     n_samples = test_samples
                 else:
                     X,Y = test_data
