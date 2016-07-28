@@ -38,7 +38,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True):
         plt.yscale('log')
         plt.show()
 
-    if(plotAccuracy)
+    if(plotAccuracy):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
