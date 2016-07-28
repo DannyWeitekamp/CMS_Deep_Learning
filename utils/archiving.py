@@ -603,9 +603,9 @@ class KerasTrial(Storable):
                     verbose=verbose,
                     callbacks=callbacks,
                     validation_data=validation_data,
-                    nb_val_samples=self.nb_val_samples)
+                    nb_val_samples=self.nb_val_samples,#)
 #                      validation_data=None, nb_val_samples=None,
-#                      class_weight={}, max_q_size=10, nb_worker=1, pickle_safe=False):
+                      class_weight={}, max_q_size=10, nb_worker=1, pickle_safe=False):
         self._history_to_record(record_store)
 
 
