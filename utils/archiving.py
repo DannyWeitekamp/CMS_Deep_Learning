@@ -363,8 +363,8 @@ class KerasTrial(Storable):
                     nb_epoch=10,
                     callbacks=[],
                     
-                    max_q_size=None,
-                    nb_worker=None,
+                    max_q_size=10,
+                    nb_worker=1,
                     pickle_safe=False,
 
                     shuffle=True,
@@ -500,8 +500,8 @@ class KerasTrial(Storable):
                 nb_epoch=10,
                 callbacks=[],
                 class_weight=True,
-                max_q_size=None,
-                nb_worker=None,
+                max_q_size=10,
+                nb_worker=1,
                 pickle_safe=False):
         '''Sets the fit arguments for the trial'''
         #Fit
@@ -948,9 +948,9 @@ class KerasTrial(Storable):
                 nb_epoch=d.get('nb_epoch', 10),
                 callbacks=d.get('callbacks', []),
 
-                max_q_size=d.get('max_q_size', True),
-                nb_worker=d.get('nb_worker', None),
-                pickle_safe=d.get('pickle_safe', None),
+                max_q_size=d.get('max_q_size', 10),
+                nb_worker=d.get('nb_worker', 1),
+                pickle_safe=d.get('pickle_safe', False),
 
                 shuffle=d.get('shuffle', True),
                 class_weight=d.get('class_weight', None),
