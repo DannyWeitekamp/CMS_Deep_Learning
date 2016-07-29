@@ -499,7 +499,7 @@ class KerasTrial(Storable):
     def setFit_Generator(self,
                 nb_epoch=10,
                 callbacks=[],
-                class_weight=True,
+                class_weight={},
                 max_q_size=10,
                 nb_worker=1,
                 pickle_safe=False):
