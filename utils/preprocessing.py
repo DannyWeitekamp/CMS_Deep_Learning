@@ -3,6 +3,7 @@ import pandas as pd
 import glob
 import threading
 from CMS_SURF_2016.utils.archiving import DataProcedure
+import os
 
 class ObjectProfile():
     def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
@@ -346,6 +347,8 @@ def start_num_fromSplits(splits, length):
         out.append((start, n))
         start += n
     return out
+
+
 
 def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
     '''Gets a list of DataProcedures that use preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
