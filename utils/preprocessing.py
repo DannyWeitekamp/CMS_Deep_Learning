@@ -474,3 +474,109 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
                                     observ_types)
     gen = genFromPPs(pps, batch_size, threading = False)
     return gen
+
+def XY_to_CSV(X,Y, csvdir):
+    if(csvdir[len(csvdir)-1] != "/"):
+        csvdir = csvdir + "/"
+    if(not os.path.isdir(csvdir)):
+        os.makedirs(csvdir)
+    X_path = csvdir+"X/"
+    Y_path = csvdir+"Y/"
+    if(not os.path.isdir(X_path)):
+        os.makedirs(X_path)
+    if(not os.path.isdir(Y_path)):
+        os.makedirs(Y_path)
+    if(not isinstance(X, list)): X = [X]
+    if(not isinstance(Y, list)): Y = [Y]
+    def writeit(obj, path, strbeginning):
+        shape = obj.shape
+        p = path+strbeginning + str(i) + ".csv"
+        f = open(p, "wb")
+        f.write("#Shape: "+str(shape)+"\n")
+        reshaped = np.reshape(obj, (shape[0], np.prod(shape[1:])))
+        np.savetxt(f, reshaped, delimiter=",")
+        f.close()
+    for i,x in enumerate(X):
+        writeit(x, X_path, "X_")
+        
+    for i,y in enumerate(Y):
+        writeit(y, Y_path, "Y_")
+
+
+def XY_from_CSV(csvdir):
+    if(csvdir[len(csvdir)-1] != "/"):
+        csvdir = csvdir + "/"
+    def readit(path):
+        f = open(path, "rb")
+        shape_str = f.readline()
+        shape = tuple([int(re.sub("\D", "", s)) for s in shape_str.split(",")])
+        arr = np.loadtxt(f,delimiter=',')
+        return np.reshape(arr, shape)
+    X_path = csvdir+"X/"
+    Y_path = csvdir+"Y/"
+    if(not os.path.isdir(X_path) or not os.path.isdir(Y_path)):
+        raise IOError("csv directory does not contain X/, Y/")
+   
+    files = glob.glob(X_path+"*")
+    files.sort()
+    X = []
+    for p in files:
+        X.append(readit(p))
+        
+    files = glob.glob(Y_path+"*")
+    files.sort()
+    Y = []
+    for p in files:
+        Y.append(readit(p))
+        
+    return X,Y
+
+
+def XY_to_pickle(X,Y, csvdir):
+    if(csvdir[len(csvdir)-1] != "/"):
+        csvdir = csvdir + "/"
+    if(not os.path.isdir(csvdir)):
+        os.makedirs(csvdir)
+    X_path = csvdir+"X/"
+    Y_path = csvdir+"Y/"
+    if(not os.path.isdir(X_path)):
+        os.makedirs(X_path)
+    if(not os.path.isdir(Y_path)):
+        os.makedirs(Y_path)
+    if(not isinstance(X, list)): X = [X]
+    if(not isinstance(Y, list)): Y = [Y]
+    def writeit(obj, path, strbeginning):
+        shape = obj.shape
+        p = path+strbeginning + str(i) + ".csv"
+        np.save(p,obj)
+    for i,x in enumerate(X):
+        writeit(x, X_path, "X_")
+        
+    for i,y in enumerate(Y):
+        writeit(y, Y_path, "Y_")
+
+def XY_from_pickle(pickledir):
+    if(pickledir[len(pickledir)-1] != "/"):
+        pickledir = pickledir + "/"
+    def readit(path):
+        arr = np.load(path)
+        return arr
+    X_path = pickledir+"X/"
+    Y_path = pickledir+"Y/"
+    if(not os.path.isdir(X_path) or not os.path.isdir(Y_path)):
+        raise IOError("Pickle directory does not contain X/, Y/")
+   
+    files = glob.glob(X_path+"*")
+    files.sort()
+    X = []
+    for p in files:
+        X.append(readit(p))
+        
+    files = glob.glob(Y_path+"*")
+    files.sort()
+    Y = []
+    for p in files:
+        Y.append(readit(p))
+        
+    return X,Y
+
