@@ -176,7 +176,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     #Loop over label dir pairs and get the file list for each directory
     y_train_start = 0
     for (label,data_dir) in label_dir_pairs:
+        if(not os.path.isdir(data_dir)):
+            raise IOError("Directory %r does not exist." % data_dir)
         files = glob.glob(data_dir+"*.h5")
+        if(len(files) < 1):
+            raise IOError("Cannot read from empty directory %r" % data_dir)
         files.sort()
         samples_read = 0
         location = 0
