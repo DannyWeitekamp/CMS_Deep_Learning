@@ -477,6 +477,7 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
     return gen
 
 def XY_to_CSV(X,Y, csvdir):
+     '''Writes a pair of data X and Y to a directory csvdir as .csv files'''
     if(csvdir[len(csvdir)-1] != "/"):
         csvdir = csvdir + "/"
     if(not os.path.isdir(csvdir)):
@@ -505,6 +506,7 @@ def XY_to_CSV(X,Y, csvdir):
 
 
 def XY_from_CSV(csvdir):
+    '''Reads a pair of data X and Y from a directory csvdir that contains .csv files with the data'''
     if(csvdir[len(csvdir)-1] != "/"):
         csvdir = csvdir + "/"
     def readit(path):
@@ -533,13 +535,14 @@ def XY_from_CSV(csvdir):
     return X,Y
 
 
-def XY_to_pickle(X,Y, csvdir):
-    if(csvdir[len(csvdir)-1] != "/"):
-        csvdir = csvdir + "/"
-    if(not os.path.isdir(csvdir)):
-        os.makedirs(csvdir)
-    X_path = csvdir+"X/"
-    Y_path = csvdir+"Y/"
+def XY_to_pickle(X,Y, pickledir):
+    '''Writes a pair of data X and Y to a directory pickledir as pickled files'''
+    if(pickledir[len(pickledir)-1] != "/"):
+        pickledir = pickledir + "/"
+    if(not os.path.isdir(pickledir)):
+        os.makedirs(pickledir)
+    X_path = pickledir+"X/"
+    Y_path = pickledir+"Y/"
     if(not os.path.isdir(X_path)):
         os.makedirs(X_path)
     if(not os.path.isdir(Y_path)):
@@ -548,7 +551,7 @@ def XY_to_pickle(X,Y, csvdir):
     if(not isinstance(Y, list)): Y = [Y]
     def writeit(obj, path, strbeginning):
         shape = obj.shape
-        p = path+strbeginning + str(i) + ".csv"
+        p = path+strbeginning + str(i) + ".pkl"
         np.save(p,obj)
     for i,x in enumerate(X):
         writeit(x, X_path, "X_")
