@@ -477,7 +477,7 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
     return gen
 
 def XY_to_CSV(X,Y, csvdir):
-     '''Writes a pair of data X and Y to a directory csvdir as .csv files'''
+    '''Writes a pair of data X and Y to a directory csvdir as .csv files'''
     if(csvdir[len(csvdir)-1] != "/"):
         csvdir = csvdir + "/"
     if(not os.path.isdir(csvdir)):
@@ -560,6 +560,7 @@ def XY_to_pickle(X,Y, pickledir):
         writeit(y, Y_path, "Y_")
 
 def XY_from_pickle(pickledir):
+    '''Reads a pair of data X and Y from a directory pickledir that contains pickle files with the data'''
     if(pickledir[len(pickledir)-1] != "/"):
         pickledir = pickledir + "/"
     def readit(path):
