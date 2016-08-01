@@ -551,7 +551,7 @@ def XY_to_pickle(X,Y, pickledir):
     if(not isinstance(Y, list)): Y = [Y]
     def writeit(obj, path, strbeginning):
         shape = obj.shape
-        p = path+strbeginning + str(i) + ".pkl"
+        p = path+strbeginning + str(i) 
         np.save(p,obj)
     for i,x in enumerate(X):
         writeit(x, X_path, "X_")
