@@ -7,6 +7,7 @@ import time
 import pandas as pd
 from itertools import islice
 import glob
+import ntpath
 
 def DeltaRsq(A_Eta, A_Phi, B_Eta, B_Phi):
     '''Computes the 
@@ -373,7 +374,7 @@ def store(filepath, outputdir, rerun=False):
     keys = store.keys()
     print("KEYS:", keys)
 
-    for key,frame in frames.items:
+    for key,frame in frames.items():
         if(rerun or (("/"+key) in keys) == False):
             store.put(tup[0], frame, format='table')
     store.close()
