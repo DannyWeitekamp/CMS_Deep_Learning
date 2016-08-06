@@ -336,7 +336,7 @@ def delphes_to_pandas(filepath, verbosity=1):
     for obj,d in dicts_by_object.items():
         if(obj == "NumValues"):
             pandas_out[obj] = pd.DataFrame(d, columns=OBJECT_TYPES)
-            print(pandas_out[obj])
+            #print(pandas_out[obj])
         else:
             pandas_out[obj] = pd.DataFrame(d, columns=OUTPUT_OBSERVS)
         # if(TRACK_MATCH[OBJECT_TYPES.index(obj)] or obj == "EFlowTrack"):
