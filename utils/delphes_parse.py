@@ -372,8 +372,11 @@ def store(filepath, outputdir, rerun=False):
     print(out_file)
     store = pd.HDFStore(out_file)
     keys = store.keys()
-    print("KEYS:", keys)
-    if(keys != ["/"+key for key in OBJECT_TYPES] or rerun):
+    #print("KEYS:", set(keys))
+    #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+    #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+    if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
+	#print("OUT",out_file)
         frames = delphes_to_pandas(filepath)
         for key,frame in frames.items():
             store.put(key, frame, format='table')
@@ -391,7 +394,7 @@ def makeJobs(filename,
     if not os.path.exists(store_dir):
         os.makedirs(store_dir)
 
-    jobs = [ (f,  os.path.splitext(ntpath.basename(f))[0]) for f in files]
+    jobs = [ (f,  store_dir) for f in files]
     # for f in files:
     #    f_name =
     #    jobs.append((f, store_dir))
