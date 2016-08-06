@@ -1,7 +1,7 @@
 import os
 import sys 
 import ROOT 
-ROOT.gSystem.Load("libDelphes.so")
+# ROOT.gSystem.Load("libDelphes.so")
 #from ROOT import Tower
 #from ROOT import Muon
 #from ROOT import Electron
@@ -232,7 +232,7 @@ def Convert(verbosity=1):
     start_time = time.clock()
     fileIN = ROOT.TFile.Open("data/ttbar_lepFilter_13TeV_147.root")
     tree = fileIN.Get("Delphes")
-    n_entries=10#tree.GetEntries()
+    n_entries=100#tree.GetEntries()
 
     tree.SetCacheSize(30*1024*1024)
 
@@ -247,8 +247,7 @@ def Convert(verbosity=1):
     ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
     OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
                          'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']
-    ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','Photon')]
-
+    ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','EFlowPhoton')]
 
     #Get all the leaves that we need to read and their associated branches
     leaves_by_object = {}
@@ -258,14 +257,15 @@ def Convert(verbosity=1):
             leaf = tree.GetLeaf(obj + '.' + observ)
             if(isinstance(leaf,ROOT.TLeafElement)):
                 leaves_by_object[obj][observ] = (leaf, leaf.GetBranch())
-                print(leaf.GetBranch())
+                #print(leaf.GetBranch())
 
 
     #Allocate the data for the tables by filling arrays with zeros
     dicts_by_object = {}
+    dicts_by_object["NumValues"] = {}
     for obj in OBJECT_TYPES:
         dicts_by_object[obj] = {}
-        print(obj)
+        # print(obj)
         (leaf, branch) = leaves_by_object[obj]['Phi']
         total_values = 0
 
@@ -278,6 +278,7 @@ def Convert(verbosity=1):
         #Fill arrays with zeros to avoid reallocating data later
         for observ in OUTPUT_OBSERVS:
             dicts_by_object[obj][observ] = [0] * total_values
+        dicts_by_object["NumValues"][obj] = [0] * n_entries
         print(total_values)
     
 
@@ -306,10 +307,11 @@ def Convert(verbosity=1):
         for obj, PT_ET_type, mass, extra_fills in zip(OBJECT_TYPES, PT_ET_TYPES, MASSES, EXTRA_FILLS):
             start = index_by_objects[obj]
             n = fill_object(dicts_by_object,leaves_by_object,entry, start, obj, PT_ET_type, mass, extra_fills)
+            dicts_by_object["NumValues"][obj][entry] = n
             number_by_object[obj] = n
             Eta_Phi_PT_by_object[obj] = getEtaPhiPTasNumpy(dicts_by_object,obj, start, n)
 
-        #Do Track matching for objects designated for it.
+        #Do Track matching for objects with TRACK_MATCH = Trie
         trkEta, trkPhi, dummy = Eta_Phi_PT_by_object["EFlowTrack"]
         start_tracks = index_by_objects["EFlowTrack"]
         for obj, ok in zip(OBJECT_TYPES, TRACK_MATCH):
@@ -319,28 +321,30 @@ def Convert(verbosity=1):
                 matches = trackMatch(Phi, Eta, trkEta, trkPhi)
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
+        #Compute isolation
         for obj, ok in zip(OBJECT_TYPES, COMPUTE_ISO):
             start = index_by_objects[obj]
             if(ok):
                 objEta, objPhi, objPt = Eta_Phi_PT_by_object[obj]
                 for iso_type, iso_obj in ISO_TYPES:
                     isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object[iso_obj]
-                    # print(Iso)
                     iso_val = Iso(objEta, objPhi, objPt, isoEta, isoPhi) 
                     iso_val = iso_val - 1.0 if obj == iso_obj else iso_val
-                    # print(obj, iso_val.shape)
                     fillIso(dicts_by_object,obj, iso_type,  start, iso_val)
 
         for obj in OBJECT_TYPES:
             index_by_objects[obj] += number_by_object[obj]
     pandas_out = {}
-    for obj in OBJECT_TYPES:
-        d = dicts_by_object[obj]
-        pandas_out[obj] = pd.DataFrame(d, columns=OUTPUT_OBSERVS)
+    for obj,d in dicts_by_object.items():
+        if(obj == "NumValues"):
+            pandas_out[obj] = pd.DataFrame(d, columns=OBJECT_TYPES)
+            print(pandas_out[obj])
+        else:
+            pandas_out[obj] = pd.DataFrame(d, columns=OUTPUT_OBSERVS)
         # if(TRACK_MATCH[OBJECT_TYPES.index(obj)] or obj == "EFlowTrack"):
-        if(COMPUTE_ISO[OBJECT_TYPES.index(obj)]):
-            print(obj)
-            print(pandas_out[obj][['MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']])
+        # if(COMPUTE_ISO[OBJECT_TYPES.index(obj)]):
+            # print(obj)
+            # print(pandas_out[obj][['MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']])
 
     print("ElapseTime: %.2f" % float(time.clock()-start_time))
 
