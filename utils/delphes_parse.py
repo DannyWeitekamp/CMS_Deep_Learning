@@ -376,7 +376,7 @@ def store(filepath, outputdir, rerun=False):
 
     for key,frame in frames.items():
         if(rerun or (("/"+key) in keys) == False):
-            store.put(tup[0], frame, format='table')
+            store.put(key, frame, format='table')
     store.close()
                     
 
