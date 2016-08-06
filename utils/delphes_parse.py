@@ -373,7 +373,7 @@ def store(filepath, outputdir, rerun=False):
     store = pd.HDFStore(out_file)
     keys = store.keys()
     print("KEYS:", keys)
-    if(keys == ["/"+key for key in OBJECT_TYPES] or rerun):
+    if(keys != ["/"+key for key in OBJECT_TYPES] or rerun):
         frames = delphes_to_pandas(filepath)
         for key,frame in frames.items():
             store.put(key, frame, format='table')
