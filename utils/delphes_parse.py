@@ -226,6 +226,18 @@ def getEtaPhiPTasNumpy(dicts_by_object,obj, start, n_vals):
 mass_of_electron = np.float64(0.0005109989461) #eV/c
 mass_of_muon = np.float64(0.1056583715) 
 
+OBJECT_TYPES = ['Electron', 'MuonTight', 'Photon', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack']
+PT_ET_TYPES  = ['PT',          'PT',       'PT',      'MET',        'ET',           'ET',               'PT', ]
+EXTRA_FILLS  = [['Charge'], ['Charge'],     [],        [],     ['Ehad', 'Eem'],  ['Ehad', 'Eem'], ['Charge','X', 'Y', 'Z', 'Dxy'],]
+MASSES =    [mass_of_electron, mass_of_muon, 0,        0,           0,                0,                 0]
+TRACK_MATCH =   [True,        True,        False,    False,        False,           False,              False]
+COMPUTE_ISO =   [True,        True,        True,     False,        False,           True,              False]
+
+ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
+OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
+                     'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']
+ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','EFlowPhoton')]
+
 def delphes_to_pandas(filepath, verbosity=1):
     start_time = time.clock()
     fileIN = ROOT.TFile.Open(filepath)
@@ -234,18 +246,6 @@ def delphes_to_pandas(filepath, verbosity=1):
 
     tree.SetCacheSize(30*1024*1024)
 
-
-    OBJECT_TYPES = ['Electron', 'MuonTight', 'Photon', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack']
-    PT_ET_TYPES  = ['PT',          'PT',       'PT',      'MET',        'ET',           'ET',               'PT', ]
-    EXTRA_FILLS  = [['Charge'], ['Charge'],     [],        [],     ['Ehad', 'Eem'],  ['Ehad', 'Eem'], ['Charge','X', 'Y', 'Z', 'Dxy'],]
-    MASSES =    [mass_of_electron, mass_of_muon, 0,        0,           0,                0,                 0]
-    TRACK_MATCH =   [True,        True,        False,    False,        False,           False,              False]
-    COMPUTE_ISO =   [True,        True,        True,     False,        False,           True,              False]
-
-    ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
-    OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
-                         'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']
-    ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','EFlowPhoton')]
 
     #Get all the leaves that we need to read and their associated branches
     leaves_by_object = {}
@@ -365,7 +365,7 @@ def roundrobin(*iterables):
 
 
 def store(filepath, outputdir, rerun=False):
-    frames = delphes_to_pandas(filepath)
+    
 
     filename = os.path.splitext(ntpath.basename(filepath))[0]
     out_file = outputdir + filename + ".h5"
@@ -373,9 +373,9 @@ def store(filepath, outputdir, rerun=False):
     store = pd.HDFStore(out_file)
     keys = store.keys()
     print("KEYS:", keys)
-
-    for key,frame in frames.items():
-        if(rerun or (("/"+key) in keys) == False):
+    if(keys == ["/"+key for key in OBJECT_TYPES] or rerun):
+        frames = delphes_to_pandas(filepath)
+        for key,frame in frames.items():
             store.put(key, frame, format='table')
     store.close()
                     
