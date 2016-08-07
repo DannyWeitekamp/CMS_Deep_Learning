@@ -179,6 +179,20 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     for (label,data_dir) in label_dir_pairs:
         if(not os.path.isdir(data_dir)):
             raise IOError("Directory %r does not exist." % data_dir)
+
+        msgFiles = glob.glob(data_dir+"*.msg")
+        hdfFiles = glob.glob(data_dir+"*.h5")
+        if(len(msgFiles) == 0):
+            files = hdfFiles
+            storeType = "hdf5"
+        elif(len(hdfFiles) == 0):
+            files = hdfFiles
+            storeType = "msgpack"
+        else:
+            raise IOError("Directory %r contains both .msg files and .h5 files, please use only one \
+                            filetype when generating pandas files, to avoid data repetition issues\
+                            " % data_dir)
+
         files = glob.glob(data_dir+"*.h5")
         if(len(files) < 1):
             raise IOError("Cannot read from empty directory %r" % data_dir)
@@ -188,15 +202,19 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         
          #Loop the files associated with the current label
         for f in files:
-          
-            #Get the HDF Store for the file
-            store = pd.HDFStore(f)
+            
+            if(storeType == "hdf5"):
+                #Get the HDF Store for the file
+                store = pd.HDFStore(f)
 
-            #Get the NumValues frame which lists the number of values for each entry
-            try:
-                num_val_frame = store.get('/NumValues')
-            except KeyError as e:
-                raise KeyError(str(e) + " " + f)
+                #Get the NumValues frame which lists the number of values for each entry
+                try:
+                    num_val_frame = store.get('/NumValues')
+                except KeyError as e:
+                    raise KeyError(str(e) + " " + f)
+            elif(storeType == "msgpack"):
+                frames = pd.read_msg(f)
+                num_val_frame = frames["NumValues"]
 
             file_total_entries = len(num_val_frame.index)
             
@@ -232,13 +250,16 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 nums = num_val_frame[key]
                 select_stop = select_start + nums.sum()
                 
-                #If we are reading all the samples use get since it might be faster
-                #TODO: check if it is actually faster
-                if(samples_to_read == file_total_entries):
-                    frame = store.get('/'+key)
-                else:
-                    frame = store.select('/'+key, start=select_start, stop=select_stop)
-               
+                if(storeType == "hdf5"):
+                    #If we are reading all the samples use get since it might be faster
+                    #TODO: check if it is actually faster
+                    if(samples_to_read == file_total_entries):
+                        frame = store.get('/'+key)
+                    else:
+                        frame = store.select('/'+key, start=select_start, stop=select_stop)
+                elif(storeType == "msgpack"):
+                    frame = frames[key]
+                    frame = frame[select_start:select_stop]
                 
                 arr_start = X_train_indices[index]
                 arr = X_train[index]
