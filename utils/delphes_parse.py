@@ -8,6 +8,7 @@ import pandas as pd
 from itertools import islice
 import glob
 import ntpath
+import getopt
 
 def DeltaRsq(A_Eta, A_Phi, B_Eta, B_Phi):
     '''Computes the 
@@ -364,29 +365,34 @@ def roundrobin(*iterables):
          nexts = cycle(islice(nexts, pending))
 
 
-def store(filepath, outputdir, rerun=False):
-    
-
+def store(filepath, outputdir, rerun=False, storeType="hdf5"):
     filename = os.path.splitext(ntpath.basename(filepath))[0]
-    out_file = outputdir + filename + ".h5"
-    print(out_file)
-    store = pd.HDFStore(out_file)
-    keys = store.keys()
-    #print("KEYS:", set(keys))
-    #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
-    #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
-    if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
-	#print("OUT",out_file)
-        frames = delphes_to_pandas(filepath)
-        for key,frame in frames.items():
-            store.put(key, frame, format='table')
-    store.close()
-                    
+    if(storeType == "hdf5"):
+        out_file = outputdir + filename + ".h5"
+        print(out_file)
+        store = pd.HDFStore(out_file)
+        keys = store.keys()
+        #print("KEYS:", set(keys))
+        #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+        #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+        if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
+    	#print("OUT",out_file)
+            frames = delphes_to_pandas(filepath)
+            for key,frame in frames.items():
+                store.put(key, frame, format='table')
+        store.close()
+    elif(storeType == "msgpack"):
+        out_file = outputdir + filename + ".msg"
+        print(out_file)
+        if(not path.exists(out_file):):
+            frames = delphes_to_pandas(filepath)
+            pd.to_msgpack(out_file, frames)
 
-    
+
 def makeJobs(filename,
-             directory="/data/shared/Delphes/",
-             folder="/pandas/"):
+                storeType,
+                directory="/data/shared/Delphes/",
+                folder="/pandas/"):
     if(filename[len(filename)-1] == "/"): filename = filename[0:-1]
     files = glob.glob(directory + filename + "/*.root")
     store_dir = directory + filename + folder
@@ -394,39 +400,37 @@ def makeJobs(filename,
     if not os.path.exists(store_dir):
         os.makedirs(store_dir)
 
-    jobs = [ (f,  store_dir) for f in files]
+    jobs = [ (f,  store_dir, storeType) for f in files]
     # for f in files:
     #    f_name =
     #    jobs.append((f, store_dir))
     return jobs
 
 def doJob(job):
-    f, store_dir = job
-    store(f, store_dir)
+    f, store_dir, storeType = job
+    store(f, store_dir,storeType)
     return f
 
 
 def main(data_dir, argv):
-    print(data_dir)
-   # joined = False
-   # screwup_error = 'delphes_parse.py <inputdir>'
-
-   # try:
-   #    opts, args = getopt.getopt(argv,'j')
-   # except getopt.GetoptError:
-   #    print screwup_error
-   #    sys.exit(2)
+    # print(data_dir)
+    storeType = "hdf5"
+    try:
+        opts, args = getopt.getopt(argv,'m')
+    except getopt.GetoptError:
+        print screwup_error
+        sys.exit(2)
   
-   # for opt, arg in opts:
-   #    # print(opt, arg)
-   #    if opt in ("-j", "--joined"):
-   #       joined = True
-   
-   # t = "unjoined" if joined  == False else "joined"
-   # print(t)
-    jobs = makeJobs( data_dir)
+    for opt, arg in opts:
+      # print(opt, arg)
+        if opt in ("-m", "--msg", "--msgpack"):
+            storeType = "msgpack"
+        elif opt in ('-h', "--hdf", "--hdf5"):
+            storeType = "hdf5"
+    # print(storeType)
+    jobs = makeJobs(data_dir,storeType)
     for job in jobs:
-        print(job)
+        # print(job)
         doJob(job)
 
 
