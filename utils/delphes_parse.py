@@ -387,6 +387,8 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         if(not path.exists(out_file):):
             frames = delphes_to_pandas(filepath)
             pd.to_msgpack(out_file, frames)
+    else:
+        raise ValueError("storeType %r not recognized" % storeType)
 
 
 def makeJobs(filename,
@@ -427,7 +429,7 @@ def main(data_dir, argv):
             storeType = "msgpack"
         elif opt in ('-h', "--hdf", "--hdf5"):
             storeType = "hdf5"
-    # print(storeType)
+    print(storeType)
     jobs = makeJobs(data_dir,storeType)
     for job in jobs:
         # print(job)
