@@ -214,6 +214,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     raise KeyError(str(e) + " " + f)
             elif(storeType == "msgpack"):
                 print("Bulk reading .msg. Be patient, reading in slices not supported.")
+                sys.stdout.flush()
                 frames = pd.read_msgpack(f)
                 num_val_frame = frames["NumValues"]
 
