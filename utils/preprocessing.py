@@ -186,14 +186,14 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             files = hdfFiles
             storeType = "hdf5"
         elif(len(hdfFiles) == 0):
-            files = hdfFiles
+            files = msgFiles
             storeType = "msgpack"
         else:
             raise IOError("Directory %r contains both .msg files and .h5 files, please use only one \
                             filetype when generating pandas files, to avoid data repetition issues\
                             " % data_dir)
 
-        files = glob.glob(data_dir+"*.h5")
+        #files = glob.glob(data_dir+"*.h5")
         if(len(files) < 1):
             raise IOError("Cannot read from empty directory %r" % data_dir)
         files.sort()
@@ -213,7 +213,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 except KeyError as e:
                     raise KeyError(str(e) + " " + f)
             elif(storeType == "msgpack"):
-                frames = pd.read_msg(f)
+		print("Bulk reading .msg. Be patient, reading in slices not supported.")
+                frames = pd.read_msgpack(f)
                 num_val_frame = frames["NumValues"]
 
             file_total_entries = len(num_val_frame.index)
@@ -293,7 +294,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
             #Free this (probably not necessary)
             num_val_frame = None
-            store.close()
+	    if(storeType == "hdf5"):
+                store.close()
             location     += file_total_entries
             samples_read += samples_to_read
             if(verbose >= 1): print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, samples_per_label, start, samples_per_label+start))
