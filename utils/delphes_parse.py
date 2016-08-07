@@ -384,7 +384,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
         print(out_file)
-        if(not path.exists(out_file):):
+        if(not path.exists(out_file)):
             frames = delphes_to_pandas(filepath)
             pd.to_msgpack(out_file, frames)
     else:
