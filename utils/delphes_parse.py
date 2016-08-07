@@ -386,7 +386,11 @@ def makeJobs(filename,
 
 def doJob(job, redo=False):
     f, store_dir, storeType = job
-    store(f, store_dir,rerun=redo,storeType=storeType)
+    try:
+        store(f, store_dir,rerun=redo,storeType=storeType)
+    except Exception as e:
+        print(e)
+        print("Failed to parse file %r. File may be corrupted." % f)
     return f
 
 def store(filepath, outputdir, rerun=False, storeType="hdf5"):
