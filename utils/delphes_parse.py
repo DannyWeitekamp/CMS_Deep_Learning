@@ -386,7 +386,7 @@ def makeJobs(filename,
 
 def doJob(job, redo=False):
     f, store_dir, storeType = job
-    store(f, store_dir,redo=redo,storeType=storeType)
+    store(f, store_dir,rerun=redo,storeType=storeType)
     return f
 
 def store(filepath, outputdir, rerun=False, storeType="hdf5"):
