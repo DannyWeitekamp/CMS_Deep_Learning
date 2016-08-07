@@ -434,7 +434,8 @@ def main(data_dir, argv):
         elif opt in ('-r', "--redo"):
              redo = True
     print(storeType)
-    jobs = makeJobs(data_dir,storeType)
+    folder = "/pandas_h5/" if storeType == "hdf5" else "/pandas_msg/"
+    jobs = makeJobs(data_dir,storeType, folder=folder)
     for job in jobs:
         # print(job)
         doJob(job, redo=redo)
