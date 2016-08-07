@@ -5,6 +5,7 @@ import threading
 from CMS_SURF_2016.utils.archiving import DataProcedure
 import os
 import re
+import sys
 
 class ObjectProfile():
     def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
