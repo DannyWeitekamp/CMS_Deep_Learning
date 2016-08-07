@@ -365,30 +365,6 @@ def roundrobin(*iterables):
          nexts = cycle(islice(nexts, pending))
 
 
-def store(filepath, outputdir, rerun=False, storeType="hdf5"):
-    filename = os.path.splitext(ntpath.basename(filepath))[0]
-    if(storeType == "hdf5"):
-        out_file = outputdir + filename + ".h5"
-        print(out_file)
-        store = pd.HDFStore(out_file)
-        keys = store.keys()
-        #print("KEYS:", set(keys))
-        #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
-        #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
-        if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
-    	#print("OUT",out_file)
-            frames = delphes_to_pandas(filepath)
-            for key,frame in frames.items():
-                store.put(key, frame, format='table')
-        store.close()
-    elif(storeType == "msgpack"):
-        out_file = outputdir + filename + ".msg"
-        print(out_file)
-        if(not path.exists(out_file)):
-            frames = delphes_to_pandas(filepath)
-            pd.to_msgpack(out_file, frames)
-    else:
-        raise ValueError("storeType %r not recognized" % storeType)
 
 
 def makeJobs(filename,
@@ -408,17 +384,43 @@ def makeJobs(filename,
     #    jobs.append((f, store_dir))
     return jobs
 
-def doJob(job):
+def doJob(job, redo=False):
     f, store_dir, storeType = job
-    store(f, store_dir,storeType)
+    store(f, store_dir,redo=redo,storeType=storeType)
     return f
+
+def store(filepath, outputdir, rerun=False, storeType="hdf5"):
+    filename = os.path.splitext(ntpath.basename(filepath))[0]
+    if(storeType == "hdf5"):
+        out_file = outputdir + filename + ".h5"
+        print(out_file)
+        store = pd.HDFStore(out_file)
+        keys = store.keys()
+        #print("KEYS:", set(keys))
+        #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+        #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+        if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
+        #print("OUT",out_file)
+            frames = delphes_to_pandas(filepath)
+            for key,frame in frames.items():
+                store.put(key, frame, format='table')
+        store.close()
+    elif(storeType == "msgpack"):
+        out_file = outputdir + filename + ".msg"
+        print(out_file)
+        if(not path.exists(out_file)):
+            frames = delphes_to_pandas(filepath)
+            pd.to_msgpack(out_file, frames)
+    else:
+        raise ValueError("storeType %r not recognized" % storeType)
 
 
 def main(data_dir, argv):
     # print(data_dir)
     storeType = "hdf5"
+    redo = False
     try:
-        opts, args = getopt.getopt(argv,'m')
+        opts, args = getopt.getopt(argv,'mrh')
     except getopt.GetoptError:
         print screwup_error
         sys.exit(2)
@@ -429,11 +431,13 @@ def main(data_dir, argv):
             storeType = "msgpack"
         elif opt in ('-h', "--hdf", "--hdf5"):
             storeType = "hdf5"
+        elif opt in ('-r', "--redo"):
+             redo = True
     print(storeType)
     jobs = makeJobs(data_dir,storeType)
     for job in jobs:
         # print(job)
-        doJob(job)
+        doJob(job, redo=redo)
 
 
 
