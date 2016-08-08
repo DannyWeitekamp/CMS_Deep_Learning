@@ -393,6 +393,18 @@ def doJob(job, redo=False):
         print("Failed to parse file %r. File may be corrupted." % f)
     return f
 
+def msgpack_assertMeta(filename, frames=None, redo=False):
+    if(frames == None):
+        print("Bulk reading .msg for metaData assertion. Be patient, reading in slices not supported.")
+        frames = pd.read_msgpack(filename)
+    meta_out_file = filename.replace(".msg", ".meta")
+    if(not os.path.exists(meta_out_file) or redo):
+        meta_frames = {"NumValues" : frames["NumValues"]}
+        pd.writeMeta(meta_frames, meta_out_file)
+    return meta_frames
+
+
+
 def store(filepath, outputdir, rerun=False, storeType="hdf5"):
     filename = os.path.splitext(ntpath.basename(filepath))[0]
     if(storeType == "hdf5"):
@@ -411,10 +423,21 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
+        # meta_out_file = outputdir + filename + ".meta"
         print(out_file)
         if(not os.path.exists(out_file) or rerun):
             frames = delphes_to_pandas(filepath)
+            # meta_frames = {"NumValues" : frames["NumValues"]}
             pd.to_msgpack(out_file, frames)
+            # pd.to_msgpack(meta_out_file, meta_frames)
+            msgpack_assertMeta(out_file, frames)
+        else:
+            msgpack_assertMeta(out_file)
+        # elif(not os.path.exists(meta_out_file)):
+        #     print(".meta file missing creating %r" % meta_out_file)
+        #     frames = pd.read_msgpack(out_file)
+        #     meta_frames = {"NumValues" : frames["NumValues"]}
+        #     pd.to_msgpack(meta_out_file, meta_frames)
     else:
         raise ValueError("storeType %r not recognized" % storeType)
 
