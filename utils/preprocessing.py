@@ -243,7 +243,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             #     sys.stdout.flush()
             #     frames = pd.read_msgpack(f)
             #     num_val_frame = frames["NumValues"]
-            num_val_frame = getNumValFrame(f)
+            num_val_frame = getNumValFrame(f,storeType)
 
             file_total_entries = len(num_val_frame.index)
             
@@ -251,7 +251,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 location += file_total_entries
                 continue
 
-            
+
             if(storeType == "hdf5"):
                 store = pd.HDFStore(f)
             elif(storeType == "msgpack"):
