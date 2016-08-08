@@ -399,6 +399,7 @@ def msgpack_assertMeta(filename, frames=None, redo=False):
         print(filename)
         frames = pd.read_msgpack(filename)
     meta_out_file = filename.replace(".msg", ".meta")
+    print(meta_out_file)
     if(not os.path.exists(meta_out_file) or redo):
         meta_frames = {"NumValues" : frames["NumValues"]}
         pd.to_msgpack(meta_out_file, meta_frames)
