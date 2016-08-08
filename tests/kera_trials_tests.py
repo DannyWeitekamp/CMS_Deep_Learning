@@ -14,15 +14,6 @@ from keras.utils.np_utils import to_categorical
 import numpy as np
 
 
-class LayerNamer:
-    def __init__(self):
-        self.i = 0
-    def get(self,name='layer'):
-        self.i += 1
-        return str(name) + '_' + str(self.i)
-
-namer = LayerNamer()
-
 archive_dir = 'MyArchiveDir/'
 
 #Define callback
@@ -32,16 +23,16 @@ earlystopping = EarlyStopping(patience=10, verbose=1)
 
 #Make two input branches
 left_branch = Sequential()
-left_branch.add(Dense(32, input_dim=784, name=namer.get('dense')))
+left_branch.add(Dense(32, input_dim=784))#, name=namer.get('dense')))
 right_branch = Sequential()
-right_branch.add(Dense(32, input_dim=784, name=namer.get('dense')))
-merged = Merge([left_branch, right_branch], mode='concat', name=namer.get('merge'))
+right_branch.add(Dense(32, input_dim=784))#, name=namer.get('dense')))
+merged = Merge([left_branch, right_branch], mode='concat')#, name=namer.get('merge'))
 
 #Make two layer dense model
 model = Sequential()
 model.add(merged)
-model.add(Dense(10, activation='softmax', name=namer.get('dense')))
-model.add(Dense(10, activation='softmax', name=namer.get('dense')))
+model.add(Dense(10, activation='softmax'))#, name=namer.get('dense')))
+model.add(Dense(10, activation='softmax'))#, name=namer.get('dense')))
 
 
 
@@ -78,15 +69,13 @@ trial.setCompilation(optimizer='rmsprop',
 #Set the fit parameters
 trial.setFit(callbacks = [earlystopping], nb_epoch=18)
 
-
-
+print(trial.hash())
+trial.to_hashable()
+# raise ValueError()
 
 
 trial.execute()
 print("OK IT FINISHED!")
-
-
-
 
 
 from keras.utils.visualize_util import plot
@@ -109,7 +98,6 @@ print("Test_Accuracy:",accuracy)
 
 # plot(model, to_file='model3.png', show_shapes=True, show_layer_names=False)
 # display(Image("model3.png"))
-
 
 
 

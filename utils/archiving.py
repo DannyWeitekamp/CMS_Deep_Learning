@@ -21,24 +21,38 @@ import shutil
 from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
 from CMS_SURF_2016.layers.slice import Slice
 
+
+
+
+
 class Storable( object ):
     """An object that we can hash, archive as a json String, and reconstitute"""
     def __init__(self):
         '''Initialize the Storable'''
+        def recurseStore(x):
+            if(isinstance(x,Storable)):
+                return x.to_json()
+            else:
+                return x.__dict__ 
+                
+        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurseStore)
         self.hashcode = None
     def hash(self, rehash=False):
         '''Compute the hashcode for the Storable from its json string'''
         if(self.hashcode is None):
-            self.hashcode = compute_hash(self.to_json())
+            self.hashcode = compute_hash(self.to_hashable())
         return self.hashcode
     def get_path(self):
         '''Gets the archive (blob) path from its hash'''
-        json_str = self.to_json()
-        hashcode = compute_hash(json_str)
+        # hashable_str = self.to_hashable()
+        hashcode = self.hash()#compute_hash(hashable_str)
         return get_blob_path(hashcode=hashcode, archive_dir=self.archive_dir) 
     def to_json( self ):
         '''Must implement a function that returns the json string corresponding to the Storable'''
         raise NotImplementedError( "Should have implemented to_json" )
+    def to_hashable( self ):
+        '''Must implement a function that returns a hashable string corresponding to the Storable'''
+        raise NotImplementedError( "Should have implemented to_hashable" )
     def write( self ):
         '''Must implement a function that write the Storable's json sring to its archive (blob) path'''
         raise NotImplementedError( "Should have implemented write" )
@@ -79,13 +93,7 @@ class DataProcedure(Storable):
         self.kargs = kargs
         self.archive_getData = archive_getData
 
-        def recurseStore(x):
-            if(isinstance(x,Storable)):
-                return x.to_json()
-            else:
-                return x.__dict__ 
-                
-        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurseStore)
+        
         # self.X = None
         # self.Y = None
     
@@ -94,6 +102,8 @@ class DataProcedure(Storable):
         '''Set the json encoder for the procedure in case its arguements are not json encodable'''
         self.encoder = encoder
 
+    def to_hashable(self):
+        return self.to_json()
 
     def to_json(self):
         '''Returns the json string for the Procedure with only its essential characteristics'''
@@ -340,7 +350,26 @@ class DataProcedure(Storable):
         '''Writes the record to the trial directory'''
         write_json_obj(record, archive_dir, 'data_record.json')
 
+INPUT_DEFAULTS ={
+                "metrics" : [],
+                "sample_weight_mode" : None,
 
+                "validation_split" : 0.0,
+                "batch_size" : 32,
+                "nb_epoch" : 10,
+                "callbacks" : [],
+
+                "shuffle" : True,
+                "class_weight" : None,
+                "sample_weight" : None,
+
+                "nb_val_samples" : None,
+                "max_q_size" : 10,
+                "nb_worker" :1,
+                "pickle_safe" : False
+                }
+
+REQUIRED_INPUTS = set(["optimizer", "loss"])
 
 
 class KerasTrial(Storable):
@@ -359,6 +388,7 @@ class KerasTrial(Storable):
                     loss=None,
                     metrics=[],
                     sample_weight_mode=None,
+
                     batch_size=32,
                     nb_epoch=10,
                     callbacks=[],
@@ -524,18 +554,42 @@ class KerasTrial(Storable):
         self.nb_worker=nb_worker
         self.pickle_safe=pickle_safe
 
+
+    def _json_dict_helper(self):
+        temp = self.compiled_model
+        self.compiled_model = None
+        d = self.__dict__
+        d = copy.deepcopy(d)
+        if('name' in d): del d['name']
+        if('archive_dir' in d): del d['archive_dir']
+        if('hashcode' in d): del d['hashcode']
+        if('compiled_model' in d): del d['compiled_model']
+        self.compiled_model = temp
+        return d
+    def to_hashable(self):
+        temp = self.model
+        self.model = re.sub(r'"name": "[^"]*"', "", self.model)
+        self.model = re.sub(r'"keras_version": "[^"]*"', "", self.model)
+
+        #Don't hash on anything that is its default value for forward compatability. For example
+            #if a new parameter is added in a newer version of keras and takes its default value
+            #then we should not hash on it since it will conflict with archives created in older versions
+        d = self._json_dict_helper()
+        del_keys = []
+        for key in d:
+            if(key in INPUT_DEFAULTS and INPUT_DEFAULTS[key] == d[key]):
+                del_keys.append(key)
+        for key in del_keys:
+            del d[key]
+        json_str = self.encoder.encode(d)
+        self.model = temp
+        return json_str
+
     def to_json(self):
         '''Converts the trial to a json string '''
-        encoder = TrialEncoder()
-        return encoder.encode(self)
-    
-
-    # def preprocess(self):
-    #     return preprocessFromPandas_label_dir_pairs(
-    #             label_dir_pairs=self.label_dir_pairs,
-    #             num_samples=self.num_samples,
-    #             object_profiles=self.object_profiles,
-    #             observ_types=self.observ_types)
+        d = self._json_dict_helper()
+        return self.encoder.encode(d)
+        
     def compile(self, loadweights=False, redo=False, custom_objects={}):
         '''Compiles the model set for this trial'''
         if(self.compiled_model is None or redo): 
@@ -936,25 +990,26 @@ class KerasTrial(Storable):
                 model = d.get('model', None),
                 train_procedure=d.get('train_procedure', None),
                 samples_per_epoch=d.get('samples_per_epoch', None),
-                validation_split=d.get('validation_split', 0.0),
+                validation_split=d.get('validation_split', INPUT_DEFAULTS['validation_split']),
                 val_procedure=d.get('val_procedure', None),
-                nb_val_samples=d.get('nb_val_samples', None),
+                nb_val_samples=d.get('nb_val_samples', INPUT_DEFAULTS['nb_val_samples']),
 
                 optimizer=d.get('optimizer', None),
                 loss=d.get('loss', None),
                 metrics=d.get('metrics', []),
-                sample_weight_mode=d.get('sample_weight_mode', None),
-                batch_size=d.get('batch_size', 32),
-                nb_epoch=d.get('nb_epoch', 10),
-                callbacks=d.get('callbacks', []),
+                sample_weight_mode=d.get('sample_weight_mode', INPUT_DEFAULTS['sample_weight_mode']),
+                batch_size=d.get('batch_size', INPUT_DEFAULTS['batch_size']),
+                nb_epoch=d.get('nb_epoch', INPUT_DEFAULTS['nb_epoch']),
+                callbacks=d.get('callbacks', INPUT_DEFAULTS['callbacks']),
 
-                max_q_size=d.get('max_q_size', 10),
-                nb_worker=d.get('nb_worker', 1),
-                pickle_safe=d.get('pickle_safe', False),
+                max_q_size=d.get('max_q_size', INPUT_DEFAULTS['max_q_size']),
+                nb_worker=d.get('nb_worker',  INPUT_DEFAULTS['nb_worker']),
+                pickle_safe=d.get('pickle_safe', INPUT_DEFAULTS['pickle_safe']),
 
-                shuffle=d.get('shuffle', True),
-                class_weight=d.get('class_weight', None),
-                sample_weight=d.get('sample_weight', None))
+                shuffle=d.get('shuffle', INPUT_DEFAULTS['shuffle']),
+                class_weight=d.get('class_weight',  INPUT_DEFAULTS['class_weight']),
+                sample_weight=d.get('sample_weight', INPUT_DEFAULTS['sample_weight'])
+                )
         return trial
          
     @classmethod
@@ -983,21 +1038,21 @@ class KerasTrial(Storable):
         '''Writes the record to the trial directory'''
         write_json_obj(record, archive_dir, 'trial_record.json')
 
-class TrialEncoder(json.JSONEncoder):
-    '''A json encoder for KerasTrials. Doesn't store name,archive_dir,hashcode etc since they don't affect how it functions'''
-    def __init__(self):
-        json.JSONEncoder.__init__(self,sort_keys=True, indent=4)
-    def default(self, obj):
-        temp = obj.compiled_model
-        obj.compiled_model = None
-        d = obj.__dict__
-        d = copy.deepcopy(d)
-        if('name' in d): del d['name']
-        if('archive_dir' in d): del d['archive_dir']
-        if('hashcode' in d): del d['hashcode']
-        if('compiled_model' in d): del d['compiled_model']
-        obj.compiled_model = temp
-        return d
+# class TrialEncoder(json.JSONEncoder):
+#     '''A json encoder for KerasTrials. Doesn't store name,archive_dir,hashcode etc since they don't affect how it functions'''
+#     def __init__(self):
+#         json.JSONEncoder.__init__(self,sort_keys=True, indent=4)
+#     def default(self, obj):
+#         temp = obj.compiled_model
+#         obj.compiled_model = None
+#         d = obj.__dict__
+#         d = copy.deepcopy(d)
+#         if('name' in d): del d['name']
+#         if('archive_dir' in d): del d['archive_dir']
+#         if('hashcode' in d): del d['hashcode']
+#         if('compiled_model' in d): del d['compiled_model']
+#         obj.compiled_model = temp
+#         return d
 
 
 #TODO: Stopping Callbacks can't infer mode -> only auto works
