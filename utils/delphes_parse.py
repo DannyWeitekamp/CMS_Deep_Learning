@@ -399,9 +399,10 @@ def msgpack_assertMeta(filename, frames=None, redo=False):
         frames = pd.read_msgpack(filename)
     meta_out_file = filename.replace(".msg", ".meta")
     if(not os.path.exists(meta_out_file) or redo):
-        print("WRITEING")
         meta_frames = {"NumValues" : frames["NumValues"]}
         pd.to_msgpack(meta_out_file, meta_frames)
+    else:
+        meta_frames = pd.read_msgpack(meta_out_file)
     return meta_frames
 
 
@@ -418,9 +419,9 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
         if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
         #print("OUT",out_file)
-            frames = delphes_to_pandas(filepath)
-            for key,frame in frames.items():
-                store.put(key, frame, format='table')
+        frames = delphes_to_pandas(filepath)
+        for key,frame in frames.items():
+            store.put(key, frame, format='table')
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"

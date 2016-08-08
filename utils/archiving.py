@@ -1042,22 +1042,6 @@ class KerasTrial(Storable):
         '''Writes the record to the trial directory'''
         write_json_obj(record, archive_dir, 'trial_record.json')
 
-# class TrialEncoder(json.JSONEncoder):
-#     '''A json encoder for KerasTrials. Doesn't store name,archive_dir,hashcode etc since they don't affect how it functions'''
-#     def __init__(self):
-#         json.JSONEncoder.__init__(self,sort_keys=True, indent=4)
-#     def default(self, obj):
-#         temp = obj.compiled_model
-#         obj.compiled_model = None
-#         d = obj.__dict__
-#         d = copy.deepcopy(d)
-#         if('name' in d): del d['name']
-#         if('archive_dir' in d): del d['archive_dir']
-#         if('hashcode' in d): del d['hashcode']
-#         if('compiled_model' in d): del d['compiled_model']
-#         obj.compiled_model = temp
-#         return d
-
 
 #TODO: Stopping Callbacks can't infer mode -> only auto works
 def encodeCallback(c):

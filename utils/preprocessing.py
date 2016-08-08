@@ -3,6 +3,7 @@ import pandas as pd
 import glob
 import threading
 from CMS_SURF_2016.utils.archiving import DataProcedure
+from CMS_SURF_2016.utils.delphes_parse import msgpack_assertMeta
 import os
 import re
 import sys
@@ -133,6 +134,26 @@ def getFiles_StoreType(data_dir):
         raise IOError("Cannot read from empty directory %r" % data_dir)
     return (files, storeType)
 
+def getNumValFrame(filename, storeType):
+    if(storeType == "hdf5"):
+        #Get the HDF Store for the file
+        store = pd.HDFStore(f)
+
+        #Get the NumValues frame which lists the number of values for each entry
+        try:
+            num_val_frame = store.get('/NumValues')
+        except KeyError as e:
+            raise KeyError(str(e) + " " + f)
+        store.close()
+        return num_val_frame
+    elif(storeType == "msgpack"):
+        num_val_frame = msgpack_assertMeta(filename)
+        # frames = pd.read_msgpack(f)
+        # num_val_frame = frames["NumValues"]
+
+print("Bulk reading .msg. Be patient, reading in slices not supported.")
+sys.stdout.flush()
+
 def padItem(x,max_size, vecsize, shuffle=False):
     '''A helper function that pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
         shuffles the padded output before returning'''
@@ -208,27 +229,35 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
          #Loop the files associated with the current label
         for f in files:
             
-            if(storeType == "hdf5"):
-                #Get the HDF Store for the file
-                store = pd.HDFStore(f)
+            # if(storeType == "hdf5"):
+            #     #Get the HDF Store for the file
+            #     store = pd.HDFStore(f)
 
-                #Get the NumValues frame which lists the number of values for each entry
-                try:
-                    num_val_frame = store.get('/NumValues')
-                except KeyError as e:
-                    raise KeyError(str(e) + " " + f)
-            elif(storeType == "msgpack"):
-                print("Bulk reading .msg. Be patient, reading in slices not supported.")
-                sys.stdout.flush()
-                frames = pd.read_msgpack(f)
-                num_val_frame = frames["NumValues"]
+            #     #Get the NumValues frame which lists the number of values for each entry
+            #     try:
+            #         num_val_frame = store.get('/NumValues')
+            #     except KeyError as e:
+            #         raise KeyError(str(e) + " " + f)
+            # elif(storeType == "msgpack"):
+            #     print("Bulk reading .msg. Be patient, reading in slices not supported.")
+            #     sys.stdout.flush()
+            #     frames = pd.read_msgpack(f)
+            #     num_val_frame = frames["NumValues"]
+            num_val_frame = getNumValFrame(f)
 
             file_total_entries = len(num_val_frame.index)
             
             if(location + file_total_entries <= start):
                 location += file_total_entries
                 continue
+
             
+            if(storeType == "hdf5"):
+                store = pd.HDFStore(f)
+            elif(storeType == "msgpack"):
+                print("Bulk reading .msg. Be patient, reading in slices not supported.")
+                sys.stdout.flush()
+                frames = pd.read_msgpack(f)
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
             file_start_read = start-location
