@@ -566,13 +566,19 @@ class KerasTrial(Storable):
         self.compiled_model = temp
         return d
     def to_hashable(self):
+        '''Converts the trial to a hashable string '''
         temp = self.model
+
+        #Doesn't hash on the names of layers since they are random, and doesn't hash on keras_version
+            #for forward and backward compatability.
         self.model = re.sub(r'"name": "[^"]*"', "", self.model)
         self.model = re.sub(r'"keras_version": "[^"]*"', "", self.model)
 
-        #Don't hash on anything that is its default value for forward compatability. For example
-            #if a new parameter is added in a newer version of keras and takes its default value
-            #then we should not hash on it since it will conflict with archives created in older versions
+        #Doesn't hash on anything that is its default value for forward compatability. For example
+            # if a parameter is added in a new version of keras and takes its default value then we 
+            # should not hash on it since otherwise the user will find that trails created in the 
+            # new version will hash differently than trials run with older versions of keras that 
+            # did not have the extra parameter, even though the user didn't change anything.
         d = self._json_dict_helper()
         del_keys = []
         for key in d:

@@ -19,8 +19,6 @@ archive_dir = 'MyArchiveDir/'
 #Define callback
 earlystopping = EarlyStopping(patience=10, verbose=1)
 
-#Warning it's important to name all of your layers otherwise the hashing won't work
-
 #Make two input branches
 left_branch = Sequential()
 left_branch.add(Dense(32, input_dim=784))#, name=namer.get('dense')))
@@ -33,12 +31,6 @@ model = Sequential()
 model.add(merged)
 model.add(Dense(10, activation='softmax'))#, name=namer.get('dense')))
 model.add(Dense(10, activation='softmax'))#, name=namer.get('dense')))
-
-
-
-# def getGen(dps, batch_size):
-# 	return (myGen(dps,batch_size), 1000)
-
 
 
 #Define a function for our DataProcedure. Note: it must return X,Y
