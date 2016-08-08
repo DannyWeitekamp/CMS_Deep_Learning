@@ -112,6 +112,27 @@ def label_dir_pairs_args_decoder(*args, **kargs):
     args = tuple(out)
     return (args, kargs)
 
+def getFiles_StoreType(data_dir):
+    if(not os.path.isdir(data_dir)):
+            raise IOError("Directory %r does not exist." % data_dir)
+    msgFiles = glob.glob(data_dir+"*.msg")
+    hdfFiles = glob.glob(data_dir+"*.h5")
+    if(len(msgFiles) == 0):
+        files = hdfFiles
+        storeType = "hdf5"
+    elif(len(hdfFiles) == 0):
+        files = msgFiles
+        storeType = "msgpack"
+    else:
+        raise IOError("Directory %r contains both .msg files and .h5 files, please use only one \
+                        filetype when generating pandas files, to avoid data repetition issues\
+                        " % data_dir)
+
+    #files = glob.glob(data_dir+"*.h5")
+    if(len(files) < 1):
+        raise IOError("Cannot read from empty directory %r" % data_dir)
+    return (files, storeType)
+
 def padItem(x,max_size, vecsize, shuffle=False):
     '''A helper function that pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
         shuffles the padded output before returning'''
@@ -178,25 +199,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     #Loop over label dir pairs and get the file list for each directory
     y_train_start = 0
     for (label,data_dir) in label_dir_pairs:
-        if(not os.path.isdir(data_dir)):
-            raise IOError("Directory %r does not exist." % data_dir)
 
-        msgFiles = glob.glob(data_dir+"*.msg")
-        hdfFiles = glob.glob(data_dir+"*.h5")
-        if(len(msgFiles) == 0):
-            files = hdfFiles
-            storeType = "hdf5"
-        elif(len(hdfFiles) == 0):
-            files = msgFiles
-            storeType = "msgpack"
-        else:
-            raise IOError("Directory %r contains both .msg files and .h5 files, please use only one \
-                            filetype when generating pandas files, to avoid data repetition issues\
-                            " % data_dir)
-
-        #files = glob.glob(data_dir+"*.h5")
-        if(len(files) < 1):
-            raise IOError("Cannot read from empty directory %r" % data_dir)
+        files, storeType = getFiles_StoreType(data_dir)
         files.sort()
         samples_read = 0
         location = 0
@@ -332,7 +336,9 @@ def maxMutualLength(label_dir_pairs, object_profiles):
         label_dir_pairs. Must also input object_profiles so that it knows what keys to check '''
     label_totals = {}
     for (label,data_dir) in label_dir_pairs:
-        files = glob.glob(data_dir+"*.h5")
+
+        files, storeType = getFiles_StoreType(data_dir)
+
         files.sort()
         
         keys = None
@@ -344,20 +350,40 @@ def maxMutualLength(label_dir_pairs, object_profiles):
         
         for f in files:
             #Get the HDF Store for the file
-            store = pd.HDFStore(f)
-            #print(keys)
-            #print(store.keys())
-            #print(set(keys).issubset(set(store.keys())))
-            if(keys != None and set(keys).issubset(set(store.keys())) == False):
-                raise KeyError('File: ' + f + ' may be corrupted:' + os.linesep + 
-                                'Requested keys: ' + str(keys) + os.linesep + 
-                                'But found keys: ' + str(store.keys()) )
-            
-            #Get file_total_entries
-            try:
-                num_val_frame = store.get('/NumValues')
-            except KeyError as e:
-                raise KeyError(str(e) + " " + f)
+            if(storeType == "hdf5"):
+                #Get the HDF Store for the file
+                store = pd.HDFStore(f)
+
+                #Get the NumValues frame which lists the number of values for each entry
+
+                if(keys != None and set(keys).issubset(set(store.keys())) == False):
+                    raise KeyError('File: ' + f + ' may be corrupted:' + os.linesep + 
+                                    'Requested keys: ' + str(keys) + os.linesep + 
+                                    'But found keys: ' + str(store.keys()) )
+                
+                try:
+                    num_val_frame = store.get('/NumValues')
+                except KeyError as e:
+                    raise KeyError(str(e) + " " + f)
+            elif(storeType == "msgpack"):
+                print("Bulk reading .msg. Be patient, reading in slices not supported.")
+                sys.stdout.flush()
+                frames = pd.read_msgpack(f)
+                num_val_frame = frames["NumValues"]
+                    # store = pd.HDFStore(f)
+                    # #print(keys)
+                    # #print(store.keys())
+                    # #print(set(keys).issubset(set(store.keys())))
+                    # if(keys != None and set(keys).issubset(set(store.keys())) == False):
+                    #     raise KeyError('File: ' + f + ' may be corrupted:' + os.linesep + 
+                    #                     'Requested keys: ' + str(keys) + os.linesep + 
+                    #                     'But found keys: ' + str(store.keys()) )
+                    
+                    # #Get file_total_entries
+                    # try:
+                    #     num_val_frame = store.get('/NumValues')
+                    # except KeyError as e:
+                    #     raise KeyError(str(e) + " " + f)
             file_total_entries = len(num_val_frame.index)
             label_totals[label] += file_total_entries
     #print(label_totals)

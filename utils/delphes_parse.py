@@ -423,6 +423,7 @@ def main(data_dir, argv):
     # print(data_dir)
     storeType = "hdf5"
     redo = False
+    screwup_error = "python delphes_parse.py <input_dir>"
     try:
         opts, args = getopt.getopt(argv,'mrh')
     except getopt.GetoptError:
@@ -433,7 +434,7 @@ def main(data_dir, argv):
       # print(opt, arg)
         if opt in ("-m", "--msg", "--msgpack"):
             storeType = "msgpack"
-        elif opt in ('-h', "--hdf", "--hdf5"):
+        elif opt in ('-h5', "--hdf", "--hdf5"):
             storeType = "hdf5"
         elif opt in ('-r', "--redo"):
              redo = True
