@@ -67,20 +67,22 @@ def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1
     if(len(unresolved) == 0): return
     
     for (label,data_dir) in label_dir_pairs:
-        files = glob.glob(data_dir+"*.h5")
+        files, storeType = getFiles_StoreType(data_dir)
+        # files = glob.glob(data_dir+"*.h5")
         files.sort()
         
          #Loop the files associated with the current label
         for f in files:
           
-            #Get the HDF Store for the file
-            store = pd.HDFStore(f)
+            # #Get the HDF Store for the file
+            # store = pd.HDFStore(f)
 
-            #Get the NumValues frame which lists the number of values for each entry
-            try:
-                num_val_frame = store.get('/NumValues')
-            except KeyError as e:
-                raise KeyError(str(e) + " " + f)
+            # #Get the NumValues frame which lists the number of values for each entry
+            # try:
+            #     num_val_frame = store.get('/NumValues')
+            # except KeyError as e:
+            #     raise KeyError(str(e) + " " + f)
+            num_val_frame = getNumValFrame(f,storeType)
 
             for profile in unresolved:
                 maxes[profile.name] = max(num_val_frame[profile.name].max(), maxes[profile.name])
