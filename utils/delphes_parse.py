@@ -396,6 +396,7 @@ def doJob(job, redo=False):
 def msgpack_assertMeta(filename, frames=None, redo=False):
     if(frames == None):
         print("Bulk reading .msg for metaData assertion. Be patient, reading in slices not supported.")
+        print(filename)
         frames = pd.read_msgpack(filename)
     meta_out_file = filename.replace(".msg", ".meta")
     if(not os.path.exists(meta_out_file) or redo):
