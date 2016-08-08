@@ -232,7 +232,7 @@ PT_ET_TYPES  = ['PT',          'PT',       'PT',      'MET',        'ET',       
 EXTRA_FILLS  = [['Charge'], ['Charge'],     [],        [],     ['Ehad', 'Eem'],  ['Ehad', 'Eem'], ['Charge','X', 'Y', 'Z', 'Dxy'],]
 MASSES =    [mass_of_electron, mass_of_muon, 0,        0,           0,                0,                 0]
 TRACK_MATCH =   [True,        True,        False,    False,        False,           False,              False]
-COMPUTE_ISO =   [True,        True,        True,     False,        False,           True,              False]
+COMPUTE_ISO =   [True,        True,        True,     False,        True,           True,              False]
 
 ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
 OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
