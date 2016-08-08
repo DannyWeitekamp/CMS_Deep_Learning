@@ -131,7 +131,6 @@ class DataProcedure(Storable):
     def write(self, verbose=0):
         '''Write the json string for the procedure to its directory'''
         json_str = self.to_json()
-        hashcode = compute_hash(json_str)
         blob_path = self.get_path()
         write_object(blob_path, 'procedure.json', json_str, verbose=verbose)
 
@@ -173,12 +172,12 @@ class DataProcedure(Storable):
             d = json.loads(jstr)
 
             # print(d)
-            proc_dict = {}
-            proc_dict['func'] = d['func']
-            proc_dict['module'] = d['func_module']
-            proc_dict['args'] = d['args']
-            proc_dict['kargs'] = d['kargs']
-            data_record[self.hash()] = proc_dict
+            record_dict = {}
+            record_dict['func'] = d['func']
+            record_dict['module'] = d['func_module']
+            record_dict['args'] = d['args']
+            record_dict['kargs'] = d['kargs']
+            data_record[self.hash()] = record_dict
 
             DataProcedure.write_record(data_record, self.archive_dir)
             # def read_json_obj(directory, filename, verbose=0):
@@ -589,7 +588,7 @@ class KerasTrial(Storable):
         '''Converts the trial to a json string '''
         d = self._json_dict_helper()
         return self.encoder.encode(d)
-        
+
     def compile(self, loadweights=False, redo=False, custom_objects={}):
         '''Compiles the model set for this trial'''
         if(self.compiled_model is None or redo): 
@@ -667,7 +666,6 @@ class KerasTrial(Storable):
     def write(self, verbose=0):
         '''Writes the model's json string to its archive location''' 
         json_str = self.to_json()
-        hashcode = compute_hash(json_str)
         blob_path = self.get_path()
         write_object(blob_path, 'trial.json', json_str, verbose=verbose)
 
@@ -1096,11 +1094,11 @@ def decodeCallback(d):
 
 def compute_hash(inp):
     '''Computes a SHA1 hash string from a json string or Storable'''
-    json_str = inp
+    hashable_str = inp
     if(isinstance(inp, Storable)):
-        json_str = inp.to_json()
+        hashable_str = inp.to_hashable()
     h = hashlib.sha1()
-    h.update(json_str)
+    h.update(hashable_str)
     return h.hexdigest()
 
 def split_hash(hashcode):
