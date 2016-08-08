@@ -366,11 +366,23 @@ def maxMutualLength(label_dir_pairs, object_profiles):
 def start_num_fromSplits(splits, length):
     '''Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of
         samples for each split'''
-    if(np.isclose(sum(splits),1.0) == False):
-        raise ValueError("Sum of splits %r must equal 1.0" % sum(splits))
     if(True in [x < 0.0 for x in splits]):
-        raise ValueError("Splits cannot be negative") 
-    nums = [int(s*length) for s in splits]
+        raise ValueError("Splits cannot be negative %r" % str(splits)) 
+    are_static_vals = [(True if int(x) > 0 else False) for x in splits]
+    if(True in are_static_vals):
+        ratios =  [s for s, a in zip(splits, are_static_vals) if(not a)]
+        print(ratios)
+        static_vals =  [s for s, a in zip(splits, are_static_vals) if(a)]
+        s = sum(static_vals) 
+        if(s > length):
+            raise ValueError("Static values have sum %r exceeding given length %r" %(s,length)) 
+        length -= s
+    else:
+        ratios = splits
+    if(np.isclose(sum(ratios),1.0) == False):
+        raise ValueError("Sum of splits %r must equal 1.0" % sum(ratios))
+
+    nums = [int(s) if(a) else int(s*length) for s, a in zip(splits, are_static_vals)]
     out = []
     start = 0
     for n in nums:
