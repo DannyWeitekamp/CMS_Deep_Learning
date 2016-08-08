@@ -149,7 +149,8 @@ def getNumValFrame(filename, storeType):
         store.close()
         return num_val_frame
     elif(storeType == "msgpack"):
-        num_val_frame = msgpack_assertMeta(filename)
+        meta_frames =  msgpack_assertMeta(filename)
+        num_val_frame = meta_frames["NumValues"]
         # frames = pd.read_msgpack(f)
         # num_val_frame = frames["NumValues"]
 
