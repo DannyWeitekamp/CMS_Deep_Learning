@@ -418,10 +418,10 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
         #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
         if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
-        #print("OUT",out_file)
-        frames = delphes_to_pandas(filepath)
-        for key,frame in frames.items():
-            store.put(key, frame, format='table')
+            #print("OUT",out_file)
+            frames = delphes_to_pandas(filepath)
+            for key,frame in frames.items():
+                store.put(key, frame, format='table')
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
