@@ -153,6 +153,7 @@ def getNumValFrame(filename, storeType):
         num_val_frame = meta_frames["NumValues"]
         # frames = pd.read_msgpack(f)
         # num_val_frame = frames["NumValues"]
+    return num_val_frame
 
 print("Bulk reading .msg. Be patient, reading in slices not supported.")
 sys.stdout.flush()
