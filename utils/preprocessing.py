@@ -140,13 +140,13 @@ def getFiles_StoreType(data_dir):
 def getNumValFrame(filename, storeType):
     if(storeType == "hdf5"):
         #Get the HDF Store for the file
-        store = pd.HDFStore(f)
+        store = pd.HDFStore(filename)
 
         #Get the NumValues frame which lists the number of values for each entry
         try:
             num_val_frame = store.get('/NumValues')
         except KeyError as e:
-            raise KeyError(str(e) + " " + f)
+            raise KeyError(str(e) + " " + filename)
         store.close()
         return num_val_frame
     elif(storeType == "msgpack"):
