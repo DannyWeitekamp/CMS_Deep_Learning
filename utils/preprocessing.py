@@ -7,6 +7,7 @@ from CMS_SURF_2016.utils.delphes_parse import msgpack_assertMeta
 import os
 import re
 import sys
+import socket
 
 class ObjectProfile():
     def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
