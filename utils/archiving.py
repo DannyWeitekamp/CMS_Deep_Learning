@@ -70,7 +70,7 @@ class Storable( object ):
             print(e)
 
     @staticmethod
-    def find_by_hashcode( hashcode, archive_dir ):
+    def find_by_hashcode( archive_dir,hashcode  ):
         '''Must implement function that find a Storable by its hashcode'''
         raise NotImplementedError( "Should have implemented find_by_hashcode" )
 
@@ -324,7 +324,7 @@ class DataProcedure(Storable):
         return dp
 
     @staticmethod
-    def find_by_hashcode( hashcode, archive_dir, verbose=0 ):
+    def find_by_hashcode( archive_dir,hashcode, verbose=0 ):
         '''Returns the archived DataProcedure with the given hashcode or None if one is not found'''
         path = get_blob_path(hashcode, archive_dir) + 'procedure.json'
         try:
@@ -1017,7 +1017,7 @@ class KerasTrial(Storable):
         return trial
          
     @classmethod
-    def find_by_hashcode(cls, hashcode, archive_dir, verbose=0 ):
+    def find_by_hashcode(cls, archive_dir,hashcode, verbose=0 ):
         '''Returns the archived KerasTrial with the given hashcode or None if one is not found'''
         path = get_blob_path(hashcode, archive_dir) + 'trial.json'
         try:
@@ -1206,7 +1206,7 @@ def get_data_by_function(func, archive_dir):
         # print([re.match(name, x) for x in t_name])
         if(re.match(func_name, t_func) != None and (func_module is None or re.match(func_module, t_module) != None)):
             # blob_path = get_blob_path(key, archive_dir)
-            dp = DataProcedure.find_by_hashcode(key, archive_dir)
+            dp = DataProcedure.find_by_hashcode(archive_dir,key)
             if(dp != None):
                 out.append(dp)
 
@@ -1229,7 +1229,7 @@ def get_trials_by_name(name, archive_dir):
         # print([re.match(name, x) for x in t_name])
         if True in [re.match(name, x) != None for x in t_name]:
             # blob_path = get_blob_path(key, archive_dir)
-            dp = KerasTrial.find_by_hashcode(key, archive_dir)
+            dp = KerasTrial.find_by_hashcode(archive_dir,key)
             if(dp != None):
                 out.append(dp)
 
