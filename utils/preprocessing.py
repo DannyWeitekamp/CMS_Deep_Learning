@@ -3,7 +3,7 @@ import pandas as pd
 import glob
 import threading
 from CMS_SURF_2016.utils.archiving import DataProcedure
-from CMS_SURF_2016.utils.delphes_parse import msgpack_assertMeta
+from CMS_SURF_2016.utils.meta import msgpack_assertMeta
 import os
 import re
 import sys
