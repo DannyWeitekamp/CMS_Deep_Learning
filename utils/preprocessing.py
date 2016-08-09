@@ -363,6 +363,30 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     y_train = y_train[indices]
     return X_train, y_train
 
+def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, batch_size=100, megabytes=500):
+    stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=500)
+    SNs = start_num_fromSplits(splits, length)
+    all_dps = []
+    all_datasets = []
+    for s in SNs:
+        dps = procsFrom_label_dir_pairs(s[0],
+                                        s[1],
+                                        stride,
+                                        archive_dir,
+                                        label_dir_pairs,
+                                        object_profiles,
+                                        observ_types)
+        gen_DP = DataProcedure(archive_dir, False,genFromPPs,dps, batch_size, threading = False)
+        num_samples = len(label_dir_pairs)*s[1]
+        all_datasets += [(gen_DP, num_samples)]
+        all_dps += dps
+    return (all_dps,all_datasets)
+
+def strideFromTargetSize(object_profiles, num_labels, observ_types, megabytes=100):
+    if(isinstance(num_labels, list)): num_labels = len(num_labels)
+    megabytes_per_sample = sum(o.max_size for o in object_profiles) * len(observ_types) * 24.0 / (1000.0 * 1000.0)
+    print(megabytes_per_sample)
+    return int(megabytes/megabytes_per_sample)
 
 def maxMutualLength(label_dir_pairs, object_profiles):
     '''Gets the mamximum number of samples that can mutually be read in the directories listed by
@@ -438,8 +462,10 @@ def start_num_fromSplits(splits, length):
         length -= s
     else:
         ratios = splits
-    if(np.isclose(sum(ratios),1.0) == False):
+    
+    if(len(ratios) > 0 and np.isclose(sum(ratios),1.0) == False):
         raise ValueError("Sum of splits %r must equal 1.0" % sum(ratios))
+    
 
     nums = [int(s) if(a) else int(s*length) for s, a in zip(splits, are_static_vals)]
     out = []
