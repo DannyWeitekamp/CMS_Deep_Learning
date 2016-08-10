@@ -156,9 +156,6 @@ def getNumValFrame(filename, storeType):
         # num_val_frame = frames["NumValues"]
     return num_val_frame
 
-print("Bulk reading .msg. Be patient, reading in slices not supported.")
-sys.stdout.flush()
-
 def padItem(x,max_size, vecsize, shuffle=False):
     '''A helper function that pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
         shuffles the padded output before returning'''
@@ -266,9 +263,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 sys.stdout.flush()
                 #Need to check for latin encodings due to weird pandas default
                 try:
-                    frames = pd.read_msgpack(meta_out_file)
+                    frames = pd.read_msgpack(f)
                 except UnicodeDecodeError as e:
-                    frames = pd.read_msgpack(meta_out_file, encoding='latin-1')
+                    frames = pd.read_msgpack(f, encoding='latin-1')
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
             file_start_read = start-location
@@ -435,9 +432,9 @@ def maxMutualLength(label_dir_pairs, object_profiles):
 
                 #Need to check for latin encodings due to weird pandas default
                 try:
-                    frames = pd.read_msgpack(meta_out_file)
+                    frames = pd.read_msgpack(f)
                 except UnicodeDecodeError as e:
-                    frames = pd.read_msgpack(meta_out_file, encoding='latin-1')
+                    frames = pd.read_msgpack(f, encoding='latin-1')
                 num_val_frame = frames["NumValues"]
                     # store = pd.HDFStore(f)
                     # #print(keys)
