@@ -385,9 +385,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
         all_dps += dps
     return (all_dps,all_datasets)
 
-scratch_path = "/scratch/daint/dweiteka/"
-if(not scratch_path in sys.path):
-    sys.path.append(scratch_path)
+
 def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_out_dir='/scratch/daint/dweiteka/dp_out/'):
     unarchived = []
     dependencies = []
@@ -405,7 +403,7 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
         for u in unarchived:
             u.write()
             ofile = dp_out_dir + u.hash()[:5] + ".%j"
-            print("OutFile: "ofile)
+            print("OutFile: ",ofile)
             f.write('sbatch -t 01:00:00 -o %s -e %s %srunDP.sh %s %s\n' % (ofile,ofile,scripts_dir,archive_dir,u.hash()))
             
         f.close()
