@@ -251,6 +251,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             num_val_frame = getNumValFrame(f,storeType)
 
             file_total_entries = len(num_val_frame.index)
+
+            assert file_total_entries > 0, "num_val_frame has zero values"
             
             if(location + file_total_entries <= start):
                 location += file_total_entries
@@ -262,7 +264,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             elif(storeType == "msgpack"):
                 print("Bulk reading .msg. Be patient, reading in slices not supported.")
                 sys.stdout.flush()
-                frames = pd.read_msgpack(f)
+                #Need to check for latin encodings due to weird pandas default
+                try:
+                    frames = pd.read_msgpack(meta_out_file)
+                except UnicodeDecodeError as e:
+                    frames = pd.read_msgpack(meta_out_file, encoding='latin-1')
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
             file_start_read = start-location
@@ -426,7 +432,12 @@ def maxMutualLength(label_dir_pairs, object_profiles):
             elif(storeType == "msgpack"):
                 print("Bulk reading .msg. Be patient, reading in slices not supported.")
                 sys.stdout.flush()
-                frames = pd.read_msgpack(f)
+
+                #Need to check for latin encodings due to weird pandas default
+                try:
+                    frames = pd.read_msgpack(meta_out_file)
+                except UnicodeDecodeError as e:
+                    frames = pd.read_msgpack(meta_out_file, encoding='latin-1')
                 num_val_frame = frames["NumValues"]
                     # store = pd.HDFStore(f)
                     # #print(keys)
