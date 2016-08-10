@@ -227,7 +227,6 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         files.sort()
         samples_read = 0
         location = 0
-        print(files)
          #Loop the files associated with the current label
         for f in files:
             
