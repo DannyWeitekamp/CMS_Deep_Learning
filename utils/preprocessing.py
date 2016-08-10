@@ -420,7 +420,26 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
         for u in unarchived:
             u.getData(archive=True)
     return dependencies
+    
+def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
+    if("daint" in socket.gethostname()):
+        for hashcode, test_hashcode, num_test, deps in tups:
+            dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
+            ofile = trial_out_dir + hashcode[:5] + ".%j"
+            sbatch = 'sbatch -t %s -o %s -e %s %s' % (time_str,ofile,ofile,dep_clause)
+            sbatch += '%srunTrial.sh %s %s %s %s\n' % (scripts_dir,archive_dir,hashcode, test_hashcode, num_test)
+            print(sbatch)
+            out = os.popen(sbatch).read()
+            print("THIS IS THE OUTPUT:",out)
+    else:
+        for hashcode, test_hashcode, num_test, deps in tups:
+            trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
+            trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
+            test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
+            trial.test(test_proc=test,
+                         test_samples=num_test,
+                         custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
 def strideFromTargetSize(object_profiles, num_labels, observ_types, megabytes=100):
     if(isinstance(num_labels, list)): num_labels = len(num_labels)
