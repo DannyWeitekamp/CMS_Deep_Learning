@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import glob
 import threading
-from CMS_SURF_2016.utils.archiving import DataProcedure
+from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial
 from CMS_SURF_2016.utils.meta import msgpack_assertMeta
 import os
 import re
@@ -420,7 +420,7 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
         for u in unarchived:
             u.getData(archive=True)
     return dependencies
-    
+
 def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
     if("daint" in socket.gethostname()):
         for hashcode, test_hashcode, num_test, deps in tups:
