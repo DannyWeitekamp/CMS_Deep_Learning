@@ -385,6 +385,45 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
         all_dps += dps
     return (all_dps,all_datasets)
 
+scratch_path = "/scratch/daint/dweiteka/"
+if(not scratch_path in sys.path):
+    sys.path.append(scratch_path)
+def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_out_dir='/scratch/daint/dweiteka/dp_out/'):
+    unarchived = []
+    dependencies = []
+    for dp in dps:
+        if(not dp.is_archived()):
+            unarchived.append(dp)
+
+    if("daint" in socket.gethostname()):
+        if(not os.path.exists(scripts_dir + "tmp/")):
+            os.makedirs(scripts_dir + "tmp/")
+        runDPs_file = scripts_dir + "tmp/runDPs.sh"
+        f = open(runDPs_file, 'w')
+        os.chmod(runDPs_file, 0o777)
+        f.write("#!/bin/bash\n")
+        for u in unarchived:
+            u.write()
+            ofile = dp_out_dir + u.hash()[:5] + ".%j"
+            print("OutFile: "ofile)
+            f.write('sbatch -t 01:00:00 -o %s -e %s %srunDP.sh %s %s\n' % (ofile,ofile,scripts_dir,archive_dir,u.hash()))
+            
+        f.close()
+        
+        out = os.popen(scripts_dir+"tmp/runDPs.sh").read()
+        print("THIS IS THE OUTPUT:",out)
+        dep_clause = ""
+        matches = re.findall("Submitted batch job [0-9]+", out) 
+
+        dependencies = [re.findall("[0-9]+", m)[0] for m in matches]
+        if(len(dependencies) > 0):
+            dep_clause = "--dependency=afterok:" + ":".join(dependencies)
+    else:
+        for u in unarchived:
+            u.getData(archive=True)
+    return dependencies
+
+
 def strideFromTargetSize(object_profiles, num_labels, observ_types, megabytes=100):
     if(isinstance(num_labels, list)): num_labels = len(num_labels)
     megabytes_per_sample = sum(o.max_size for o in object_profiles) * len(observ_types) * 24.0 / (1000.0 * 1000.0)
