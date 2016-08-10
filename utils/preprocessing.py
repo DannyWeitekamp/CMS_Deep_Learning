@@ -440,6 +440,7 @@ def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_di
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
             test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
+            print("T@:", type(test))
             trial.test(test_proc=test,
                          test_samples=num_test,
                          custom_objects={"Lorentz":Lorentz,"Slice": Slice})
