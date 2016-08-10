@@ -734,11 +734,14 @@ class KerasTrial(Storable):
         else:
             print("Trial %r Already Complete" % self.hash())
     def test(self,test_proc, test_samples=None, redo=False, archiveTraining=True, custom_objects={}, max_q_size=10, nb_worker=1, pickle_safe=False, arg_decode_func=None):
+        print("TPYE:". type(test_proc))
+        print("val:". test_proc)
         record_loss, record_acc = tuple(self.get_from_record(['test_loss', 'test_acc'] ))
         if(redo == True or record_loss == None or record_acc == None):
             model = self.compile(loadweights=True,custom_objects=custom_objects)
             if(isinstance(test_proc, list) == False): test_proc = [test_proc]
             # test_proc = self._prep_procedure(test_proc)
+            assert len(test_proc) > 0, "test_proc is empty: %r" % test_proc
 
             sum_metrics = []
             for p in test_proc:
