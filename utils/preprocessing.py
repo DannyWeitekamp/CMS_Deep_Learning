@@ -424,6 +424,7 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
     return dependencies
 
 def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
+    print("PRINTINTINTITNT:",archive_dir, tups, time_str)
     if("daint" in socket.gethostname()):
         for hashcode, test_hashcode, num_test, deps in tups:
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
