@@ -1,7 +1,7 @@
 import os
 import sys
 if __package__ is None:
-    sys.path.append(os.path.realpath("../../"))
+    sys.path.append(os.path.realpath("../"))
 import ROOT 
 import numpy as np
 import math
