@@ -440,7 +440,6 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", scripts_dir='/scratch/d
             print("THIS IS THE OUTPUT:",out)
         else:
             trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
-            if(trial.batch_size
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
             test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
