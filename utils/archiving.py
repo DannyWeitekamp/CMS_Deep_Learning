@@ -746,7 +746,7 @@ class KerasTrial(Storable):
                 if(isinstance(p, str) or isinstance(p, unicode)):
                     p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
                 elif(isinstance(p, DataProcedure) == False):
-                     raise TypeError("test_proc expected DataProcedure, but got %r" % type(test_proc))
+                     raise TypeError("test_proc member expected DataProcedure, but got %r" % type(p))
 
                 test_data = p.getData(archive=archiveTraining)
                 n_samples = 0
