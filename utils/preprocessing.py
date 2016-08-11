@@ -431,7 +431,7 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", scripts_dir='/scratch/d
             test_hashcode = test.hash()
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
             ofile = trial_out_dir + hashcode[:5] + ".%j"
-            sbatch = 'sbatch -t %s -o %s -e %s %s' % (time_str,ofile,ofile,dep_clause)
+            sbatch = 'sbatch -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
             sbatch += '%srunTrial.sh %s %s %s %s\n' % (scripts_dir,trial.archive_dir,hashcode, test_hashcode, num_test)
             print(sbatch)
             out = os.popen(sbatch).read()
