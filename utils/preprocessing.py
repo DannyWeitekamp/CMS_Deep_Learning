@@ -426,7 +426,6 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
 def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
     print("PRINTINTINTITNT:",archive_dir, tups, time_str)
     if("daint" in socket.gethostname()):
-        for trial, test, num_test, deps in tups:
             hashcode = trial.hash()
             test.write()
             test_hashcode = test.hash()
@@ -440,7 +439,7 @@ def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_di
     else:
         for trial, test, num_test, deps in tups:
             hashcode = trial.hash()
-            #test.write()
+            test.write()
             test_hashcode = test.hash()
             trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
