@@ -406,7 +406,7 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
             u.write()
             ofile = dp_out_dir + u.hash()[:5] + ".%j"
             print("OutFile: ",ofile)
-            f.write('sbatch -t 01:00:00 -o %s -e %s %srunDP.sh %s %s\n' % (ofile,ofile,scripts_dir,archive_dir,u.hash()))
+            f.write('sbatch -t 01:00:00 -o %s -e %s %srunDP.sh %s %s\n' % (ofile,ofile,scripts_dir,u.archive_dir,u.hash()))
             
         f.close()
         
@@ -423,16 +423,17 @@ def batchAssertArchived(dps, scripts_dir='/scratch/daint/dweiteka/scripts/', dp_
             u.getData(archive=True)
     return dependencies
 
-def batchExecuteAndTestTrials(archive_dir, tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
+def batchExecuteAndTestTrials(tups, time_str="12:00:00", scripts_dir='/scratch/daint/dweiteka/scripts/', trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
     print("PRINTINTINTITNT:",archive_dir, tups, time_str)
     if("daint" in socket.gethostname()):
+        for trial, test, num_test, deps in tups:
             hashcode = trial.hash()
             test.write()
             test_hashcode = test.hash()
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
             ofile = trial_out_dir + hashcode[:5] + ".%j"
             sbatch = 'sbatch -t %s -o %s -e %s %s' % (time_str,ofile,ofile,dep_clause)
-            sbatch += '%srunTrial.sh %s %s %s %s\n' % (scripts_dir,archive_dir,hashcode, test_hashcode, num_test)
+            sbatch += '%srunTrial.sh %s %s %s %s\n' % (scripts_dir,trial.archive_dir,hashcode, test_hashcode, num_test)
             print(sbatch)
             out = os.popen(sbatch).read()
             print("THIS IS THE OUTPUT:",out)
