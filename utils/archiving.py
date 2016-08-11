@@ -740,6 +740,7 @@ class KerasTrial(Storable):
             print("Trial %r Already Complete" % self.hash())
     def test(self,test_proc, test_samples=None, redo=False, archiveTraining=True, custom_objects={}, max_q_size=None, nb_worker=1, pickle_safe=False, arg_decode_func=None):
         if(max_q_size == None):
+            print("USING max_q_size: %r" % self.max_q_size)
             max_q_size = self.max_q_size
 
         record_loss, record_acc = tuple(self.get_from_record(['test_loss', 'test_acc'] ))
@@ -775,7 +776,6 @@ class KerasTrial(Storable):
                 else:
                     sum_metrics = [sum(x) for x in zip(sum_metrics, metrics)]
             metrics = [x/len(test_proc) for x in sum_metrics]
-
             self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
             return metrics
         else:
