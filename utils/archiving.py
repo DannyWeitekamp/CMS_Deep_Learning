@@ -571,8 +571,13 @@ class KerasTrial(Storable):
 
         #Doesn't hash on the names of layers since they are random, and doesn't hash on keras_version
             #for forward and backward compatability.
-        self.model = re.sub(r'"name": "[^"]*"', "", self.model)
+        names = [s.replace('"name": ', "" ) for s in re.findall(r'"name": "[^"]*"', self.model)]
+        for name in names:
+            self.model = self.model.replace(name, "@")
         self.model = re.sub(r'"keras_version": "[^"]*"', "", self.model)
+        
+        #self.model = re.sub(r'"name": "[^"]*"', "", self.model)
+        #self.model = re.sub(r'"keras_version": "[^"]*"', "", self.model)
 
         #Doesn't hash on anything that is its default value for forward compatability. For example
             # if a parameter is added in a new version of keras and takes its default value then we 
