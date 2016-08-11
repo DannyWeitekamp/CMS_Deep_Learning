@@ -741,6 +741,7 @@ class KerasTrial(Storable):
     def test(self,test_proc, test_samples=None, redo=False, archiveTraining=True, custom_objects={}, max_q_size=None, nb_worker=1, pickle_safe=False, arg_decode_func=None):
         if(max_q_size == None):
             print("USING max_q_size: %r" % self.max_q_size)
+            sys.stdout.flush()
             max_q_size = self.max_q_size
 
         record_loss, record_acc = tuple(self.get_from_record(['test_loss', 'test_acc'] ))
