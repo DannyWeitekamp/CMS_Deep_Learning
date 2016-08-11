@@ -136,7 +136,7 @@ class DataProcedure(Storable):
 
     def is_archived(self):
         '''Returns True if this procedure is already archived'''
-        blob_path = get_blob_path(self, self.archive_dir)
+        blob_path = self.get_path()
         data_path = blob_path+"archive.h5"
         if(os.path.exists(data_path)):
             return True
@@ -746,7 +746,7 @@ class KerasTrial(Storable):
                 if(isinstance(p, str) or isinstance(p, unicode)):
                     p = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=arg_decode_func)
                 elif(isinstance(p, DataProcedure) == False):
-                     raise TypeError("test_proc member expected DataProcedure, but got %r" % type(p))
+                     raise TypeError("test_proc expected DataProcedure, but got %r" % type(p))
 
                 test_data = p.getData(archive=archiveTraining)
                 n_samples = 0
