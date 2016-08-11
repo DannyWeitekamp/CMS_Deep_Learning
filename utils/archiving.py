@@ -778,6 +778,7 @@ class KerasTrial(Storable):
                     sum_metrics = [sum(x) for x in zip(sum_metrics, metrics)]
             metrics = [x/len(test_proc) for x in sum_metrics]
             self.to_record({'test_loss' : metrics[0], 'test_acc' :  metrics[1], 'num_test' : n_samples}, replace=True)
+            print("Test Complete %r" % metrics)
             return metrics
         else:
             print("Test %r already Complete with test_loss: %0.4f, test_acc: %0.4f" % (self.hash(), record_loss, record_acc))
