@@ -1,5 +1,7 @@
 import os
-import sys 
+import sys
+if __package__ is None:
+    sys.path.append(os.path.realpath("../../"))
 import ROOT 
 import numpy as np
 import math
@@ -10,6 +12,7 @@ import glob
 import ntpath
 import getopt
 from CMS_SURF_2016.utils.meta import msgpack_assertMeta
+
 
 def DeltaRsq(A_Eta, A_Phi, B_Eta, B_Phi):
     '''Computes the 
