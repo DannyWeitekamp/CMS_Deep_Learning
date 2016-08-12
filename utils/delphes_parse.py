@@ -394,7 +394,7 @@ def doJob(job, redo=False):
         store(f, store_dir,rerun=redo,storeType=storeType)
     except Exception as e:
         print(e)
-        print("Failed to parse file %r. File may be corrupted." % f)
+        print("Something weird happened when parsing %r." % f)
     return f
 
 
@@ -412,18 +412,37 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
         if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
             #print("OUT",out_file)
-            frames = delphes_to_pandas(filepath)
-            for key,frame in frames.items():
-                store.put(key, frame, format='table')
+            try:
+                frames = delphes_to_pandas(filepath)
+            except Exception as e:
+                print(e)
+                print("Failed to parse file %r. File may be corrupted." % f)
+                return
+            try:
+                for key,frame in frames.items():
+                    store.put(key, frame, format='table')
+            except Exception as e:
+                print(e)
+                print("Failed to write to HDFStore %r" % out_file)
+                return
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
         # meta_out_file = outputdir + filename + ".meta"
         print(out_file)
         if(not os.path.exists(out_file) or rerun):
-            frames = delphes_to_pandas(filepath)
-            # meta_frames = {"NumValues" : frames["NumValues"]}
-            pd.to_msgpack(out_file, frames)
+            try:
+                frames = delphes_to_pandas(filepath)
+            except Exception as e:
+                print(e)
+                print("Failed to parse file %r. File may be corrupted." % f)
+                return
+            try:
+                pd.to_msgpack(out_file, frames)
+            except Exception as e:
+                print(e)
+                print("Failed to write msgpack %r" % out_file)
+                return
             # pd.to_msgpack(meta_out_file, meta_frames)
             msgpack_assertMeta(out_file, frames)
         else:
