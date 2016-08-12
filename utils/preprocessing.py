@@ -146,7 +146,7 @@ def getNumValFrame(filename, storeType):
 
         #Get the NumValues frame which lists the number of values for each entry
         try:
-            num_val_frame = store.get('/NumValues')
+            num_val_frame = store.get('NumValues')
         except KeyError as e:
             raise KeyError(str(e) + " " + filename)
         store.close()
