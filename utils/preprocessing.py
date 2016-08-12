@@ -389,7 +389,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
         all_dps += dps
     #Calculate a good max__q_size and add it to the all_datasets list
     print("SFSDSDFF", stride, batch_size)
-    all_datasets += [min(np.ceil(stride/float(batch_size)), 1)]
+    all_datasets += [max(np.ceil(stride/float(batch_size)), 1)]
     return (all_dps,all_datasets)
 
 
