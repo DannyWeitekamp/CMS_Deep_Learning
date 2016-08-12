@@ -333,6 +333,7 @@ class DataProcedure(Storable):
             f.close()
             # print(json_str)
             out = DataProcedure.from_json(archive_dir,json_str)
+            out.hashcode = hashcode
             if(verbose >= 1): print('Sucessfully loaded procedure.json at ' + archive_dir)
         except (IOError, EOFError):
             out = None
@@ -1087,6 +1088,7 @@ class KerasTrial(Storable):
             f.close()
             # print(json_str)
             out = cls.from_json(archive_dir,json_str)
+            out.hashcode = hashcode
             if(verbose >= 1): print('Sucessfully loaded trial.json at ' + archive_dir)
         except (IOError, EOFError):
             out = None
