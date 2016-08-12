@@ -387,6 +387,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
         all_dps += dps
+    all_datasets += min(stride/batch_size, 1)
     return (all_dps,all_datasets)
 
 
