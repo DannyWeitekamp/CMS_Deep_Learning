@@ -15,7 +15,10 @@ def msgpack_assertMeta(filename, frames=None, redo=False):
         if(frames == None):
             print("Bulk reading .msg for metaData assertion. Be patient, reading in slices not supported.")
             print(filename)
-            frames = pd.read_msgpack(filename)
+            try:
+                frames = pd.read_msgpack(filename)
+            except UnicodeDecodeError as e:
+                frames = pd.read_msgpack(filename, encoding='latin-1')
         meta_frames = {"NumValues" : frames["NumValues"]}
            
     if(not os.path.exists(meta_out_file) or redo):
