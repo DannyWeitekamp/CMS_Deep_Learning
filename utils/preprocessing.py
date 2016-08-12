@@ -147,8 +147,8 @@ def getNumValFrame(filename, storeType):
         #Get the NumValues frame which lists the number of values for each entry
         try:
             num_val_frame = store.get('NumValues')
-        except KeyError as e:
-            raise KeyError(str(e) + " " + filename +"Please check to see if the files is corrupted. \
+        except Exception as e:
+            raise IOError(str(e) + " " + filename +"Please check to see if the files is corrupted. \
              Run 'll' in the folder where the file is, if it is much smaller than the others then it is corrupted. \
              If it is corrupted then delete it.")
         store.close()
