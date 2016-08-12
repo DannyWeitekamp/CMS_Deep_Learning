@@ -148,7 +148,9 @@ def getNumValFrame(filename, storeType):
         try:
             num_val_frame = store.get('NumValues')
         except KeyError as e:
-            raise KeyError(str(e) + " " + filename)
+            raise KeyError(str(e) + " " + filename +"Please check to see if the files is corrupted. \
+             Run 'll' in the folder where the file is, if it is much smaller than the others then it is corrupted. \
+             If it is corrupted then delete it.")
         store.close()
         return num_val_frame
     elif(storeType == "msgpack"):
