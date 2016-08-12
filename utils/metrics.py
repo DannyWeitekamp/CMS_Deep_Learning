@@ -1,5 +1,7 @@
 import types
 from keras.metrics import *
+from CMS_SURF_2016.utils.archiving import DataProcedure
+
 def accVsEventChar(model,
                    data,
                    char,
