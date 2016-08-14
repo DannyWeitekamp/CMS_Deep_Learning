@@ -6,7 +6,6 @@ if __package__ is None:
 	sys.path.append(os.path.realpath("../.."))
 
 from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial, get_all_data, get_all_trials
-from CMS_SURF_2016.utils.metrics import plot_history
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
 from keras.callbacks import EarlyStopping
