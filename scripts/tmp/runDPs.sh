@@ -1,0 +1,10 @@
+#!/bin/bash
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/6d4cc.%j -e /scratch/daint/dweiteka/dp_out/6d4cc.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ 6d4cc9152ae59544d614de5be0bf56c3d90290e5
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/a24a2.%j -e /scratch/daint/dweiteka/dp_out/a24a2.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ a24a27a665a7cfbe3466b1fecd3f14b1f6850f7f
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/a508b.%j -e /scratch/daint/dweiteka/dp_out/a508b.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ a508b4c139fd98c3c4b4c80cb7486eb2d9ee542e
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/aec45.%j -e /scratch/daint/dweiteka/dp_out/aec45.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ aec45b6b6356a38cb98916eafb8cf226b9bcc58d
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/baa5c.%j -e /scratch/daint/dweiteka/dp_out/baa5c.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ baa5c1f5757feb33d2e93d48c8edc87669405ca2
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/f29d6.%j -e /scratch/daint/dweiteka/dp_out/f29d6.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ f29d669e751e3ea99ae570c812e2244227633924
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/acba2.%j -e /scratch/daint/dweiteka/dp_out/acba2.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ acba273861052d042884ef32445bc3da2c4abf68
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/738d6.%j -e /scratch/daint/dweiteka/dp_out/738d6.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ 738d6c6cc2c375887d453886628144ba933d911f
+sbatch -t 01:00:00 -o /scratch/daint/dweiteka/dp_out/b3ea6.%j -e /scratch/daint/dweiteka/dp_out/b3ea6.%j /scratch/daint/dweiteka/scripts/runDP.sh /scratch/daint/dweiteka/Delphes/keras_archive/ b3ea6bd9accdb51a96d980d49d93bc877e0b962c
