@@ -483,7 +483,7 @@ def main(data_dir, argv):
             redo = True
         elif opt in ('-n', "--num_samples"):
             if(arg == ''): arg = None
-            num_samples = arg
+            num_samples = int(arg)
     print(num_samples)
     print(storeType)
     folder = "/pandas_h5/" if storeType == "hdf5" else "/pandas_msg/"
