@@ -111,7 +111,7 @@ for sort_on in ["PT_ET"]:
         labels = [x[0] for x in label_dir_pairs]
         for name in ['lorentz', 'not_lorentz']:
             for sphereCoords in [False]:
-                for depth in [1,2]:
+                for depth in [2,3]:
                     for width in [10,50,100]:
                         for activation in ['relu']:
                             for dropout in [0.0]:
