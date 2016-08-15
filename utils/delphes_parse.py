@@ -425,7 +425,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
                 print(e)
                 print("Failed to write to HDFStore %r" % out_file)
                 return 0
-        num = store.get('NumValues').sum()
+        num = len(store.get('NumValues').index)
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
@@ -449,7 +449,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         else:
             meta_frames = msgpack_assertMeta(out_file)
 
-        num = meta_frames["NumValues"].sum()
+        num = len(meta_frames["NumValues"].index)
         # elif(not os.path.exists(meta_out_file)):
         #     print(".meta file missing creating %r" % meta_out_file)
         #     frames = pd.read_msgpack(out_file)
