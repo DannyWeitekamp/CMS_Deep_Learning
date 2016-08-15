@@ -391,11 +391,11 @@ def makeJobs(filename,
 def doJob(job, redo=False):
     f, store_dir, storeType = job
     try:
-        store(f, store_dir,rerun=redo,storeType=storeType)
+        return store(f, store_dir,rerun=redo,storeType=storeType)
     except Exception as e:
         print(e)
         print("Something weird happened when parsing %r." % f)
-    return f
+    return 0
 
 
 
@@ -417,14 +417,15 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
             except Exception as e:
                 print(e)
                 print("Failed to parse file %r. File may be corrupted." % f)
-                return
+                return 0
             try:
                 for key,frame in frames.items():
                     store.put(key, frame, format='table')
             except Exception as e:
                 print(e)
                 print("Failed to write to HDFStore %r" % out_file)
-                return
+                return 0
+        num = store.get('NumValues').sum()
         store.close()
     elif(storeType == "msgpack"):
         out_file = outputdir + filename + ".msg"
@@ -436,17 +437,19 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
             except Exception as e:
                 print(e)
                 print("Failed to parse file %r. File may be corrupted." % f)
-                return
+                return 0
             try:
                 pd.to_msgpack(out_file, frames)
             except Exception as e:
                 print(e)
                 print("Failed to write msgpack %r" % out_file)
-                return
+                return 0
             # pd.to_msgpack(meta_out_file, meta_frames)
-            msgpack_assertMeta(out_file, frames)
+            meta_frames = msgpack_assertMeta(out_file, frames)
         else:
-            msgpack_assertMeta(out_file)
+            meta_frames = msgpack_assertMeta(out_file)
+
+        num = meta_frames["NumValues"].sum()
         # elif(not os.path.exists(meta_out_file)):
         #     print(".meta file missing creating %r" % meta_out_file)
         #     frames = pd.read_msgpack(out_file)
@@ -454,15 +457,18 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         #     pd.to_msgpack(meta_out_file, meta_frames)
     else:
         raise ValueError("storeType %r not recognized" % storeType)
-
+    return num
 
 def main(data_dir, argv):
     # print(data_dir)
     storeType = "hdf5"
     redo = False
+    num_samples = None
     screwup_error = "python delphes_parse.py <input_dir>"
     try:
-        opts, args = getopt.getopt(argv,'mrh')
+        opts, args = getopt.getopt(argv,'n:mrh')
+        print(opts)
+        print(args)
     except getopt.GetoptError:
         print screwup_error
         sys.exit(2)
@@ -474,13 +480,24 @@ def main(data_dir, argv):
         elif opt in ('-h5', "--hdf", "--hdf5"):
             storeType = "hdf5"
         elif opt in ('-r', "--redo"):
-             redo = True
+            redo = True
+        elif opt in ('-n', "--num_samples"):
+            if(arg == ''): arg = None
+            num_samples = arg
+    print(num_samples)
     print(storeType)
     folder = "/pandas_h5/" if storeType == "hdf5" else "/pandas_msg/"
     jobs = makeJobs(data_dir,storeType, folder=folder)
+
+    samples_read = 0
     for job in jobs:
         # print(job)
-        doJob(job, redo=redo)
+        samples_read += doJob(job, redo=redo)
+        if(num_samples != None):
+            print("Parsed %r of %r samples" %(samples_read, num_samples))
+            if(samples_read >= num_samples):
+                break
+            
 
 
 
