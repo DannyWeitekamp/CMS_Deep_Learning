@@ -5,7 +5,7 @@ if __package__ is None:
 	sys.path.append(os.path.realpath("/data/shared/Software/"))
 	sys.path.append(os.path.realpath("../.."))
 
-from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial, get_all_data, get_all_trials
+from CMS_SURF_2016.utils.archiving import *
 from keras.models import Sequential, Model
 from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
 from keras.callbacks import EarlyStopping
@@ -59,6 +59,9 @@ trial.setCompilation(optimizer='rmsprop',
               )
 #Set the fit parameters
 trial.setFit(callbacks = [earlystopping], nb_epoch=18)
+
+#If we like we can store information about the trial so we can keep track of what we've done
+trial.to_record({"stuff1":100, "data_stuff": "Regular"})
 
 print(trial.hash())
 trial.to_hashable()
@@ -126,6 +129,9 @@ trial.setCompilation(optimizer='rmsprop',
 #Set the fit parameters
 trial.setFit_Generator(callbacks = [earlystopping], nb_epoch=18)
 
+#If we like we can store information about the trial so we can keep track of what we've done
+trial.to_record({"stuff1":777, "data_stuff": "Generator"})
+
 #Execute the trial running fitting on each DataProcedure in turn 
 trial.execute()
 print("OK IT FINISHED!")
@@ -138,6 +144,12 @@ print('\n')
 print("Test_Loss:",loss)
 print("Test_Accuracy:",accuracy)
 
+# print("PERERPERPPPRE", KerasTrial.get_all_paths(archive_dir))
+
+# print("LOOLOOOLOO", KerasTrial.find_by_hashcode(archive_dir, 'f37e401891083aac927f86375f2e96015ac'))
+
+# print("MOMOMOOOMOOO", KerasTrial.get_all_records(archive_dir))
+# print("MOMOMOOOMOOO", DataProcedure.get_all_records(archive_dir))
 
 
 trials = get_all_trials(archive_dir)
@@ -147,10 +159,10 @@ for t in trials:
 trials = get_all_trials(archive_dir)
 print("Deleted all trials?:", len(trials) == 0)
 
-pps = get_all_data(archive_dir)
-for p in pps:
-	p.summary()
-	p.remove_from_archive()
+dps = get_all_data(archive_dir)
+for dp in dps:
+	dp.summary()
+	dp.remove_from_archive()
 
-pps = get_all_data(archive_dir)
-print("Deleted all data?:", len(pps) == 0)
+dps = get_all_data(archive_dir)
+print("Deleted all data?:", len(dps) == 0)
