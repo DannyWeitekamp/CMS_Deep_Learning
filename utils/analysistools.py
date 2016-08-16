@@ -49,7 +49,7 @@ def findWithMetrics(trials, metrics):
         raise TypeError("metrics expecting type dict, but got %", type(metrics))
     out = []
     for trial in trials:
-        record = trial.get_record_entry()
+        record = trial.read_record()
         ok = True
         for metric, value in metrics.iteritems():
             if(metric in record):
