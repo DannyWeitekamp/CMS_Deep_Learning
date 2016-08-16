@@ -129,7 +129,7 @@ for sort_on in ["PT_ET"]:
                                 trial.setValidation(val_procedure=val,
                                                    nb_val_samples=num_val)
                                 trial.setCompilation(loss='binary_crossentropy',
-                                          optimizer='rmsprop',
+                                          optimizer='adam',
                                           metrics=['accuracy']
                                               )
 
@@ -154,11 +154,13 @@ for sort_on in ["PT_ET"]:
 
                                 trial.to_record({"lables": labels,
                                                  "depth": depth,
+                                                 "width" width,
                                                  "sort_on" : sort_on,
                                                  "activation": activation_name,
                                                  "dropout":dropout,
                                                  "max_EFlow_size": max_EFlow_size,
                                                  "sort_on" : sort_on
+                                                 "optimizer" : "adam"
                                                 })
                                 trial_tups.append((trial, test, num_test, dependencies))
 batchExecuteAndTestTrials(trial_tups)
