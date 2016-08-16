@@ -42,3 +42,17 @@ colors_contrasting = \
 (0.518,0.4,0.012),
 (0.322,0.094,0.216)
 ]
+
+def showColors(colors):
+	fig, ax = plt.subplots(1)
+	fig.set_size_inches((10,10))
+
+	# Show the whole color range
+	for i in range(len(colors)):
+	    x = np.random.normal(loc=(i%4)*3, size=100)
+	    y = np.random.normal(loc=(i//4)*3, size=100)
+	    c = colors[i]
+	    j = (i * 3 +4) % len(colors)
+	    b = colors[j]
+	    
+	    ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)

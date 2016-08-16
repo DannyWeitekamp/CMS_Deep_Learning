@@ -7,6 +7,7 @@ e-mail: dannyweitekamp@gmail.com
 
 import matplotlib.pyplot as plt
 import numpy as np
+from CMS_SURF_2016.utils.analysistools import *
 from keras.callbacks import History
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
@@ -95,4 +96,45 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
    
+    plt.show()
+
+def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", mode="max"):
+    trials_by_group = {}
+    if(groupOn != None):
+        possibleValues = getMetricValues(trials,groupOn)
+        #print(possibleValues)
+        for v in possibleValues:
+            trials_by_group[v] = findWithMetrics(trials, {groupOn:v})
+    
+    i = 0
+    for group,group_trials in (trials_by_group.iteritems() if len(trials_by_group) > 0 else [(label,trials)]):
+        #print(group,len(group_trials))
+        group_trials = findWithMetrics(group_trials, constants)
+        group_trials = assertOneToOne(group_trials, metricX,metricY=metricY, mode=mode)
+        Xs = [ trial.get_from_record(metricX) for trial in group_trials]
+        Xs.sort()
+        index = np.arange(len(Xs))
+        Ys = [trial.get_from_record(metricY) for trial in group_trials]
+        
+        c = colors_contrasting[i % len(colors_contrasting)] 
+        j = (i * 3 +4) % len(colors_contrasting)
+        b = colors_contrasting[j]
+        i += 1
+        rects1 = plt.scatter(index, Ys,
+                         #color='b',
+                         #color=tuple(np.random.random(3)),
+                         alpha =.7,
+                         s=50,
+                         edgecolors=b,
+                         color=c,
+                         label=group)
+        plt.xticks(index, Xs)
+    if(xlabel == None): xlabel = metricX
+    if(ylabel == None): ylabel = metricY
+    
+    plt.xlabel(xlabel, fontsize=14)
+    plt.ylabel(ylabel, fontsize=14)
+    plt.title('%s vs %s' %(metricY, metricX), fontsize=18)
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    #plt.tight_layout()
     plt.show()
