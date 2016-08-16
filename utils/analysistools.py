@@ -85,7 +85,7 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
     if(trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r" % type(trials))
     if(not mode in ["error"]):
-        if(mode in ["max", "min"]):group_by_labels
+        if(mode in ["max", "min"]):
             if(metricY == None):
                 raise ValueError("metricY must be defined if mode = %r" % mode)
         else:
@@ -107,7 +107,7 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
                     trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
                 raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r. See the printout above for more information." % metricX)
             else:
-                if(mode == "max" or mode == "min"):
+                if(mode in ["max", "min"]):
                     reverse = False
                     if(mode == "max"): reverse = True
                     lst.sort(key=lambda x:x.get_from_record(metricY), reverse=reverse)
