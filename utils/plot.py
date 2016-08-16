@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.callbacks import History
 
-def plot_history( histories, plotLoss=True, plotAccuracy=True):
+def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist), .... ]
         -Adopted from Jean-Roch Vlimant's Kreas tutorial"""
@@ -27,18 +27,17 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True):
             l = label
             vl= label+" validation"
             if 'acc' in history:
-                l+=' (acc %2.4f)'% (history['acc'][-1])
-                do_acc = True
+                l+=' (best acc %2.4f)'% (max(history['acc']))
             if 'val_acc' in history:
-                vl+=' (acc %2.4f)'% (history['val_acc'][-1])
-                do_acc = True
+                vl+=' (best acc %2.4f)'% (max(history['val_acc']))
             plt.plot(history['loss'], label=l, color=color)
             if 'val_loss' in history:
                 plt.plot(history['val_loss'], lw=2, ls='dashed', label=vl, color=color)
+                
         plt.legend()
         plt.yscale('log')
         plt.show()
-
+    
     if(plotAccuracy):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch')
@@ -49,8 +48,18 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True):
             color = colors[i]
             if 'acc' in history:
                 plt.plot(history['acc'], lw=2, label=label+" accuracy", color=color)
+                if(plotBest):
+                    best = max(history['acc'])
+                    loc = history['acc'].index(best)
+                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors='k',
+                                linewidth=2.0, label=label+"best accuracy = %0.4f" % best)
             if 'val_acc' in history:
                 plt.plot(history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
+                if(plotBest):
+                    best = max(history['val_acc'])
+                    loc = history['val_acc'].index(best)
+                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors='k',
+                                marker='x',linewidth=2.0, label=label+"best validation accuracy = %0.4f" % best)
         plt.legend(loc='lower right')
         plt.show()
 
