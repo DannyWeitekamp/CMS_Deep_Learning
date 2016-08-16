@@ -159,7 +159,7 @@ for sort_on in ["PT_ET"]:
                                                  "activation": activation_name,
                                                  "dropout":dropout,
                                                  "max_EFlow_size": max_EFlow_size,
-                                                 "sort_on" : sort_on
+                                                 "sort_on" : sort_on,
                                                  "optimizer" : "adam"
                                                 })
                                 trial_tups.append((trial, test, num_test, dependencies))
