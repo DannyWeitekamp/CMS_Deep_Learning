@@ -154,7 +154,7 @@ for sort_on in ["PT_ET"]:
 
                                 trial.to_record({"lables": labels,
                                                  "depth": depth,
-                                                 "width" width,
+                                                 "width" : width,
                                                  "sort_on" : sort_on,
                                                  "activation": activation_name,
                                                  "dropout":dropout,
