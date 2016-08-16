@@ -94,6 +94,7 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max"):
     d = {}
     for trial in trials:
         x = trial.get_from_record(metricX)
+        if(isinstance(x, list)): x = tuple(x)
         lst = d.get(x, [])
         lst.append(trial)
         d[x] = lst
