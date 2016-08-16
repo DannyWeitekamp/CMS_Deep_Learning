@@ -105,8 +105,7 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
                 print(" \n\n ONE-TO-ONE ERROR! \n %r Trials with %r = %r" % (len(lst), metricX, len(metricX)))
                 for trial in lst:
                     trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
-                raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r \
-                    . See the printout above for more information." % metricX)
+                raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r. See the printout above for more information." % metricX)
             else:
                 if(mode == "max" or mode == "min"):
                     reverse = False
