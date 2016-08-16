@@ -71,7 +71,7 @@ def findWithMetrics(trials, metrics):
         if(ok): out.append(trial)
     return out
                 
-def getMetricValues(trails, metric):
+def getMetricValues(trials, metric):
     out = set()
     for trial in trials:
         m = trial.get_from_record(metric)
