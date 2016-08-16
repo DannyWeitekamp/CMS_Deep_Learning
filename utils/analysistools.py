@@ -80,7 +80,7 @@ def getMetricValues(trials, metric):
             out.add(m)
     return out
     
-def assertOneToOne(trials, metricX, metricY=None, mode="max"):
+def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True):
     trials = copy.copy(trials)
     if(trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r" % type(trials))
@@ -92,6 +92,7 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max"):
             raise ValueError("mode %r not recognized. Please choose 'error', 'max' or 'min'.")
             
     d = {}
+    if(ignoreIncomplete): trials = [t for t in trials if t.is_complete()]
     for trial in trials:
         x = trial.get_from_record(metricX)
         if(isinstance(x, list)): x = tuple(x)
@@ -101,10 +102,10 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max"):
     for x, lst in d.iteritems():
         if(len(lst) > 1):
             if(mode == "error"):
-                print("%r Trials with %r = %r" % (len(lst), metricX, len(metricX)))
+                print(" \n\n ONE-TO-ONE ERROR! \n %r Trials with %r = %r" % (len(lst), metricX, len(metricX)))
                 for trial in lst:
                     trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
-                raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r" % metricX)
+                raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r. See the above " % metricX)
             else:
                 if(mode == "max" or mode == "min"):
                     reverse = False
