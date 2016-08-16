@@ -370,7 +370,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     y_train = y_train[indices]
     return X_train, y_train
 
-def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, batch_size=100, megabytes=500):
+def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, batch_size=100, megabytes=500, verbose=1):
     stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=500)
     SNs = start_num_fromSplits(splits, length)
     all_dps = []
@@ -382,8 +382,9 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         archive_dir,
                                         label_dir_pairs,
                                         object_profiles,
-                                        observ_types)
-        gen_DP = DataProcedure(archive_dir, False,genFromPPs,dps, batch_size, threading = False)
+                                        observ_types,
+                                        verbose=verbose)
+        gen_DP = DataProcedure(archive_dir, False,genFromPPs,dps, batch_size, threading = False, verbose=verbose)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
         all_dps += dps
@@ -473,7 +474,6 @@ def start_num_fromSplits(splits, length):
     are_static_vals = [(True if int(x) > 0 else False) for x in splits]
     if(True in are_static_vals):
         ratios =  [s for s, a in zip(splits, are_static_vals) if(not a)]
-        print(ratios)
         static_vals =  [s for s, a in zip(splits, are_static_vals) if(a)]
         s = sum(static_vals) 
         if(s > length):
@@ -524,7 +524,8 @@ def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,labe
                 proc_start,
                 proc_num,
                 object_profiles,
-                observ_types
+                observ_types,
+                verbose=verbose
             )
         procs.append(dp)
         #print(proc_start, samples_per_label, stride)
@@ -552,7 +553,7 @@ class dataFetchThread(threading.Thread):
         self.X, self.Y = self.proc.getData()
         return
 
-def genFromPPs(pps, batch_size, threading=False):
+def genFromPPs(pps, batch_size, threading=False, verbose=1):
     '''Gets a generator that generates data of batch_size from a list of DataProcedures.
         Optionally uses threading to apply getData in parellel, although this may be obsolete
         with the proper fit_generator settings'''
@@ -579,7 +580,7 @@ def genFromPPs(pps, batch_size, threading=False):
                     datafetch = dataFetchThread(pps[0])
                 datafetch.start()
             else:
-                X,Y = pps[i].getData()
+                X,Y = pps[i].getData(verbose=verbose)
                                    
             if(isinstance(X,list) == False): X = [X]
             if(isinstance(Y,list) == False): Y = [Y]
@@ -590,7 +591,7 @@ def genFromPPs(pps, batch_size, threading=False):
                 yield [x[start:end] for x in X], [y[start:end] for y in Y]
                 
 
-def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archive_dir,label_dir_pairs, object_profiles, observ_types):
+def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
     '''Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
         and archive the results.
         #Arguments
@@ -613,8 +614,9 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
                                     archive_dir,
                                     label_dir_pairs,
                                     object_profiles,
-                                    observ_types)
-    gen = genFromPPs(pps, batch_size, threading = False)
+                                    observ_types,
+                                    verbose=verbose)
+    gen = genFromPPs(pps, batch_size, threading = False, verbose=verbose)
     return gen
 
 def XY_to_CSV(X,Y, csvdir):

@@ -87,7 +87,7 @@ def genModel(name,out_dim, depth, width, dense_activation="relu", dropout = 0.0,
 earlyStopping = EarlyStopping(verbose=1, patience=10)
 trial_tups = []
 for sort_on in ["PT_ET"]:
-    for max_EFlow_size in [100, 200]:
+    for max_EFlow_size in [100]:#[100, 200]:
         object_profiles = [ObjectProfile("Electron",-1),
                             ObjectProfile("MuonTight", -1),
                             ObjectProfile("Photon", -1),
@@ -99,7 +99,7 @@ for sort_on in ["PT_ET"]:
         resolveProfileMaxes(object_profiles, label_dir_pairs)
 
         dps, l = getGensDefaultFormat(archive_dir, (100000,20000,20000), 140000, \
-                             object_profiles,label_dir_pairs,observ_types,megabytes=500)
+                             object_profiles,label_dir_pairs,observ_types,megabytes=500, verbose=0)
 
         dependencies = batchAssertArchived(dps)
         train, num_train = l[0]
@@ -111,8 +111,8 @@ for sort_on in ["PT_ET"]:
         labels = [x[0] for x in label_dir_pairs]
         for name in ['lorentz', 'not_lorentz']:
             for sphereCoords in [False]:
-                for depth in [2,3]:
-                    for width in [10,50,100]:
+                for depth in [2,3,4,5]:
+                    for width in [10,25,50,100]:
                         for activation in ['relu']:
                             for dropout in [0.0]:
                                 activation_name = activation if isinstance(activation, str) \

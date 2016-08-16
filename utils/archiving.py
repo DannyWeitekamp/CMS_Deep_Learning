@@ -663,7 +663,7 @@ class KerasTrial(Storable):
         self.to_record({'name' : self.name}, append=True)
                  
 
-    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}):
+    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, verbose=1):
         '''Executes the trial, fitting the traing data in each DataProcedure in series'''
     	if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
@@ -689,7 +689,7 @@ class KerasTrial(Storable):
                 train = train_proc.getData(archive=archiveTraining)
 
                 if(isinstance(train, types.GeneratorType)):
-                    self.fit_generator(model,train, val)
+                    self.fit_generator(model,train, val, verbose=verbose)
                     num_train += self.samples_per_epoch
                 elif(isinstance(train, tuple)):
                     if(isinstance(val,  types.GeneratorType)):
@@ -698,7 +698,7 @@ class KerasTrial(Storable):
                     if(isinstance(X, list) == False): X = [X]
                     if(isinstance(Y, list) == False): Y = [Y]
                     num_train += Y[0].shape[0]
-                    self.fit(model,X, Y)
+                    self.fit(model,X, Y, verbose=verbose)
                 else:
                     raise ValueError("Traning DataProcedure returned useable type %r" % type(train))
             self.write()
@@ -719,7 +719,7 @@ class KerasTrial(Storable):
     def test(self,test_proc, test_samples=None, redo=False, archiveTraining=True, custom_objects={}, max_q_size=None, nb_worker=1, pickle_safe=False, arg_decode_func=None):
         if(max_q_size == None):
             # print("USING max_q_size: %r" % self.max_q_size)
-            sys.stdout.flush()
+            #sys.stdout.flush()
             max_q_size = self.max_q_size
 
         record_loss, record_acc = tuple(self.get_from_record(['test_loss', 'test_acc'] ))
