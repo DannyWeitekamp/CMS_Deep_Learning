@@ -1162,7 +1162,6 @@ def get_trials_by_name(name, archive_dir, verbose=0):
             t_name = [t_name]
         if True in [re.match(name, x) != None for x in t_name]:
             trial = KerasTrial.find_by_hashcode(archive_dir,key, verbose=verbose)
-            trial.summary()
             if(trial != None):
                 out.append(trial)
     return out
