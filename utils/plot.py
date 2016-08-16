@@ -8,6 +8,7 @@ e-mail: dannyweitekamp@gmail.com
 import matplotlib.pyplot as plt
 import numpy as np
 from CMS_SURF_2016.utils.analysistools import *
+from CMS_SURF_2016.utils.colors import *
 from keras.callbacks import History
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
@@ -98,7 +99,9 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", mode="max"):
+def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, mode="max"):
+    if(colors == None):
+        colors = colors_contrasting
     trials_by_group = {}
     if(groupOn != None):
         possibleValues = getMetricValues(trials,groupOn)
@@ -116,9 +119,9 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
         index = np.arange(len(Xs))
         Ys = [trial.get_from_record(metricY) for trial in group_trials]
         
-        c = colors_contrasting[i % len(colors_contrasting)] 
-        j = (i * 3 +4) % len(colors_contrasting)
-        b = colors_contrasting[j]
+        c = colors[i % len(colors)] 
+        j = (i * 3 +4) % len(colors)
+        b = colors[j]
         i += 1
         rects1 = plt.scatter(index, Ys,
                          #color='b',
