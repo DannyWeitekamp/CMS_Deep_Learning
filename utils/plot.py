@@ -42,25 +42,25 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
     
     if(plotAccuracy):
         plt.figure(figsize=(10,10))
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy')
+        plt.xlabel('Epoch', fontsize=16)
+        plt.ylabel('Accuracy', fontsize=16)
         for i,(label,history) in enumerate(histories):
             if(isinstance(history, History)):
                 history = history.history
             color = colors[i]
             if 'acc' in history:
-                plt.plot(history['acc'], lw=2, label=label+" accuracy", color=color)
+                plt.plot(history['acc'], lw=2, label=label+"training accuracy", color=color)
                 if(plotBest):
                     best = max(history['acc'])
                     loc = history['acc'].index(best)
-                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors='k',
-                                linewidth=2.0, label=label+"best accuracy = %0.4f" % best)
+                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
+                                linewidth=2.0, label=label+"best training accuracy = %0.4f" % best)
             if 'val_acc' in history:
                 plt.plot(history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
                 if(plotBest):
                     best = max(history['val_acc'])
                     loc = history['val_acc'].index(best)
-                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors='k',
+                    plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
                                 marker='x',linewidth=2.0, label=label+"best validation accuracy = %0.4f" % best)
         plt.legend(loc='lower right')
         plt.show()
@@ -144,3 +144,14 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
     plt.setp(legend.get_title(),fontsize=14)
     #plt.tight_layout()
     plt.show()
+
+def plotEverything(trials):
+    if(not isinstance(trials, list)): trials = [trials]
+    for b in trials:
+        b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)
+        model = b.get_model(custom_objects={"Slice":Slice, "Lorentz" : Lorentz})
+        history = b.get_history()
+        plot_history([(str(('ttbar', 'wjet', 'qcd')), history)], plotLoss = False)
+        dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
+        image = Image("model.png")
+        display(image)
