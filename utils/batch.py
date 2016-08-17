@@ -6,6 +6,8 @@ from CMS_SURF_2016.layers.lorentz import Lorentz
 from CMS_SURF_2016.layers.slice import Slice
 
 def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/'):
+    scripts_dir = repo + "scripts/"
+
     unarchived = []
     dependencies = []
     for dp in dps:
@@ -15,7 +17,6 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
     if("daint" in socket.gethostname()):
         if(not os.path.exists(scripts_dir + "tmp/")):
             os.makedirs(scripts_dir + "tmp/")
-        scripts_dir = repo + "scripts/"
         runDPs_file = scripts_dir + "tmp/runDPs.sh"
         f = open(runDPs_file, 'w')
         os.chmod(runDPs_file, 0o777)
