@@ -17,6 +17,7 @@ while(time.clock() - start_time < 5):
         break
     except Exception as e:
         print("Failed import trying again...")
+        sys.stdout.flush()
         time.sleep(1)
         continue
 
