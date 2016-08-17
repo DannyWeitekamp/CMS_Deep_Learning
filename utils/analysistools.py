@@ -114,8 +114,8 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
                     reverse = False
                     if(mode == "max"): reverse = True
                     lst.sort(key=lambda x:x.get_from_record(metricY), reverse=reverse)
-                    trials = trials[:1]
-                    # for t in lst[1:]: trials.remove(t) 
+                    #Remove the tail trials from the big trial list
+                    for t in lst[1:]: trials.remove(t) 
                 else:
                     raise ImplementationError("need to write this")
     return trials
