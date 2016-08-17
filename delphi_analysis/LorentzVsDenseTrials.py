@@ -1,11 +1,19 @@
 #We can go into our root file and see what Trees are availiable
 #%matplotlib inline
-
 import sys, os
+if __name__ == "__main__":
+	username = "dweiteka"
+	if(len(sys.argv) > 1):
+		username = sys.argv[1]
+
+print("Executing as USER:" + username)
+raise ValueError()
+
+
 import socket
 if("daint" in socket.gethostname()):
-    DELPHES_DIR = "/scratch/daint/dweiteka/Delphes/"
-    SOFTWAR_DIR = "/scratch/daint/dweiteka/"
+    DELPHES_DIR = "/scratch/daint/" + username +  "/Delphes/"
+    SOFTWAR_DIR = "/scratch/daint/" + username + "/"
     STORE_TYPE = "msg"
 else:
     DELPHES_DIR = "/data/shared/Delphes/"
@@ -14,7 +22,7 @@ else:
     import deepconfig
     dc = deepconfig.deepconfig(gpu='gpu1', backend='theano')
 
-archive_dir = DELPHES_DIR+"keras_archive/"
+archive_dir = DELPHES_DIR+"CSCS_Output/keras_archive/"
 
 if(not SOFTWAR_DIR in sys.path):
     sys.path.append(SOFTWAR_DIR)

@@ -6,5 +6,5 @@ module unload gcc/4.9.3
 module load gcc/4.8.2
 source /scratch/daint/vlimant/p2.7/bin/activate
 
-python /scratch/daint/dweiteka/scripts/runTrial.py $1 $2 $3 $4
+python $1scripts/runTrial.py $1 $2 $3 $4 $5
 

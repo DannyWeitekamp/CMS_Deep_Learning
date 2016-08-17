@@ -1,11 +1,26 @@
 import sys, os
-scratch_path = "/scratch/daint/dweiteka/"
-if(not scratch_path in sys.path):
-    sys.path.append(scratch_path)
+import time
 
-from CMS_SURF_2016.utils.archiving import KerasTrial, DataProcedure
-from CMS_SURF_2016.layers.lorentz import Lorentz
-from CMS_SURF_2016.layers.slice import Slice
+repo_outerdir = sys.argv[1]+"../"
+if(not repo_outerdir in sys.path):
+    sys.path.append(repo_outerdir)
+
+imports_ok = False
+start_time = time.clock()
+while(time.clock() - start_time < 60):
+    try:
+        from CMS_SURF_2016.utils.archiving import KerasTrial, DataProcedure
+        from CMS_SURF_2016.layers.lorentz import Lorentz
+        from CMS_SURF_2016.layers.slice import Slice
+        imports_ok = True
+        break
+    except Exception as e:
+        time.sleep(1)
+        continue
+
+if(not imports_ok):
+    raise IOError("Failed to import CMS_SURF_2016 or keras, check that ~/.keras/keras.json is not corrupted")
+
 
 def main(archive_dir,hashcode, test_hashcode, num_test):
     print("STARTING: %s" % hashcode)
@@ -27,5 +42,5 @@ def main(archive_dir,hashcode, test_hashcode, num_test):
     
 
 if __name__ == "__main__":
-    main(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+    main(sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5])
 

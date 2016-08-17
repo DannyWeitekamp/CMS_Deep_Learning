@@ -8,4 +8,4 @@ module unload gcc/4.9.3
 module load gcc/4.8.2
 source /scratch/daint/vlimant/p2.7/bin/activate
 
-python /scratch/daint/dweiteka/scripts/runDP.py $1 $2
+python $1scripts/runDP.py $1 $2 $3 
