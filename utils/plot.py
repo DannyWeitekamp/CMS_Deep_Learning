@@ -145,11 +145,11 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
     #plt.tight_layout()
     plt.show()
 
-def plotEverything(trials):
+def plotEverything(trials, custom_objects={}):
     if(not isinstance(trials, list)): trials = [trials]
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)
-        model = b.get_model(custom_objects={"Slice":Slice, "Lorentz" : Lorentz})
+        model = b.get_model(custom_objects=custom_objects)
         history = b.get_history()
         plot_history([(str(('ttbar', 'wjet', 'qcd')), history)], plotLoss = False)
         dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
