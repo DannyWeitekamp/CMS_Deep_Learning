@@ -99,7 +99,9 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, alpha=.7, mode="max", verbose_errors=0):
+def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
+    fig=plt.figure()
+    ax1=fig.add_subplot(111)
     if(colors == None):
         colors = colors_contrasting
     trials_by_group = {}
@@ -108,17 +110,16 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
         #print(possibleValues)
         for v in possibleValues:
             trials_by_group[v] = findWithMetrics(trials, {groupOn:v})
-    
+    if(verbose == 1): print("POINTS:")
     i = 0
-    for group,group_trials in (trials_by_group.iteritems() if len(trials_by_group) > 0 else [(label,trials)]):
-        #print(group,len(group_trials))
+    for group,group_trials in (sorted(trials_by_group.iteritems()) if len(trials_by_group) > 0 else [(label,trials)]):
         group_trials = findWithMetrics(group_trials, constants)
         group_trials = assertOneToOne(group_trials, metricX,metricY=metricY, mode=mode, verbose_errors=verbose_errors)
         Xs = [ trial.get_from_record(metricX) for trial in group_trials]
         Xs.sort()
         index = np.arange(len(Xs))
         Ys = [trial.get_from_record(metricY) for trial in group_trials]
-        
+        if(verbose == 1): print("%s: %r" % (group,zip(Xs, Ys)))
         c = colors[i % len(colors)] 
         j = (i * 3 +4) % len(colors)
         b = colors[j]
@@ -138,6 +139,8 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
     plt.xlabel(xlabel, fontsize=14)
     plt.ylabel(ylabel, fontsize=14)
     plt.title('%s vs %s' %(metricY, metricX), fontsize=18)
-    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    legend = ax1.legend(title=legend_label, fontsize=12,loc='center left', bbox_to_anchor=(1, 0.5))
+    #plt.legend()
+    plt.setp(legend.get_title(),fontsize=14)
     #plt.tight_layout()
     plt.show()
