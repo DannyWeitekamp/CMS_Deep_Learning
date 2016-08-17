@@ -6,9 +6,6 @@ if __name__ == "__main__":
 	if(len(sys.argv) > 1):
 		username = sys.argv[1]
 
-print("Executing as USER:" + username)
-raise ValueError()
-
 
 import socket
 if("daint" in socket.gethostname()):
