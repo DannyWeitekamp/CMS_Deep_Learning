@@ -5,7 +5,7 @@ def addCommitPushDir(folder, remote="origin", branch="master"):
 	out1 = os.popen("cd %s && git add ." % (folder)).read()
 	print(out1)
 	out2 = os.popen("cd %s && git commit -a -m 'added %r'" % (folder, folder)).read()
-	print(out2)
+	if(not "nothing added to commit" in out2): print(out2)
 	out3 = os.popen("cd %s && git push %r %r" % (folder, remote, branch)).read()
 	print(out3)
 
