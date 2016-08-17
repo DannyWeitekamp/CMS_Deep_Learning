@@ -19,7 +19,7 @@ else:
     import deepconfig
     dc = deepconfig.deepconfig(gpu='gpu1', backend='theano')
 
-archive_dir = DELPHES_DIR+"CSCS_Output/keras_archive/"
+archive_dir = DELPHES_DIR+"CSCS_output/keras_archive/"
 
 if(not SOFTWAR_DIR in sys.path):
     sys.path.append(SOFTWAR_DIR)
