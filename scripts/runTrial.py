@@ -12,7 +12,7 @@ while(time.clock() - start_time < 5):
         from CMS_SURF_2016.utils.archiving import KerasTrial, DataProcedure
         from CMS_SURF_2016.layers.lorentz import Lorentz
         from CMS_SURF_2016.layers.slice import Slice
-        from CMS_SURF_2016.scripts.gitutils import addCommitPushDir
+        from CMS_SURF_2016.utils.gitutils import addCommitPushDir
         imports_ok = True
         break
     except Exception as e:
