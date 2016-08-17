@@ -99,7 +99,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, alpha=.7, mode="max"):
+def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, alpha=.7, mode="max", verbose_errors=0):
     if(colors == None):
         colors = colors_contrasting
     trials_by_group = {}
@@ -113,7 +113,7 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
     for group,group_trials in (trials_by_group.iteritems() if len(trials_by_group) > 0 else [(label,trials)]):
         #print(group,len(group_trials))
         group_trials = findWithMetrics(group_trials, constants)
-        group_trials = assertOneToOne(group_trials, metricX,metricY=metricY, mode=mode)
+        group_trials = assertOneToOne(group_trials, metricX,metricY=metricY, mode=mode, verbose_errors=verbose_errors)
         Xs = [ trial.get_from_record(metricX) for trial in group_trials]
         Xs.sort()
         index = np.arange(len(Xs))

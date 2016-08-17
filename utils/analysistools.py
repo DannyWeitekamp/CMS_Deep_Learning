@@ -80,7 +80,7 @@ def getMetricValues(trials, metric):
             out.add(m)
     return out
     
-def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True):
+def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True,verbose_errors=0):
     trials = copy.copy(trials)
     if(trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r" % type(trials))
@@ -104,7 +104,10 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
             if(mode == "error"):
                 print(" \n\n ONE-TO-ONE ERROR! \n %r Trials with %r = %r" % (len(lst), metricX, x))
                 for trial in lst:
-                    trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
+                    if(not verbose_errors):
+                        trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
+                    else:
+                        trial.summary(showTraining=True,showValidation=True,showFit=True, showCompilation=True)
                 raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r. See the printout above for more information. " % metricX)
             else:
                 if(mode == "max" or mode == "min"):
