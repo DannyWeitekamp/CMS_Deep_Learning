@@ -10,6 +10,8 @@ import numpy as np
 from CMS_SURF_2016.utils.analysistools import *
 from CMS_SURF_2016.utils.colors import *
 from keras.callbacks import History
+from keras.utils.visualize_util import plot
+from IPython.display import Image, display
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
     """ Plots an array of training histories against each other
