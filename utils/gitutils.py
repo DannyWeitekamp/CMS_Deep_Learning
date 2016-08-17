@@ -1,4 +1,5 @@
 from  CMS_SURF_2016.utils.archiving import KerasTrial
+import os, sys
 
 def addCommitPushDir(folder, remote="origin", branch="master"):
 	out1 = os.popen("git -C %r add ." % folder)
