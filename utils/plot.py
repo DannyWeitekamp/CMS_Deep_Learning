@@ -99,7 +99,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, mode="max"):
+def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", colors=None, alpha=.7, mode="max"):
     if(colors == None):
         colors = colors_contrasting
     trials_by_group = {}
@@ -126,7 +126,7 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
         rects1 = plt.scatter(index, Ys,
                          #color='b',
                          #color=tuple(np.random.random(3)),
-                         alpha =.7,
+                         alpha =alpha,
                          s=50,
                          edgecolors=b,
                          color=c,
