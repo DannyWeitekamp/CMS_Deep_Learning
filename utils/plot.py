@@ -155,7 +155,7 @@ def plotEverything(trials, custom_objects={}):
         name = (str(tuple(labels)), history) if(labels != None) else "Cannot Find Labels"
         model = b.get_model(custom_objects=custom_objects)
         history = b.get_history()
-        plot_history([(str(tuple(labels)), history)], plotLoss = False)
+        plot_history([name, history)], plotLoss = False)
         dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
         image = Image("model.png")
         display(image)
