@@ -51,7 +51,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
                 history = history.history
             color = colors[i]
             if 'acc' in history:
-                plt.plot(history['acc'], lw=2, label=label+"training accuracy", color=color)
+                plt.plot(history['acc'], lw=2, label=label+" training accuracy", color=color)
                 if(plotBest):
                     best = max(history['acc'])
                     loc = history['acc'].index(best)
@@ -151,9 +151,10 @@ def plotEverything(trials, custom_objects={}):
     if(not isinstance(trials, list)): trials = [trials]
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)
+        labels = b.get_from_record("labels")
         model = b.get_model(custom_objects=custom_objects)
         history = b.get_history()
-        plot_history([(str(('ttbar', 'wjet', 'qcd')), history)], plotLoss = False)
+        plot_history([(str(tuple(labels)), history)], plotLoss = False)
         dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
         image = Image("model.png")
         display(image)
