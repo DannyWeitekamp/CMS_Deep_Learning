@@ -10,9 +10,32 @@ def accVsEventChar(model,
                    num_samples=None,
                    char2=None,
                    bins=20,
-                   possible_observables=['E/c', 'Px', 'Py', 'Pz', 'Charge', "PT_ET", "Eta", "Phi", "Dxy_Ehad_Eem"],
+                   possible_observables=['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 
+                     'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso'],
                    possible_objects=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
                    equalBins=False):
+    '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
+        #Arguements:
+            model -- The model being tested
+            data  -- A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure
+                     containing a generator is given the num_samples must be set.
+            char  -- Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
+                     reducing the data within each object type of a sample.
+            observ -- The observable to be reduced (i.e PT_ET, E/c, Phi).
+            objects -- What objects should be included in the characteristic computation.
+            num_samples -- The number of samples to be read from a generator dat input.
+            char2 -- Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.
+            bins -- The number of bins to use in the analysis.
+            possible_observables -- A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
+                                    in the sample, otherwise the "observ" argument will not select the intended column in the data.
+            possible_objects -- A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
+                                when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
+            equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
+                            will be very unusual, varying significantly in their domain.
+            '''
+
+
+    
     predictions = None
     characteristics = None
     if(isinstance(data, DataProcedure)):
