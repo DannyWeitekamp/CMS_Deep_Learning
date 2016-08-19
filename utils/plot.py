@@ -87,6 +87,14 @@ def print_accuracy_m( model, test_data, test_target):
 
 
 def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
+    ''' Plots the output of CMS_SURF_2016.utils.metrics.accVsEventChar
+        #Arguments:
+            bins -- A list of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
+            min_samples -- The minumum number of samples that must be in a bin for it to be plotted.
+            title -- The title of the plot
+            xlabel -- The xlabel of the plot
+            ylabel -- the ylabel of the plot
+            color -- the color of the plot (see how matplotlib handles colors)'''
     fig = plt.figure()
     ax = fig.add_subplot(111)
     for b in bins:
@@ -101,7 +109,32 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
+def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
+    '''Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
+        Asserts a one to one relationship incase of duplicate entries.
+        #Arguments:
+            trials -- A list of trials to be used for the plot. This list will be culled down by specifying constants={"record" : value, ...}.
+            metricX -- The record entry to be used for the x-axis of the plot
+            metricY -- The record entry to be used for the y-axis of the plot
+            groupOn -- The record entry to group the data on to add a second explanitory variable
+            constants -- A dictionary of record values (i.e {"depth" : 2, ...}) that should be kept constant in the plot. For example 
+                        if you only wanted to plot trials with a dropout of 0.0 you would do constants = {"dropout" : 0.0}.
+                        Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.
+                        To be certain of this one-to-one relationship set mode="error".
+            xlabel -- The X label of the plot
+            ylabel -- The Y label of the plot
+            label -- How to label objects in the legend if groupOn=None
+            legend_label -- The title for the lengend
+            colors -- A list of colors to use to represent each group, defaults to CMS_SURF_2016.utils.colors.colors_contrasting
+            alpha -- The alpha value (opacity) for each point in the plot
+            mode -- How to assert a one-to-one relationship between the trials in each group. Either "max" or "min" which simply take the trial
+                    with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
+                    relationship cannot be resolved. The user can then edit the 'constants' argument to satisfy this relationship. 
+                    See CMS_SURF_2016.analysistools.assertOneToOne for more information
+            verbose -- Whether or not to output extra information about the internals of the function for debugging.
+            verbose_errors -- Whether or not to print out longer summaries for conflicting trials if mode = "error".
+            '''
+
     fig=plt.figure()
     ax1=fig.add_subplot(111)
     if(colors == None):
@@ -148,6 +181,11 @@ def plotMetricVsMetric(trials,metricX,metricY="test_acc",groupOn=None,constants=
     plt.show()
 
 def plotEverything(trials, custom_objects={}):
+    '''Plots all the information about a list of trials. For each trial: the model summary, a picture of the model and a plot of accuracy vs Epoch
+        #Arguemnts
+            trials -- A list of trials to plot
+            custom_objects -- in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names
+    ''' 
     if(not isinstance(trials, list)): trials = [trials]
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)

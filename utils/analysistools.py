@@ -13,29 +13,39 @@ def findsubsets(S):
         out = out + [set(x) for x in itertools.combinations(S, m)]
     return out
 def group_by_labels(trials):
+    '''Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding trials as values.'''
     #sets = findsubsets(labels)
     #labels = set()
     trials_by_set = {}
     for trial in trials:
-        labels = trial.get_from_record('lables')
+        labels = trial.get_from_record('labels')
+        #Accidentally mispelled labels so this is just to make sure the mispelling can be found
+        if(labels == None): labels = trial.get_from_record('lables') 
         key = tuple([str(x) for x in labels])
         lst = trials_by_set[key] = trials_by_set.get(key, [])
         lst.append(trial)
                 
     return trials_by_set
 
-def sortOnMetric(trials,sortMetric='test_acc'):
+def sortOnMetric(trials,sortMetric='val_acc'):
+    '''Sort a list of trials on a record metric'''
     def getKey(trial):
         return trial.get_from_record(sortMetric)
     trials.sort(key=getKey, reverse=True)
-def print_by_labels(trials, num_print=None, ):
+def print_by_labels(trials, num_print=None,sortMetric='val_acc'):
+    '''Prints trials ordered and grouped by their labeles
+        #Arguments:
+            trials -- A list of KerasTrials
+            num_print -- How many to print, Defaults is all of them.
+            sortMetric -- What metric to sort the trials on
+    '''
     trials_by_set = group_by_labels(trials)
     for classification in trials_by_set:
         lst = trials_by_set[classification]
         head_str = "\n\n Classification: %r %r" % (classification,
                         "Top %r trials"%num_print if num_print != None else "" )
         print(head_str)
-        sortOnMetric(lst)
+        sortOnMetric(lst, sortMetric=sortMetric)
         if(num_print == None): num_print = len(lst)
         for i in range(min(num_print, len(lst))):
             lst[i].summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
@@ -43,6 +53,14 @@ def print_by_labels(trials, num_print=None, ):
 
 
 def findWithMetrics(trials, metrics):
+    '''Culls a list of trials, selecting only those trials that satisfy the given metrics
+        #Arguments:
+            trials -- a list of KerasTrials
+            metrics -- a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted 
+                    (i.e. {'depth' : 1, ...})
+        #Returns:
+            A culled list of KerasTrials'''
+
     if(trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r", type(trials))
     if(not isinstance(metrics, dict)):
@@ -72,6 +90,12 @@ def findWithMetrics(trials, metrics):
     return out
                 
 def getMetricValues(trials, metric):
+    '''Gets a list of record values from a list of trials
+        #Aruments:
+            trials -- a list of KerasTrials
+            metric -- a single record key or list of record keys. 
+        #Returns:
+            A list of record values or if metric is a list a list a tuples containing record values''' 
     out = set()
     for trial in trials:
         m = trial.get_from_record(metric)
@@ -81,6 +105,20 @@ def getMetricValues(trials, metric):
     return out
     
 def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True,verbose_errors=0):
+    '''Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in 'trials' can
+        be uniquely identified by the value in their record keyed by 'metricX'. So if metricX='depth' this function asserts that
+        no two trials in the input 'trials' list have the same depth value in their record. In the event of a conflict, the argument
+        'mode' determines how to proceed.
+        #Aruments:
+            trials -- a list of trials to be checked for a one-to-one relationship
+            metricX -- the metric (record key) whose value must uniquely idetify each trial
+            metricY -- In the event of a conflict when mode = "max" or "min", which metric to use to pick among the conflicting trials.
+            mode -- How to assert a one-to-one relationship between the trials. Either "max" or "min" which simply take the trial
+                    with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
+                    relationship cannot be resolved, showing the user the set of conflicting trials.
+            ignoreIncomplete -- Whether or not to ignore trials which did not finish training.
+            verbose_errors -- Whether or not to output long trial summaries if a conflict is found and mode = 'error'
+    '''
     trials = copy.copy(trials)
     if(trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r" % type(trials))
