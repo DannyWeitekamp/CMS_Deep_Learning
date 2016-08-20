@@ -2,6 +2,7 @@ import pandas as pd
 import os,sys
 
 def msgpack_assertMeta(filename, frames=None, redo=False):
+    '''Asserts that the .meta file for a given .msg file exists and returns the data in the .meta file once it exists'''
     meta_out_file = filename.replace(".msg", ".meta")
     print(meta_out_file)
     meta_frames = None
@@ -15,6 +16,7 @@ def msgpack_assertMeta(filename, frames=None, redo=False):
         if(frames == None):
             print("Bulk reading .msg for metaData assertion. Be patient, reading in slices not supported.")
             print(filename)
+            #Need to check for latin encodings due to weird pandas default
             try:
                 frames = pd.read_msgpack(filename)
             except UnicodeDecodeError as e:
