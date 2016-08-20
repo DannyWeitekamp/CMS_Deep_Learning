@@ -119,6 +119,7 @@ def label_dir_pairs_args_decoder(*args, **kargs):
     return (args, kargs)
 
 def getFiles_StoreType(data_dir):
+    '''Gets a list of files from a directory in the filesystem and the type of data stored in it. Asserts that the directory is not empty.'''
     if(not os.path.isdir(data_dir)):
             raise IOError("Directory %r does not exist." % data_dir)
     msgFiles = glob.glob(data_dir+"*.msg")
@@ -140,6 +141,7 @@ def getFiles_StoreType(data_dir):
     return (files, storeType)
 
 def getNumValFrame(filename, storeType):
+    '''Finds the num_val_frame frame in a pandas file in either msg or h5 format'''
     if(storeType == "hdf5"):
         #Get the HDF Store for the file
         store = pd.HDFStore(filename)
@@ -371,6 +373,31 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     return X_train, y_train
 
 def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, batch_size=100, megabytes=500, verbose=1):
+    '''Creates a set of DataProcedures that return generators and their coressponding lengths. Each generator consists of a list DataProcedures that preprocess data
+        from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by 'megabytes' so that each one is not too big. Each generator
+        reads a number of samples per label type set by 'splits' and 'length', and feeds data in batches of 'batch_size' into training.
+        #Arguments:
+            archive_dir -- The archive directory that the DataProcedures of each generator will archive their information in.
+            splits -- a list of either integers or floats between 0 and 1 (or both). Each entry in 'splits' designates a generator. If an Integer is given then a generator
+                      is built with the number of samples per label designated by that integer (static). If a float is given then the number of samples per label is computed as a 
+                      fraction of the argument 'length' minus the sum of the integer entries (ratio). Float (ratio) entries in splits must add up to 1.0.
+            length -- The total number of samples per label to be split among the float (ratio) values of 'splits' plus the Integer (static) values. In other words the total number
+                        of samples per value to be used by all of the generators built by this function. Does not matter if all splits are Integers (static).
+            object_profiles -- A list of ObjectProfiles (see CMS_SURF_2016.utils.preprocessing.ObjectProfile). Order matters, these determine how the final preprocessed inputs will be
+                            preprocessed and order among themselves.
+            label_dir_pairs -- A list of tuples where the first entry is a label and the second is the name of a directory containing pandas files (either msg or h5 format) corresponding 
+                            to that label.
+            observ_types -- A list of the types of observables to be used in the final preprocessed files.
+            batch_size -- How many samples to feed into training at a time. 
+            megabytes -- Determines how large in MB a DataProcedure archive should be. A smaller number means less data in memory at a time as each generator is used, but shorter more frequent
+                        disk reads. 
+            verbose -- Determines whether or not information is printed out as the generators are formed and as they are used. (TODO: the implementation of this might need some work, the specifics
+                        of how this information is passed along the the DPs and their dependant functions might not be implemented correctly at the moment, leading to printouts even if verbose=0)
+        #Returns (all_dps, all_datasets)
+            all_dps -- A list of DataProcedures, this can be passed to CMS_SURF_2016.utils.batch.batchAssertArchived to make sure that all the DPs are archived before proceeding to training
+            all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that
+                            each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  
+        '''
     stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=500)
     SNs = start_num_fromSplits(splits, length)
     all_dps = []
@@ -384,11 +411,11 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         object_profiles,
                                         observ_types,
                                         verbose=verbose)
-        gen_DP = DataProcedure(archive_dir, False,genFromPPs,dps, batch_size, threading = False, verbose=verbose)
+        gen_DP = DataProcedure(archive_dir, False,genFromDPs,dps, batch_size, threading = False, verbose=verbose)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
         all_dps += dps
-    #Calculate a good max__q_size and add it to the all_datasets list
+    #Calculate a good max_q_size and add it to the all_datasets list
     all_datasets += [max(np.ceil(stride/float(batch_size)), 1)]
     return (all_dps,all_datasets)
 
@@ -398,6 +425,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
             
 
 def strideFromTargetSize(object_profiles, num_labels, observ_types, megabytes=100):
+    '''Computes how large a stride is required to get DPs with archives of size megabytes'''
     if(isinstance(num_labels, list)): num_labels = len(num_labels)
     megabytes_per_sample = sum(o.max_size for o in object_profiles) * len(observ_types) * 24.0 / (1000.0 * 1000.0)
     print(megabytes_per_sample)
@@ -553,20 +581,20 @@ class dataFetchThread(threading.Thread):
         self.X, self.Y = self.proc.getData()
         return
 
-def genFromPPs(pps, batch_size, threading=False, verbose=1):
+def genFromDPs(dps, batch_size, threading=False, verbose=1):
     '''Gets a generator that generates data of batch_size from a list of DataProcedures.
         Optionally uses threading to apply getData in parellel, although this may be obsolete
         with the proper fit_generator settings'''
-    for pp in pps:
-        if(isinstance(pp, DataProcedure) == False):
-            raise TypeError("Only takes DataProcedure got" % type(pp))
+    for dp in dps:
+        if(isinstance(dp, DataProcedure) == False):
+            raise TypeError("Only takes DataProcedure got" % type(dp))
             
     
     while True:
         if(threading == True):
-            datafetch = dataFetchThread(pps[0])
+            datafetch = dataFetchThread(dps[0])
             datafetch.start()
-        for i in range(0,len(pps)):
+        for i in range(0,len(dps)):
             if(threading == True):
                 #Wait for the data to come in
                 while(datafetch.isAlive()):
@@ -574,13 +602,13 @@ def genFromPPs(pps, batch_size, threading=False, verbose=1):
                 X,Y = datafetch.X, datafetch.Y
 
                 #Start the next dataFetch
-                if(i != len(pps)-1):
-                    datafetch = dataFetchThread(pps[i+1])
+                if(i != len(dps)-1):
+                    datafetch = dataFetchThread(dps[i+1])
                 else:
-                    datafetch = dataFetchThread(pps[0])
+                    datafetch = dataFetchThread(dps[0])
                 datafetch.start()
             else:
-                X,Y = pps[i].getData(verbose=verbose)
+                X,Y = dps[i].getData(verbose=verbose)
                                    
             if(isinstance(X,list) == False): X = [X]
             if(isinstance(Y,list) == False): Y = [Y]
@@ -608,7 +636,7 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
             observ_types -- A list of the observable quantities in our pandas tables i.e ['E/c', "Px" ,,,etc.]
             verbose -- Whether or not to print
     '''
-    pps = procsFrom_label_dir_pairs(start,
+    dps = procsFrom_label_dir_pairs(start,
                                     samples_per_label,
                                     stride,
                                     archive_dir,
@@ -616,7 +644,7 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
                                     object_profiles,
                                     observ_types,
                                     verbose=verbose)
-    gen = genFromPPs(pps, batch_size, threading = False, verbose=verbose)
+    gen = genFromDPs(dps, batch_size, threading = False, verbose=verbose)
     return gen
 
 def XY_to_CSV(X,Y, csvdir):

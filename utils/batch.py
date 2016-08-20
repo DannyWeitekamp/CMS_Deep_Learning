@@ -6,6 +6,10 @@ from CMS_SURF_2016.layers.lorentz import Lorentz
 from CMS_SURF_2016.layers.slice import Slice
 
 def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/'):
+    '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
+        a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
+        DPs have completed their preprocessing and archived the result.
+    '''
     scripts_dir = repo + "scripts/"
 
     unarchived = []
@@ -43,6 +47,9 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
     return dependencies
 
 def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
+    '''Takes in a list of tuples 'tups' of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
+        each trial, either in in order or in separate batches in the case of CSCS.
+    '''
     isdaint = "daint" in socket.gethostname()
     scripts_dir = repo + "scripts/" 
     for trial, test, num_test, deps in tups:
