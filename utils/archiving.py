@@ -74,12 +74,14 @@ class Storable( object ):
         return record
 
     def write_record(self, obj, verbose=0):
+         '''Write the dictionary containing all the record values for this trial '''
         if(not isinstance(obj, dict)):
             raise TypeError("obj must be type dict, but got %r" % type(obj))
         write_json_obj(obj, self.get_path(),'record.json',verbose=verbose)
 
     @staticmethod
     def get_all_paths(archive_dir):
+        '''Get a list of all the blob paths of the Storables in the given archive_dir'''
         if(archive_dir[-1] != "/"):
             archive_dir += "/"
         directories = glob.glob(archive_dir + "blobs/*")
@@ -91,6 +93,7 @@ class Storable( object ):
 
     @classmethod
     def get_all_records(cls,archive_dir,verbose=0):
+        '''Get a dicionary of all the records in the archive_dir keyed by their hashcodes'''
         paths = cls.get_all_paths(archive_dir)
         records = {}
         for path in paths:
@@ -148,6 +151,7 @@ class DataProcedure(Storable):
         self.encoder = encoder
 
     def to_hashable(self):
+        '''Gets a string that uniquely defines an object as far as its model, complilation, and training parameters are concerned'''
         return self.to_json()
 
     def to_json(self):
@@ -339,6 +343,7 @@ class DataProcedure(Storable):
 
     @staticmethod
     def get_all_paths(archive_dir):
+        '''Gets the blob paths of all of the DataProcedures in the archive_dir'''
         paths = Storable.get_all_paths(archive_dir)
         paths = [p for p in paths if os.path.isfile(p + "procedure.json")]
         return paths
@@ -435,6 +440,7 @@ class KerasTrial(Storable):
             self.model = model.to_json()
 
     def _prep_procedure(self, procedure, name='train'):
+        '''A helper function that makes sure that DataProcedures are stored as json strings for easy serialization'''
         if(procedure != None):
             if(isinstance(procedure, list) == False):
                 procedure = [procedure]
@@ -538,6 +544,7 @@ class KerasTrial(Storable):
 
 
     def _json_dict_helper(self):
+        '''A helper function that generates a dictionary of values from a DataProcedure, omitting data that should not be stored or hashed on'''
         temp = self.compiled_model
         self.compiled_model = None
         d = self.__dict__
@@ -596,6 +603,7 @@ class KerasTrial(Storable):
         return model
 
     def _generateCallbacks(self, verbose):
+        '''A helper function that Generates a SmartCheckpoint used for storing the training history of a trial, plus more'''
         callbacks = []
         for c in self.callbacks:
             if(c != None):
@@ -611,6 +619,7 @@ class KerasTrial(Storable):
         return callbacks
 
     def _history_to_record(self, record_store):
+        '''A helper function that Adds the important parts of the training history to the record'''
         histDict = self.get_history()
         if(histDict != None):
             dct = {} 
@@ -638,7 +647,7 @@ class KerasTrial(Storable):
        
 
     def fit_generator(self, model, generator, validation_data=None, record_store=["val_acc"] ,verbose=1):
-
+        ''''Runs model.fit_generator(gen, samples) for the trial using the arguments passed to trial.setFit_Generator(...)''''
         callbacks = self._generateCallbacks(verbose)
 
         model.fit_generator(generator, self.samples_per_epoch,
@@ -765,6 +774,7 @@ class KerasTrial(Storable):
 
     @staticmethod
     def get_all_paths(archive_dir):
+        '''Get a list of all the blob paths of the KerasTrials in the given archive_dir'''
         paths = Storable.get_all_paths(archive_dir)
         paths = [p for p in paths if os.path.isfile(p + "trial.json")]
         return paths
