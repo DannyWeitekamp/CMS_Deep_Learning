@@ -74,7 +74,7 @@ class Storable( object ):
         return record
 
     def write_record(self, obj, verbose=0):
-         '''Write the dictionary containing all the record values for this trial '''
+        '''Write the dictionary containing all the record values for this trial '''
         if(not isinstance(obj, dict)):
             raise TypeError("obj must be type dict, but got %r" % type(obj))
         write_json_obj(obj, self.get_path(),'record.json',verbose=verbose)
@@ -647,7 +647,7 @@ class KerasTrial(Storable):
        
 
     def fit_generator(self, model, generator, validation_data=None, record_store=["val_acc"] ,verbose=1):
-        ''''Runs model.fit_generator(gen, samples) for the trial using the arguments passed to trial.setFit_Generator(...)''''
+        '''Runs model.fit_generator(gen, samples) for the trial using the arguments passed to trial.setFit_Generator(...)'''
         callbacks = self._generateCallbacks(verbose)
 
         model.fit_generator(generator, self.samples_per_epoch,

@@ -23,6 +23,7 @@ _K = K.variable(np_K)
 
 
 def _lorentz(x, boosts,weights=None, sphereCoords=False):
+
     ''' Outputs a backend variable that Calculates the vectorial sum of 4-vectors
         boosted individually into different reference frames
     '''
@@ -114,7 +115,10 @@ class Lorentz(Layer):
         Trains on a set of weights:
             Bo (boost: which boosts each of any number of input 4-vectors)
             W  (weight: applies a mulitplier to the boosted 4-vectors)
-            Bi (bias: boosts the vectorial sum of the input 4-vectors)
+            DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)
+        #Arguements:
+            sphereCoords -- if True uses spherical coordinates for calculating the boost instead of Cartesian.
+            vec_start -- determines where to start reading the 4-vector along the last axis of the input.
     '''
     def __init__(self,sphereCoords=False, vec_start=0, **kwargs):
         if(isinstance(sphereCoords, bool) == False):
@@ -204,6 +208,7 @@ class Lorentz(Layer):
 
 
 
+#DEPRICATED -- Can be made easily by simply chaining a regular convolutional layer after the lorentz layer
 
 class ConvLorentz(Layer):
     ''' A layer that uses the lorentz transformation to analyze input 4-vectors
