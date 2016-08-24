@@ -1,3 +1,6 @@
+'''DEPRICATED
+	just a quick script to translate from an old archiving format
+'''
 import sys, os
 if __package__ is None:
     sys.path.append(os.path.realpath("../"))

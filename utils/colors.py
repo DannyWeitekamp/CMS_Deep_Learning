@@ -1,3 +1,5 @@
+
+#A list of colors that contrast <- well sort of there is probably a better list
 colors_contrasting = \
 [
 #Shade 0
@@ -44,6 +46,7 @@ colors_contrasting = \
 ]
 
 def showColors(colors):
+	'''Plots a list of colors with outlines taken from the same list'''
 	fig, ax = plt.subplots(1)
 	fig.set_size_inches((10,10))
 

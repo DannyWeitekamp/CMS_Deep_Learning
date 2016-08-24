@@ -1,6 +1,12 @@
 from keras.engine.topology import Layer
 
 class Slice(Layer):
+    '''Applies a slice to input data and outputs the results, does not slice along the batch axis
+        #Arguments:
+            split_str -- a string like "[A:B:C, D:E:F, ... ,]" designating the splits to make on the input data
+                where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.
+            Note: Splitting on the batch axis is protected against so [:,4:5] is really [:,:,4:5]
+    '''
     def __init__(self, split_str, **kwargs):
         super(Slice, self).__init__(**kwargs)
 
