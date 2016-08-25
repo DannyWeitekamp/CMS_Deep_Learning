@@ -1105,6 +1105,8 @@ def read_json_obj(directory, filename, verbose=0):
 
 def write_json_obj(obj,directory, filename, verbose=0):
     '''Writes a json object to the given directory'''
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     try:
         json.dump(obj,  open( directory + filename, "wb" ))
         if(verbose >= 1): print('Sucessfully wrote ' + filename +'  at ' + directory)

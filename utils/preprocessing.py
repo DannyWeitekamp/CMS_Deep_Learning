@@ -428,7 +428,6 @@ def strideFromTargetSize(object_profiles, num_labels, observ_types, megabytes=10
     '''Computes how large a stride is required to get DPs with archives of size megabytes'''
     if(isinstance(num_labels, list)): num_labels = len(num_labels)
     megabytes_per_sample = sum(o.max_size for o in object_profiles) * len(observ_types) * 24.0 / (1000.0 * 1000.0)
-    print(megabytes_per_sample)
     return int(megabytes/megabytes_per_sample)
 
 def maxMutualLength(label_dir_pairs, object_profiles):
