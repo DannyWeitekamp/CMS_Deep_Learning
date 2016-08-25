@@ -33,7 +33,7 @@ def accVsEventChar(model,
             equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                             will be very unusual, varying significantly in their domain.
         #Returns:
-            A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016.utils.plot.plotBins
+            A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
     
     predictions = None

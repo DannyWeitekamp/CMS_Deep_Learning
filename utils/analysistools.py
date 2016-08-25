@@ -8,6 +8,7 @@ import numpy as np
 import copy
 
 def findsubsets(S):
+    '''Finds all subsets of a set S'''
     out = []
     for m in range(2, len(S)):
         out = out + [set(x) for x in itertools.combinations(S, m)]
