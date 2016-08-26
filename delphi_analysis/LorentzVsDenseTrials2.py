@@ -35,7 +35,7 @@ from CMS_SURF_2016.utils.archiving import *
 from CMS_SURF_2016.utils.batch import batchAssertArchived, batchExecuteAndTestTrials
 from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
 from CMS_SURF_2016.layers.slice import Slice
-from CMS_SURF_2016.utils.analysistools import findsubsets
+
 
 
 from keras.models import Sequential, Model, model_from_json
@@ -44,6 +44,13 @@ from keras.engine.topology import Layer
 from keras.callbacks import EarlyStopping
 from keras.utils.visualize_util import plot
 from keras.layers.advanced_activations import LeakyReLU
+
+def findsubsets(S):
+    '''Finds all subsets of a set S'''
+    out = []
+    for m in range(2, len(S)):
+        out = out + [set(x) for x in itertools.combinations(S, m)]
+    return out
 
 #The observables taken from the table
 observ_types = ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
