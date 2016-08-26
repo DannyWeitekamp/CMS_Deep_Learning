@@ -12,7 +12,7 @@ while(time.clock() - start_time < 5):
         from CMS_SURF_2016.utils.archiving import KerasTrial, DataProcedure
         from CMS_SURF_2016.layers.lorentz import Lorentz
         from CMS_SURF_2016.layers.slice import Slice
-        from CMS_SURF_2016.utils.gitutils import addCommitPushDir
+        from CMS_SURF_2016.utils.rsyncUtils import rsyncStorable
         imports_ok = True
         break
     except Exception as e:
@@ -32,7 +32,8 @@ def main(archive_dir,hashcode, test_hashcode, num_test):
     print("EXECUTING: %s" % hashcode)
     sys.stdout.flush() 
     trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
-    addCommitPushDir(trial.get_path())
+    rsyncStorable(trial.hash(), archive_dir, "dweitekamp@titans.hep.caltech.edu:/data/shared/Delphes/CSCS_output/keras_archive")
+    #addCommitPushDir(trial.get_path())
 
     return
     raise NotImplementedError("Will not run test, evaluate_generator acts weird on CSCS")    

@@ -98,87 +98,88 @@ def genModel(name,out_dim, depth, width, dense_activation="relu", dropout = 0.0,
 
 earlyStopping = EarlyStopping(verbose=1, patience=10)
 trial_tups = []
-for sort_on in ["PT_ET"]:
-    for max_EFlow_size in [100]:#[100, 200]:
-    	for ldp in ldpsubsets:
-    	labels = [x[0] for x in ldp]
-        object_profiles = [ObjectProfile("Electron",-1),
-                            ObjectProfile("MuonTight", -1),
-                            ObjectProfile("Photon", -1),
-                            ObjectProfile("MissingET", 1),
-                            ObjectProfile("EFlowPhoton",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
-                            ObjectProfile("EFlowNeutralHadron",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
-                            ObjectProfile("EFlowTrack",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False)] 
+for ldp in ldpsubsets:
+	labels = [x[0] for x in ldp]
+	for sort_on in ["PT_ET"]:
+	    for max_EFlow_size in [100]:#[100, 200]:
+	    	
+	        object_profiles = [ObjectProfile("Electron",-1),
+	                            ObjectProfile("MuonTight", -1),
+	                            ObjectProfile("Photon", -1),
+	                            ObjectProfile("MissingET", 1),
+	                            ObjectProfile("EFlowPhoton",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
+	                            ObjectProfile("EFlowNeutralHadron",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
+	                            ObjectProfile("EFlowTrack",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False)] 
 
-        resolveProfileMaxes(object_profiles, ldp)
+	        resolveProfileMaxes(object_profiles, ldp)
 
-        dps, l = getGensDefaultFormat(archive_dir, (100000,20000,20000), 140000, \
-                             object_profiles,label_dir_pairs,observ_types,megabytes=500, verbose=0)
+	        dps, l = getGensDefaultFormat(archive_dir, (100000,20000,20000), 140000, \
+	                             object_profiles,ldp,observ_types,megabytes=500, verbose=0)
 
-        dependencies = batchAssertArchived(dps)
-        train, num_train = l[0]
-        val,   num_val   = l[1]
-        test,  num_test  = l[2]
-        max_q_size = l[3]
-        print("MAXQ: ",max_q_size)
+	        dependencies = batchAssertArchived(dps)
+	        train, num_train = l[0]
+	        val,   num_val   = l[1]
+	        test,  num_test  = l[2]
+	        max_q_size = l[3]
+	        print("MAXQ: ",max_q_size)
 
-        
-        for name in ['lorentz', 'not_lorentz', 'control_dense']:
-            for sphereCoords in [False]:
-            	for weight_output in [False, True]:
-	                for depth in [2,3]:
-	                    for width in [10,25]:
-	                        for activation in ['relu']:
-	                            for dropout in [0.0]:
-	                                activation_name = activation if isinstance(activation, str) \
-	                                                    else activation.__name__
-	                                model = genModel(name, len(labels), depth, width, activation, dropout, sphereCoords)
+	        
+	        for name in ['lorentz', 'not_lorentz', 'control_dense']:
+	            for sphereCoords in [False]:
+	            	for weight_output in [False, True]:
+		                for depth in [2,3]:
+		                    for width in [10,25]:
+		                        for activation in ['relu']:
+		                            for dropout in [0.0]:
+		                                activation_name = activation if isinstance(activation, str) \
+		                                                    else activation.__name__
+		                                model = genModel(name, len(labels), depth, width, activation, dropout, sphereCoords)
 
-	                                print(model.summary())
+		                                print(model.summary())
 
-	                                trial = KerasTrial(archive_dir, name=name, model=model)
+		                                trial = KerasTrial(archive_dir, name=name, model=model)
 
-	                                trial.setTrain(train_procedure=train,
-	                                               samples_per_epoch=num_train
-	                                              )
-	                                trial.setValidation(val_procedure=val,
-	                                                   nb_val_samples=num_val)
-	                                trial.setCompilation(loss='binary_crossentropy',
-	                                          optimizer='adam',
-	                                          metrics=['accuracy']
-	                                              )
+		                                trial.setTrain(train_procedure=train,
+		                                               samples_per_epoch=num_train
+		                                              )
+		                                trial.setValidation(val_procedure=val,
+		                                                   nb_val_samples=num_val)
+		                                trial.setCompilation(loss='binary_crossentropy',
+		                                          optimizer='adam',
+		                                          metrics=['accuracy']
+		                                              )
 
-	                                trial.setFit_Generator( 
-	                                                nb_epoch=epochs,
-	                                                callbacks=[earlyStopping],
-	                                                max_q_size = max_q_size)
+		                                trial.setFit_Generator( 
+		                                                nb_epoch=epochs,
+		                                                callbacks=[earlyStopping],
+		                                                max_q_size = max_q_size)
 
-	                                trial.write()
+		                                trial.write()
 
-	                                #print("EXECUTE: ", name,labels, depth, activation_name)
-	                                #trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice},
-	                                #             train_arg_decode_func=label_dir_pairs_args_decoder,
-	                                #             val_arg_decode_func=label_dir_pairs_args_decoder)
-
-
-	                                #trial.test(test_proc=test,
-	                                #             test_samples=num_test,
-	                                #             custom_objects={"Lorentz":Lorentz,"Slice": Slice},
-	                                #            arg_decode_func = label_dir_pairs_args_decoder)
+		                                #print("EXECUTE: ", name,labels, depth, activation_name)
+		                                #trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice},
+		                                #             train_arg_decode_func=label_dir_pairs_args_decoder,
+		                                #             val_arg_decode_func=label_dir_pairs_args_decoder)
 
 
-	                                trial.to_record({"labels": labels,
-	                                                 "depth": depth,
-	                                                 "width" : width,
-	                                                 "sort_on" : sort_on,
-	                                                 "activation": activation_name,
-	                                                 "weight_output": weight_output,
-	                                                 "dropout":dropout,
-	                                                 "max_EFlow_size": max_EFlow_size,
-	                                                 "sort_on" : sort_on,
-	                                                 "optimizer" : "adam"
-	                                                })
-	                                trial_tups.append((trial, test, num_test, dependencies))
+		                                #trial.test(test_proc=test,
+		                                #             test_samples=num_test,
+		                                #             custom_objects={"Lorentz":Lorentz,"Slice": Slice},
+		                                #            arg_decode_func = label_dir_pairs_args_decoder)
+
+
+		                                trial.to_record({"labels": labels,
+		                                                 "depth": depth,
+		                                                 "width" : width,
+		                                                 "sort_on" : sort_on,
+		                                                 "activation": activation_name,
+		                                                 "weight_output": weight_output,
+		                                                 "dropout":dropout,
+		                                                 "max_EFlow_size": max_EFlow_size,
+		                                                 "sort_on" : sort_on,
+		                                                 "optimizer" : "adam"
+		                                                })
+		                                trial_tups.append((trial, test, num_test, dependencies))
 batchExecuteAndTestTrials(trial_tups)
 
                 

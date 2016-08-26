@@ -12,9 +12,9 @@ def rsyncStorable(hashcode, src_archive_dir, dest_archive_dir):
 	out1 = os.popen("cd %s && rsync -a --relative %r %r" % (src_archive_dir,rel_path, dest_archive_dir)).read()
 	
 
-def commitAllTrials(archive_dir,remote="origin", branch="master"):
-	paths = KerasTrial.get_all_paths(archive_dir)
-	for path in paths:
-		addCommitPushDir(path,remote="origin", branch="master")
+# def commitAllTrials(archive_dir,remote="origin", branch="master"):
+# 	paths = KerasTrial.get_all_paths(archive_dir)
+# 	for path in paths:
+# 		addCommitPushDir(path,remote="origin", branch="master")
 
 rsyncStorable('f3b48f37e401891083aac927f86375f2e96015ac', "MyArchiveDir/", "dweitekamp@titans.hep.caltech.edu:~/fake_archive_dir/")
