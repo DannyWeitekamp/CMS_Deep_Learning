@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 import ntpath
 import glob
+import itertools
 
 from CMS_SURF_2016.utils.preprocessing import *
 from CMS_SURF_2016.utils.callbacks import OverfitStopping, SmartCheckpoint
