@@ -120,12 +120,13 @@ class Lorentz(Layer):
             sphereCoords -- if True uses spherical coordinates for calculating the boost instead of Cartesian.
             vec_start -- determines where to start reading the 4-vector along the last axis of the input.
     '''
-    def __init__(self,sphereCoords=False, vec_start=0, **kwargs):
+    def __init__(self,sphereCoords=False, vec_start=0, weight_output=False, **kwargs):
         if(isinstance(sphereCoords, bool) == False):
             raise TypeError("sphereCoords should be bool type, but got %r" % type(sphereCoords))
         self.output_dim = 4
         self.sphereCoords = sphereCoords
         self.vec_start = vec_start
+        self.weight_output = weight_output
         # kwargs['input_shape'] = (cluster_size, 4)
         super(Lorentz, self).__init__(**kwargs)
         
@@ -139,7 +140,7 @@ class Lorentz(Layer):
         #Boosts for each vector in the cluster
         initial_boosts_value = np.random.random((input_dim,3))
         #Bias Boost for the vector sum
-        initial_bias_value = np.random.random((1,3))
+        #initial_bias_value = np.random.random((1,3))
         #Weight values for each vector in the cluster
         initial_weights_value = np.random.random((input_dim,1))
         
@@ -150,18 +151,24 @@ class Lorentz(Layer):
         
         #store weights
         self.Bo = K.variable(initial_boosts_value)
-        self.Bi = K.variable(initial_bias_value)
-        self.W = K.variable(initial_weights_value)
+        #self.Bi = K.variable(initial_bias_value)
+        if(self.weight_output):
+            self.W = K.variable(initial_weights_value)
+        else:
+            self.W = None
         
         #If in Cartesian Coordinates apply maxnorm constraint so that we can
         #only boost our vectors into real reference frames
         if(~self.sphereCoords):
             self.constraints[self.Bo] = maxnorm(axis=1)
-            self.constraints[self.Bi] = maxnorm(axis=1)
+            #self.constraints[self.Bi] = maxnorm(axis=1)
         
         #Let keras know about our weights
         # self.trainable_weights = [self.W, self.Bi, self.Bo]
-        self.trainable_weights = [self.W, self.Bo]
+        if(self.weight_output):
+            self.trainable_weights = [self.W, self.Bo]
+        else:
+            self.trainable_weights = [self.Bo]
 
 
 
@@ -187,7 +194,8 @@ class Lorentz(Layer):
     def get_config(self):
         base_config = Layer.get_config(self)
         config = {'sphereCoords': self.sphereCoords,
-                  'vec_start': self.vec_start}
+                  'vec_start': self.vec_start,
+                  'weight_output' : self.weight_output}
         
         return dict(list(base_config.items()) + list(config.items()))
 

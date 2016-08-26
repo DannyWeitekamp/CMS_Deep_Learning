@@ -5,7 +5,7 @@ from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial
 from CMS_SURF_2016.layers.lorentz import Lorentz
 from CMS_SURF_2016.layers.slice import Slice
 
-def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/'):
+def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
     '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
         a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
         DPs have completed their preprocessing and archived the result.
@@ -28,13 +28,13 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
         for u in unarchived:
             u.write()
             ofile = dp_out_dir + u.hash()[:5] + ".%j"
-            print("OutFile: ",ofile)
+            if(verbose >= 1): print("OutFile: ",ofile)
             f.write('sbatch -t %s -o %s -e %s %srunDP.sh %s %s %s\n' % (time_str,ofile,ofile,scripts_dir, repo,u.archive_dir,u.hash()))
             
         f.close()
         
         out = os.popen(scripts_dir+"tmp/runDPs.sh").read()
-        print("THIS IS THE OUTPUT:",out)
+        if(verbose >= 1): print("THIS IS THE OUTPUT:",out)
         dep_clause = ""
         matches = re.findall("Submitted batch job [0-9]+", out) 
 
@@ -44,9 +44,10 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
     else:
         for u in unarchived:
             u.getData(archive=True)
+            if(verbose >= 1): print("Archived %r" % u.hash())
     return dependencies
 
-def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/'):
+def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/', verbose=1):
     '''Takes in a list of tuples 'tups' of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
         each trial, either in in order or in separate batches in the case of CSCS.
     '''
@@ -62,15 +63,16 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dw
             ofile = trial_out_dir + hashcode[:5] + ".%j"
             sbatch = 'sbatch -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
             sbatch += '%srunTrial.sh %s %s %s %s %s\n' % (scripts_dir,repo,archive_dir,hashcode, test_hashcode, num_test)
-            print(sbatch)
+            if(verbose >=1): print(sbatch)
             out = os.popen(sbatch).read()
-            print("THIS IS THE OUTPUT:",out)
+            if(verbose >=1): print("THIS IS THE OUTPUT:",out)
         else:
             trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
+            if(verbose >=1): print("EXECUTE %r" % trial.hash())
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
+            if(verbose >=1): print("TEST %r" % trial.hash())
             test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
-            print("T@:", type(test))
             trial.test(test_proc=test,
                          test_samples=num_test,
                          custom_objects={"Lorentz":Lorentz,"Slice": Slice})
