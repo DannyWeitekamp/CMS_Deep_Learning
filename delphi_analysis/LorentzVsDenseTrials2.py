@@ -35,6 +35,7 @@ from CMS_SURF_2016.utils.archiving import *
 from CMS_SURF_2016.utils.batch import batchAssertArchived, batchExecuteAndTestTrials
 from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
 from CMS_SURF_2016.layers.slice import Slice
+from CMS_SURF_2016.utils.analysistools import findsubsets
 
 
 from keras.models import Sequential, Model, model_from_json
