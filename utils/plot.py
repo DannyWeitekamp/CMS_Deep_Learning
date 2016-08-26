@@ -190,6 +190,7 @@ def plotEverything(trials, custom_objects={}):
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)
         labels = b.get_from_record("lables")
+        if(labels == None): b.get_from_record("labels")
         name = str(tuple(labels)) if(labels != None) else "Cannot Find Labels"
         model = b.get_model(custom_objects=custom_objects)
         history = b.get_history()
