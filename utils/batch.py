@@ -21,6 +21,8 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
     if("daint" in socket.gethostname()):
         if(not os.path.exists(scripts_dir + "tmp/")):
             os.makedirs(scripts_dir + "tmp/")
+        if(not os.path.exists(dp_out_dir)):
+            os.makedirs(dp_out_dir)
         runDPs_file = scripts_dir + "tmp/runDPs.sh"
         f = open(runDPs_file, 'w')
         os.chmod(runDPs_file, 0o777)
@@ -58,6 +60,8 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dw
         test.write()
         test_hashcode = test.hash()
         if(isdaint):
+            if(not os.path.exists(trial_out_dir)):
+                os.makedirs(trial_out_dir)
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
             ofile = trial_out_dir + hashcode[:5] + ".%j"
             sbatch = 'sbatch -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
