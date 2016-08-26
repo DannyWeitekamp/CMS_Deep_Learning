@@ -17,7 +17,7 @@ while(time.clock() - start_time < 60):
         continue
 
 if(not imports_ok):
-    raise IOError("Failed to import CMS_SURF_2016 or keras, check that ~/.keras/keras.json is not corrupted")
+    raise IOError("Failed to import CMS_SURF_2016 or keras, ~/.keras/keras.json is probably being read by multiple processes")
 
 
 def main(archive_dir,hashcode):
