@@ -43,8 +43,7 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
         for u in unarchived:
-            u.getData(archive=True)
-            if(verbose >= 1): print("Archived %r" % u.hash())
+            u.getData(archive=True, verbose=verbose)
     return dependencies
 
 def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/', verbose=1):

@@ -266,7 +266,7 @@ class DataProcedure(Storable):
                         and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
                         if(self.archive_getData == True or archive == True):
                             self.archive(out[0], out[1])
-                            if(verbose >= 1): print("ARCHIVE SUCCESSFUL")
+                            if(verbose >= 1): print("ARCHIVE SUCCESSFUL %r" % self.hash())
                 else:
                     raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
             elif(isinstance(out, types.GeneratorType)):
