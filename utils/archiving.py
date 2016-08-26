@@ -14,6 +14,7 @@ import re
 import types
 import shutil
 import glob
+import numpy as np
 #On CSCS stuff really bugs out because everything tries to read .keras/keras.json at once
 #So if we don't need stuff from keras we just don't use it
 try:
