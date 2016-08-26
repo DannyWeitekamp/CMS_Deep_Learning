@@ -10,6 +10,7 @@ start_time = time.clock()
 while(time.clock() - start_time < 60):
     try:
         from CMS_SURF_2016.utils.archiving import DataProcedure
+        imports_ok = True
         break
     except Exception as e:
     	print("Failed import trying again...")
