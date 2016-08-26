@@ -147,7 +147,7 @@ class Lorentz(Layer):
         #If in Cartesian Coordinates scale so maxNorm = 1
         if(~self.sphereCoords):
             initial_boosts_value *= .33
-            initial_bias_value *= .33
+            # initial_bias_value *= .33
         
         #store weights
         self.Bo = K.variable(initial_boosts_value)
