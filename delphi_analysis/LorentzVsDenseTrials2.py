@@ -16,13 +16,14 @@ else:
     DELPHES_DIR = "/data/shared/Delphes/"
     SOFTWAR_DIR = "/data/shared/Software/"
     STORE_TYPE = "h5"
-    import deepconfig
-    dc = deepconfig.deepconfig(gpu='gpu1', backend='theano')
 
 archive_dir = DELPHES_DIR+"CSCS_output/keras_archive/"
 
 if(not SOFTWAR_DIR in sys.path):
     sys.path.append(SOFTWAR_DIR)
+    if(not "daint" in socket.gethostname()):
+        import deepconfig
+        dc = deepconfig.deepconfig(gpu='gpu1', backend='theano')
 
 import numpy as np
 import pandas as pd
