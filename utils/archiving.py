@@ -7,11 +7,6 @@ e-mail: dannyweitekamp@gmail.com
 
 import json
 import hashlib
-from keras.models import model_from_json
-from keras.engine.training import Model
-from CMS_SURF_2016.utils.callbacks import *
-from keras.models import model_from_json
-from keras.callbacks import *
 import os
 import copy
 import h5py
@@ -19,8 +14,19 @@ import re
 import types
 import shutil
 import glob
-from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
-from CMS_SURF_2016.layers.slice import Slice
+#On CSCS stuff really bugs out because everything tries to read .keras/keras.json at once
+#So if we don't need stuff from keras we just don't use it
+try:
+    from keras.models import model_from_json
+    from keras.engine.training import Model
+    from CMS_SURF_2016.utils.callbacks import *
+    from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
+    from CMS_SURF_2016.layers.slice import Slice
+    from keras.models import model_from_json
+    from keras.callbacks import *
+except Exception as e:
+    pass
+
 
 
 class Storable( object ):

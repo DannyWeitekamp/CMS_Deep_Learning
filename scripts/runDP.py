@@ -7,7 +7,7 @@ if(not repo_outerdir in sys.path):
 
 imports_ok = False
 start_time = time.clock()
-while(time.clock() - start_time < 5):
+while(time.clock() - start_time < 60):
     try:
         from CMS_SURF_2016.utils.archiving import DataProcedure
         break
