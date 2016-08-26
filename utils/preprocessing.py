@@ -591,6 +591,7 @@ def genFromDPs(dps, batch_size, threading=False, verbose=1):
     
     while True:
         if(threading == True):
+            print("THREADING ENABLED")
             datafetch = dataFetchThread(dps[0])
             datafetch.start()
         for i in range(0,len(dps)):
