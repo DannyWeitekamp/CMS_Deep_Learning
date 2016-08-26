@@ -82,7 +82,7 @@ def genModel(name,out_dim, depth, width, dense_activation="relu", dropout = 0.0,
 			b1 = Lorentz(sphereCoords=sphereCoords, name="lorentz_"+str(i))(a)
 		elif(name == 'control_dense'):
 			b1 = Slice('[:,0:4]',name='slice_1_'+str(i))(a)
-			b1 = Flatten(name="4_flatten_"+str(i))(a)
+			b1 = Flatten(name="4_flatten_"+str(i))(b1)
 			b1 = Dense(4 * profile.max_size, activation='linear', name='4_dense_'+str(i))(b1)
 		else:
 			b1 = Slice('[:,0:4]',name='slice_1_'+str(i))(a)
