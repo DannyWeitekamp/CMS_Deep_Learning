@@ -348,7 +348,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             samples_read += samples_to_read
             if(verbose >= 1): print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, samples_per_label, start, samples_per_label+start))
             if(samples_read >= samples_per_label):
-                print('-' * 50)
+                if(verbose >= 1): print('-' * 50)
                 assert samples_read == samples_per_label
                 break
         if(samples_read != samples_per_label):
