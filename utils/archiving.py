@@ -15,18 +15,14 @@ import types
 import shutil
 import glob
 import numpy as np
-#On CSCS stuff really bugs out because everything tries to read .keras/keras.json at once
-#So if we don't need stuff from keras we just don't use it
-try:
-    from keras.models import model_from_json
-    from keras.engine.training import Model
-    from CMS_SURF_2016.utils.callbacks import *
-    from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
-    from CMS_SURF_2016.layers.slice import Slice
-    from keras.models import model_from_json
-    from keras.callbacks import *
-except Exception as e:
-    pass
+
+from keras.models import model_from_json
+from keras.engine.training import Model
+from CMS_SURF_2016.utils.callbacks import *
+from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
+from CMS_SURF_2016.layers.slice import Slice
+from keras.models import model_from_json
+from keras.callbacks import *
 
 
 
