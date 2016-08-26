@@ -153,24 +153,31 @@ class DataProcedure(Storable):
         '''Set the json encoder for the procedure in case its arguements are not json encodable'''
         self.encoder = encoder
 
-    def to_hashable(self):
-        '''Gets a string that uniquely defines an object as far as its model, complilation, and training parameters are concerned'''
-        return self.to_json()
-
-    def to_json(self):
-        '''Returns the json string for the Procedure with only its essential characteristics'''
+    def _genJsonableDict(self):
         d = self.__dict__
         d = copy.deepcopy(d)
 
         d["class_name"] = self.__class__.__name__
-        #Don't hash on verbose or verbosity if they are in the function
-        if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
-        if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
 
         del d["archive_dir"]
         if('encoder' in d): del d["encoder"]
         if('decoder' in d): del d["decoder"]
         del d["hashcode"]
+        return d
+
+    def to_hashable(self):
+        '''Gets a string that uniquely defines an object as far as its model, complilation, and training parameters are concerned'''
+
+        d = self._genJsonableDict()
+        #Don't hash on verbose or verbosity if they are in the function
+        if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
+        if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
+
+        return self.to_json()
+
+    def to_json(self):
+        '''Returns the json string for the Procedure with only its essential characteristics'''
+        d = self._genJsonableDict()
 
         return self.encoder.encode(d)
 
