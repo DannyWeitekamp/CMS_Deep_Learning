@@ -178,7 +178,7 @@ for ldp in ldpsubsets:
                                         #             test_samples=num_test,
                                         #             custom_objects={"Lorentz":Lorentz,"Slice": Slice},
                                         #            arg_decode_func = label_dir_pairs_args_decoder)
-                                        print(weight_output)
+                                        print("WIGHHTE:", weight_output)
 
                                         trial.to_record({"labels": labels,
                                                          "depth": depth,
