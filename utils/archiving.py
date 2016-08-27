@@ -1080,6 +1080,7 @@ def get_blob_path(*args, **kwargs):
             blob_dir, blob = _helper(args[0])
         elif(len(args) == 0):
             if 'json_str' in kwargs:
+                print("THIS HAPPENS")
                 hashcode = compute_hash(kwargs['json_str'])
             elif 'hashcode' in kwargs:
                 hashcode = kwargs['hashcode']
