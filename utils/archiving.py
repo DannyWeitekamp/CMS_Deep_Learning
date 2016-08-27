@@ -173,7 +173,7 @@ class DataProcedure(Storable):
         if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
         if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
 
-        return self.to_json()
+        return self.encoder.encode(d)
 
     def to_json(self):
         '''Returns the json string for the Procedure with only its essential characteristics'''
@@ -1081,6 +1081,7 @@ def get_blob_path(*args, **kwargs):
         elif(len(args) == 0):
             if 'json_str' in kwargs:
                 print("THIS HAPPENS")
+                raise ValueError("using json_str is depricated")
                 hashcode = compute_hash(kwargs['json_str'])
             elif 'hashcode' in kwargs:
                 hashcode = kwargs['hashcode']
