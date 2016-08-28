@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import glob
 import threading
-from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial
-from CMS_SURF_2016.utils.meta import msgpack_assertMeta
-from CMS_SURF_2016.layers.lorentz import Lorentz
-from CMS_SURF_2016.layers.slice import Slice
+from .archiving import DataProcedure, KerasTrial
+from .meta import msgpack_assertMeta
+from ..layers.lorentz import Lorentz
+from ..layers.slice import Slice
 import os
 import re
 import sys

@@ -1,9 +1,9 @@
 import sys,os
 import re
 import socket
-from CMS_SURF_2016.utils.archiving import DataProcedure, KerasTrial
-from CMS_SURF_2016.layers.lorentz import Lorentz
-from CMS_SURF_2016.layers.slice import Slice
+from ..utils.archiving import DataProcedure, KerasTrial
+from ..layers.lorentz import Lorentz
+from ..layers.slice import Slice
 
 def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
     '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs

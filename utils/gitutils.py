@@ -1,5 +1,5 @@
 '''Automates pushing archive information to a remote git repo'''
-from  CMS_SURF_2016.utils.archiving import KerasTrial
+from .archiving import KerasTrial
 import os, sys
 
 def addCommitPushDir(folder, remote="origin", branch="master"):

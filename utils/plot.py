@@ -7,8 +7,8 @@ e-mail: dannyweitekamp@gmail.com
 
 import matplotlib.pyplot as plt
 import numpy as np
-from CMS_SURF_2016.utils.analysistools import *
-from CMS_SURF_2016.utils.colors import *
+from .analysistools import *
+from .colors import *
 from keras.callbacks import History
 from keras.utils.visualize_util import plot
 from IPython.display import Image, display
@@ -151,15 +151,15 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
         group_trials = findWithMetrics(group_trials, constants)
         group_trials = assertOneToOne(group_trials, metricX,metricY=metricY, mode=mode, verbose_errors=verbose_errors)
         Xs = [ trial.get_from_record(metricX) for trial in group_trials]
-        Xs.sort()
-        index = np.arange(len(Xs))
         Ys = [trial.get_from_record(metricY) for trial in group_trials]
+        #Sort lists together
+        Xs, Ys = [list(x) for x in zip(*sorted(zip(Xs, Ys), key=lambda p: p[0]))]
         if(verbose == 1): print("%s: %r" % (group,zip(Xs, Ys)))
         c = colors[i % len(colors)] 
         j = (i * 3 +4) % len(colors)
         b = colors[j]
         i += 1
-        rects1 = plt.scatter(index, Ys,
+        rects1 = plt.scatter(Xs, Ys,
                          #color='b',
                          #color=tuple(np.random.random(3)),
                          alpha =alpha,
@@ -167,7 +167,7 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
                          edgecolors=b,
                          color=c,
                          label=group)
-        plt.xticks(index, Xs)
+        plt.xticks(np.arange(len(Xs)), Xs)
     if(xlabel == None): xlabel = metricX
     if(ylabel == None): ylabel = metricY
     

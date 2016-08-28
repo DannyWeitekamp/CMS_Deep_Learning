@@ -18,12 +18,11 @@ import numpy as np
 
 from keras.models import model_from_json
 from keras.engine.training import Model
-from CMS_SURF_2016.utils.callbacks import *
-from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
-from CMS_SURF_2016.layers.slice import Slice
+from .callbacks import *
+from ..layers.lorentz import Lorentz, _lorentz
+from ..layers.slice import Slice
 from keras.models import model_from_json
 from keras.callbacks import *
-
 
 
 class Storable( object ):
