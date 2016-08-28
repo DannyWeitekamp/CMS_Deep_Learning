@@ -1,6 +1,22 @@
-
+import 
 #A list of colors that contrast <- well sort of there is probably a better list
-colors_contrasting = \
+colors_contrasting =[(0, 0, 1.0),
+(0, 1.0, 0),
+(1.0, 0, 0),
+(0, 1.0, 1.0),
+(1.0, 0, 1.0),
+(1.0, 1.0, 0),
+(1.0, 1.0, 1.0),
+(0, 0, 0.5),
+(0, 0.5, 0),
+(0.5, 0, 0),
+(0, 0.5, 0.5),
+(0.5, 0, 0.5),
+(0.5, 0.5, 0),
+(0.5, 0.5, 0.5)
+]
+#A list of lower saturation colors that contrast <- well sort of there is probably a better list
+colors_contrasting2 = \
 [
 #Shade 0
 (0.675,0.412,0.231),
@@ -45,17 +61,3 @@ colors_contrasting = \
 (0.322,0.094,0.216)
 ]
 
-def showColors(colors):
-	'''Plots a list of colors with outlines taken from the same list'''
-	fig, ax = plt.subplots(1)
-	fig.set_size_inches((10,10))
-
-	# Show the whole color range
-	for i in range(len(colors)):
-	    x = np.random.normal(loc=(i%4)*3, size=100)
-	    y = np.random.normal(loc=(i//4)*3, size=100)
-	    c = colors[i]
-	    j = (i * 3 +4) % len(colors)
-	    b = colors[j]
-	    
-	    ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)

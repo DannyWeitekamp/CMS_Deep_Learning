@@ -109,7 +109,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
    
     plt.show()
 
-def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
+def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
     '''Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
         Asserts a one to one relationship incase of duplicate entries.
         #Arguments:
@@ -126,6 +126,7 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
             label -- How to label objects in the legend if groupOn=None
             legend_label -- The title for the lengend
             colors -- A list of colors to use to represent each group, defaults to CMS_SURF_2016.utils.colors.colors_contrasting
+            shapes -- list of marker shapes to use in the graph, defualts to ['o','s','v', 'D', '^','*', '<', '>']
             alpha -- The alpha value (opacity) for each point in the plot
             mode -- How to assert a one-to-one relationship between the trials in each group. Either "max" or "min" which simply take the trial
                     with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
@@ -139,6 +140,8 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
     ax1=fig.add_subplot(111)
     if(colors == None):
         colors = colors_contrasting
+    if(shapes == None):
+        shapes = ['o','s','v', 'D', '^','*', '<', '>']
     trials_by_group = {}
     if(groupOn != None):
         possibleValues = getMetricValues(trials,groupOn)
@@ -156,18 +159,20 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
         Xs, Ys = [list(x) for x in zip(*sorted(zip(Xs, Ys), key=lambda p: p[0]))]
         if(verbose == 1): print("%s: %r" % (group,zip(Xs, Ys)))
         c = colors[i % len(colors)] 
-        j = (i * 3 +4) % len(colors)
+        j = (i +1) % len(colors)
         b = colors[j]
+        s = shapes[i % len(shapes)]
         i += 1
         rects1 = plt.scatter(Xs, Ys,
                          #color='b',
                          #color=tuple(np.random.random(3)),
+                         marker=s,
                          alpha =alpha,
                          s=50,
                          edgecolors=b,
                          color=c,
                          label=group)
-        plt.xticks(np.arange(len(Xs)), Xs)
+        plt.xticks(Xs)
     if(xlabel == None): xlabel = metricX
     if(ylabel == None): ylabel = metricY
     
@@ -198,3 +203,18 @@ def plotEverything(trials, custom_objects={}):
         dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
         image = Image("model.png")
         display(image)
+
+def showColors(colors):
+    '''Plots a list of colors with outlines taken from the same list'''
+    fig, ax = plt.subplots(1)
+    fig.set_size_inches((10,10))
+
+    # Show the whole color range
+    for i in range(len(colors)):
+        x = np.random.normal(loc=(i%4)*3, size=100)
+        y = np.random.normal(loc=(i//4)*3, size=100)
+        c = colors[i]
+        j = (i * 3 +4) % len(colors)
+        b = colors[j]
+        
+        ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)
