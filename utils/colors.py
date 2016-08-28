@@ -1,4 +1,3 @@
-import 
 #A list of colors that contrast <- well sort of there is probably a better list
 colors_contrasting =[(0, 0, 1.0),
 (0, 1.0, 0),
