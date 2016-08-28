@@ -139,10 +139,13 @@ for ldp in ldpsubsets:
             for name in ['lorentz', 'not_lorentz', 'control_dense']:
                 for sphereCoords in [False]:
                     for weight_output in [False, True]:
-                        for depth in [2,3]:
+                        for depth in [2,3,4,5]:
                             for width in [10,25]:
                                 for activation in ['relu']:
                                     for dropout in [0.0]:
+                                        #Weight output is really only for lorentz
+                                        if(weight_output == True and name != 'lorentz'): continue
+
                                         activation_name = activation if isinstance(activation, str) \
                                                             else activation.__name__
                                         model = genModel(name, len(labels), depth, width, activation, dropout, sphereCoords, weight_output)
