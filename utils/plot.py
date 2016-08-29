@@ -13,7 +13,7 @@ from keras.callbacks import History
 from keras.utils.visualize_util import plot
 from IPython.display import Image, display
 
-def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
+def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist, (optional) color), .... ]
         -Adopted from Jean-Roch Vlimant's Keras tutorial"""
@@ -23,7 +23,10 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch')
         plt.ylabel('loss')
-        plt.title('Training Error by Epoch')
+         if(title == None):
+            plt.title('Training Error by Epoch')
+        else:
+            plt.title(title)
         for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
@@ -50,6 +53,10 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch', fontsize=16)
         plt.ylabel('Accuracy', fontsize=16)
+        if(title == None):
+            plt.title('Validation Accuracy by Epoch')
+        else:
+            plt.title(title)
         for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
