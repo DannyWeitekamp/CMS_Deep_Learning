@@ -13,7 +13,7 @@ from keras.callbacks import History
 from keras.utils.visualize_util import plot
 from IPython.display import Image, display
 
-def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None):
+def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None, acclims=None):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist, (optional) color), .... ]
         -Adopted from Jean-Roch Vlimant's Keras tutorial"""
@@ -79,6 +79,8 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
                     loc = history['val_acc'].index(best)
                     plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
                                 marker='x',linewidth=2.0, label=label+" best validation accuracy = %0.4f" % best)
+        if(acclims != None):
+             pylab.ylim(acclims)
         plt.legend(loc='lower right')
         plt.show()
 
