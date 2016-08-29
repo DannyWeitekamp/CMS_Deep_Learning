@@ -58,7 +58,6 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
                 label,history,color = h
             if(isinstance(history, History)):
                 history = history.history
-            color = colors[i]
             if 'acc' in history:
                 plt.plot(history['acc'], lw=2, label=label+" training accuracy", color=color)
                 if(plotBest):
