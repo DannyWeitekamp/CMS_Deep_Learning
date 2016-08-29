@@ -21,12 +21,12 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
     colors=[tuple(np.random.random(3)) for i in range(len(histories))]
     if(plotLoss):
         plt.figure(figsize=(10,10))
-        plt.xlabel('Epoch')
-        plt.ylabel('loss')
+        plt.xlabel('Epoch', fontsize=16)
+        plt.ylabel('loss', fontsize=16)
         if(title == None):
-            plt.title('Training Error by Epoch')
+            plt.title('Training Error by Epoch', fontsize=20)
         else:
-            plt.title(title)
+            plt.title(title, fontsize=20)
         for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
@@ -54,9 +54,9 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         plt.xlabel('Epoch', fontsize=16)
         plt.ylabel('Accuracy', fontsize=16)
         if(title == None):
-            plt.title('Validation Accuracy by Epoch')
+            plt.title('Validation Accuracy by Epoch', fontsize=20)
         else:
-            plt.title(title)
+            plt.title(title,, fontsize=20)
         for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
