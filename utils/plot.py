@@ -24,7 +24,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.xlabel('Epoch')
         plt.ylabel('loss')
         plt.title('Training Error by Epoch')
-        for h in histories:
+        for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
                 color = colors[i]
@@ -50,7 +50,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch', fontsize=16)
         plt.ylabel('Accuracy', fontsize=16)
-        for i, h enumerate(histories):
+        for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
                 color = colors[i]
