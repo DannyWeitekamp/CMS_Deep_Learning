@@ -80,7 +80,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
                     plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
                                 marker='x',linewidth=2.0, label=label+" best validation accuracy = %0.4f" % best)
         if(acclims != None):
-             pylab.ylim(acclims)
+             plt.ylim(acclims)
         plt.legend(loc='lower right')
         plt.show()
 
