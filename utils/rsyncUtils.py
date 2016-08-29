@@ -1,5 +1,5 @@
 '''Automates rsyncing archive information between machines'''
-from  CMS_SURF_2016.utils.archiving import KerasTrial, split_hash
+from  .archiving import KerasTrial, split_hash
 import os, sys
 
 def rsyncStorable(hashcode, src_archive_dir, dest_archive_dir):
@@ -17,4 +17,4 @@ def rsyncStorable(hashcode, src_archive_dir, dest_archive_dir):
 # 	for path in paths:
 # 		addCommitPushDir(path,remote="origin", branch="master")
 
-rsyncStorable('f3b48f37e401891083aac927f86375f2e96015ac', "MyArchiveDir/", "dweitekamp@titans.hep.caltech.edu:~/fake_archive_dir/")
+# rsyncStorable('f3b48f37e401891083aac927f86375f2e96015ac', "MyArchiveDir/", "dweitekamp@titans.hep.caltech.edu:~/fake_archive_dir/")
