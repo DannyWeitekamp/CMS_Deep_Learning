@@ -41,9 +41,9 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
                 l+=' (best acc %2.4f)'% (max(history['acc']))
             if 'val_acc' in history:
                 vl+=' (best acc %2.4f)'% (max(history['val_acc']))
-            plt.plot(history['loss'], label=l, color=color)
+            plt.plot(history['loss'],lw=2, ls='dashed', label=l, color=color)
             if 'val_loss' in history:
-                plt.plot(history['val_loss'], lw=2, ls='dashed', label=vl, color=color)
+                plt.plot(history['val_loss'], lw=2, ls='solid', label=vl, color=color)
                 
         plt.legend()
         plt.yscale('log')
@@ -67,14 +67,14 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
             if(isinstance(history, History)):
                 history = history.history
             if 'acc' in history:
-                plt.plot(history['acc'], lw=2, label=label+" training accuracy", color=color)
+                plt.plot(history['acc'], lw=2, ls='dashed', label=label+" training accuracy", color=color)
                 if(plotBest):
                     best = max(history['acc'])
                     loc = history['acc'].index(best)
                     plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
                                 linewidth=2.0, label=label+" best training accuracy = %0.4f" % best)
             if 'val_acc' in history:
-                plt.plot(history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
+                plt.plot(history['val_acc'], lw=2, ls='solid', label=label+" validation accuracy", color=color)
                 if(plotBest):
                     best = max(history['val_acc'])
                     loc = history['val_acc'].index(best)
