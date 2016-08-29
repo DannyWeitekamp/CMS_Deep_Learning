@@ -56,7 +56,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         if(title == None):
             plt.title('Validation Accuracy by Epoch', fontsize=20)
         else:
-            plt.title(title,, fontsize=20)
+            plt.title(title,fontsize=20)
         for i, h in enumerate(histories):
             if(len(h) == 2):
                 label,history = h
