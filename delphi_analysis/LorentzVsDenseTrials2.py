@@ -192,7 +192,8 @@ for ldp in ldpsubsets:
                                                          "dropout":dropout,
                                                          "max_EFlow_size": max_EFlow_size,
                                                          "sort_on" : sort_on,
-                                                         "optimizer" : "adam"
+                                                         "optimizer" : "adam",
+                                                         "verbose" : 0
                                                         })
                                         trial_tups.append((trial, test, num_test, dependencies))
 batchExecuteAndTestTrials(trial_tups, time_str="24:00:00")
