@@ -15,8 +15,8 @@ from IPython.display import Image, display
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
     """ Plots an array of training histories against each other
-        -input: [(String label, History hist), .... ]
-        -Adopted from Jean-Roch Vlimant's Kreas tutorial"""
+        -input: [(String label, History hist, (optional) color), .... ]
+        -Adopted from Jean-Roch Vlimant's Keras tutorial"""
 
     colors=[tuple(np.random.random(3)) for i in range(len(histories))]
     if(plotLoss):
@@ -24,10 +24,14 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.xlabel('Epoch')
         plt.ylabel('loss')
         plt.title('Training Error by Epoch')
-        for label,history in histories:
+        for h in histories:
+            if(len(h) == 2):
+                label,history = h
+                color = colors[i]
+            elif(len(h) == 3):
+                label,history,color = h
             if(isinstance(history, History)):
                 history = history.history
-            color = colors[i]
             l = label
             vl= label+" validation"
             if 'acc' in history:
@@ -46,7 +50,12 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True):
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch', fontsize=16)
         plt.ylabel('Accuracy', fontsize=16)
-        for i,(label,history) in enumerate(histories):
+        for i, h enumerate(histories):
+            if(len(h) == 2):
+                label,history = h
+                color = colors[i]
+            elif(len(h) == 3):
+                label,history,color = h
             if(isinstance(history, History)):
                 history = history.history
             color = colors[i]
