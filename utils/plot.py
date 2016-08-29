@@ -23,7 +23,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         plt.figure(figsize=(10,10))
         plt.xlabel('Epoch')
         plt.ylabel('loss')
-         if(title == None):
+        if(title == None):
             plt.title('Training Error by Epoch')
         else:
             plt.title(title)
