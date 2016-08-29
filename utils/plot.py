@@ -71,14 +71,14 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
                     best = max(history['acc'])
                     loc = history['acc'].index(best)
                     plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
-                                linewidth=2.0, label=label+"best training accuracy = %0.4f" % best)
+                                linewidth=2.0, label=label+" best training accuracy = %0.4f" % best)
             if 'val_acc' in history:
                 plt.plot(history['val_acc'], lw=2, ls='dashed', label=label+" validation accuracy", color=color)
                 if(plotBest):
                     best = max(history['val_acc'])
                     loc = history['val_acc'].index(best)
                     plt.scatter( loc, best, s=50, facecolors='none', edgecolors=color,
-                                marker='x',linewidth=2.0, label=label+"best validation accuracy = %0.4f" % best)
+                                marker='x',linewidth=2.0, label=label+" best validation accuracy = %0.4f" % best)
         plt.legend(loc='lower right')
         plt.show()
 
