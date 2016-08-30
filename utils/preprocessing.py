@@ -351,6 +351,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
                     print(type(x), x.shape)
+                    print(len(arr), arr_start + entry - file_start_read)
+                    print(entry)
                     arr[arr_start + entry - file_start_read] = x
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
@@ -368,7 +370,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             #Free this (probably not necessary)
             num_val_frame = None
         if(storeType == "hdf5"):
-            store.close()
+                store.close()
             location     += file_total_entries
             samples_read += samples_to_read
             if(verbose >= 1): print("*Read %r Samples of %r in range(%r, %r)" % (samples_read, samples_per_label, start, samples_per_label+start))
