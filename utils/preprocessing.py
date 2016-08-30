@@ -17,12 +17,13 @@ class ObjectProfile():
             #Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
                 max_size   -- The maximum number of objects to use in training
-                sort_columns -- What columns to sort before cutting on max_size (See pandas.DataFrame.sort)
-                sort_ascending -- Whether each column will be sorted ascending or decending before cutting on max_size (See pandas.DataFrame.sort)
+                pre_sort_columns -- What columns to sort before cutting on max_size (See pandas.DataFrame.sort)
+                pre_sort_ascending -- Whether each column will be sorted ascending or decending before cutting on max_size (See pandas.DataFrame.sort)
                 sort_columns -- What columns to sort on after processing (See pandas.DataFrame.sort)
                 sort_ascending -- Whether each column will be sorted ascending or decending after processing (See pandas.DataFrame.sort)
                 query        -- A selection query string to use before truncating the data (See pands.DataFrame.query)
                 shuffle     -- Whether or not to shuffle the data
+                punctuation -- Adds a row of all 'punctuation' to indicate a stop in the data
         '''
         if(max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
@@ -334,6 +335,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         x = x.query(profile.query)
                     x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
                     if(profile.sort_columns != None):
+                        print(profile.sort_columns, profile.sort_ascending)
                         x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
