@@ -369,7 +369,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
             #Free this (probably not necessary)
             num_val_frame = None
-        if(storeType == "hdf5"):
+            if(storeType == "hdf5"):
                 store.close()
             location     += file_total_entries
             samples_read += samples_to_read
