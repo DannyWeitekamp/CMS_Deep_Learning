@@ -333,11 +333,20 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
                     if(profile.query != None):
                         x = x.query(profile.query)
-                    print(type(x), x.shape)
-                    x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
+                    #Only use observable columns
+                    x = x[observ_types]
+                    sort_locs = None
+                    #Find sort_locs before we convert to np array so we can sort the np array by key
                     if(profile.sort_columns != None):
-                        print(profile.sort_columns, profile.sort_ascending, type(x), x.shape)
-                        x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
+                        sort_locs = [x.columns.get_loc(s) for s in profile.sort_columns]
+                    x = padItem(x.values, max_size, vecsize, shuffle=profile.shuffle)
+                    #x is now an np array not a DataFrame
+                    if(sort_locs != None):
+                        for loc in reversed(sort_locs):
+                            if(profile.sort_ascending == True):
+                                x = x[x[:,loc].argsort()]
+                            else:
+                                x = x[x[:,loc].argsort()[::-1]]
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
                     arr[arr_start + entry - file_start_read] = x
@@ -356,7 +365,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
             #Free this (probably not necessary)
             num_val_frame = None
-	    if(storeType == "hdf5"):
+        if(storeType == "hdf5"):
                 store.close()
             location     += file_total_entries
             samples_read += samples_to_read
