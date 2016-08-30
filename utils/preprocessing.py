@@ -12,7 +12,7 @@ import sys
 import socket
 
 class ObjectProfile():
-    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, puctuation=None):
+    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, punctuation=None):
         ''' An object containing processing instructions for each observable object type
             #Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
@@ -34,7 +34,7 @@ class ObjectProfile():
         self.sort_ascending = sort_ascending
         self.query = query
         self.shuffle = shuffle
-        self.puctuation = puctuation
+        self.punctuation = punctuation
         self.class_name = self.__class__.__name__
 
 
@@ -335,8 +335,8 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
                     if(profile.sort_columns != None):
                         x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
-                    if(profile.puctuation != None):
-                        x = np.append(x ,np.array(profile.puctuation * np.ones((1, vecsize))), axis=0)
+                    if(profile.punctuation != None):
+                        x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
                     arr[arr_start + entry - file_start_read] = x
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
