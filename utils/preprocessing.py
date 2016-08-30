@@ -333,10 +333,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
                     if(profile.query != None):
                         x = x.query(profile.query)
+                    print(type(x), len(x.index),x.shape)
                     #Only use observable columns
                     x = x[observ_types]
                     sort_locs = None
-                    #Find sort_locs before we convert to np array so we can sort the np array by key
+                    #Find sort_locs before we convert to np array
                     if(profile.sort_columns != None):
                         sort_locs = [x.columns.get_loc(s) for s in profile.sort_columns]
                     x = padItem(x.values, max_size, vecsize, shuffle=profile.shuffle)
@@ -349,6 +350,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                                 x = x[x[:,loc].argsort()[::-1]]
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
+                    print(type(x), x.shape)
                     arr[arr_start + entry - file_start_read] = x
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
