@@ -12,13 +12,15 @@ import sys
 import socket
 
 class ObjectProfile():
-    def __init__(self, name, max_size=100, sort_columns=None, sort_ascending=True, query=None, shuffle=False):
+    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, puctuation=None):
         ''' An object containing processing instructions for each observable object type
             #Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
                 max_size   -- The maximum number of objects to use in training
-                sort_columns -- What columns to sort on (See pandas.DataFrame.sort)
-                sort_ascending -- Whether each column will be sorted ascending or decending (See pandas.DataFrame.sort)
+                sort_columns -- What columns to sort before cutting on max_size (See pandas.DataFrame.sort)
+                sort_ascending -- Whether each column will be sorted ascending or decending before cutting on max_size (See pandas.DataFrame.sort)
+                sort_columns -- What columns to sort on after processing (See pandas.DataFrame.sort)
+                sort_ascending -- Whether each column will be sorted ascending or decending after processing (See pandas.DataFrame.sort)
                 query        -- A selection query string to use before truncating the data (See pands.DataFrame.query)
                 shuffle     -- Whether or not to shuffle the data
         '''
@@ -26,10 +28,13 @@ class ObjectProfile():
             raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
         self.name = name
         self.max_size = max_size
+        self.pre_sort_columns = pre_sort_columns
+        self.pre_sort_ascending = pre_sort_ascending
         self.sort_columns = sort_columns
         self.sort_ascending = sort_ascending
         self.query = query
         self.shuffle = shuffle
+        self.puctuation = puctuation
         self.class_name = self.__class__.__name__
 
 
@@ -37,6 +42,8 @@ class ObjectProfile():
         main_clause = 'name:%r max_size=%r ' % (self.name, self.max_size)
         sort_clause = ''
         query_clause = ''
+        if(self.pre_sort_columns != None):
+            sort_clause = 'pre_sort_columns=%r pre_sort_ascending=%r ' % (self.pre_sort_columns, self.pre_sort_ascending)
         if(self.sort_columns != None):
             sort_clause = 'sort_columns=%r sort_ascending=%r ' % (self.sort_columns, self.sort_ascending)
         if(self.query != None):
@@ -190,7 +197,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     labels = [x[0] for x in label_dir_pairs]
     duplicates = list(set([x for x in labels if labels.count(x) > 1]))
     if(len(duplicates) != 0):
-        raise ValueError("Cannot have duplicate lables %r" % duplicates)
+        raise ValueError("Cannot have duplicate labels %r" % duplicates)
 
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
@@ -321,11 +328,15 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 #TODO: is a strait loop slow? Should I use apply(lambda...etc) instead? Is that possible if I need to loop
                 #      over index, x and not just x?
                 for entry, x in group_itr:
+                    if(profile.pre_sort_columns != None):
+                        x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
                     if(profile.query != None):
                         x = x.query(profile.query)
+                    x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
                     if(profile.sort_columns != None):
                         x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
-                    x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
+                    if(profile.puctuation != None):
+                        x = np.append(x ,np.array(profile.puctuation * np.ones((1, vecsize))), axis=0)
                     arr[arr_start + entry - file_start_read] = x
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
@@ -557,9 +568,9 @@ def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,labe
         procs.append(dp)
         #print(proc_start, samples_per_label, stride)
         if(verbose >= 1):
-            num_lables = len(label_dir_pairs)
+            num_labels = len(label_dir_pairs)
             print("   From %r labels in range(%r,%r) for %rx%r = %r Samples"
-                     % (num_lables,proc_start, proc_start+proc_num, num_lables,proc_num,num_lables*proc_num))
+                     % (num_labels,proc_start, proc_start+proc_num, num_labels,proc_num,num_labels*proc_num))
     #print([p.hash() for p in procs])
     return procs
 
