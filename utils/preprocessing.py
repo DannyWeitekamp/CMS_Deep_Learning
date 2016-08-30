@@ -333,9 +333,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
                     if(profile.query != None):
                         x = x.query(profile.query)
+                    print(type(x), x.shape)
                     x = padItem(x[observ_types].values, max_size, vecsize, shuffle=profile.shuffle)
                     if(profile.sort_columns != None):
-                        print(profile.sort_columns, profile.sort_ascending)
+                        print(profile.sort_columns, profile.sort_ascending, type(x), x.shape)
                         x = x.sort(profile.sort_columns, ascending=profile.sort_ascending)
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
