@@ -12,7 +12,7 @@ import sys
 import socket
 
 class ObjectProfile():
-    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, punctuation=None):
+    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, addColumns=None, punctuation=None):
         ''' An object containing processing instructions for each observable object type
             #Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
@@ -23,18 +23,25 @@ class ObjectProfile():
                 sort_ascending -- Whether each column will be sorted ascending or decending after processing (See pandas.DataFrame.sort)
                 query        -- A selection query string to use before truncating the data (See pands.DataFrame.query)
                 shuffle     -- Whether or not to shuffle the data
+                addColumns -- A dictionary with single constant floats or integers to fill an additional column in the table.
+                             This column should be in observ_types if it is used with preprocessFromPandas_label_dir_pairs
                 punctuation -- Adds a row of all 'punctuation' to indicate a stop in the data
         '''
         if(max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
+        if(addColumns != None and not isinstance(profile.addColumns, dict)):
+            raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(addColumns))
         self.name = name
         self.max_size = max_size
         self.pre_sort_columns = pre_sort_columns
+        
         self.pre_sort_ascending = pre_sort_ascending
         self.sort_columns = sort_columns
         self.sort_ascending = sort_ascending
         self.query = query
         self.shuffle = shuffle
+        
+        self.addColumns =  addColumns
         self.punctuation = punctuation
         self.class_name = self.__class__.__name__
 
@@ -208,10 +215,13 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
             profile = ObjectProfile(profile['name'],
                                             profile.get('max_size', 100),
+                                            profile.get('pre_sort_columns', None),
+                                            profile.get('pre_sort_ascending', True),
                                             profile.get('sort_columns', None),
                                             profile.get('sort_ascending', True),
                                             profile.get('query', None),
-                                            profile.get('shuffle', False))
+                                            profile.get('shuffle', False)),
+                                            profile.get('punctuation', None))
             object_profiles[i] = profile
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
@@ -333,7 +343,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
                     if(profile.query != None):
                         x = x.query(profile.query)
-                    print(type(x), len(x.index),x.shape)
+                    # print(type(x), len(x.index),x.shape)
+                    if(profile.addColumns != None):
+                        for key, value in profile.addColumns.items():
+                            x[key] = value
                     #Only use observable columns
                     x = x[observ_types]
                     sort_locs = None
@@ -350,9 +363,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                                 x = x[x[:,loc].argsort()[::-1]]
                     if(profile.punctuation != None):
                         x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
-                    print(type(x), x.shape)
-                    print(len(arr), arr_start + entry - file_start_read)
-                    print(entry)
+                    # print(type(x), x.shape)
+                    # print(len(arr), arr_start + entry - file_start_read)
+                    # print(entry)
                     arr[arr_start + entry - file_start_read] = x
                 
                 #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
