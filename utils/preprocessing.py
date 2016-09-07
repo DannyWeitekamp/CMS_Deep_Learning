@@ -220,8 +220,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                                             profile.get('sort_columns', None),
                                             profile.get('sort_ascending', True),
                                             profile.get('query', None),
-                                            profile.get('shuffle', False)),
-                                            profile.get('punctuation', None))
+                                            profile.get('shuffle', False),
+                                            profile.get('punctuation', None),
+                                            profile.get('addColumns', None))
             object_profiles[i] = profile
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
