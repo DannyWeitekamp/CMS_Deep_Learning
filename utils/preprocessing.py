@@ -29,7 +29,7 @@ class ObjectProfile():
         '''
         if(max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
-        if(addColumns != None and not isinstance(profile.addColumns, dict)):
+        if(addColumns != None and not isinstance(addColumns, dict)):
             raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(addColumns))
         self.name = name
         self.max_size = max_size
