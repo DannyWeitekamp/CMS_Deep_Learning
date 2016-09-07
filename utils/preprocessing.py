@@ -210,6 +210,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
 
+    if("Entry" in observ_types):
+        raise ValueError("Using Entry in observ_types can result in skewed training results. Just don't.")
+
     #Make sure that all the profile are proper objects and have resolved max_sizes
     for i,profile in enumerate(object_profiles):
         if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
@@ -227,6 +230,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
                          Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
+        if(profile.addColumns != None):
+            for key, value in profile.addColumns.items():
+                if(not key in observ_types):
+                    raise ValueError("addColumn Key %r must be in observ_types" % key)
 
     #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
     label_vecs = {}
