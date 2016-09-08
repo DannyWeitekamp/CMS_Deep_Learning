@@ -44,6 +44,7 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
         if(len(dependencies) > 0):
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
+        if(verbose >= 1): print("Starting batchAssertArchived...")
         for u in unarchived:
             u.getData(archive=True, verbose=verbose)
     return dependencies
