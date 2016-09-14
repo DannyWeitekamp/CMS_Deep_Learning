@@ -42,6 +42,7 @@ def accVsEventChar(model,
             A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
     if(isinstance(model, KerasTrial)):
+        trial = model
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
         if(data == None):
             val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
