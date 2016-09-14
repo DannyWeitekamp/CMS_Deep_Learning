@@ -1,6 +1,9 @@
 import types
 from keras.metrics import *
 from .archiving import DataProcedure
+from ..layers.lorentz import Lorentz
+from ..layers.slice import Slice
+from .plot import plotBins
 
 def accVsEventChar(model,
                    data,
@@ -13,12 +16,15 @@ def accVsEventChar(model,
                    possible_observables=['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 
                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso'],
                    possible_objects=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
-                   equalBins=False):
+                   equalBins=False,
+                   custom_objects=None,
+                   plot=False):
     '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
         #Arguements:
-            model -- The model being tested
+            model -- The model being tested, or a KerasTrial containing a valid model.
             data  -- A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure
-                     containing a generator is given the num_samples must be set.
+                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
+                     set will be found from the archive (or computed) and used in place of data.
             char  -- Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
                      reducing the data within each object type of a sample.
             observ -- The observable to be reduced (i.e PT_ET, E/c, Phi).
@@ -32,10 +38,17 @@ def accVsEventChar(model,
                                 when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
             equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                             will be very unusual, varying significantly in their domain.
+            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
+            plot -- If True plot the bins automatically.
         #Returns:
             A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
-    
+    if(isinstance(model, KerasTrial)):
+        model = trial.compile(loadweights=True,custom_objects=custom_objects)
+        if(data == None):
+            val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+            p = DataProcedure.from_json(archive_dir,val_proc)
+            data = p.getData()
     predictions = None
     characteristics = None
     if(isinstance(data, DataProcedure)):
@@ -133,4 +146,6 @@ def accVsEventChar(model,
         else:
             b["max_bin_x"] = prevmax = characteristics[split_at[i]]
         out_bins.append(b)
+
+    if(plot): plotBins(out_bins)
     return out_bins
