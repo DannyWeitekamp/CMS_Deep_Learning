@@ -46,7 +46,7 @@ def accVsEventChar(model,
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
         if(data == None):
             val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-            p = DataProcedure.from_json(archive_dir,val_proc)
+            p = DataProcedure.from_json(trial.archive_dir,val_proc)
             data = p.getData()
     predictions = None
     characteristics = None
