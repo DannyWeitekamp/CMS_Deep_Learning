@@ -1,8 +1,6 @@
 import types
 from keras.metrics import *
-from .archiving import DataProcedure
-from ..layers.lorentz import Lorentz
-from ..layers.slice import Slice
+from .archiving import DataProcedure, KerasTrial
 from .plot import plotBins
 
 def accVsEventChar(model,
