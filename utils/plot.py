@@ -105,7 +105,7 @@ def print_accuracy_m( model, test_data, test_target):
 
 
 
-def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
+def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g', useGrid=True):
     ''' Plots the output of CMS_SURF_2016.utils.metrics.accVsEventChar
         #Arguments:
             bins -- A list of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
@@ -126,7 +126,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
     plt.ylim(0.0, 1.025)
-   
+    plt.grid(useGrid)
     plt.show()
 
 def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
