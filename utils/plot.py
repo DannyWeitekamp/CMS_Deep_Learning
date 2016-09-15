@@ -266,3 +266,22 @@ def showColors(colors):
         b = colors[j]
         
         ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)
+
+def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title=""):
+    nrows, ncols = len(rows), len(columns)
+    hcell, wcell = 0.005, 1.
+    hpad, wpad = 0, 0    
+    fig=plt.figure(figsize=(ncols*wcell+wpad, nrows*hcell+hpad))
+    ax = fig.add_subplot(111)
+    ax.axis('off')
+    plt.title(title,loc="center",size=16)
+    
+
+    table = ax.table(cellText=cellText,
+                          rowLabels=rows,
+                          rowColours=rowColors,
+                          colLabels=columns,
+                          loc="bottom")
+    table.set_fontsize(textSize)
+    table.scale(scale, scale)
+    plt.show()
