@@ -11,9 +11,9 @@ def accVsEventChar(model,
                    num_samples=None,
                    char2=None,
                    bins=20,
-                   possible_observables=['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 
+                   observable_ordering=['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 
                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso'],
-                   possible_objects=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
+                   object_ordering=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
                    equalBins=False,
                    custom_objects=None,
                    plot=False):
@@ -30,9 +30,9 @@ def accVsEventChar(model,
             num_samples -- The number of samples to be read from a generator dat input.
             char2 -- Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.
             bins -- The number of bins to use in the analysis.
-            possible_observables -- A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
+            observable_ordering -- A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
                                     in the sample, otherwise the "observ" argument will not select the intended column in the data.
-            possible_objects -- A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
+            object_ordering -- A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
                                 when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
             equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                             will be very unusual, varying significantly in their domain.
@@ -46,6 +46,7 @@ def accVsEventChar(model,
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
         if(data == None):
             val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+            if(num_samples == None): num_samples = trial.nb_val_samples
             p = DataProcedure.from_json(trial.archive_dir,val_proc)
             data = p.getData()
     predictions = None
@@ -71,11 +72,11 @@ def accVsEventChar(model,
     predictions = [None] * num_samples
     characteristics = [None] * num_samples
     y_vals = [None] * num_samples
-    print(possible_objects)
-    print(objects)
+    # print(possible_objects)
+    # print(objects)
     if(not isinstance(objects, list)): objects = [objects]
-    objects = [o if isinstance(o, int) else possible_objects.index(o) for o in objects]
-    observ = observ if isinstance(observ, int) else possible_observables.index(observ)
+    objects = [o if isinstance(o, int) else object_ordering.index(o) for o in objects]
+    observ = observ if isinstance(observ, int) else observable_ordering.index(observ)
     if(char2 == None): char2 = char
     num_read = 0
     global_batch_size = None
@@ -93,22 +94,23 @@ def accVsEventChar(model,
 
         obj_chars = np.array([char(X[o][:,:,observ], axis=1) for o in objects])
         assert obj_chars.shape[0] == len(obj_chars)
-        assert obj_chars.shape[1] == batch_size
+        assert obj_chars.shape[1] >= batch_size
         batch_chars = char2(obj_chars, axis=0)
         for j in range(batch_size):
             #print(type(c), type(p))
             #print(c, p.shape)
             #print(type(c),type(p),type(y))
-            index = i*global_batch_size+j
-            try:
-                characteristics[index] = batch_chars[j]
-                predictions[index] = batch_predicts[j]
-                y_vals[index] = Y[0][j]
-            except Exception as e:
-                print(index, i, j, batch_size, global_batch_size, "MOOP", len(characteristics),len(predictions), len(y_vals), len(batch_chars), len(batch_predicts))
+            index = num_read+j
+            # try:
+            characteristics[index] = batch_chars[j]
+            predictions[index] = batch_predicts[j]
+            y_vals[index] = Y[0][j]
+            # except Exception as e:
+            #     print(index, i, j, batch_size, global_batch_size, "MOOP", len(characteristics),len(predictions), len(y_vals), len(batch_chars), len(batch_predicts))
         num_read += batch_size
+        # if(num_read > 59000): print(num_read)
         if(num_read >= num_samples):
-            print(num_read,num_samples, len(characteristics), characteristics[:10])
+            # print(num_read,num_samples, len(characteristics), characteristics[:10])
             break
     characteristics = np.array(characteristics)
     predictions = np.array(predictions)

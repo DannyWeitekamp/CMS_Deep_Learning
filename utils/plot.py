@@ -125,6 +125,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g'):
     ax.set_title(title, size=16)
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
+    ax.ylim(0.0, 1.025)
    
     plt.show()
 
