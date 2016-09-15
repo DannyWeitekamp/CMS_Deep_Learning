@@ -117,7 +117,7 @@ def plotBins(bins, min_samples=10, mode="bar",title='', xlabel='', ylabel='',bin
             binLabels -- A list of labels to be shown in the legend. One for each set of bins.
             legendTitle -- The title of the legend.
             alpha -- The opacity of the plot.
-            
+
 
             colors -- the colors for each set of bins (see how matplotlib handles colors)'''
     if(isinstance(bins[0],dict)):
@@ -149,7 +149,7 @@ def plotBins(bins, min_samples=10, mode="bar",title='', xlabel='', ylabel='',bin
     ax.set_title(title, size=16)
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
-    ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+    legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
     plt.setp(legend.get_title(),fontsize=14)
     
     plt.ylim(ylim)
