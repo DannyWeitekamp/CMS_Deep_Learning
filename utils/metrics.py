@@ -99,10 +99,12 @@ def accVsEventChar(model,
             #print(c, p.shape)
             #print(type(c),type(p),type(y))
             index = i*global_batch_size+j
-            print(index)
-            characteristics[index] = batch_chars[j]
-            predictions[index] = batch_predicts[j]
-            y_vals[index] = Y[0][j]
+            try:
+                characteristics[index] = batch_chars[j]
+                predictions[index] = batch_predicts[j]
+                y_vals[index] = Y[0][j]
+            except Exception as e:
+                print(index, i, j, batch_size, global_batch_size, "MOOP", len(characteristics),len(predictions), len(y_vals), len(batch_chars), len(batch_predicts))
         num_read += batch_size
         if(num_read >= num_samples):
             print(num_read,num_samples, len(characteristics), characteristics[:10])
