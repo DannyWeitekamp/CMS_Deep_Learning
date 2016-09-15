@@ -95,7 +95,7 @@ def accVsEventChar(model,
         assert obj_chars.shape[1] == batch_size
         batch_chars = char2(obj_chars, axis=0)
         to_read = min(batch_size, num_samples-num_read)
-        for j in range(batch_size):
+        for j in range(to_read):
             #print(type(c), type(p))
             #print(c, p.shape)
             #print(type(c),type(p),type(y))
