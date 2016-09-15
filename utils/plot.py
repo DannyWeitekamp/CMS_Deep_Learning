@@ -116,6 +116,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g', us
             color -- the color of the plot (see how matplotlib handles colors)'''
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    if(useGrid): ax.yaxis.grid(True, which='major')
     for b in bins:
         
         if(b["num_samples"] >= min_samples):
@@ -126,7 +127,7 @@ def plotBins(bins, min_samples=10, title='', xlabel='', ylabel='', color='g', us
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
     plt.ylim(0.0, 1.025)
-    plt.grid(useGrid)
+    
     plt.show()
 
 def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
