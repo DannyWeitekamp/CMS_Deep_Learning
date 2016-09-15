@@ -84,7 +84,8 @@ def accVsEventChar(model,
             X,Y = out.getData()
         else:
             X,Y = out
-        batch_size = Y[0].shape[0]
+        batch_size = min(Y[0].shape[0], num_samples-num_read)
+
         if(global_batch_size == None): global_batch_size = batch_size
         if(not isinstance(X, list)): X = [X]
         if(not isinstance(Y, list)): Y = [Y]
