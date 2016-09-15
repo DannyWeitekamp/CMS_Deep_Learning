@@ -94,13 +94,12 @@ def accVsEventChar(model,
         assert obj_chars.shape[0] == len(obj_chars)
         assert obj_chars.shape[1] == batch_size
         batch_chars = char2(obj_chars, axis=0)
-        to_read = min(batch_size, num_samples-num_read)
-        for j in range(to_read):
+        for j in range(batch_size):
             #print(type(c), type(p))
             #print(c, p.shape)
             #print(type(c),type(p),type(y))
             index = i*global_batch_size+j
-            #print(index)
+            print(index)
             characteristics[index] = batch_chars[j]
             predictions[index] = batch_predicts[j]
             y_vals[index] = Y[0][j]
