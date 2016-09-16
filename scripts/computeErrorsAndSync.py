@@ -50,7 +50,7 @@ def main():
     trials = get_all_trials(archive_dir)
     for trial in trials:
         print(getTrialError(trial,custom_objects={"Lorentz":Lorentz,"Slice": Slice}, ignoreAssert=True))
-        rsyncStorable(trial.hash(), archive_dir, "dweitekamp@titans.hep.caltech.edu:/data/shared/Delphes/CSCS_output/keras_archive")
+        #rsyncStorable(trial.hash(), archive_dir, "dweitekamp@titans.hep.caltech.edu:/data/shared/Delphes/CSCS_output/keras_archive")
 
 if __name__ == "__main__":
     main()
