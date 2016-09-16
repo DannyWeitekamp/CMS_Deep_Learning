@@ -154,14 +154,22 @@ def accVsEventChar(model,
     if(plot): plotBins(out_bins)
     return out_bins
 
-def getTrialError(trial, num_samples=None,custom_objects={}, ignoreAssert=False):
-
-    if(trial.get_from_record("val_acc_error") == None):
+def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
+    trial != None
+    if(isinstance(model, KerasTrial)):
+        trial = model
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
-        val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-        if(num_samples == None): num_samples = trial.nb_val_samples
-        p = DataProcedure.from_json(trial.archive_dir,val_proc)
-        gen = p.getData()
+        if(data == None):
+            val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+            if(num_samples == None): num_samples = trial.nb_val_samples
+            p = DataProcedure.from_json(trial.archive_dir,val_proc)
+            data = p.getData()
+    if(trial != None and trial.get_from_record("val_acc_error") == None):
+        #model = trial.compile(loadweights=True,custom_objects=custom_objects)
+        # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+        # if(num_samples == None): num_samples = trial.nb_val_samples
+        # p = DataProcedure.from_json(trial.archive_dir,val_proc)
+        # gen = p.getData()
 
         num_read = 0
         correct = 0
@@ -169,7 +177,10 @@ def getTrialError(trial, num_samples=None,custom_objects={}, ignoreAssert=False)
         num_batches = None
         global_batch_size = None
         i = 0
-        for X,Y in gen:
+
+        if(isinstance(data, DataProcedure)):
+            data = data.getData()
+        for X,Y in data:
             batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]
             if(batch_metrics == None):
                 global_batch_size = batch_size
