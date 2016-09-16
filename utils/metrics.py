@@ -193,7 +193,7 @@ def getTrialError(trial, num_samples=None,custom_objects={}, ignoreAssert=False)
         if(not ignoreAssert and trial.get_from_record("val_acc") != None):
             np.testing.assert_almost_equal(trial.get_from_record("val_acc"), avg[1], decimal=3)
         else:
-            trial.to_record({"val_acc_" : avf[1]})
+            trial.to_record({"val_acc_" : avg[1]})
         trial.to_record({"val_acc_error" : sem[1]})
     return trial.get_from_record("val_acc_error")
 
