@@ -15,7 +15,7 @@ def accVsEventChar(model,
                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso'],
                    object_ordering=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
                    equalBins=False,
-                   custom_objects=None,
+                   custom_objects={}},
                    plot=False):
     '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
         #Arguements:
@@ -154,8 +154,8 @@ def accVsEventChar(model,
     if(plot): plotBins(out_bins)
     return out_bins
 
-def getTrialError(trial, num_samples=None,custom_objects=None, ignoreAssert=False):
-    
+def getTrialError(trial, num_samples=None,custom_objects={}, ignoreAssert=False):
+
     if(trial.get_from_record("val_acc_error") == None):
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
