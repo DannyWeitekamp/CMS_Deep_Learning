@@ -15,7 +15,7 @@ def accVsEventChar(model,
                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso'],
                    object_ordering=["Electron", "MuonTight", "Photon", "MissingET","EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack"],
                    equalBins=False,
-                   custom_objects={}},
+                   custom_objects={},
                    plot=False):
     '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
         #Arguements:
