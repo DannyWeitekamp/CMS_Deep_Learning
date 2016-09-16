@@ -1,6 +1,9 @@
 import sys, os
 import time
 
+repo_outerdir = "/scratch/daint/dweiteka/"
+if(not repo_outerdir in sys.path):
+    sys.path.append(repo_outerdir)
 #%matplotlib inline
 import sys, os
 if __name__ == "__main__":
@@ -33,6 +36,7 @@ while(time.clock() - start_time < 5):
         imports_ok = True
         break
     except Exception as e:
+        print(e)
         print("Failed import trying again...")
         sys.stdout.flush()
         time.sleep(1)
