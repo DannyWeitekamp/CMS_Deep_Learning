@@ -155,7 +155,7 @@ def accVsEventChar(model,
     return out_bins
 
 def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
-    trial != None
+    trial = None
     if(isinstance(model, KerasTrial)):
         trial = model
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
