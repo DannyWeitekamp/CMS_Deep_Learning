@@ -1,10 +1,6 @@
 import sys, os
 import time
 
-repo_outerdir = sys.argv[1]+"../"
-if(not repo_outerdir in sys.path):
-    sys.path.append(repo_outerdir)
-
 #%matplotlib inline
 import sys, os
 if __name__ == "__main__":
