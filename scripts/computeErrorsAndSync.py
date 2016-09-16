@@ -48,7 +48,9 @@ if(not imports_ok):
 
 def main():
     trials = get_all_trials(archive_dir)
+    print("Got %r Trials" % len(trials))
     for trial in trials:
+        print("START %r" % trial.hash())
         print(getTrialError(trial,custom_objects={"Lorentz":Lorentz,"Slice": Slice}, ignoreAssert=True))
         #rsyncStorable(trial.hash(), archive_dir, "dweitekamp@titans.hep.caltech.edu:/data/shared/Delphes/CSCS_output/keras_archive")
 
