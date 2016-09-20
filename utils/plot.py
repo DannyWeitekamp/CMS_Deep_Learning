@@ -105,7 +105,21 @@ def print_accuracy_m( model, test_data, test_target):
 
 
 
-def plotBins(bins, min_samples=10, mode="bar",title='', xlabel='', ylabel='',binLabels=None, legendTitle=None, alpha=.8, colors=['b','g','r'], xlim=None,ylim=(0.0,1.025), useGrid=True):
+def plotBins(bins,
+             min_samples=10,
+             mode="bar",
+             title='',
+             xlabel='',
+             ylabel='',
+             binLabels=None,
+             legendTitle=None,
+             legendBelow=False,
+             alpha=.8,
+             colors=['b','g','r'],
+             shapes=None,
+             xlim=None,
+             ylim=(0.0,1.025),
+             useGrid=True):
     ''' Plots the output of CMS_SURF_2016.utils.metrics.accVsEventChar
         #Arguments:
             bins -- A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
@@ -116,10 +130,15 @@ def plotBins(bins, min_samples=10, mode="bar",title='', xlabel='', ylabel='',bin
             ylabel -- the ylabel of the plot
             binLabels -- A list of labels to be shown in the legend. One for each set of bins.
             legendTitle -- The title of the legend.
+            legendBelow -- Whether or not to put the legend below the graph
             alpha -- The opacity of the plot.
-
-
-            colors -- the colors for each set of bins (see how matplotlib handles colors)'''
+            colors -- the colors for each set of bins (see how matplotlib handles colors)
+            shapes -- the shapes of the markers for the graph
+            xlim -- a tuple (minX, maxX) that determines he x range of the view of the graph
+            ylim -- a tuple (minY, maxY) that determines he y range of the view of the graph 
+            useGrid -- if True then display a grid in the background of the graph'''
+    if(shapes == None):
+        shapes = ['o','s','v', 'D', '^','*', '<', '>']
     if(isinstance(bins[0],dict)):
         bins = [bins]
     if(not isinstance(colors,list)):
@@ -143,13 +162,18 @@ def plotBins(bins, min_samples=10, mode="bar",title='', xlabel='', ylabel='',bin
             
             ax.bar(xs, ys, width=widths, yerr=errors, color=color,label=label, ecolor='k', alpha=alpha)
         else:
-            ax.scatter(xs,ys,color=color,label=label)
+            s = shapes[i%len(colors)]
+            ax.scatter(xs,ys,color=color,label=label, marker=s)
             ax.errorbar(xs,ys, yerr=errors,color=color,ecolor=color, alpha=alpha)
 
     ax.set_title(title, size=16)
     ax.set_xlabel(xlabel, size=14)
     ax.set_ylabel(ylabel, size=14)
-    legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+    if(legendBelow):
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),fancybox=True,ncol=2)
+    else:
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+    
     plt.setp(legend.get_title(),fontsize=14)
     
     plt.ylim(ylim)

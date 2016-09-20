@@ -155,6 +155,20 @@ def accVsEventChar(model,
     return out_bins
 
 def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
+    '''
+    Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.
+    #Arguements:
+            model -- The model being evaluated, or a KerasTrial containing a valid model.
+            data  -- A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure
+                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
+                     set will be found from the archive (or computed) and used in place of data.
+            num_samples -- The number of samples to evaluate the error on.
+            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
+            ignoreAssert -- If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.
+                            If this is not the case then an error will be raised.
+    #Returns:
+        The standard error of the validation accuracy
+    '''
     trial = None
     if(isinstance(model, KerasTrial)):
         trial = model
