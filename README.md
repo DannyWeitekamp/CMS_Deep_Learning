@@ -1,5 +1,5 @@
-# CMS_SURF_2016
-Machine Learning for CMS data
+# CMS_Deep_Learning
+Machine Learning for LHC event classification
 
-Hosted Here:  https://github.com/DannyWeitekamp/CMS_SURF_2016
-Wiki Here:    https://github.com/DannyWeitekamp/CMS_SURF_2016/wiki
+Hosted Here:  https://github.com/DannyWeitekamp/CMS_Deep_Learning/
+Wiki Here:    https://github.com/DannyWeitekamp/CMS_Deep_Learning/wiki
