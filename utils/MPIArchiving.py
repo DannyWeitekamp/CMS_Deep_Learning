@@ -58,13 +58,13 @@ class MPI_KerasTrial(KerasTrial):
         MPIoptimizer = "adadelta"
         batch_size = 100
 
-        print(self.train_procedure)
+#        print(self.train_procedure)
         if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
         if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
         
-        train_dps = [DataProcedure.from_json(archive_dir,x) for x in self.train_procedure]
-        val_dps = [DataProcedure.from_json(archive_dir,x) for x in self.val_procedure]
-        print(train_dps)
+        train_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.train_procedure]
+        val_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.val_procedure]
+#        print(train_dps)
         
         
         #print(self.train_procedure)
@@ -131,11 +131,11 @@ class MPI_KerasTrial(KerasTrial):
             weights = model.get_weights()
 
             manager.process.set_model_info( model_arch, algo, weights )
-            t_0 = time.time()
+            t_0 = time()
             #raise NotImplementedError("Don't start it just yet")
             histories = manager.process.train() 
             print(histories)
-            delta_t = time.time() - t_0
+            delta_t = time() - t_0
             manager.free_comms()
             print "Training finished in %.3f seconds" % delta_t
 
