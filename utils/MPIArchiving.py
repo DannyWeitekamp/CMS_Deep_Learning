@@ -106,6 +106,12 @@ class MPI_KerasTrial(KerasTrial):
         if comm.Get_rank() == 0:
             validate_every = data.count_data()/batch_size
         callbacks = []
+        callbacks.append( cbks.ModelCheckpoint( '_'.join([
+            model_name,args.trial_name,"mpi_learn_result.h5"]), 
+            monitor='val_loss', verbose=1 ) )
+        callbacks = self._generateCallbacks(verbose=verbose)
+
+        # callbacks = []
         #callbacks.append( cbks.ModelCheckpoint( '_'.join([
         #    model_name,args.trial_name,"mpi_learn_result.h5"]), 
         #    monitor='val_loss', verbose=1 ) )
