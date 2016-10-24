@@ -1,5 +1,8 @@
 from mpi4py import MPI
 import sys,os
+software = "/data/shared/Software/"
+if(not software in sys.path):
+    sys.path.append(software)
 from CMS_SURF_2016.utils.archiving import KerasTrial
 from CMS_SURF_2016.utils.MPIArchiving import MPI_KerasTrial
 
