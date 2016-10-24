@@ -618,7 +618,7 @@ class KerasTrial(Storable):
             if(c != None):
                 callbacks.append(decodeCallback(c))
         monitor = 'val_acc'
-        if(self.validation_split == 0.0 or self.val_procedure is None):
+        if(self.validation_split == 0.0 and self.val_procedure is None):
             monitor = 'acc'
         callbacks.append(SmartCheckpoint('weights', associated_trial=self,
                                              monitor=monitor,
