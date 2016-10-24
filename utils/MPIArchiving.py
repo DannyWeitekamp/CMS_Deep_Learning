@@ -1,4 +1,4 @@
-from .archiving import KerasTrial
+from .archiving import KerasTrial, DataProcedure
 from .batch import batchAssertArchived
 
 import sys,os
