@@ -1,6 +1,7 @@
 import sys,os
 from CMS_SURF_2016.utils.archiving import KerasTrial
 from CMS_SURF_2016.utils.MPIArchiving import MPI_KerasTrial
+from mpi4py import MPI
 
 if(__name__ == "__main__"):
 	if(len(sys.argv) != 3):
