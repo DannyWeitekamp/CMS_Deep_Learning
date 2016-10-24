@@ -111,9 +111,9 @@ class Storable( object ):
     def find_by_hashcode(cls, archive_dir,hashcode, verbose=0 ):
         '''Returns the archived DataProcedure with the given hashcode or None if one is not found'''
         name = cls.__name__
-        if(name == "KerasTrial"):
+        if(issubclass(cls,KerasTrial)):
             name = "trial"
-        elif(name == "DataProcedure"):
+        elif(issubclass(cls,DataProcedure)):
             name  = "procedure"
         path = get_blob_path(hashcode, archive_dir) + name +'.json'
         try:
