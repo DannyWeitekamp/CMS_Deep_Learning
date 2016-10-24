@@ -11,7 +11,7 @@ if(len(sys.argv) != 3):
     raise ValueError("MPIKerasTrail_execute.py -- Incorrect number of arguments.")
 archive_dir = sys.argv[1]
 hashcode = sys.argv[2]
-trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
+trial = MPI_KerasTrial.find_by_hashcode(archive_dir, hashcode)
 if(trial == None):
     raise ValueError("hashcode does not exist")
 if(not isinstance(trial, MPI_KerasTrial)):
