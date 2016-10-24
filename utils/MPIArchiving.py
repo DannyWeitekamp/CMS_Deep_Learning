@@ -5,22 +5,51 @@ import sys,os
 import numpy as np
 # import argparse
 import json
+import shlex
+import subprocess
 from mpi4py import MPI
 from time import time,sleep
 
-from mpi_tools.MPIManager import MPIManager, get_device
-from Algo import Algo
-from Data import H5Data
+p = "/home/dweitekamp/mpi_learn/"
+if(not p in sys.path):sys.path.append(p)
+#print(sys.path)
+
+#from mpi_learn.GPU import *
+from mpi_learn.mpi.manager import MPIManager, get_device
+from mpi_learn.train.algo import Algo
+from mpi_learn.train.data import H5Data
 
 class MPI_KerasTrial(KerasTrial):
-
+    
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
-                    train_arg_decode_func=None,
-                    val_arg_decode_func=None,
                     custom_objects={},
-                    verbose=1):
-
+                    verbose=1,
+                    numProcesses=2,
+                    **kargs):
+        print(kargs)
+        if(not "isMPI_Instance" in kargs):
+            comm = MPI.COMM_WORLD.Dup()
+            print("Not MPI_Instance")
+            loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
+            print(self.archive_dir, self.hash())
+            RunCommand = 'mpirun -np python %s %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
+            print(RunCommand)
+            args = shlex.split(RunCommand)
+            env=os.environ
+            new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
+            
+            #print(env)
+            #print(new_env)
+            
+            #print new_env
+            p = subprocess.Popen(RunCommand,shell=True, env=new_env,stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            p.wait()
+            result="process myrank "+str(comm.Get_rank())+" got "+p.stdout.read()
+            print result
+            return
+        
+        
         load_weights = True
         synchronous = True
         masters = 1
@@ -115,4 +144,8 @@ class MPI_KerasTrial(KerasTrial):
                          "history":histories,
                          "train_time":delta_t,
                          }
+            #json_name = '_'.join([model_name,args.trial_name,"history.json"]) 
+            #with open( json_name, 'w') as out_file:
+            #    out_file.write( json.dumps(out_dict, indent=4, separators=(',',': ')) )
+            #print "Wrote trial information to",json_name
             
