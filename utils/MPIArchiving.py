@@ -126,7 +126,7 @@ class MPI_KerasTrial(KerasTrial):
             model = self.compile(custom_objects=custom_objects)
             model_arch = model.to_json()
             if easgd:
-                raise NotImplementedError("Not implemented")
+                # raise NotImplementedError("Not implemented")
                 algo = Algo(None, loss=args.loss, validate_every=validate_every,
                         mode='easgd', elastic_lr=args.elastic_lr, sync_every=sync_every,
                         worker_optimizer=args.worker_optimizer,
