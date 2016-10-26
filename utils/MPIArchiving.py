@@ -1,6 +1,3 @@
-from .archiving import KerasTrial, DataProcedure
-from .batch import batchAssertArchived
-
 import sys,os
 import numpy as np
 import json
@@ -14,7 +11,12 @@ from mpi_learn.mpi.manager import MPIManager, get_device
 from mpi_learn.train.algo import Algo
 from mpi_learn.train.data import H5Data
 
+
+from .archiving import KerasTrial, DataProcedure
+from .batch import batchAssertArchived
+
 class MPI_KerasTrial(KerasTrial):
+    
     
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
@@ -25,12 +27,13 @@ class MPI_KerasTrial(KerasTrial):
         # if(not "isMPI_Instance" in kargs):
         self.write()
         
-        comm = MPI.COMM_WORLD.Dup()
-        print("Not MPI_Instance")
+        # comm = MPI.COMM_WORLD.Dup()
+        # print("Not MPI_Instance")
         loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
         print(self.archive_dir, self.hash())
-        RunCommand = 'mpirun -np %s python %s %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash(), numProcesses)
+        RunCommand = 'mpirun -np %s python %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
         print(RunCommand)
+        
         args = shlex.split(RunCommand)
         env=os.environ
         new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
@@ -57,6 +60,7 @@ class MPI_KerasTrial(KerasTrial):
         return
             
     def _execute_MPI(self,
+                    comm=None,
                     archiveTraining=True,
                     archiveValidation=True,
                     custom_objects={},
@@ -69,6 +73,9 @@ class MPI_KerasTrial(KerasTrial):
         sync_every = 1
         MPIoptimizer = "adadelta"
         batch_size = 100
+
+        if(comm == None):
+            comm = MPI.COMM_WORLD.Dup()
 
         if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
         if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
@@ -86,12 +93,6 @@ class MPI_KerasTrial(KerasTrial):
         val_list = [dp.get_path() + "archive.h5" for dp in val_dps]
 
 
-        comm = MPI.COMM_WORLD.Dup()
-        # We have to assign GPUs to processes before importing Theano.
-        device = get_device( comm, masters, gpu_limit=max_gpus )
-        print "Process",comm.Get_rank(),"using device",device
-        os.environ['THEANO_FLAGS'] = "device=%s,floatX=float32" % (device)
-        import theano
 
         # There is an issue when multiple processes import Keras simultaneously --
         # the file .keras/keras.json is sometimes not read correctly.  

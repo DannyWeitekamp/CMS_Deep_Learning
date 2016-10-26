@@ -17,8 +17,12 @@ hashcode = sys.argv[2]
 
 print(archive_dir, hashcode)
 
-
-from CMS_SURF_2016.utils.archiving import KerasTrial
+comm = MPI.COMM_WORLD.Dup()
+# We have to assign GPUs to processes before importing Theano.
+device = get_device( comm, masters, gpu_limit=max_gpus )
+print "Process",comm.Get_rank(),"using device",device
+os.environ['THEANO_FLAGS'] = "device=%s,floatX=float32" % (device)
+import theano
 from CMS_SURF_2016.utils.MPIArchiving import MPI_KerasTrial
 
 trial = MPI_KerasTrial.find_by_hashcode(archive_dir, hashcode)
@@ -26,6 +30,6 @@ if(trial == None):
     raise ValueError("hashcode does not exist")
 if(not isinstance(trial, MPI_KerasTrial)):
     raise TypeError("Trial is not MPI_KerasTrial, got type %r" % type(trial))
-trial._execute_MPI()
+trial._execute_MPI(comm=comm)
 print(sys.argv[0])
 print(sys.argv[1])
