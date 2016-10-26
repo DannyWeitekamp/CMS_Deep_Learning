@@ -61,6 +61,7 @@ class MPI_KerasTrial(KerasTrial):
             
     def _execute_MPI(self,
                     comm=None,
+                    masters=1,
                     archiveTraining=True,
                     archiveValidation=True,
                     custom_objects={},
