@@ -3,7 +3,9 @@ import sys,os
 software = "/data/shared/Software/"
 if(not software in sys.path):
     sys.path.append(software)
-
+p = "/home/dweitekamp/mpi_learn/"
+if(not p in sys.path):
+    sys.path.append(p)
 
 # print("Mooop")
 if(len(sys.argv) != 3):
