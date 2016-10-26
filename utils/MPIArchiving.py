@@ -129,7 +129,7 @@ class MPI_KerasTrial(KerasTrial):
                 # raise NotImplementedError("Not implemented")
                 algo = Algo(None, loss=self.loss, validate_every=validate_every,
                         mode='easgd', elastic_lr=1.0, sync_every=sync_every,
-                        worker_optimizer=sgd,
+                        worker_optimizer='sgd',
                         elastic_force=0.9/(comm.Get_size()-1)) 
             else:
                 algo = Algo(MPIoptimizer, loss=self.loss, validate_every=validate_every,
