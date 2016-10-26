@@ -69,7 +69,7 @@ class MPI_KerasTrial(KerasTrial):
                     verbose=1):
         
         load_weights = True
-        synchronous = True
+        synchronous = False
         sync_every = 1
         MPIoptimizer = "rmsprop"
         batch_size = 100
@@ -139,12 +139,11 @@ class MPI_KerasTrial(KerasTrial):
 
             manager.process.set_model_info( model_arch, algo, weights )
             t_0 = time()
-            #raise NotImplementedError("Don't start it just yet")
             histories = manager.process.train() 
-            print(histories)
             delta_t = time() - t_0
             manager.free_comms()
             print "Training finished in %.3f seconds" % delta_t
+            print(histories)
 
             
             
