@@ -62,6 +62,7 @@ class MPI_KerasTrial(KerasTrial):
     def _execute_MPI(self,
                     comm=None,
                     masters=1,
+                    easgd=True,
                     archiveTraining=True,
                     archiveValidation=True,
                     custom_objects={},
@@ -70,7 +71,7 @@ class MPI_KerasTrial(KerasTrial):
         load_weights = True
         synchronous = True
         sync_every = 1
-        MPIoptimizer = "adadelta"
+        MPIoptimizer = "rmsprop"
         batch_size = 100
 
         if(comm == None):
@@ -124,15 +125,15 @@ class MPI_KerasTrial(KerasTrial):
         if comm.Get_rank() == 0:
             model = self.compile(custom_objects=custom_objects)
             model_arch = model.to_json()
-            #if args.easgd:
-                #raise NotImplementedError("Not implemented")
-                # algo = Algo(None, loss=args.loss, validate_every=validate_every,
-                #         mode='easgd', elastic_lr=args.elastic_lr, sync_every=sync_every,
-                #         worker_optimizer=args.worker_optimizer,
-                #         elastic_force=args.elastic_force/(comm.Get_size()-1)) 
-            #else:
-            algo = Algo(MPIoptimizer, loss=self.loss, validate_every=validate_every,
-                    sync_every=sync_every, worker_optimizer=self.optimizer) 
+            if easgd:
+                raise NotImplementedError("Not implemented")
+                algo = Algo(None, loss=args.loss, validate_every=validate_every,
+                        mode='easgd', elastic_lr=args.elastic_lr, sync_every=sync_every,
+                        worker_optimizer=args.worker_optimizer,
+                        elastic_force=args.elastic_force/(comm.Get_size()-1)) 
+            else:
+                algo = Algo(MPIoptimizer, loss=self.loss, validate_every=validate_every,
+                        sync_every=sync_every, worker_optimizer=self.optimizer) 
             print algo
             weights = model.get_weights()
 
