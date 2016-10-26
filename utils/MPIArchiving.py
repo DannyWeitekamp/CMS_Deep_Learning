@@ -3,18 +3,13 @@ from .batch import batchAssertArchived
 
 import sys,os
 import numpy as np
-# import argparse
 import json
 import shlex
 import subprocess
 from mpi4py import MPI
 from time import time,sleep
+import select
 
-p = "/home/dweitekamp/mpi_learn/"
-if(not p in sys.path):sys.path.append(p)
-#print(sys.path)
-
-#from mpi_learn.GPU import *
 from mpi_learn.mpi.manager import MPIManager, get_device
 from mpi_learn.train.algo import Algo
 from mpi_learn.train.data import H5Data
@@ -25,30 +20,43 @@ class MPI_KerasTrial(KerasTrial):
                     archiveValidation=True,
                     custom_objects={},
                     verbose=1,
-                    numProcesses=2,
-                    **kargs):
-        print(kargs)
-        if(not "isMPI_Instance" in kargs):
-            comm = MPI.COMM_WORLD.Dup()
-            print("Not MPI_Instance")
-            loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
-            print(self.archive_dir, self.hash())
-            RunCommand = 'mpirun -np python %s %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
-            print(RunCommand)
-            args = shlex.split(RunCommand)
-            env=os.environ
-            new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
-            
-            #print(env)
-            #print(new_env)
-            
-            #print new_env
-            p = subprocess.Popen(RunCommand,shell=True, env=new_env,stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            p.wait()
-            result="process myrank "+str(comm.Get_rank())+" got "+p.stdout.read()
-            print result
-            return
+                    numProcesses=2):
+        # print(kargs)
+        # if(not "isMPI_Instance" in kargs):
+        self.write()
         
+        comm = MPI.COMM_WORLD.Dup()
+        print("Not MPI_Instance")
+        loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
+        print(self.archive_dir, self.hash())
+        RunCommand = 'mpirun -np %s python %s %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash(), numProcesses)
+        print(RunCommand)
+        args = shlex.split(RunCommand)
+        env=os.environ
+        new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
+        
+        p = subprocess.Popen("exec " + RunCommand,shell=True, env=new_env,stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            while True:
+                reads = [p.stdout.fileno(), p.stderr.fileno()]
+                ret = select.select(reads, [], [])
+                for fd in ret[0]:
+                    if fd == p.stdout.fileno():
+                        read = p.stdout.readline()
+                        sys.stdout.write(read)
+                    if fd == p.stderr.fileno():
+                        read = p.stderr.readline()
+                        sys.stderr.write(read)
+                if p.poll() != None:
+                    break
+        except KeyboardInterrupt as e:
+            print("KILLING THIS SHIT:",p.pid,os.getpgid(p.pid))
+            p.kill()
+            del p
+            sys.exit()
+        return
+            
+    def _execute_MPI(numProcesses=2):
         
         load_weights = True
         synchronous = True
@@ -58,16 +66,12 @@ class MPI_KerasTrial(KerasTrial):
         MPIoptimizer = "adadelta"
         batch_size = 100
 
-#        print(self.train_procedure)
         if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
         if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
         
         train_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.train_procedure]
         val_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.val_procedure]
-#        print(train_dps)
-        
-        
-        #print(self.train_procedure)
+
         if(not(isinstance(train_dps, list) and isinstance(train_dps[0], DataProcedure))):
             raise ValueError("Train procedure must be list of DataProcedures")
         if(not(isinstance(val_dps, list) and isinstance(val_dps[0], DataProcedure))):
@@ -105,16 +109,9 @@ class MPI_KerasTrial(KerasTrial):
                 features_name="X", labels_name="Y")
         if comm.Get_rank() == 0:
             validate_every = data.count_data()/batch_size
-        # callbacks = []
-        # callbacks.append( cbks.ModelCheckpoint( '_'.join([
-        #     model_name,args.trial_name,"mpi_learn_result.h5"]), 
-        #     monitor='val_loss', verbose=1 ) )
+       
         callbacks = self._generateCallbacks(verbose=verbose)
 
-        # callbacks = []
-        #callbacks.append( cbks.ModelCheckpoint( '_'.join([
-        #    model_name,args.trial_name,"mpi_learn_result.h5"]), 
-        #    monitor='val_loss', verbose=1 ) )
 
         # Creating the MPIManager object causes all needed worker and master nodes to be created
         manager = MPIManager( comm=comm, data=data, num_epochs=self.nb_epoch, 
@@ -145,13 +142,5 @@ class MPI_KerasTrial(KerasTrial):
             manager.free_comms()
             print "Training finished in %.3f seconds" % delta_t
 
-            # Make output dictionary
-            out_dict = { "args":"MOOO",
-                         "history":histories,
-                         "train_time":delta_t,
-                         }
-            #json_name = '_'.join([model_name,args.trial_name,"history.json"]) 
-            #with open( json_name, 'w') as out_file:
-            #    out_file.write( json.dumps(out_dict, indent=4, separators=(',',': ')) )
-            #print "Wrote trial information to",json_name
+            
             
