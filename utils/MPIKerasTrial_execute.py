@@ -6,7 +6,11 @@ if(not software in sys.path):
 p = "/home/dweitekamp/mpi_learn/"
 if(not p in sys.path):
     sys.path.append(p)
+from mpi_learn.mpi.manager import get_device
 
+
+masters = 1
+max_gpus = 2
 # print("Mooop")
 if(len(sys.argv) != 3):
     raise ValueError("MPIKerasTrail_execute.py -- Incorrect number of arguments.")

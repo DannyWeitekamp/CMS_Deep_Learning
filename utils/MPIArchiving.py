@@ -33,7 +33,7 @@ class MPI_KerasTrial(KerasTrial):
         print(self.archive_dir, self.hash())
         RunCommand = 'mpirun -np %s python %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
         print(RunCommand)
-        
+
         args = shlex.split(RunCommand)
         env=os.environ
         new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
@@ -68,8 +68,6 @@ class MPI_KerasTrial(KerasTrial):
         
         load_weights = True
         synchronous = True
-        masters = 1
-        max_gpus = 2
         sync_every = 1
         MPIoptimizer = "adadelta"
         batch_size = 100
@@ -91,7 +89,6 @@ class MPI_KerasTrial(KerasTrial):
         batchAssertArchived(val_dps)
         train_list = [dp.get_path() + "archive.h5" for dp in train_dps]
         val_list = [dp.get_path() + "archive.h5" for dp in val_dps]
-
 
 
         # There is an issue when multiple processes import Keras simultaneously --
