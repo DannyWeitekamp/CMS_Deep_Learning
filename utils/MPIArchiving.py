@@ -56,7 +56,7 @@ class MPI_KerasTrial(KerasTrial):
             sys.exit()
         return
             
-    def _execute_MPI():
+    def _execute_MPI(self):
         
         load_weights = True
         synchronous = True
