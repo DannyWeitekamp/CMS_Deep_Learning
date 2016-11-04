@@ -540,7 +540,7 @@ def maxMutualLength(label_dir_pairs, object_profiles):
             file_total_entries = len(num_val_frame.index)
             label_totals[label] += file_total_entries
     #print(label_totals)
-    return min(label_totals.items())[1]
+    return min(label_totals.values())
 
 def start_num_fromSplits(splits, length):
     '''Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of
