@@ -117,11 +117,11 @@ for ldp in ldpsubsets:
             object_profiles = [#ObjectProfile("Electron",-1),
                               #  ObjectProfile("MuonTight", -1),
                                # ObjectProfile("Photon", -1),
-                                ObjectProfile("MissingET", 1),
+                                ObjectProfile("MissingET", 1)#,
                               #  ObjectProfile("EFlowPhoton",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
                                # ObjectProfile("EFlowNeutralHadron",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False), 
                                # ObjectProfile("EFlowTrack",max_EFlow_size, sort_columns=[sort_on], sort_ascending=False)] 
-
+                            ]
             resolveProfileMaxes(object_profiles, ldp)
 
             dps, l = getGensDefaultFormat(archive_dir, (100000,20000), 120000, \
