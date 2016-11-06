@@ -58,8 +58,11 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dw
     for trial, test, num_test, deps in tups:
         archive_dir = trial.archive_dir
         hashcode = trial.hash()
-        test.write()
-        test_hashcode = test.hash()
+
+        test_hashcode = None
+        if(test != None):
+            test.write()
+            test_hashcode = test.hash()
         if(isdaint):
             if(not os.path.exists(trial_out_dir)):
                 os.makedirs(trial_out_dir)
@@ -75,8 +78,9 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dw
             if(verbose >=1): print("EXECUTE %r" % trial.hash())
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
-            if(verbose >=1): print("TEST %r" % trial.hash())
-            test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
-            trial.test(test_proc=test,
-                         test_samples=num_test,
-                         custom_objects={"Lorentz":Lorentz,"Slice": Slice})
+            if(test_hashcode != None):
+                if(verbose >=1): print("TEST %r" % trial.hash())
+                test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
+                trial.test(test_proc=test,
+                             test_samples=num_test,
+                             custom_objects={"Lorentz":Lorentz,"Slice": Slice})
