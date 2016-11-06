@@ -195,7 +195,7 @@ for ldp in ldpsubsets:
                                                          "verbose" : 0,
                                                          "description" : "Just_MET"
                                                         })
-                                        trial_tups.append((trial, test, num_test, dependencies))
+                                        trial_tups.append((trial, None, 0, dependencies))
 batchExecuteAndTestTrials(trial_tups, time_str="24:00:00")
 
                 
