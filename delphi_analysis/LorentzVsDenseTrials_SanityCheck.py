@@ -158,7 +158,7 @@ for ldp in ldpsubsets:
                                                       )
                                         trial.setValidation(val_procedure=val,
                                                            nb_val_samples=num_val)
-                                        trial.setCompilation(loss='binary_crossentropy',
+                                        trial.setCompilation(loss='categorical_crossentropy',
                                                   optimizer='adam',
                                                   metrics=['accuracy']
                                                       )
