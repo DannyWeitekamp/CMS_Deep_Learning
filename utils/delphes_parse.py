@@ -288,6 +288,7 @@ def delphes_to_pandas(filepath, verbosity=1):
     index_by_objects = {o:0 for o in OBJECT_TYPES}
     last_time = time.clock()
     prev_entry = 0
+    to_ommit = []
     for entry in range(n_entries):
 
         #Make a pretty progress bar in the terminal
@@ -314,7 +315,7 @@ def delphes_to_pandas(filepath, verbosity=1):
             number_by_object[obj] = n
             Eta_Phi_PT_by_object[obj] = getEtaPhiPTasNumpy(dicts_by_object,obj, start, n)
 
-        #Do Track matching for objects with TRACK_MATCH = Trie
+        #Do Track matching for objects with TRACK_MATCH = True
         trkEta, trkPhi, dummy = Eta_Phi_PT_by_object["EFlowTrack"]
         start_tracks = index_by_objects["EFlowTrack"]
         for obj, ok in zip(OBJECT_TYPES, TRACK_MATCH):
@@ -322,6 +323,9 @@ def delphes_to_pandas(filepath, verbosity=1):
                 start = index_by_objects[obj]
                 Phi, Eta, PT = Eta_Phi_PT_by_object[obj]
                 matches = trackMatch(Phi, Eta, trkEta, trkPhi)
+                #if(len(matches) > 0 ): print(entry, obj,len(matches))
+                #print(matches, to_ommit)
+                to_ommit += [start_tracks + x for x in matches.tolist()]
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
         #Compute isolation
@@ -344,6 +348,21 @@ def delphes_to_pandas(filepath, verbosity=1):
             #print(pandas_out[obj])
         else:
             pandas_out[obj] = pd.DataFrame(d, columns=OUTPUT_OBSERVS)
+    
+    #Remove Tracks that correspond to Electrons and Muons
+    df = pandas_out["EFlowTrack"]
+    to_drop = df.iloc[to_ommit]
+    to_subtract = to_drop[['Entry']].groupby('Entry').agg({'Entry':'count'})
+    to_subtract = to_subtract.rename(columns={'Entry':'EFlowTrack'})
+   
+    #Update the numValues so that they are correct
+    pandas_out["NumValues"] = pandas_out["NumValues"].sub(to_subtract,fill_value=0.0)
+    
+    cleaned = df.drop(df.index[to_ommit]).reset_index(drop=True)
+    pandas_out["EFlowTrack"] = cleaned
+    #print(pandas_out["EFlowTrack"])
+
+        # pandas_out["NumValues"][obj][]
         # if(TRACK_MATCH[OBJECT_TYPES.index(obj)] or obj == "EFlowTrack"):
         # if(COMPUTE_ISO[OBJECT_TYPES.index(obj)]):
             # print(obj)
