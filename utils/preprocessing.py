@@ -321,9 +321,9 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 skip = skip_val_frame[key]
                 
                 #Where to start reading the table based on the sum of the selection start 
-                select_start = skip.sum()
+                select_start = int(skip.sum())
                 nums = num_val_frame[key]
-                select_stop = select_start + nums.sum()
+                select_stop = select_start + int(nums.sum())
                 
                 if(storeType == "hdf5"):
                     #If we are reading all the samples use get since it might be faster
@@ -331,6 +331,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     if(samples_to_read == file_total_entries):
                         frame = store.get('/'+key)
                     else:
+                        print(select_start, select_stop)
                         frame = store.select('/'+key, start=select_start, stop=select_stop)
                 elif(storeType == "msgpack"):
                     frame = frames[key]
