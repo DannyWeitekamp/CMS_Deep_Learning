@@ -331,7 +331,6 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     if(samples_to_read == file_total_entries):
                         frame = store.get('/'+key)
                     else:
-                        print(select_start, select_stop)
                         frame = store.select('/'+key, start=select_start, stop=select_stop)
                 elif(storeType == "msgpack"):
                     frame = frames[key]
