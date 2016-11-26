@@ -83,7 +83,7 @@ class MPI_KerasTrial(KerasTrial):
                     archiveValidation=True,
                     verbose=1):
         custom_objects = {}
-        for name, module in self.custom_objects:
+        for name, module in self.custom_objects.items():
             try:
                 #my_module = importlib.import_module('os.path')
                 custom_objects[name] = importlib.import_module(module)
