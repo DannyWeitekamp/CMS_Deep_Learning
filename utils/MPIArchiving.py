@@ -82,18 +82,10 @@ class MPI_KerasTrial(KerasTrial):
                     archiveTraining=True,
                     archiveValidation=True,
                     verbose=1):
-        custom_objects = {}
-        for name, module in self.custom_objects.items():
-            try:
-                #my_module = importlib.import_module('os.path')
-                custom_objects[name] = getattr(importlib.import_module(module), name)
-                #exec("from " + module +  " import " + name)
-            except Exception:
-                raise ValueError("Custom Object %r does not exist in %r. \
-                    For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
+        
             #return prep_func
         #print(self.custom_objects)
-        print(custom_objects)
+        #print(custom_objects)
         #print(Lorentz, Slice)
         #raise ValueError()
         load_weights = True
@@ -134,6 +126,17 @@ class MPI_KerasTrial(KerasTrial):
             except ValueError:
                 print "Unable to import keras. Trying again: %d" % try_num
                 sleep(0.1)
+
+
+        custom_objects = {}
+        for name, module in self.custom_objects.items():
+            try:
+                #my_module = importlib.import_module('os.path')
+                custom_objects[name] = getattr(importlib.import_module(module), name)
+                #exec("from " + module +  " import " + name)
+            except Exception:
+                raise ValueError("Custom Object %r does not exist in %r. \
+                    For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
 
         # We initialize the Data object with the training data list
         # so that we can use it to count the number of training examples
