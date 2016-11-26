@@ -6,6 +6,7 @@ import subprocess
 from mpi4py import MPI
 from time import time,sleep
 import select
+import importlib
 
 from mpi_learn.mpi.manager import MPIManager, get_device
 from mpi_learn.train.algo import Algo
@@ -17,12 +18,25 @@ from .batch import batchAssertArchived
 
 class MPI_KerasTrial(KerasTrial):
     
+    def __init__(self,*args, **kargs):
+        custom_objects = {}
+        if("custom_objects" in kargs):
+            custom_objects = kargs["custom_objects"]
+            del kargs["custom_objects"]
+        #print(kargs)
+        self.setCustomObjects(custom_objects)
+        print(custom_objects)
+        #raise ValueError()
+        KerasTrial.__init__(self,*args,**kargs)
+    def setCustomObjects(self,custom_objects):
+        self.custom_objects = {name:obj.__module__ if hasattr(obj, "__module__") else obj for name, obj in custom_objects.items()}
     
+    print("MOOPGS")
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
-                    custom_objects={},
                     verbose=1,
                     numProcesses=2):
+        
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
         self.write()
@@ -52,7 +66,7 @@ class MPI_KerasTrial(KerasTrial):
                         sys.stderr.write(read)
                 if p.poll() != None:
                     break
-        except KeyboardInterrupt as e:
+        except Exception as e:
             print("KILLING THIS SHIT:",p.pid,os.getpgid(p.pid))
             p.kill()
             del p
@@ -65,9 +79,20 @@ class MPI_KerasTrial(KerasTrial):
                     easgd=True,
                     archiveTraining=True,
                     archiveValidation=True,
-                    custom_objects={},
                     verbose=1):
-        
+        custom_objects = {}
+        for name, module in self.custom_objects:
+            try:
+                #my_module = importlib.import_module('os.path')
+                custom_objects[name] = importlib.import_module('os.path')
+                #exec("from " + module +  " import " + name)
+            except Exception:
+                raise ValueError("Custom Object %r does not exist in %r. \
+                    For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
+            #return prep_func
+        print(custom_objects)
+        print(Lorentz, Slice)
+        raise ValueError()
         load_weights = True
         synchronous = False
         sync_every = 1
