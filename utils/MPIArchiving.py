@@ -19,12 +19,13 @@ from .batch import batchAssertArchived
 class MPI_KerasTrial(KerasTrial):
     
     def __init__(self,*args, **kargs):
-        custom_objects = {}
+        custom_objects = None
         if("custom_objects" in kargs):
             custom_objects = kargs["custom_objects"]
             del kargs["custom_objects"]
         print(custom_objects)
-        self.setCustomObjects(custom_objects)
+        if(custom_objects != None): 
+            self.setCustomObjects(custom_objects)
         print(self.custom_objects)
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
