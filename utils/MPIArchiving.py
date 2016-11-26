@@ -23,10 +23,10 @@ class MPI_KerasTrial(KerasTrial):
         if("custom_objects" in kargs):
             custom_objects = kargs["custom_objects"]
             del kargs["custom_objects"]
-        print(custom_objects)
+        #print(custom_objects)
         if(custom_objects != None): 
             self.setCustomObjects(custom_objects)
-        print(self.custom_objects)
+        #print(self.custom_objects)
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
 
@@ -92,10 +92,10 @@ class MPI_KerasTrial(KerasTrial):
                 raise ValueError("Custom Object %r does not exist in %r. \
                     For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
             #return prep_func
-        print(self.custom_objects)
+        #print(self.custom_objects)
         print(custom_objects)
-        print(Lorentz, Slice)
-        raise ValueError()
+        #print(Lorentz, Slice)
+        #raise ValueError()
         load_weights = True
         synchronous = False
         sync_every = 1
