@@ -23,11 +23,12 @@ class MPI_KerasTrial(KerasTrial):
         if("custom_objects" in kargs):
             custom_objects = kargs["custom_objects"]
             del kargs["custom_objects"]
-        #print(kargs)
-        self.setCustomObjects(custom_objects)
         print(custom_objects)
+        self.setCustomObjects(custom_objects)
+        print(self.custom_objects)
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
+
     def setCustomObjects(self,custom_objects):
         self.custom_objects = {name:obj.__module__ if hasattr(obj, "__module__") else obj for name, obj in custom_objects.items()}
     
@@ -84,7 +85,7 @@ class MPI_KerasTrial(KerasTrial):
         for name, module in self.custom_objects:
             try:
                 #my_module = importlib.import_module('os.path')
-                custom_objects[name] = importlib.import_module('os.path')
+                custom_objects[name] = importlib.import_module(module)
                 #exec("from " + module +  " import " + name)
             except Exception:
                 raise ValueError("Custom Object %r does not exist in %r. \
