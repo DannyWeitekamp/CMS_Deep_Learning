@@ -357,24 +357,49 @@ class DataProcedure(Storable):
         paths = [p for p in paths if os.path.isfile(p + "procedure.json")]
         return paths
 
-INPUT_DEFAULTS ={
-                "metrics" : [],
-                "sample_weight_mode" : None,
+# INPUT_DEFAULTS ={
+#                 "metrics" : [],
+#                 "sample_weight_mode" : None,
 
-                "validation_split" : 0.0,
-                "batch_size" : 32,
-                "nb_epoch" : 10,
-                "callbacks" : [],
+#                 "validation_split" : 0.0,
+#                 "batch_size" : 32,
+#                 "nb_epoch" : 10,
+#                 "callbacks" : [],
 
-                "shuffle" : True,
-                "class_weight" : None,
-                "sample_weight" : None,
+#                 "shuffle" : True,
+#                 "class_weight" : None,
+#                 "sample_weight" : None,
 
-                "nb_val_samples" : None,
-                "max_q_size" : 10,
-                "nb_worker" :1,
-                "pickle_safe" : False
-                }
+#                 "nb_val_samples" : None,
+#                 "max_q_size" : 10,
+#                 "nb_worker" :1,
+#                 "pickle_safe" : False
+#                 }
+INPUT_DEFAULTS = {
+    "model":None,
+    "train_procedure":None,
+    "samples_per_epoch":None,
+    "validation_split":0.0,
+    "val_procedure":None,
+    "nb_val_samples":None,
+
+    "optimizer":None,
+    "loss":None,
+    "metrics":[],
+    "sample_weight_mode":None,
+
+    "batch_size":32,
+    "nb_epoch":10,
+    "callbacks":[],
+    
+    "max_q_size":10,
+    "nb_worker":1,
+    "pickle_safe":False,
+
+    "shuffle":True,
+    "class_weight":None,
+    "sample_weight":None,
+}
 
 REQUIRED_INPUTS = set(["optimizer", "loss"])
 
@@ -384,29 +409,30 @@ class KerasTrial(Storable):
     def __init__(self,
                     archive_dir,
                     name = 'trial',
-    				model=None,
-                    train_procedure=None,
-                    samples_per_epoch=None,
-                    validation_split=0.0,
-                    val_procedure=None,
-                    nb_val_samples=None,
+    				# model=None,
+        #             train_procedure=None,
+        #             samples_per_epoch=None,
+        #             validation_split=0.0,
+        #             val_procedure=None,
+        #             nb_val_samples=None,
 
-                    optimizer=None,
-                    loss=None,
-                    metrics=[],
-                    sample_weight_mode=None,
+        #             optimizer=None,
+        #             loss=None,
+        #             metrics=[],
+        #             sample_weight_mode=None,
 
-                    batch_size=32,
-                    nb_epoch=10,
-                    callbacks=[],
+        #             batch_size=32,
+        #             nb_epoch=10,
+        #             callbacks=[],
                     
-                    max_q_size=10,
-                    nb_worker=1,
-                    pickle_safe=False,
+        #             max_q_size=10,
+        #             nb_worker=1,
+        #             pickle_safe=False,
 
-                    shuffle=True,
-                    class_weight=None,
-                    sample_weight=None
+        #             shuffle=True,
+        #             class_weight=None,
+        #             sample_weight=None,
+                    **kargs
                 ):
     	
         Storable.__init__(self)
@@ -414,31 +440,37 @@ class KerasTrial(Storable):
             archive_dir = archive_dir + "/"
         self.archive_dir = archive_dir
         self.name = name
-        self.setModel(model)
+        for key in INPUT_DEFAULTS:
+            if(not key in kargs):
+                kargs[key] = INPUT_DEFAULTS[key]
 
-        self.setTrain(train_procedure=train_procedure,samples_per_epoch=samples_per_epoch)
+        self.setModel(kargs["model"])
 
-        self.setValidation(validation_split=validation_split,val_procedure=val_procedure,nb_val_samples=nb_val_samples)
+        self.setTrain(train_procedure=kargs["train_procedure"],samples_per_epoch=kargs["samples_per_epoch"])
 
-        self.setCompilation(optimizer=optimizer,
-                                loss=loss,
-                                metrics=metrics,
-                                sample_weight_mode=sample_weight_mode)
+        self.setValidation( validation_split=kargs["validation_split"],
+                            val_procedure=kargs["val_procedure"],
+                            nb_val_samples=kargs["nb_val_samples"])
+
+        self.setCompilation(optimizer=kargs["optimizer"],
+                                loss=kargs["loss"],
+                                metrics=kargs["metrics"],
+                                sample_weight_mode=kargs["sample_weight_mode"])
 
 
-        self.setFit(    batch_size=batch_size,
-                        nb_epoch=nb_epoch,
-                        callbacks=callbacks,
-                        shuffle=shuffle,
-                        class_weight=class_weight,
-                        sample_weight=sample_weight)
+        self.setFit(    batch_size=kargs["batch_size"],
+                        nb_epoch=kargs["nb_epoch"],
+                        callbacks=kargs["callbacks"],
+                        shuffle=kargs["shuffle"],
+                        class_weight=kargs["class_weight"],
+                        sample_weight=kargs["sample_weight"])
 
-        self.setFit_Generator(  nb_epoch=nb_epoch,
-                                callbacks=callbacks,
-                                class_weight=class_weight,
-                                max_q_size=max_q_size,
-                                nb_worker=nb_worker,
-                                pickle_safe=pickle_safe)
+        self.setFit_Generator(  nb_epoch=kargs["nb_epoch"],
+                                callbacks=kargs["callbacks"],
+                                class_weight=kargs["class_weight"],
+                                max_q_size=kargs["max_q_size"],
+                                nb_worker=kargs["nb_worker"],
+                                pickle_safe=kargs["pickle_safe"])
     
 
     def setModel(self, model):
@@ -976,32 +1008,37 @@ class KerasTrial(Storable):
     @classmethod
     def from_json(cls,archive_dir,json_str, name='trial'):
         '''Reconsitute a KerasTrial object from its json string'''
-        d = json.loads(json_str)
+        kargs = json.loads(json_str)
+        for key in INPUT_DEFAULTS:
+            if(not key in kargs):
+                kargs[key] = INPUT_DEFAULTS[key]
+
         trial = cls(
                 archive_dir,
                 name = name,
-                model = d.get('model', None),
-                train_procedure=d.get('train_procedure', None),
-                samples_per_epoch=d.get('samples_per_epoch', None),
-                validation_split=d.get('validation_split', INPUT_DEFAULTS['validation_split']),
-                val_procedure=d.get('val_procedure', None),
-                nb_val_samples=d.get('nb_val_samples', INPUT_DEFAULTS['nb_val_samples']),
+                **kargs
+                # model = d.get('model', None),
+                # train_procedure=d.get('train_procedure', None),
+                # samples_per_epoch=d.get('samples_per_epoch', None),
+                # validation_split=d.get('validation_split', INPUT_DEFAULTS['validation_split']),
+                # val_procedure=d.get('val_procedure', None),
+                # nb_val_samples=d.get('nb_val_samples', INPUT_DEFAULTS['nb_val_samples']),
 
-                optimizer=d.get('optimizer', None),
-                loss=d.get('loss', None),
-                metrics=d.get('metrics', []),
-                sample_weight_mode=d.get('sample_weight_mode', INPUT_DEFAULTS['sample_weight_mode']),
-                batch_size=d.get('batch_size', INPUT_DEFAULTS['batch_size']),
-                nb_epoch=d.get('nb_epoch', INPUT_DEFAULTS['nb_epoch']),
-                callbacks=d.get('callbacks', INPUT_DEFAULTS['callbacks']),
+                # optimizer=d.get('optimizer', None),
+                # loss=d.get('loss', None),
+                # metrics=d.get('metrics', []),
+                # sample_weight_mode=d.get('sample_weight_mode', INPUT_DEFAULTS['sample_weight_mode']),
+                # batch_size=d.get('batch_size', INPUT_DEFAULTS['batch_size']),
+                # nb_epoch=d.get('nb_epoch', INPUT_DEFAULTS['nb_epoch']),
+                # callbacks=d.get('callbacks', INPUT_DEFAULTS['callbacks']),
 
-                max_q_size=d.get('max_q_size', INPUT_DEFAULTS['max_q_size']),
-                nb_worker=d.get('nb_worker',  INPUT_DEFAULTS['nb_worker']),
-                pickle_safe=d.get('pickle_safe', INPUT_DEFAULTS['pickle_safe']),
+                # max_q_size=d.get('max_q_size', INPUT_DEFAULTS['max_q_size']),
+                # nb_worker=d.get('nb_worker',  INPUT_DEFAULTS['nb_worker']),
+                # pickle_safe=d.get('pickle_safe', INPUT_DEFAULTS['pickle_safe']),
 
-                shuffle=d.get('shuffle', INPUT_DEFAULTS['shuffle']),
-                class_weight=d.get('class_weight',  INPUT_DEFAULTS['class_weight']),
-                sample_weight=d.get('sample_weight', INPUT_DEFAULTS['sample_weight'])
+                # shuffle=d.get('shuffle', INPUT_DEFAULTS['shuffle']),
+                # class_weight=d.get('class_weight',  INPUT_DEFAULTS['class_weight']),
+                # sample_weight=d.get('sample_weight', INPUT_DEFAULTS['sample_weight'])
                 )
         return trial
         

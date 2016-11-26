@@ -92,6 +92,7 @@ class MPI_KerasTrial(KerasTrial):
                 raise ValueError("Custom Object %r does not exist in %r. \
                     For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
             #return prep_func
+        print(self.custom_objects)
         print(custom_objects)
         print(Lorentz, Slice)
         raise ValueError()
