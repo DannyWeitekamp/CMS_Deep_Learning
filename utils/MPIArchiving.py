@@ -113,7 +113,8 @@ class MPI_KerasTrial(KerasTrial):
         batchAssertArchived(val_dps)
         train_list = [dp.get_path() + "archive.h5" for dp in train_dps]
         val_list = [dp.get_path() + "archive.h5" for dp in val_dps]
-
+        print("Train List:", train_list)
+        print("Val List:", val_list)
 
         # There is an issue when multiple processes import Keras simultaneously --
         # the file .keras/keras.json is sometimes not read correctly.  
@@ -142,7 +143,7 @@ class MPI_KerasTrial(KerasTrial):
 
         # We initialize the Data object with the training data list
         # so that we can use it to count the number of training examples
-        print(train_list)
+
         data = H5Data( train_list, batch_size=batch_size, 
                 features_name="X", labels_name="Y")
         if comm.Get_rank() == 0:
