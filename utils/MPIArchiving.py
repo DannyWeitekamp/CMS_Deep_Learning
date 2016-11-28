@@ -119,8 +119,8 @@ class MPI_KerasTrial(KerasTrial):
         batchAssertArchived(val_dps)
         train_list = [dp.get_path() + "archive.h5" for dp in train_dps]
         val_list = [dp.get_path() + "archive.h5" for dp in val_dps]
-        print("Train List:", train_list)
-        print("Val List:", val_list)
+        # print("Train List:", train_list)
+        # print("Val List:", val_list)
 
         # There is an issue when multiple processes import Keras simultaneously --
         # the file .keras/keras.json is sometimes not read correctly.  
