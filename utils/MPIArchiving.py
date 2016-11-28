@@ -43,38 +43,41 @@ class MPI_KerasTrial(KerasTrial):
         
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
-        self.write()
-        
-        # comm = MPI.COMM_WORLD.Dup()
-        # print("Not MPI_Instance")
-        loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
-        print(self.archive_dir, self.hash())
-        RunCommand = 'mpirun -np %s python %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
-        print(RunCommand)
+        if(not self.is_complete()):
+            self.write()
+            
+            # comm = MPI.COMM_WORLD.Dup()
+            # print("Not MPI_Instance")
+            loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
+            print(self.archive_dir, self.hash())
+            RunCommand = 'mpirun -np %s python %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
+            print(RunCommand)
 
-        args = shlex.split(RunCommand)
-        env=os.environ
-        new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
-        
-        p = subprocess.Popen("exec " + RunCommand,shell=True, env=new_env,stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            while True:
-                reads = [p.stdout.fileno(), p.stderr.fileno()]
-                ret = select.select(reads, [], [])
-                for fd in ret[0]:
-                    if fd == p.stdout.fileno():
-                        read = p.stdout.readline()
-                        sys.stdout.write(read)
-                    if fd == p.stderr.fileno():
-                        read = p.stderr.readline()
-                        sys.stderr.write(read)
-                if p.poll() != None:
-                    break
-        except Exception as e:
-            print("KILLING THIS SHIT:",p.pid,os.getpgid(p.pid))
-            p.kill()
-            del p
-            sys.exit()
+            args = shlex.split(RunCommand)
+            env=os.environ
+            new_env = {k: v for k, v in env.iteritems() if "MPI" not in k}
+            
+            p = subprocess.Popen("exec " + RunCommand,shell=True, env=new_env,stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                while True:
+                    reads = [p.stdout.fileno(), p.stderr.fileno()]
+                    ret = select.select(reads, [], [])
+                    for fd in ret[0]:
+                        if fd == p.stdout.fileno():
+                            read = p.stdout.readline()
+                            sys.stdout.write(read)
+                        if fd == p.stderr.fileno():
+                            read = p.stderr.readline()
+                            sys.stderr.write(read)
+                    if p.poll() != None:
+                        break
+            except Exception as e:
+                print("KILLING THIS SHIT:",p.pid,os.getpgid(p.pid))
+                p.kill()
+                del p
+                sys.exit()
+        else:
+            print("Trial %r Already Complete" % self.hash())
         self._history_to_record(['val_acc'])
         # dct =  {'num_train' : self.samples_per_epoch,
         #             'num_validation' : num_val,
