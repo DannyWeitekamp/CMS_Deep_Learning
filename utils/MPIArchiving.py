@@ -75,6 +75,13 @@ class MPI_KerasTrial(KerasTrial):
             p.kill()
             del p
             sys.exit()
+        self._history_to_record(['val_acc'])
+        # dct =  {'num_train' : self.samples_per_epoch,
+        #             'num_validation' : num_val,
+        #             'elapse_time' : self.get_history()['elapse_time'],
+        #             # 'fit_cycles' : len(train_procs)
+        #             }
+            # self.to_record( dct, replace=True)
         return
             
     def _execute_MPI(self,
