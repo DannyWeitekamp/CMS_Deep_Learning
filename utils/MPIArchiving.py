@@ -26,6 +26,8 @@ class MPI_KerasTrial(KerasTrial):
         #print(custom_objects)
         if(custom_objects != None): 
             self.setCustomObjects(custom_objects)
+        else:
+            self.custom_objects = {}
         #print(self.custom_objects)
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
