@@ -105,12 +105,8 @@ class MPI_KerasTrial(KerasTrial):
         # if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
         if(not(isinstance(self.train_procedure,list))):
             raise ValueError("Trial attribute train_procedure: expected list of DataProcedures but got type %r" % type(self.train_procedure))
-        if(not(isinstance(self.train_procedure[0],DataProcedure))):
-            raise ValueError("Trial attribute train_procedure: expected list of DataProcedures but got list of %r" % type(self.train_procedure[0]))
-        if(not(isinstance(self.val_procedure,list) and isinstance(self.val_procedure[0],DataProcedure))):
+        if(not(isinstance(self.val_procedure,list))):
             raise ValueError("Trial attribute val_procedure: expected list of DataProcedures but got type %r" % type(self.val_procedure))
-        if(not(isinstance(self.val_procedure[0],DataProcedure))):
-            raise ValueError("Trial attribute train_procedure: expected list of DataProcedures but got list of %r" % type(self.val_procedure[0]))
 
         train_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.train_procedure]
         val_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.val_procedure]
