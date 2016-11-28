@@ -99,9 +99,16 @@ class MPI_KerasTrial(KerasTrial):
         if(comm == None):
             comm = MPI.COMM_WORLD.Dup()
 
-        if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
-        if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
-        
+
+
+        # if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
+        # if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
+        if(not(isinstance(self.train_procedure,list) and isinstance(self.train_procedure[0],DataProcedure))):
+            raise ValueError("Trial attribute train_procedure: expected list of DataProcedures but got type %r" % type(self.train_procedure))
+
+        if(not(isinstance(self.val_procedure,list) and isinstance(self.val_procedure[0],DataProcedure))):
+            raise ValueError("Trial attribute val_procedure: expected list of DataProcedures but got type %r" % type(self.val_procedure))
+
         train_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.train_procedure]
         val_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.val_procedure]
 
