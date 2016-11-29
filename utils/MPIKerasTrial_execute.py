@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 # parser.add_argument('--foo', help='foo help')
 parser.add_argument('archive_dir',help='archive directory of the trial')
 parser.add_argument('hashcode',help='hashcode for the trial')
-parser.add_argument('--masters',help='number of masters', , default=1)
+parser.add_argument('--masters',help='number of masters', default=1)
 parser.add_argument('--max-gpus',help='maximum number of gpus to use', dest='max_gpus', default=-1)
 
 args = parser.parse_args()
