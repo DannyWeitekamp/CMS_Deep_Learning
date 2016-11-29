@@ -90,7 +90,7 @@ class MPI_KerasTrial(KerasTrial):
     def _execute_MPI(self,
                     comm=None,
                     masters=1,
-                    easgd=True,
+                    easgd=False,
                     archiveTraining=True,
                     archiveValidation=True,
                     verbose=1):
