@@ -80,6 +80,16 @@ class Storable( object ):
         if(not isinstance(obj, dict)):
             raise TypeError("obj must be type dict, but got %r" % type(obj))
         write_json_obj(obj, self.get_path(),'record.json',verbose=verbose)
+        
+    def remove_from_record(self, key, verbose=0):
+        '''Remove a key from the record. Returns 1 if sucessfully removed 0 if does not exist'''
+        record = self.read_record(verbose)
+        if(key in record):
+            del record[key]
+            self.write_record(record)
+            return 1
+        return 0
+
 
     @staticmethod
     def get_all_paths(archive_dir):
