@@ -76,7 +76,8 @@ class MPI_KerasTrial(KerasTrial):
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
                     verbose=1,
-                    numProcesses=2):
+                    # numProcesses=2
+                    ):
         
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
@@ -87,7 +88,7 @@ class MPI_KerasTrial(KerasTrial):
             # print("Not MPI_Instance")
             loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
             print(self.archive_dir, self.hash())
-            RunCommand = 'mpirun -np %s python %s %s %s --masters %s --max-gpus %s' % (numProcesses, loc, self.archive_dir, self.hash(), self.masters, self.max_gpus)
+            RunCommand = 'mpirun -np %s python %s %s %s --masters %s --max-gpus %s' % (self.workers + self.masters, loc, self.archive_dir, self.hash(), self.masters, self.max_gpus)
             print(RunCommand)
 
             args = shlex.split(RunCommand)
