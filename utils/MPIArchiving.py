@@ -117,6 +117,7 @@ class MPI_KerasTrial(KerasTrial):
         else:
             print("Trial %r Already Complete" % self.hash())
         self._history_to_record(['val_acc'])
+        self.to_record( {'elapse_time' : self.get_history()['elapse_time']}, replace=True)
         # dct =  {'num_train' : self.samples_per_epoch,
         #             'num_validation' : num_val,
         #             'elapse_time' : self.get_history()['elapse_time'],
@@ -200,8 +201,12 @@ class MPI_KerasTrial(KerasTrial):
 
         data = H5Data( train_list, batch_size=self.batch_size, 
                 features_name="X", labels_name="Y")
+        num_train = data.count_data()
+        
+
+
         if comm.Get_rank() == 0:
-            validate_every = data.count_data()/self.batch_size
+            validate_every = num_train/self.batch_size
        
         callbacks = self._generateCallbacks(verbose=verbose)
 
@@ -212,6 +217,15 @@ class MPI_KerasTrial(KerasTrial):
                 synchronous=self.synchronous, callbacks=callbacks )
         # Process 0 defines the model and propagates it to the workers.
         if comm.Get_rank() == 0:
+            record = self.read_record()
+            if(not "num_train" in record):
+                self.to_record({"num_train": num_train})
+            if(not "num_val" in record):
+                val_data = H5Data( train_list, batch_size=self.batch_size, 
+                features_name="X", labels_name="Y")
+                self.to_record({"num_val": val_data.count_data()})
+
+
             model = self.compile(custom_objects=custom_objects)
             model_arch = model.to_json()
             if self.easgd:
