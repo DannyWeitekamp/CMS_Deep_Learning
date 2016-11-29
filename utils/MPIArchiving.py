@@ -231,7 +231,7 @@ class MPI_KerasTrial(KerasTrial):
                 features_name="X", labels_name="Y")
                 self.to_record({"num_val": val_data.count_data()})
 
-
+            print(custom_objects)
             model = self.compile(custom_objects=custom_objects)
             model_arch = model.to_json()
             if self.easgd:
