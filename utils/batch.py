@@ -47,6 +47,7 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
         if(verbose >= 1): print("Starting batchAssertArchived...")
         for u in unarchived:
             u.getData(archive=True, verbose=verbose)
+        if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 
 def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/', verbose=1):
