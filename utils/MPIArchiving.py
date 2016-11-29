@@ -73,6 +73,12 @@ class MPI_KerasTrial(KerasTrial):
         self.custom_objects = {name:obj.__module__ if hasattr(obj, "__module__") else obj for name, obj in custom_objects.items()}
     
     # print("MOOPGS")
+
+    def kill(self, p):
+        print("Killing %r and related processes" % self.hash(),p.pid,os.getpgid(p.pid))
+        p.kill()
+        del p
+        sys.exit()
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
                     verbose=1,
@@ -109,11 +115,11 @@ class MPI_KerasTrial(KerasTrial):
                             sys.stderr.write(read)
                     if p.poll() != None:
                         break
-            except Exception as e:
-                print("KILLING THIS SHIT:",p.pid,os.getpgid(p.pid))
-                p.kill()
-                del p
-                sys.exit()
+            except :
+                self.kill(p)
+            # except Exception as e:
+                # self.kill(p)
+                
         else:
             print("Trial %r Already Complete" % self.hash())
         self._history_to_record(['val_acc'])
