@@ -53,7 +53,7 @@ class MPI_KerasTrial(KerasTrial):
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
 
-    def _remove_dict_defaults(self):
+    def _remove_dict_defaults(self, d):
         del_keys = []
         for key in d:
             if(key in MPI_INPUT_DEFAULTS and MPI_INPUT_DEFAULTS[key] == d[key]):
