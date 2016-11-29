@@ -17,6 +17,7 @@ from .archiving import KerasTrial, DataProcedure
 from .batch import batchAssertArchived
 
 MPI_INPUT_DEFAULTS = { "masters" : 1,
+                       "workers" : 2,
                        "max_gpus" : 2,
                        "master_gpu" : False,
                        "synchronous" : False,
@@ -86,7 +87,7 @@ class MPI_KerasTrial(KerasTrial):
             # print("Not MPI_Instance")
             loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
             print(self.archive_dir, self.hash())
-            RunCommand = 'mpirun -np %s python %s %s %s' % (numProcesses, loc, self.archive_dir, self.hash())
+            RunCommand = 'mpirun -np %s python %s %s %s --masters %s --max-gpus %s' % (numProcesses, loc, self.archive_dir, self.hash(), self.masters, self.max_gpus)
             print(RunCommand)
 
             args = shlex.split(RunCommand)
@@ -125,8 +126,8 @@ class MPI_KerasTrial(KerasTrial):
             
     def _execute_MPI(self,
                     comm=None,
-                    masters=1,
-                    easgd=False,
+                    # masters=1,
+                    # easgd=False,
                     archiveTraining=True,
                     archiveValidation=True,
                     verbose=1):
@@ -137,10 +138,10 @@ class MPI_KerasTrial(KerasTrial):
         #print(Lorentz, Slice)
         #raise ValueError()
         load_weights = True
-        synchronous = False
-        sync_every = 1
-        MPIoptimizer = "rmsprop"
-        batch_size = 100
+        # synchronous = False
+        # sync_every = 1
+        # MPIoptimizer = "rmsprop"
+        # batch_size = 100
 
         if(comm == None):
             comm = MPI.COMM_WORLD.Dup()
@@ -196,18 +197,18 @@ class MPI_KerasTrial(KerasTrial):
         # We initialize the Data object with the training data list
         # so that we can use it to count the number of training examples
 
-        data = H5Data( train_list, batch_size=batch_size, 
+        data = H5Data( train_list, batch_size=self.batch_size, 
                 features_name="X", labels_name="Y")
         if comm.Get_rank() == 0:
-            validate_every = data.count_data()/batch_size
+            validate_every = data.count_data()/self.batch_size
        
         callbacks = self._generateCallbacks(verbose=verbose)
 
 
         # Creating the MPIManager object causes all needed worker and master nodes to be created
         manager = MPIManager( comm=comm, data=data, num_epochs=self.nb_epoch, 
-                train_list=train_list, val_list=val_list, num_masters=masters,
-                synchronous=synchronous, callbacks=callbacks )
+                train_list=train_list, val_list=val_list, num_masters=self.masters,
+                synchronous=self.synchronous, callbacks=callbacks )
         # Process 0 defines the model and propagates it to the workers.
         if comm.Get_rank() == 0:
             model = self.compile(custom_objects=custom_objects)
@@ -215,12 +216,12 @@ class MPI_KerasTrial(KerasTrial):
             if easgd:
                 # raise NotImplementedError("Not implemented")
                 algo = Algo(None, loss=self.loss, validate_every=validate_every,
-                        mode='easgd', elastic_lr=1.0, sync_every=sync_every,
+                        mode='easgd', elastic_lr=1.0, sync_every=self.sync_every,
                         worker_optimizer='sgd',
                         elastic_force=0.9/(comm.Get_size()-1)) 
             else:
-                algo = Algo(MPIoptimizer, loss=self.loss, validate_every=validate_every,
-                        sync_every=sync_every, worker_optimizer=self.optimizer) 
+                algo = Algo(self.master_optimizer, loss=self.loss, validate_every=validate_every,
+                        sync_every=self.sync_every, worker_optimizer=self.optimizer) 
             print algo
             weights = model.get_weights()
 
