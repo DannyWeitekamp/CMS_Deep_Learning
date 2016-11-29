@@ -80,7 +80,7 @@ class Storable( object ):
         if(not isinstance(obj, dict)):
             raise TypeError("obj must be type dict, but got %r" % type(obj))
         write_json_obj(obj, self.get_path(),'record.json',verbose=verbose)
-        
+
     def remove_from_record(self, key, verbose=0):
         '''Remove a key from the record. Returns 1 if sucessfully removed 0 if does not exist'''
         record = self.read_record(verbose)
@@ -606,6 +606,16 @@ class KerasTrial(Storable):
         if('compiled_model' in d): del d['compiled_model']
         self.compiled_model = temp
         return d
+
+    def _remove_dict_defaults(self, d):
+        '''Removes default values from trial for forward compatabilty'''
+        del_keys = []
+        for key in d:
+            if(key in INPUT_DEFAULTS and INPUT_DEFAULTS[key] == d[key]):
+                del_keys.append(key)
+        for key in del_keys:
+            del d[key]
+        return d
     def to_hashable(self):
         '''Converts the trial to a hashable string '''
         temp = self.model
@@ -624,12 +634,7 @@ class KerasTrial(Storable):
             # new version will hash differently than trials run with older versions of keras that 
             # did not have the extra parameter, even though the user didn't change anything.
         d = self._json_dict_helper()
-        del_keys = []
-        for key in d:
-            if(key in INPUT_DEFAULTS and INPUT_DEFAULTS[key] == d[key]):
-                del_keys.append(key)
-        for key in del_keys:
-            del d[key]
+        d = self._remove_dict_defaults(d)
         json_str = self.encoder.encode(d)
         self.model = temp
         return json_str

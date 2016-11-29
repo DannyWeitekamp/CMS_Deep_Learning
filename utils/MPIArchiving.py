@@ -16,6 +16,20 @@ from mpi_learn.train.data import H5Data
 from .archiving import KerasTrial, DataProcedure
 from .batch import batchAssertArchived
 
+MPI_INPUT_DEFAULTS = { "masters" : 1,
+                       "max_gpus" : 2,
+                       "master_gpu" : False,
+                       "synchronous" : False,
+                       "master_optimizer" : "adam",
+                       "worker_optimizer" : "rsmprop",
+                       "sync_every" : 1,
+                       "easgd" : False,
+                       "elastic_force" : 0.9,
+                       "elastic_lr" : 1.0,
+                       "elastic_momentum" : 0.0
+
+}
+
 class MPI_KerasTrial(KerasTrial):
     
     def __init__(self,*args, **kargs):
@@ -28,14 +42,36 @@ class MPI_KerasTrial(KerasTrial):
             self.setCustomObjects(custom_objects)
         else:
             self.custom_objects = {}
+
+        for key,value in MPI_INPUT_DEFAULTS.items():
+            if(key in kargs):
+                setattr(self, key, kargs[key])
+            else:
+                setattr(self, key, value)
+
         #print(self.custom_objects)
         #raise ValueError()
         KerasTrial.__init__(self,*args,**kargs)
 
+    def _remove_dict_defaults(self):
+        del_keys = []
+        for key in d:
+            if(key in MPI_INPUT_DEFAULTS and MPI_INPUT_DEFAULTS[key] == d[key]):
+                del_keys.append(key)
+        for key in del_keys:
+            del d[key]
+
+        d = KerasTrial._remove_dict_defaults(d)
+        return d
+
+
+
+
+
     def setCustomObjects(self,custom_objects):
         self.custom_objects = {name:obj.__module__ if hasattr(obj, "__module__") else obj for name, obj in custom_objects.items()}
     
-    print("MOOPGS")
+    # print("MOOPGS")
     def execute(self, archiveTraining=True,
                     archiveValidation=True,
                     verbose=1,
