@@ -198,7 +198,7 @@ class MPI_KerasTrial(KerasTrial):
                 #my_module = importlib.import_module('os.path')
                 custom_objects[name] = getattr(importlib.import_module(module), name)
                 #exec("from " + module +  " import " + name)
-            except Exception:
+            except:
                 raise ValueError("Custom Object %r does not exist in %r. \
                     For best results Custom Objects should be importable and not locally defined." % (str(name), str(module)))
 
