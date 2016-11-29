@@ -61,7 +61,7 @@ class MPI_KerasTrial(KerasTrial):
         for key in del_keys:
             del d[key]
 
-        d = KerasTrial._remove_dict_defaults(d)
+        d = super(KerasTrial, self)._remove_dict_defaults(d)
         return d
 
 
