@@ -46,6 +46,6 @@ if(trial == None):
     raise ValueError("hashcode does not exist")
 if(not isinstance(trial, MPI_KerasTrial)):
     raise TypeError("Trial is not MPI_KerasTrial, got type %r" % type(trial))
-trial._execute_MPI(comm=comm,masters=masters)
+trial._execute_MPI(comm=comm)
 # print(sys.argv[0])
 # print(sys.argv[1])
