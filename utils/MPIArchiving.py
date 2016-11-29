@@ -213,7 +213,7 @@ class MPI_KerasTrial(KerasTrial):
         if comm.Get_rank() == 0:
             model = self.compile(custom_objects=custom_objects)
             model_arch = model.to_json()
-            if easgd:
+            if self.easgd:
                 # raise NotImplementedError("Not implemented")
                 algo = Algo(None, loss=self.loss, validate_every=validate_every,
                         mode='easgd', elastic_lr=1.0, sync_every=self.sync_every,
