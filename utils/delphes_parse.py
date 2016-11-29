@@ -363,7 +363,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
     #Update the numValues so that they are correct
     pandas_out["NumValues"] = pandas_out["NumValues"].sub(to_subtract,fill_value=0)
 
-    assert pandas_out["NumValues"]['EFlowTrack'].dtype == int, "NumValues is wrong dtype, %r" %  pandas_out["EFlowTrack"]['Entry'].dtype
+    #assert pandas_out["NumValues"]['EFlowTrack'].dtype == int, "NumValues is wrong dtype, %r" %  pandas_out["EFlowTrack"]['Entry'].dtype
     
     cleaned = df.drop(df.index[to_ommit]).reset_index(drop=True)
     pandas_out["EFlowTrack"] = cleaned
