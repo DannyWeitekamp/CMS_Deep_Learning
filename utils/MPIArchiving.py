@@ -11,6 +11,8 @@ import importlib
 from mpi_learn.mpi.manager import MPIManager, get_device
 from mpi_learn.train.algo import Algo
 from mpi_learn.train.data import H5Data
+from mpi_learn.train.model import ModelFromJson
+from mpi_learn.utils import import_keras
 
 
 from .archiving import KerasTrial, DataProcedure
@@ -211,16 +213,35 @@ class MPI_KerasTrial(KerasTrial):
         
 
 
-        if comm.Get_rank() == 0:
-            validate_every = num_train/self.batch_size
+        # if comm.Get_rank() == 0:
+        validate_every = num_train/self.batch_size
        
+        
+
+        if self.easgd:
+            # raise NotImplementedError("Not implemented")
+            algo = Algo(None, loss=self.loss, validate_every=validate_every,
+                    mode='easgd', elastic_lr=1.0, sync_every=self.sync_every,
+                    worker_optimizer='sgd',
+                    elastic_force=0.9/(comm.Get_size()-1)) 
+        else:
+            algo = Algo(self.master_optimizer, loss=self.loss, validate_every=validate_every,
+                    sync_every=self.sync_every, worker_optimizer=self.optimizer) 
+
+        model = self.compile(custom_objects=custom_objects)
+        model_arch = model.to_json()
+
+        model_builder = ModelFromJson( comm, model_arch )
+
         callbacks = self._generateCallbacks(verbose=verbose)
-
-
+        
         # Creating the MPIManager object causes all needed worker and master nodes to be created
-        manager = MPIManager( comm=comm, data=data, num_epochs=self.nb_epoch, 
+        manager = MPIManager( comm=comm, data=data, num_epochs=self.nb_epoch,
+                algo=algo, model_builder=model_builder
                 train_list=train_list, val_list=val_list, num_masters=self.masters,
                 synchronous=self.synchronous, callbacks=callbacks, custom_objects=custom_objects )
+
+
         # Process 0 defines the model and propagates it to the workers.
         if comm.Get_rank() == 0:
             record = self.read_record()
@@ -232,17 +253,8 @@ class MPI_KerasTrial(KerasTrial):
                 self.to_record({"num_val": val_data.count_data()})
 
             print(custom_objects)
-            model = self.compile(custom_objects=custom_objects)
-            model_arch = model.to_json()
-            if self.easgd:
-                # raise NotImplementedError("Not implemented")
-                algo = Algo(None, loss=self.loss, validate_every=validate_every,
-                        mode='easgd', elastic_lr=1.0, sync_every=self.sync_every,
-                        worker_optimizer='sgd',
-                        elastic_force=0.9/(comm.Get_size()-1)) 
-            else:
-                algo = Algo(self.master_optimizer, loss=self.loss, validate_every=validate_every,
-                        sync_every=self.sync_every, worker_optimizer=self.optimizer) 
+            
+            
             print algo
             weights = model.get_weights()
 
