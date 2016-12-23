@@ -50,10 +50,10 @@ class ObjectProfile():
         for key, value in DEFAULT_PROFILE.items():
             setattr(self, key, kargs.get(key, d.get(key, value)))
 
-        if(max_size < -1):
-            raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
-        if(addColumns != None and not isinstance(addColumns, dict)):
-            raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(addColumns))
+        if(self.max_size < -1):
+            raise ValueError("max_size cannot be less than -1. Got %r" % self.max_size)
+        if(self.addColumns != None and not isinstance(self.addColumns, dict)):
+            raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(self.addColumns))
         # self.name = name
         # self.max_size = max_size
         # self.pre_sort_columns = pre_sort_columns
