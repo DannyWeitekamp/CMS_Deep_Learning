@@ -12,7 +12,20 @@ import sys
 import socket
 
 class ObjectProfile():
-    def __init__(self, name, max_size=100, pre_sort_columns=None, pre_sort_ascending=True, sort_columns=None, sort_ascending=True, query=None, shuffle=False, addColumns=None, punctuation=None):
+    DEFAULT_PROFILE = {
+                        name : " ",
+                        max_size : 100,
+                        pre_sort_columns : None,
+                        pre_sort_ascending:True,
+                        sort_columns:None,
+                        sort_ascending:True,
+                        query:None,
+                        shuffle:False,
+                        addColumns:None,
+                        punctuation:None}
+
+
+    def __init__(self, *args, **kargs):
         ''' An object containing processing instructions for each observable object type
             #Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
@@ -27,23 +40,32 @@ class ObjectProfile():
                              This column should be in observ_types if it is used with preprocessFromPandas_label_dir_pairs
                 punctuation -- Adds a row of all 'punctuation' to indicate a stop in the data
         '''
+        d = {}
+        if(isinstance(args[0], dict)):
+            d = args[0]
+
+        for key, value in DEFAULT_PROFILE.items():
+            setattr(self, key, kargs.get(key, d.get(key, value)))
+
         if(max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % max_size)
         if(addColumns != None and not isinstance(addColumns, dict)):
             raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(addColumns))
-        self.name = name
-        self.max_size = max_size
-        self.pre_sort_columns = pre_sort_columns
+        # self.name = name
+        # self.max_size = max_size
+        # self.pre_sort_columns = pre_sort_columns
         
-        self.pre_sort_ascending = pre_sort_ascending
-        self.sort_columns = sort_columns
-        self.sort_ascending = sort_ascending
-        self.query = query
-        self.shuffle = shuffle
+        # self.pre_sort_ascending = pre_sort_ascending
+        # self.sort_columns = sort_columns
+        # self.sort_ascending = sort_ascending
+        # self.query = query
+        # self.shuffle = shuffle
         
-        self.addColumns =  addColumns
-        self.punctuation = punctuation
+        # self.addColumns =  addColumns
+        # self.punctuation = punctuation
         self.class_name = self.__class__.__name__
+
+# ):
 
 
     def __str__(self):
@@ -217,16 +239,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     for i,profile in enumerate(object_profiles):
         print(profile)
         if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
-            profile = ObjectProfile(profile['name'],
-                                            profile.get('max_size', 100),
-                                            profile.get('pre_sort_columns', None),
-                                            profile.get('pre_sort_ascending', True),
-                                            profile.get('sort_columns', None),
-                                            profile.get('sort_ascending', True),
-                                            profile.get('query', None),
-                                            profile.get('shuffle', False),
-                                            profile.get('punctuation', None),
-                                            profile.get('addColumns', None))
+            profile = ObjectProfile(profile)
             object_profiles[i] = profile
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
