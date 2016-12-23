@@ -11,8 +11,7 @@ import re
 import sys
 import socket
 
-class ObjectProfile():
-    DEFAULT_PROFILE = {
+DEFAULT_PROFILE = {
                         "name" : " ",
                         "max_size" : 100,
                         "pre_sort_columns" : None,
@@ -23,6 +22,8 @@ class ObjectProfile():
                         "shuffle" : False,
                         "addColumns" : None,
                         "punctuation" : None}
+class ObjectProfile():
+    
 
 
     def __init__(self, *args, **kargs):
