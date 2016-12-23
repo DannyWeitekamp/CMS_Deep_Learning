@@ -13,16 +13,16 @@ import socket
 
 class ObjectProfile():
     DEFAULT_PROFILE = {
-                        name : " ",
-                        max_size : 100,
-                        pre_sort_columns : None,
-                        pre_sort_ascending:True,
-                        sort_columns:None,
-                        sort_ascending:True,
-                        query:None,
-                        shuffle:False,
-                        addColumns:None,
-                        punctuation:None}
+                        "name" : " ",
+                        "max_size" : 100,
+                        "pre_sort_columns" : None,
+                        "pre_sort_ascending" :True,
+                        "sort_columns" : None,
+                        "sort_ascending" : True,
+                        "query" : None,
+                        "shuffle" : False,
+                        "addColumns" : None,
+                        "punctuation" : None}
 
 
     def __init__(self, *args, **kargs):
