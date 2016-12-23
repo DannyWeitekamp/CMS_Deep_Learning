@@ -28,9 +28,10 @@ class ObjectProfile():
 
     def __init__(self, *args, **kargs):
         ''' An object containing processing instructions for each observable object type
-            #Arguements:
+            #unkeyed Arguements:
                 name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)
                 max_size   -- The maximum number of objects to use in training
+            #keyed Arguements
                 pre_sort_columns -- What columns to sort before cutting on max_size (See pandas.DataFrame.sort)
                 pre_sort_ascending -- Whether each column will be sorted ascending or decending before cutting on max_size (See pandas.DataFrame.sort)
                 sort_columns -- What columns to sort on after processing (See pandas.DataFrame.sort)
@@ -45,7 +46,11 @@ class ObjectProfile():
         if(isinstance(args[0], dict)):
             d = args[0]
         elif(isinstance(args[0], str)):
-            d = {"name": args[0]}
+            d["name"] = args[0]
+            if(isinstance(args[1], int)):
+                d["max_size"] = args[1]
+        if(len(args) > 2):
+            raise ValueError("Please explicitly name arguements with values %r" % args[2:])
 
         for key, value in DEFAULT_PROFILE.items():
             print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
