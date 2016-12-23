@@ -48,6 +48,7 @@ class ObjectProfile():
             d = {"name": args[0]}
 
         for key, value in DEFAULT_PROFILE.items():
+            print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
             setattr(self, key, kargs.get(key, d.get(key, value)))
 
         if(self.max_size < -1):
@@ -373,11 +374,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     if(profile.addColumns != None):
                         for key, value in profile.addColumns.items():
                             # print(key, value)
-                            sys.stdout.flush()
+                            # sys.stdout.flush()
                             x[key] = value
                     #Only use observable columns
                     # print(x.columns, profile.addColumns)
-                    sys.stdout.flush()
+                    # sys.stdout.flush()
                     x = x[observ_types]
                     sort_locs = None
                     #Find sort_locs before we convert to np array
