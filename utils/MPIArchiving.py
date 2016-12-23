@@ -228,10 +228,10 @@ class MPI_KerasTrial(KerasTrial):
             algo = Algo(self.master_optimizer, loss=self.loss, validate_every=validate_every,
                     sync_every=self.sync_every, worker_optimizer=self.optimizer) 
 
-        model = self.compile(custom_objects=custom_objects)
-        model_arch = model.to_json()
-
-        model_builder = ModelFromJson( comm, model_arch )
+        #model = self.compile(custom_objects=custom_objects)
+        #model_arch = model.to_json()
+        #print(self.get_path()+"trial.json")
+        model_builder = ModelFromJson( comm,json_str=self.model,custom_objects=custom_objects )
 
         callbacks = self._generateCallbacks(verbose=verbose)
 
@@ -256,9 +256,9 @@ class MPI_KerasTrial(KerasTrial):
             
             
             print algo
-            weights = model.get_weights()
+            #weights = model.get_weights()
 
-            manager.process.set_model_info( model_arch, algo, weights )
+            #manager.process.set_model_info( model_arch, algo, weights )
             t_0 = time()
             histories = manager.process.train() 
             delta_t = time() - t_0

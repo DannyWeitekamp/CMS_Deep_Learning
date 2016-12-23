@@ -215,6 +215,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
 
     #Make sure that all the profile are proper objects and have resolved max_sizes
     for i,profile in enumerate(object_profiles):
+        print(profile)
         if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
             profile = ObjectProfile(profile['name'],
                                             profile.get('max_size', 100),
@@ -230,6 +231,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         if(profile.max_size == -1 or profile.max_size == None):
             raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
                          Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
+        print(profile.addColumns)
         if(profile.addColumns != None):
             for key, value in profile.addColumns.items():
                 if(not key in observ_types):
@@ -354,8 +356,12 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                     # print(type(x), len(x.index),x.shape)
                     if(profile.addColumns != None):
                         for key, value in profile.addColumns.items():
+                            print(key, value)
+                            sys.stdout.flush()
                             x[key] = value
                     #Only use observable columns
+                    print(x.columns, profile.addColumns)
+                    sys.stdout.flush()
                     x = x[observ_types]
                     sort_locs = None
                     #Find sort_locs before we convert to np array
