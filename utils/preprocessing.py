@@ -43,6 +43,8 @@ class ObjectProfile():
         d = {}
         if(isinstance(args[0], dict)):
             d = args[0]
+        elif(isinstance(args[0], str)):
+            d = {"name": args[0]}
 
         for key, value in DEFAULT_PROFILE.items():
             setattr(self, key, kargs.get(key, d.get(key, value)))
