@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import socket
+import time
 
 DEFAULT_PROFILE = {
                         "name" : " ",
@@ -20,8 +21,7 @@ DEFAULT_PROFILE = {
                         "sort_ascending" : True,
                         "query" : None,
                         "shuffle" : False,
-                        "addColumns" : None,
-                        "punctuation" : None}
+                        "addColumns" : None}
 class ObjectProfile():
     
 
@@ -40,7 +40,6 @@ class ObjectProfile():
                 shuffle     -- Whether or not to shuffle the data
                 addColumns -- A dictionary with single constant floats or integers to fill an additional column in the table.
                              This column should be in observ_types if it is used with preprocessFromPandas_label_dir_pairs
-                punctuation -- Adds a row of all 'punctuation' to indicate a stop in the data
         '''
         d = {}
         if(isinstance(args[0], dict)):
@@ -53,28 +52,16 @@ class ObjectProfile():
             raise ValueError("Please explicitly name arguements with values %r" % args[2:])
 
         for key, value in DEFAULT_PROFILE.items():
-            print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
+            # print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
             setattr(self, key, kargs.get(key, d.get(key, value)))
 
         if(self.max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % self.max_size)
         if(self.addColumns != None and not isinstance(self.addColumns, dict)):
             raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(self.addColumns))
-        # self.name = name
-        # self.max_size = max_size
-        # self.pre_sort_columns = pre_sort_columns
-        
-        # self.pre_sort_ascending = pre_sort_ascending
-        # self.sort_columns = sort_columns
-        # self.sort_ascending = sort_ascending
-        # self.query = query
-        # self.shuffle = shuffle
-        
-        # self.addColumns =  addColumns
-        # self.punctuation = punctuation
+       
         self.class_name = self.__class__.__name__
 
-# ):
 
 
     def __str__(self):
@@ -208,18 +195,146 @@ def getNumValFrame(filename, storeType):
         # num_val_frame = frames["NumValues"]
     return num_val_frame
 
-def padItem(x,max_size, vecsize, shuffle=False):
-    '''A helper function that pads a numpy array up to MAX_SIZE or trucates it down to MAX_SIZE. If shuffle==True,
-        shuffles the padded output before returning'''
-    if(len(x) > max_size):
-        out = x[:max_size]
+def _getStore(f, storeType):
+    '''Helper Function - Gets the HDFStore or frames for the file and storeType'''
+    frames = None
+    if(storeType == "hdf5"):
+        store = pd.HDFStore(f)
+    elif(storeType == "msgpack"):
+        print("Bulk reading .msg. Be patient, reading in slices not supported.")
+        sys.stdout.flush()
+        #Need to check for latin encodings due to weird pandas default
+        try:
+            frames = pd.read_msgpack(f)
+        except UnicodeDecodeError as e:
+            frames = pd.read_msgpack(f, encoding='latin-1')
+    return store,frames
+def _getFrame(store, storeType, key, select_start, select_stop,
+              samples_to_read, file_total_entries, frames):
+    '''Helper Function - gets '''
+    if(storeType == "hdf5"):
+        #If we are reading all the samples use get since it might be faster
+        #TODO: check if it is actually faster
+        if(samples_to_read == file_total_entries):
+            frame = store.get('/'+key)
+        else:
+            frame = store.select('/'+key, start=select_start, stop=select_stop)
+    elif(storeType == "msgpack"):
+        frame = frames[key]
+        frame = frame[select_start:select_stop]
+    return frame
+
+def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_entries, num_val_frame,file_start_read,object_profiles):
+    '''Helper Function - produces dict keyed by object type and filled with groupBy objects w.r.t Entry'''
+    store, frames = _getStore(f, storeType)
+
+    #Get information about how many rows there are for each entry for the rows we want to skip and read
+    skip_val_frame = num_val_frame[:file_start_read]
+    num_val_frame = num_val_frame[file_start_read : file_start_read+samples_to_read]
+
+
+    groupBys = {}
+    #Loop over every profile and read the corresponding tables in the pandas file
+    for index, profile in enumerate(object_profiles):
+        key = profile.name                
+        #Where to start reading the table based on the sum of the selection start 
+        select_start = int(skip_val_frame[key].sum())
+        select_stop = select_start + int(num_val_frame[key].sum())
+
+        frame = _getFrame(store, storeType, key, select_start, select_stop,
+                          samples_to_read, file_total_entries,frames)
+        #Group by Entry
+        groupBys[key] = frame.groupby(["Entry"], group_keys=True)
+    return groupBys, store
+
+def _applyCuts(df, profile,vecsize, observ_types):
+    '''Helper Function - presorts, applies queries, adds columns, and makes cuts'''
+    if(profile.pre_sort_columns != None):
+        df = df.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
+    if(profile.query != None):
+        df = df.query(profile.query)
+    #Add any additional columns
+    if(profile.addColumns != None):
+        for key, value in profile.addColumns.items():
+            df[key] = value
+    #Make cut, preserving only profile.max_size of top of table
+    df = df.head(profile.max_size)
+    #Only use observable columns
+    df = df[observ_types]
+    return df
+    
+def _padAndSort(df, profile,vecsize):
+    '''Helper Function - pads the data and sorts it'''
+    if(isinstance(df, type(None))):
+        #If a DataFrame does not exist for this entry then just inject zeros 
+        x = np.array(np.zeros((profile.max_size, vecsize)))
     else:
-        out = np.append(x ,np.array(np.zeros((max_size - len(x), vecsize))), axis=0)
-    if(shuffle == True): np.random.shuffle(out)
-    return out
+        #Find sort_locs before we convert to np array
+        sort_locs = None
+        if(profile.sort_columns != None):
+            sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
+        
+        #x is an np array not a DataFrame
+        x = df.values
+        
+        if(sort_locs != None):
+            for loc in reversed(sort_locs):
+                if(profile.sort_ascending == True):
+                    x = x[x[:,loc].argsort()]
+                else:
+                    x = x[x[:,loc].argsort()[::-1]]
+    
+        #pad the array
+        x = np.append(x ,np.array(np.zeros((profile.max_size - len(x), vecsize))), axis=0)
+    return x    
+
+def _initializeXY(single_list, label_dir_pairs, num_object_profiles, samples_per_label, num_labels):
+    '''Helper Function - Generates the initial data structures for the X (data) and Y (target)'''
+    label_vecs = {}
+    for i, (label, data_dir) in enumerate(label_dir_pairs):
+        arr = np.zeros((num_labels,))
+        arr[i] = 1
+        label_vecs[label] = arr
+        
+    if(single_list):
+        X_train = [None] * (samples_per_label * num_labels)
+        #global_profile = ObjectProfile("list", max_size="")
+    else:
+        X_train = [None] * (num_object_profiles)
+        #Prefill the arrays so that we don't waste time resizing lists
+        for index in range(num_object_profiles):
+            X_train[index] = [None] * (samples_per_label * num_labels)
+            
+    y_train = [None] * (samples_per_label * num_labels)
+    return X_train, y_train, label_vecs
    
-    #arr[index] = np.array(padItem(x.values, max_size, shuffle=shuffle))
-def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_label, object_profiles, observ_types, verbose=1):
+def _check_Object_Profiles(object_profiles, observ_types):
+    '''Helper Function - Makes sure that all ObjectProfiles are correctly formatted,
+        makes formatting corrections if necessary'''
+    for i,profile in enumerate(object_profiles):
+        if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
+            profile = ObjectProfile(profile)
+            object_profiles[i] = profile
+        if(profile.max_size == -1 or profile.max_size == None):
+            raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
+                         Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
+        if(profile.addColumns != None):
+            for key, value in profile.addColumns.items():
+                if(not key in observ_types):
+                    raise ValueError("addColumn Key %r must be in observ_types" % key)
+    return object_profiles
+
+def _check_inputs(label_dir_pairs, observ_types):
+    '''Helper Function - Makes sure that label_dir_pairs, and observ_types are correctly formatted'''
+    labels = [x[0] for x in label_dir_pairs]
+    duplicates = list(set([x for x in labels if labels.count(x) > 1]))
+    if(len(duplicates) != 0):
+        raise ValueError("Cannot have duplicate labels %r" % duplicates)
+    if("Entry" in observ_types):
+        raise ValueError("Using Entry in observ_types can result in skewed training results. Just don't.")
+        
+def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_label, object_profiles, observ_types,
+                                         single_list=False, sort_columns=None, sort_ascending=True,verbose=1):
     '''Gets training data from folders of pandas tables
         #Arguements:
             label_dir_pairs -- a list of tuples of the form (label, directory) where the directory contains
@@ -229,77 +344,34 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and
                                 its preprocessing steps. 
             observ_types    -- The column headers for the data to be read from the panadas table
+            single_list -- If True all object types are joined into a single list.
+            sort_columns -- If single_list the columns to sort by.
+            sort_ascending -- If True sort in ascending order, false decending  
         #Returns:
             Training data with its correspoinding labels
             (X_train, Y_train)
     '''
-    labels = [x[0] for x in label_dir_pairs]
-    duplicates = list(set([x for x in labels if labels.count(x) > 1]))
-    if(len(duplicates) != 0):
-        raise ValueError("Cannot have duplicate labels %r" % duplicates)
-
+    _check_inputs(label_dir_pairs, observ_types)
+    #Make sure that all the profile are proper objects and have resolved max_sizes
+    object_profiles = _check_Object_Profiles(object_profiles,observ_types)
+    
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
-
-    if("Entry" in observ_types):
-        raise ValueError("Using Entry in observ_types can result in skewed training results. Just don't.")
-
-    #Make sure that all the profile are proper objects and have resolved max_sizes
-    for i,profile in enumerate(object_profiles):
-        # print(profile)
-        if(isinstance(profile, dict) and profile.get('class_name', None) == "ObjectProfile"):
-            profile = ObjectProfile(profile)
-            object_profiles[i] = profile
-        if(profile.max_size == -1 or profile.max_size == None):
-            raise ValueError("ObjectProfile max_sizes must be resolved before preprocessing. \
-                         Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)")
-        # print(profile.addColumns)
-        if(profile.addColumns != None):
-            for key, value in profile.addColumns.items():
-                if(not key in observ_types):
-                    raise ValueError("addColumn Key %r must be in observ_types" % key)
-
-    #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
-    label_vecs = {}
-    for i, (label, data_dir) in enumerate(label_dir_pairs):
-        arr = np.zeros((num_labels,))
-        arr[i] = 1
-        label_vecs[label] = arr
     
-    X_train_indices = [None] * (len(object_profiles))
-    X_train = [None] * (len(object_profiles))
-    y_train = [None] * (samples_per_label * num_labels)
-
-    #Prefill the arrays so that we don't waste time resizing lists
-    for index, profile in enumerate(object_profiles):
-        X_train[index] = [None] * (samples_per_label * num_labels)
-        X_train_indices[index] = 0
+    #Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label
+    X_train, y_train, label_vecs = _initializeXY(single_list, label_dir_pairs, len(object_profiles), samples_per_label, num_labels)
+    X_train_index = 0
     
     #Loop over label dir pairs and get the file list for each directory
     y_train_start = 0
     for (label,data_dir) in label_dir_pairs:
-
         files, storeType = getFiles_StoreType(data_dir)
         files.sort()
         samples_read = 0
         location = 0
+        
          #Loop the files associated with the current label
         for f in files:
-            
-            # if(storeType == "hdf5"):
-            #     #Get the HDF Store for the file
-            #     store = pd.HDFStore(f)
-
-            #     #Get the NumValues frame which lists the number of values for each entry
-            #     try:
-            #         num_val_frame = store.get('/NumValues')
-            #     except KeyError as e:
-            #         raise KeyError(str(e) + " " + f)
-            # elif(storeType == "msgpack"):
-            #     print("Bulk reading .msg. Be patient, reading in slices not supported.")
-            #     sys.stdout.flush()
-            #     frames = pd.read_msgpack(f)
-            #     num_val_frame = frames["NumValues"]
             num_val_frame = getNumValFrame(f,storeType)
 
             file_total_entries = len(num_val_frame.index)
@@ -309,113 +381,63 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             if(location + file_total_entries <= start):
                 location += file_total_entries
                 continue
-
-
-            if(storeType == "hdf5"):
-                store = pd.HDFStore(f)
-            elif(storeType == "msgpack"):
-                print("Bulk reading .msg. Be patient, reading in slices not supported.")
-                sys.stdout.flush()
-                #Need to check for latin encodings due to weird pandas default
-                try:
-                    frames = pd.read_msgpack(f)
-                except UnicodeDecodeError as e:
-                    frames = pd.read_msgpack(f, encoding='latin-1')
+            
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
-            file_start_read = start-location
-            if(file_start_read < 0): file_start_read = 0
+            file_start_read = start-location if start > location else 0
+            
             #How many rows we will read from this table each corresponds to one entry
             samples_to_read = min(samples_per_label-samples_read, file_total_entries-file_start_read)
             assert samples_to_read >= 0
             
-            #Get information about how many rows there are for each entry for the rows we want to skip and read
-            skip_val_frame = num_val_frame[:file_start_read]
-            num_val_frame = num_val_frame[file_start_read : file_start_read+samples_to_read]
-
-            
-            #Sample is another word for entry
             if(verbose >= 1): print("Reading %r samples from %r:" % (samples_to_read,f))
             
-            #Loop over every profile and read the corresponding tables in the pandas_unjoined file
-            for index, profile in enumerate(object_profiles):
-                key = profile.name
-                max_size = profile.max_size
-                if(verbose >= 1): print("Mapping %r Values/Sample from %r" % (max_size, key))
-                skip = skip_val_frame[key]
+            groupBys,store = _groupsByEntry(f, storeType, samples_per_label,samples_to_read, file_total_entries,
+                                            num_val_frame,file_start_read,object_profiles)
                 
-                #Where to start reading the table based on the sum of the selection start 
-                select_start = int(skip.sum())
-                nums = num_val_frame[key]
-                select_stop = select_start + int(nums.sum())
-                
-                if(storeType == "hdf5"):
-                    #If we are reading all the samples use get since it might be faster
-                    #TODO: check if it is actually faster
-                    if(samples_to_read == file_total_entries):
-                        frame = store.get('/'+key)
-                    else:
-                        frame = store.select('/'+key, start=select_start, stop=select_stop)
-                elif(storeType == "msgpack"):
-                    frame = frames[key]
-                    frame = frame[select_start:select_stop]
-                
-                arr_start = X_train_indices[index]
-                arr = X_train[index]
-
-                #Group by Entry
-                groups = frame.groupby(["Entry"], group_keys=True)#[observ_types]
-                group_itr = iter(groups)
-                
-                #Go through the all of the groups by entry and apply preprocessing based off of the object profile
-                #TODO: is a strait loop slow? Should I use apply(lambda...etc) instead? Is that possible if I need to loop
-                #      over index, x and not just x?
-                for entry, x in group_itr:
-                    if(profile.pre_sort_columns != None):
-                        x = x.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
-                    if(profile.query != None):
-                        x = x.query(profile.query)
-                    # print(type(x), len(x.index),x.shape)
-                    if(profile.addColumns != None):
-                        for key, value in profile.addColumns.items():
-                            # print(key, value)
-                            # sys.stdout.flush()
-                            x[key] = value
-                    #Only use observable columns
-                    # print(x.columns, profile.addColumns)
-                    # sys.stdout.flush()
-                    x = x[observ_types]
-                    sort_locs = None
-                    #Find sort_locs before we convert to np array
-                    if(profile.sort_columns != None):
-                        sort_locs = [x.columns.get_loc(s) for s in profile.sort_columns]
-                    x = padItem(x.values, max_size, vecsize, shuffle=profile.shuffle)
-                    #x is now an np array not a DataFrame
-                    if(sort_locs != None):
-                        for loc in reversed(sort_locs):
-                            if(profile.sort_ascending == True):
-                                x = x[x[:,loc].argsort()]
-                            else:
-                                x = x[x[:,loc].argsort()[::-1]]
-                    if(profile.punctuation != None):
-                        x = np.append(x ,np.array(profile.punctuation * np.ones((1, vecsize))), axis=0)
-                    # print(type(x), x.shape)
-                    # print(len(arr), arr_start + entry - file_start_read)
-                    # print(entry)
-                    arr[arr_start + entry - file_start_read] = x
-                
-                #Go through the all of the entries that were empty for this datatype and make sure we pad them with zeros
-                for i in range(arr_start, arr_start+samples_to_read):
-                    if(arr[i] is None):
-                        arr[i] = np.array(np.zeros((max_size, vecsize)))
+            if(verbose >= 1): print("Values/Sample from: %r" % {p.name: p.max_size for p in object_profiles})
+            
+            cut_tables = [None] * len(object_profiles)
+            last_time = time.clock()-1.0
+            prev_entry = file_start_read
+            for entry in range(file_start_read, file_start_read+samples_to_read):
+                #Make a pretty progress bar in the terminal
+                if(verbose >= 1):      
+                    c = time.clock() 
+                    if(c > last_time + .25):
+                        percent = float(entry-file_start_read)/float(samples_to_read)
+                        sys.stdout.write('\r')
+                        sys.stdout.write("[%-20s] %r/%r  %r(Entry/sec)" % ('='*int(20*percent), entry, int(samples_to_read), 4 * (entry-prev_entry)))
+                        sys.stdout.flush()
+                        last_time = c
+                        prev_entry = entry
                         
-                #Iterate by samples to read so that we know how many are left when we read the next file
-                X_train_indices[index] += samples_to_read
-
-                #Free these (probably not necessary)
-                frame = None
-                groups = None
-
+                for index, profile in enumerate(object_profiles):
+                        #print(groupBys.keys())
+                        groupBy = groupBys[profile.name]
+                        if(entry in groupBy.groups):
+                            df = _applyCuts(groupBy.get_group(entry), profile, vecsize, observ_types)
+                            cut_tables[index] = df
+                        else:
+                            cut_tables[index] = None
+                if(single_list):
+                    df = pd.concat(cut_tables)
+                    list_profile = ObjectProfile("single_list",
+                                                sum([profile.max_size for profile in object_profiles]),
+                                                sort_columns=sort_columns,
+                                                sort_ascending=sort_ascending)    
+                                                    
+                    x  = _padAndSort(df,list_profile,vecsize)
+                    X_train[X_train_index + entry - file_start_read] = x
+                else:
+                    for index, profile in enumerate(object_profiles):
+                        arr = X_train[index]
+                        df = cut_tables[index]
+                        x  = _padAndSort(df,profile, vecsize)
+                        arr[X_train_index + entry - file_start_read] = x
+            
+            X_train_index += samples_to_read
+            
             #Free this (probably not necessary)
             num_val_frame = None
             if(storeType == "hdf5"):
@@ -428,7 +450,6 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 assert samples_read == samples_per_label
                 break
         if(samples_read != samples_per_label):
-            print(samples_read, samples_per_label)
             raise IOError("Not enough data in %r to read in range(%r, %r)" % (data_dir, start, samples_per_label+start))
         
         #Generate the target data as vectors like [1,0,0], [0,1,0], [0,0,1]
@@ -442,8 +463,11 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     
     indices = np.arange(len(y_train))
     np.random.shuffle(indices)
-    for index in range(len(X_train)):
-        X_train[index] = np.array(X_train[index])[indices]
+    if(single_list):
+        X_train = np.array(X_train)
+    else:
+        for index in range(len(X_train)):
+            X_train[index] = np.array(X_train[index])[indices]
 
     y_train = y_train[indices]
     return X_train, y_train
