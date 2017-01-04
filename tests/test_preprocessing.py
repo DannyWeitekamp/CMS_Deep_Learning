@@ -222,7 +222,7 @@ def checkDuplicates(t,X, Y, object_profiles):
 
 class PreprocessingTests(unittest.TestCase):
 
-    def test_as_list(self):
+    def test_normal(self):
         NUM = 5
         frame_lists = {l:store_fake(d,NUM, 1, object_profiles1) for l, d in label_dir_pairs}
         OPS = object_profiles1
