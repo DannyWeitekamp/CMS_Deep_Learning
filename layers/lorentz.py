@@ -22,11 +22,15 @@ for i in range(0,3):
 _K = K.variable(np_K)
 
 
-def _lorentz(x, boosts,weights=None, sphereCoords=False):
+def _lorentz(x, boosts,weights=None, sphereCoords=False,sum_input=False):
 
     ''' Outputs a backend variable that Calculates the vectorial sum of 4-vectors
         boosted individually into different reference frames
     '''
+    if(sum_input):
+        x = K.sum(x, axis=1)
+        x_shape = K.shape(x)
+        x = K.reshape(x, (x_shape[0], 1 ,x_shape[1]))
     # K.clip(boosts, 0.0, .33-_EPSILON)
     #Initialize Helpful variables
     x_shape = K.shape(x)
@@ -45,7 +49,7 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
         #split up the boost by components. dtype='int64' is to cast to a theano.tensor.lvector
         _splits = K.variable([1,1,1], dtype='int64') #theano.tensor.lvector([1,1,1])
         _theta, _phi,_mag = theano.tensor.split(boosts,_splits, 3, axis=1)
-        _mag = K.clip(_mag, 0.0, 1.0-_EPSILON)
+        _mag = K.clip(_mag, _EPSILON, 1.0-_EPSILON)
         _theta = _theta * np.pi
         _phi = _phi * (2 * np.pi)
         _nx = K.sin(_theta) * K.cos(_phi) 
@@ -54,7 +58,7 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False):
         _n = K.concatenate([_nx, _ny, _nz], axis=1)
     else:
         _mag = K.sqrt(K.sum(K.square(boosts), axis=1,keepdims=True))
-        _mag = K.clip(_mag, 0.0, 1.0-_EPSILON)
+        _mag = K.clip(_mag, _EPSILON, 1.0-_EPSILON)
         _inv_mag = 1/_mag
         _n = boosts *  _inv_mag
     
@@ -120,13 +124,14 @@ class Lorentz(Layer):
             sphereCoords -- if True uses spherical coordinates for calculating the boost instead of Cartesian.
             vec_start -- determines where to start reading the 4-vector along the last axis of the input.
     '''
-    def __init__(self,sphereCoords=False, vec_start=0, weight_output=False, **kwargs):
+    def __init__(self,sphereCoords=False, vec_start=0, sum_input=False, weight_output=False, **kwargs):
         if(isinstance(sphereCoords, bool) == False):
             raise TypeError("sphereCoords should be bool type, but got %r" % type(sphereCoords))
         self.output_dim = 4
         self.sphereCoords = sphereCoords
         self.vec_start = vec_start
         self.weight_output = weight_output
+        self.sum_input = sum_input
         # kwargs['input_shape'] = (cluster_size, 4)
         super(Lorentz, self).__init__(**kwargs)
         
@@ -134,7 +139,7 @@ class Lorentz(Layer):
         #The cluster size
         # print(input_shape)
         input_dim = input_shape[1]
-        
+        if(sum_input): input_dim = 1
         # self.vec_start
 
         #Boosts for each vector in the cluster
@@ -189,7 +194,7 @@ class Lorentz(Layer):
 
     def get_output_shape_for(self, input_shape):
         # return (input_shape[0], self.output_dim)
-        return (input_shape[0], input_shape[1], 4)
+        return (input_shape[0], 1 if self.sum_input else input_shape[1], 4)
 
     def get_config(self):
         base_config = Layer.get_config(self)
