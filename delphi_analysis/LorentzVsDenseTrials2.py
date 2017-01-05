@@ -103,7 +103,7 @@ def genModel(name,out_dim, depth, width, dense_activation="relu", dropout = 0.0,
         a =  Dense(width, activation=dense_activation, name="dense_"+str(i))(a)
         if(dropout > 0.0):
             a =  Dropout(dropout, name="dropout_"+str(i))(a)
-    dense_out = Dense(out_dim, activation='sigmoid', name='main_output')(a)
+    dense_out = Dense(out_dim, activation='softmax', name='main_output')(a)
     model = Model(input=inputs, output=dense_out, name=name)
     return model
 
@@ -159,7 +159,7 @@ for ldp in [ldpsubsets[0]]:#ldpsubsets:
                                                       )
                                         trial.setValidation(val_procedure=val,
                                                            nb_val_samples=num_val)
-                                        trial.setCompilation(loss='binary_crossentropy',
+                                        trial.setCompilation(loss='categorical_crossentropy',
                                                   optimizer='adam',
                                                   metrics=['accuracy']
                                                       )
