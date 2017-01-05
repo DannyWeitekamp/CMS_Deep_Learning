@@ -1,4 +1,4 @@
-import sys, os
+import sys
 import time
 
 repo_outerdir = sys.argv[1]+"../"
@@ -9,7 +9,7 @@ imports_ok = False
 start_time = time.clock()
 while(time.clock() - start_time < 60):
     try:
-        from CMS_SURF_2016.utils.archiving import DataProcedure
+        from CMS_Deep_Learning.storage.archiving import DataProcedure
         imports_ok = True
         break
     except Exception as e:
@@ -18,7 +18,7 @@ while(time.clock() - start_time < 60):
         continue
 
 if(not imports_ok):
-    raise IOError("Failed to import CMS_SURF_2016 or keras, ~/.keras/keras.json is probably being read by multiple processes")
+    raise IOError("Failed to import CMS_Deep_Learning or keras, ~/.keras/keras.json is probably being read by multiple processes")
 
 
 def main(archive_dir,hashcode):

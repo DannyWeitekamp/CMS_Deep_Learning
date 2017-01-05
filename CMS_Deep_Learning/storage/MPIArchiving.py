@@ -94,7 +94,7 @@ class MPI_KerasTrial(KerasTrial):
             
             # comm = MPI.COMM_WORLD.Dup()
             # print("Not MPI_Instance")
-            loc = "/data/shared/Software/CMS_SURF_2016/utils/MPIKerasTrial_execute.py"
+            loc = "/data/shared/Software/CMS_Deep_Learning/utils/MPIKerasTrial_execute.py"
             print(self.archive_dir, self.hash())
             RunCommand = 'mpirun -np %s python %s %s %s --masters %s --max-gpus %s' % (self.workers + self.masters, loc, self.archive_dir, self.hash(), self.masters, self.max_gpus)
             print(RunCommand)

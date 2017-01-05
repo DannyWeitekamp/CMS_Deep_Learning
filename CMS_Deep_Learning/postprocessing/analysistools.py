@@ -1,11 +1,5 @@
-import itertools
-from keras.callbacks import History
-import matplotlib.pyplot as plt
-
-        
-import matplotlib.pyplot as plt
-import numpy as np
 import copy
+import itertools
 
 def findsubsets(S):
     '''Finds all subsets of a set S'''

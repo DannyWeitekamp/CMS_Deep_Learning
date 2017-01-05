@@ -1,11 +1,14 @@
 import unittest
+import sys, os
 if __package__ is None:
-    import sys, os
+    print(os.path.realpath("../../"))
     sys.path.append(os.path.realpath("../../"))
+else:
+    print(__package__)
 import tempfile
 import numpy as np
 import pandas as pd
-from CMS_SURF_2016.utils.preprocessing import ObjectProfile, preprocessFromPandas_label_dir_pairs
+from CMS_Deep_Learning.preprocessing.preprocessing import ObjectProfile, preprocessFromPandas_label_dir_pairs
 gen_observ_types = ['PT_ET','Eta', 'Phi']
 observ_types = gen_observ_types + ["ObjType"]
 

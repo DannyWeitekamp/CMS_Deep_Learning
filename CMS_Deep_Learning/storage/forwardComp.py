@@ -1,10 +1,12 @@
 '''DEPRICATED
 	just a quick script to translate from an old archiving format
 '''
-import sys, os
+import os
+import sys
+
 if __package__ is None:
     sys.path.append(os.path.realpath("../"))
-from CMS_SURF_2016.utils.archiving import *
+from CMS_Deep_Learning.storage.archiving import *
 
 def forwardComp(archive_dir):
 	trial_record = KerasTrial.read_record(archive_dir)

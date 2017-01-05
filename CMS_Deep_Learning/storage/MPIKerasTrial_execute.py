@@ -1,5 +1,8 @@
+import os
+import sys
+
 from mpi4py import MPI
-import sys,os
+
 software = "/data/shared/Software/"
 if(not software in sys.path):
     sys.path.append(software)
@@ -38,8 +41,7 @@ comm = MPI.COMM_WORLD.Dup()
 device = get_device( comm, masters, gpu_limit=max_gpus )
 print("Process",comm.Get_rank(),"using device",device)
 os.environ['THEANO_FLAGS'] = "device=%s,floatX=float32" % (device)
-import theano
-from CMS_SURF_2016.utils.MPIArchiving import MPI_KerasTrial
+from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
 
 trial = MPI_KerasTrial.find_by_hashcode(archive_dir, hashcode)
 if(trial == None):

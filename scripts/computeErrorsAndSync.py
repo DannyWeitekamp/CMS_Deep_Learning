@@ -1,4 +1,4 @@
-import sys, os
+import sys
 import time
 
 repo_outerdir = "/scratch/daint/dweiteka/"
@@ -28,11 +28,11 @@ imports_ok = False
 start_time = time.clock()
 while(time.clock() - start_time < 5):
     try:
-        from CMS_SURF_2016.utils.archiving import KerasTrial, DataProcedure,get_all_trials
-        from CMS_SURF_2016.utils.metrics import *
-        from CMS_SURF_2016.layers.lorentz import Lorentz
-        from CMS_SURF_2016.layers.slice import Slice
-        from CMS_SURF_2016.utils.rsyncUtils import rsyncStorable
+        from CMS_Deep_Learning.storage.archiving import KerasTrial, DataProcedure,get_all_trials
+        from CMS_Deep_Learning.postprocessing.metrics import *
+        from CMS_Deep_Learning.layers.lorentz import Lorentz
+        from CMS_Deep_Learning.layers.slice import Slice
+        from CMS_Deep_Learning.storage.rsyncUtils import rsyncStorable
         imports_ok = True
         break
     except Exception as e:
@@ -43,7 +43,7 @@ while(time.clock() - start_time < 5):
         continue
 
 if(not imports_ok):
-    raise IOError("Failed to import CMS_SURF_2016 or keras, ~/.keras/keras.json is probably being read by multiple processes")
+    raise IOError("Failed to import CMS_Deep_Learning or keras, ~/.keras/keras.json is probably being read by multiple processes")
 
 print("WE Got Imports")
 #def main():

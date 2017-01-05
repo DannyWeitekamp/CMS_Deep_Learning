@@ -1,3 +1,3 @@
-#package CMS_SURF_2016
+#package CMS_Deep_Learning
 
 # from . import utils
