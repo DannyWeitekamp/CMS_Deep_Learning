@@ -5,7 +5,7 @@ if __package__ is None:
 import unittest
 import numpy as np
 import keras.backend as K
-from CMS_SURF_2016.layers.lorentz import _lorentz
+from CMS_Deep_Learning.layers.lorentz import _lorentz
 
 
 

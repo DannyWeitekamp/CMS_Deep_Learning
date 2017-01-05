@@ -1,16 +1,15 @@
-import numpy as np
-import pandas as pd
 import glob
-import threading
-from .archiving import DataProcedure, KerasTrial
-from .meta import msgpack_assertMeta
-from ..layers.lorentz import Lorentz
-from ..layers.slice import Slice
 import os
 import re
 import sys
-import socket
+import threading
 import time
+
+import numpy as np
+import pandas as pd
+
+from CMS_Deep_Learning.storage.archiving import DataProcedure
+from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
 
 DEFAULT_PROFILE = {
                         "name" : " ",
@@ -484,7 +483,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                       fraction of the argument 'length' minus the sum of the integer entries (ratio). Float (ratio) entries in splits must add up to 1.0.
             length -- The total number of samples per label to be split among the float (ratio) values of 'splits' plus the Integer (static) values. In other words the total number
                         of samples per value to be used by all of the generators built by this function. Does not matter if all splits are Integers (static).
-            object_profiles -- A list of ObjectProfiles (see CMS_SURF_2016.utils.preprocessing.ObjectProfile). Order matters, these determine how the final preprocessed inputs will be
+            object_profiles -- A list of ObjectProfiles (see CMS_Deep_Learning.utils.preprocessing.ObjectProfile). Order matters, these determine how the final preprocessed inputs will be
                             preprocessed and order among themselves.
             label_dir_pairs -- A list of tuples where the first entry is a label and the second is the name of a directory containing pandas files (either msg or h5 format) corresponding 
                             to that label.
@@ -495,7 +494,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
             verbose -- Determines whether or not information is printed out as the generators are formed and as they are used. (TODO: the implementation of this might need some work, the specifics
                         of how this information is passed along the the DPs and their dependant functions might not be implemented correctly at the moment, leading to printouts even if verbose=0)
         #Returns (all_dps, all_datasets)
-            all_dps -- A list of DataProcedures, this can be passed to CMS_SURF_2016.utils.batch.batchAssertArchived to make sure that all the DPs are archived before proceeding to training
+            all_dps -- A list of DataProcedures, this can be passed to CMS_Deep_Learning.utils.batch.batchAssertArchived to make sure that all the DPs are archived before proceeding to training
             all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that
                             each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  
         '''

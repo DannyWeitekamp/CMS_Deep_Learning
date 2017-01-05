@@ -120,7 +120,7 @@ def plotBins(bins,
              xlim=None,
              ylim=(0.0,1.025),
              useGrid=True):
-    ''' Plots the output of CMS_SURF_2016.utils.metrics.accVsEventChar
+    ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
         #Arguments:
             bins -- A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
             min_samples -- The minumum number of samples that must be in a bin for it to be plotted.
@@ -174,7 +174,7 @@ def plotBins(bins,
     else:
         legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
     
-    plt.setp(legend.get_title(),fontsize=14)
+    if(legendTitle != None): plt.setp(legend.get_title(),fontsize=14)
     
     plt.ylim(ylim)
     plt.xlim(xlim)
@@ -197,13 +197,13 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
             ylabel -- The Y label of the plot
             label -- How to label objects in the legend if groupOn=None
             legend_label -- The title for the lengend
-            colors -- A list of colors to use to represent each group, defaults to CMS_SURF_2016.utils.colors.colors_contrasting
+            colors -- A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting
             shapes -- list of marker shapes to use in the graph, defualts to ['o','s','v', 'D', '^','*', '<', '>']
             alpha -- The alpha value (opacity) for each point in the plot
             mode -- How to assert a one-to-one relationship between the trials in each group. Either "max" or "min" which simply take the trial
                     with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
                     relationship cannot be resolved. The user can then edit the 'constants' argument to satisfy this relationship. 
-                    See CMS_SURF_2016.analysistools.assertOneToOne for more information
+                    See CMS_Deep_Learning.analysistools.assertOneToOne for more information
             verbose -- Whether or not to output extra information about the internals of the function for debugging.
             verbose_errors -- Whether or not to print out longer summaries for conflicting trials if mode = "error".
             '''

@@ -3,26 +3,21 @@ archive.py
 A system for archiving keras trials and input data
 Author: Danny Weitekamp
 e-mail: dannyweitekamp@gmail.com
-''' 
+'''
 
-import json
-import hashlib
-import os
 import copy
-import h5py
-import re
-import types
-import shutil
 import glob
-import numpy as np
+import hashlib
+import re
+import shutil
+import types
 
-from keras.models import model_from_json
-from keras.engine.training import Model
-from .callbacks import *
-from ..layers.lorentz import Lorentz, _lorentz
-from ..layers.slice import Slice
-from keras.models import model_from_json
+import h5py
 from keras.callbacks import *
+from keras.engine.training import Model
+from keras.models import model_from_json
+
+from CMS_Deep_Learning.callbacks import *
 
 
 class Storable( object ):

@@ -13,7 +13,7 @@ from itertools import islice
 import glob
 import ntpath
 import getopt
-from CMS_SURF_2016.utils.meta import msgpack_assertMeta
+from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
 
 
 def DeltaRsq(A_Eta, A_Phi, B_Eta, B_Phi):

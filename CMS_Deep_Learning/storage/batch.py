@@ -1,11 +1,14 @@
-import sys,os
+import os
 import re
 import socket
-from ..utils.archiving import DataProcedure, KerasTrial
-from ..layers.lorentz import Lorentz
-from ..layers.slice import Slice
+import sys
 
-def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_SURF_2016/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
+from CMS_Deep_Learning.layers.lorentz import Lorentz
+from CMS_Deep_Learning.layers.slice import Slice
+from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
+
+
+def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_Deep_Learning/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
     '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
         a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
         DPs have completed their preprocessing and archived the result.
@@ -50,7 +53,7 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 
-def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_SURF_2016/", trial_out_dir='/scratch/daint/dweiteka/trial_out/', verbose=1):
+def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dweiteka/CMS_Deep_Learning/", trial_out_dir='/scratch/daint/dweiteka/trial_out/', verbose=1):
     '''Takes in a list of tuples 'tups' of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
         each trial, either in in order or in separate batches in the case of CSCS.
     '''

@@ -1,20 +1,20 @@
 #WARNING THIS SCRIPT TAKES A LONG TIME TO RUN!
 #Note Everythin is in natural units so C = 1
-import sys, os
 if __package__ is None:
     import sys, os
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../../"))
-from CMS_SURF_2016.utils.data_parse import ROOT_to_pandas
-from CMS_SURF_2016.utils.data_parse import DataProcessingProcedure
-from CMS_SURF_2016.utils.data_parse import leaves_from_obj
-import ROOT
-from ROOT import TTree
+import glob
+import ntpath
+from itertools import cycle, islice
+
 import numpy as np
 import pandas as pd
-import ntpath
-import glob
-from itertools import cycle, islice
+
+from CMS_Deep_Learning.old.data_parse import DataProcessingProcedure
+from CMS_Deep_Learning.old.data_parse import ROOT_to_pandas
+from CMS_Deep_Learning.old.data_parse import leaves_from_obj
+
 
 #didit = False
 def cullNonObservables(frame):
@@ -339,7 +339,6 @@ jobs = roundrobin(ttbar_jobs, WJet_jobs, qcd_jobs)
 
 
 from multiprocessing.dummy import Pool
-from multiprocessing import Process, Queue
 import time
 
 #queue = Queue()

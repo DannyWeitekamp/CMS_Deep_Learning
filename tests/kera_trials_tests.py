@@ -1,17 +1,16 @@
 #%matplotlib inline
-import sys, os
 if __package__ is None:
 	import sys, os
 	sys.path.append(os.path.realpath("/data/shared/Software/"))
 	sys.path.append(os.path.realpath("../.."))
 
-from CMS_SURF_2016.utils.archiving import *
-from keras.models import Sequential, Model
-from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, Merge, Input
-from keras.callbacks import EarlyStopping
-from keras.utils.np_utils import to_categorical
 import numpy as np
+from keras.callbacks import EarlyStopping
+from keras.layers import Dense, Merge
+from keras.models import Sequential
+from keras.utils.np_utils import to_categorical
 
+from CMS_Deep_Learning.storage.archiving import *
 
 archive_dir = 'MyArchiveDir/'
 
@@ -71,9 +70,6 @@ trial.to_hashable()
 trial.execute()
 print("OK IT FINISHED!")
 
-
-from keras.utils.visualize_util import plot
-from IPython.display import Image, display
 #Luckily no information was lost. We can still get the training history for the trial.
 history = trial.get_history()
 # plot_history([('myhistory', history)])

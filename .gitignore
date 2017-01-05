@@ -1,3 +1,4 @@
 lstm_benchmark/SmartCheckpoint/*
 *.pyc
 *.ipynb_checkpoints
+.idea/

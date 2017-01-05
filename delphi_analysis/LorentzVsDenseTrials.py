@@ -1,6 +1,7 @@
 #We can go into our root file and see what Trees are availiable
 #%matplotlib inline
-import sys, os
+import sys
+
 if __name__ == "__main__":
 	username = "dweiteka"
 	if(len(sys.argv) > 1):
@@ -24,25 +25,16 @@ archive_dir = DELPHES_DIR+"CSCS_output/keras_archive/"
 if(not SOFTWAR_DIR in sys.path):
     sys.path.append(SOFTWAR_DIR)
 
-import numpy as np
-import pandas as pd
-import ntpath
-import glob
-
-from CMS_SURF_2016.utils.preprocessing import *
-from CMS_SURF_2016.utils.callbacks import OverfitStopping, SmartCheckpoint
-from CMS_SURF_2016.utils.archiving import *
-from CMS_SURF_2016.utils.batch import batchAssertArchived, batchExecuteAndTestTrials
-from CMS_SURF_2016.layers.lorentz import Lorentz, _lorentz
-from CMS_SURF_2016.layers.slice import Slice
+from CMS_Deep_Learning.utils.preprocessing import *
+from CMS_Deep_Learning.storage.archiving import *
+from CMS_Deep_Learning.storage.batch import batchAssertArchived, batchExecuteAndTestTrials
+from CMS_Deep_Learning.layers.lorentz import Lorentz
+from CMS_Deep_Learning.layers.slice import Slice
 
 
-from keras.models import Sequential, Model, model_from_json
-from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, merge, Input, Flatten, Lambda, LSTM, Masking
-from keras.engine.topology import Layer
+from keras.models import Model
+from keras.layers import Dense, Dropout, merge, Input, Flatten
 from keras.callbacks import EarlyStopping
-from keras.utils.visualize_util import plot
-from keras.layers.advanced_activations import LeakyReLU
 
 #The observables taken from the table
 observ_types = ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
