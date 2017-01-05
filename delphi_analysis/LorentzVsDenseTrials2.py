@@ -110,7 +110,7 @@ def genModel(name,out_dim, depth, width, dense_activation="relu", dropout = 0.0,
 
 earlyStopping = EarlyStopping(verbose=1, patience=10)
 trial_tups = []
-for ldp in ldpsubsets:
+for ldp in [ldpsubsets[0]]:#ldpsubsets:
     labels = [x[0] for x in ldp]
     for sort_on in ["PT_ET"]:
         for max_EFlow_size in [100]:#[100, 200]:
@@ -138,9 +138,9 @@ for ldp in ldpsubsets:
             
             for name in ['lorentz', 'not_lorentz', 'control_dense']:
                 for sphereCoords in [False]:
-                    for weight_output in [False, True]:
-                        for depth in [2,3,4,5]:
-                            for width in [10,25]:
+                    for weight_output in [True]:#[False, True]:
+                        for depth in [2]:#[2,3,4,5]:
+                            for width in [10]:#[10,25]:
                                 for activation in ['relu']:
                                     for dropout in [0.0]:
                                         #Weight output is really only for lorentz
