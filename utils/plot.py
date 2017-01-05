@@ -174,7 +174,7 @@ def plotBins(bins,
     else:
         legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
     
-    plt.setp(legend.get_title(),fontsize=14)
+    if(legendTitle != None): plt.setp(legend.get_title(),fontsize=14)
     
     plt.ylim(ylim)
     plt.xlim(xlim)
