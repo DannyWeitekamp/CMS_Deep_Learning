@@ -139,7 +139,7 @@ class Lorentz(Layer):
         #The cluster size
         # print(input_shape)
         input_dim = input_shape[1]
-        if(sum_input): input_dim = 1
+        if(self.sum_input): input_dim = 1
         # self.vec_start
 
         #Boosts for each vector in the cluster
