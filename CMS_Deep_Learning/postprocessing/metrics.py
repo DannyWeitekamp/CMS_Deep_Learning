@@ -180,7 +180,7 @@ def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=
         return model.test_on_batch(X,Y)
 
     if (isTrial):
-        dItr = TrialIterator(model, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
+        dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
     else:
         dItr = DataIterator(data, return_X=False, return_Y=False,
                             num_samples=num_samples, accumilate=accum)
