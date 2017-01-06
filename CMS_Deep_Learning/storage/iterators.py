@@ -1,6 +1,14 @@
 import types
+import sys
 import numpy as np
 from CMS_Deep_Learning.storage.archiving import DataProcedure
+if(sys.version_inf[0] > 2):
+    from inspect import signature
+    getNumParams = lambda f: len(signature(f).parameters)
+else:
+    from inspect import getargspec
+    getNumParams = lambda f: len(getargspec(f)[0])
+
 
 class DataIterator:
     def __init__(self, proc, num_samples=None, return_X=False, return_Y=True, accumilate=None, prediction_model=None):
@@ -46,6 +54,7 @@ class DataIterator:
         return self.num_samples
 
     def asList(self):
+        if (self.accumilate != None): num_params  =getNumParams(self.accumilate)
         X_out = None
         Y_out = None
         pred_out = None
@@ -83,7 +92,10 @@ class DataIterator:
 
             if (self.accumilate != None):
                 if (acc_out == None): acc_out = [None] * self.getLength()
-                acc = self.accumilate(X)
+                if(num_params == 1):
+                    acc = self.accumilate(X)
+                else:
+                    acc = self.accumilate(X,Y)
                 for j in range(L):
                     acc_out[pos + j] = acc[j]
 

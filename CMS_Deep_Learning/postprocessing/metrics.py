@@ -127,56 +127,71 @@ def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=
     #Returns:
         The standard error of the validation accuracy
     '''
-    trial = None
+    # trial = None
+    # if(isinstance(model, KerasTrial)):
+    #     trial = model
+    #     model = trial.compile(loadweights=True,custom_objects=custom_objects)
+    #     if(data == None):
+    #         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+    #         if(num_samples == None): num_samples = trial.nb_val_samples
+    #         p = DataProcedure.from_json(trial.archive_dir,val_proc)
+    #         data = p.getData()
+    # if(trial != None and trial.get_from_record("val_acc_error") == None):
+    #     #model = trial.compile(loadweights=True,custom_objects=custom_objects)
+    #     # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+    #     # if(num_samples == None): num_samples = trial.nb_val_samples
+    #     # p = DataProcedure.from_json(trial.archive_dir,val_proc)
+    #     # gen = p.getData()
+    #
+    #     num_read = 0
+    #     correct = 0
+    #     batch_metrics = None
+    #     num_batches = None
+    #     global_batch_size = None
+    #     i = 0
+    #
+    #     if(isinstance(data, DataProcedure)):
+    #         data = data.getData()
+    #     for X,Y in data:
+    #         batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]
+    #         if(batch_metrics == None):
+    #             global_batch_size = batch_size
+    #             num_batches =  np.ceil(num_samples/float(global_batch_size))
+    #             batch_metrics = [None] * num_batches
+    #         #if(batch_size != global_batch_size): continue
+    #         m = model.test_on_batch(X,Y)
+    #         if(i >= num_batches):
+    #             batch_metrics.append(m)
+    #         else:
+    #             #print(i)
+    #             batch_metrics[i] = m
+    #         num_read += batch_size
+    #         i += 1
+    #         if(num_read >= num_samples):
+    #             break
+
     if(isinstance(model, KerasTrial)):
         trial = model
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
-        if(data == None):
-            val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-            if(num_samples == None): num_samples = trial.nb_val_samples
-            p = DataProcedure.from_json(trial.archive_dir,val_proc)
-            data = p.getData()
-    if(trial != None and trial.get_from_record("val_acc_error") == None):
-        #model = trial.compile(loadweights=True,custom_objects=custom_objects)
-        # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-        # if(num_samples == None): num_samples = trial.nb_val_samples
-        # p = DataProcedure.from_json(trial.archive_dir,val_proc)
-        # gen = p.getData()
 
-        num_read = 0
-        correct = 0
-        batch_metrics = None
-        num_batches = None
-        global_batch_size = None
-        i = 0
+    def accum(X,Y):
+        return model.test_on_batch(X,Y)
 
-        if(isinstance(data, DataProcedure)):
-            data = data.getData()
-        for X,Y in data:
-            batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]
-            if(batch_metrics == None):
-                global_batch_size = batch_size
-                num_batches =  np.ceil(num_samples/float(global_batch_size))
-                batch_metrics = [None] * num_batches
-            #if(batch_size != global_batch_size): continue
-            m = model.test_on_batch(X,Y)
-            if(i >= num_batches):
-                batch_metrics.append(m)
-            else:
-                #print(i)
-                batch_metrics[i] = m
-            num_read += batch_size
-            i += 1
-            if(num_read >= num_samples):
-                break
+    if (isinstance(model, KerasTrial)):
+        dItr = TrialIterator(model, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
+    else:
+        dItr = DataIterator(data, return_X=False, return_Y=False,
+                            num_samples=num_samples, accumilate=accum)
 
-        batch_metrics = np.array(batch_metrics)
-        avg = np.mean(batch_metrics, axis=0, dtype='float64')
-        sem = np.std(batch_metrics, axis=0, dtype='float64')/np.sqrt(i)
-        if(not ignoreAssert and trial.get_from_record("val_acc") != None):
-            np.testing.assert_almost_equal(trial.get_from_record("val_acc"), avg[1], decimal=3)
-        else:
-            trial.to_record({"val_acc_" : avg[1]})
-        trial.to_record({"val_acc_error" : sem[1]})
+    batch_metrics = dItr.asList()
+
+    batch_metrics = np.array(batch_metrics)
+    avg = np.mean(batch_metrics, axis=0, dtype='float64')
+    sem = np.std(batch_metrics, axis=0, dtype='float64')/np.sqrt(i)
+    if(not ignoreAssert and trial.get_from_record("val_acc") != None):
+        np.testing.assert_almost_equal(trial.get_from_record("val_acc"), avg[1], decimal=3)
+    else:
+        trial.to_record({"val_acc_" : avg[1]})
+    trial.to_record({"val_acc_error" : sem[1]})
     return trial.get_from_record("val_acc_error")
 
