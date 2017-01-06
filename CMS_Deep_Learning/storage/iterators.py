@@ -2,7 +2,7 @@ import types
 import sys
 import numpy as np
 from CMS_Deep_Learning.storage.archiving import DataProcedure
-if(sys.version_inf[0] > 2):
+if(sys.version_info[0] > 2):
     from inspect import signature
     getNumParams = lambda f: len(signature(f).parameters)
 else:
