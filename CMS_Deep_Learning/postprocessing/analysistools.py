@@ -1,33 +1,42 @@
 import copy
 import itertools
 
+
 def findsubsets(S):
     '''Finds all subsets of a set S'''
     out = []
     for m in range(2, len(S)):
         out = out + [set(x) for x in itertools.combinations(S, m)]
     return out
+
+
 def group_by_labels(trials):
-    '''Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding trials as values.'''
-    #sets = findsubsets(labels)
-    #labels = set()
+    '''Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding
+    trials as values. '''
+    # sets = findsubsets(labels)
     trials_by_set = {}
+    # labels = set()
     for trial in trials:
         labels = trial.get_from_record('labels')
-        #Accidentally mispelled labels so this is just to make sure the mispelling can be found
-        if(labels == None): labels = trial.get_from_record('lables') 
+        # Accidentally mispelled labels so this is just to make sure the mispelling can be found
+        if (labels == None): labels = trial.get_from_record('lables')
         key = tuple([str(x) for x in labels])
         lst = trials_by_set[key] = trials_by_set.get(key, [])
         lst.append(trial)
-                
+
     return trials_by_set
 
-def sortOnMetric(trials,sortMetric='val_acc'):
+
+def sortOnMetric(trials, sortMetric='val_acc'):
     '''Sort a list of trials on a record metric'''
+
     def getKey(trial):
         return trial.get_from_record(sortMetric)
+
     trials.sort(key=getKey, reverse=True)
-def print_by_labels(trials, num_print=None,sortMetric='val_acc'):
+
+
+def print_by_labels(trials, num_print=None, sortMetric='val_acc'):
     '''Prints trials ordered and grouped by their labeles
         #Arguments:
             trials -- A list of KerasTrials
@@ -38,13 +47,12 @@ def print_by_labels(trials, num_print=None,sortMetric='val_acc'):
     for classification in trials_by_set:
         lst = trials_by_set[classification]
         head_str = "\n\n Classification: %r %r" % (classification,
-                        "Top %r trials"%num_print if num_print != None else "" )
+                                                   "Top %r trials" % num_print if num_print != None else "")
         print(head_str)
         sortOnMetric(lst, sortMetric=sortMetric)
-        if(num_print == None): num_print = len(lst)
+        if (num_print == None): num_print = len(lst)
         for i in range(min(num_print, len(lst))):
-            lst[i].summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
-
+            lst[i].summary(showTraining=False, showValidation=False, showFit=False, showCompilation=False)
 
 
 def findWithMetrics(trials, metrics):
@@ -56,50 +64,52 @@ def findWithMetrics(trials, metrics):
         #Returns:
             A culled list of KerasTrials'''
 
-    if(trials == None or (not hasattr(trials, '__iter__'))):
+    if (trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r", type(trials))
-    if(not isinstance(metrics, dict)):
+    if (not isinstance(metrics, dict)):
         raise TypeError("metrics expecting type dict, but got %", type(metrics))
     out = []
     for trial in trials:
         record = trial.read_record()
         ok = True
         for metric, value in metrics.iteritems():
-            if(metric in record):
-                #print(record[metric], value)
-                if(metric == 'name'):
-                    if(isinstance(value, list) == False): value = [value]
-                    if(not record[metric] in value):
+            if (metric in record):
+                # print(record[metric], value)
+                if (metric == 'name'):
+                    if (isinstance(value, list) == False): value = [value]
+                    if (not record[metric] in value):
                         ok = False
                 else:
                     record_value = record[metric]
-                    if(isinstance(record_value, list)): record_value = tuple(record_value)
-                    if(isinstance(value, list)): value = tuple(value)
-                    #print(record_value, value)
-                    if(record_value != value):
+                    if (isinstance(record_value, list)): record_value = tuple(record_value)
+                    if (isinstance(value, list)): value = tuple(value)
+                    # print(record_value, value)
+                    if (record_value != value):
                         ok = False
             else:
-                if(value != None):
+                if (value != None):
                     ok = False
-        if(ok): out.append(trial)
+        if (ok): out.append(trial)
     return out
-                
+
+
 def getMetricValues(trials, metric):
     '''Gets a list of record values from a list of trials
         #Aruments:
             trials -- a list of KerasTrials
             metric -- a single record key or list of record keys. 
         #Returns:
-            A list of record values or if metric is a list a list a tuples containing record values''' 
+            A list of record values or if metric is a list a list a tuples containing record values'''
     out = set()
     for trial in trials:
         m = trial.get_from_record(metric)
-        if(m != None):
-            if(isinstance(m, list)): m = tuple(m)
+        if (m != None):
+            if (isinstance(m, list)): m = tuple(m)
             out.add(m)
     return out
-    
-def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True,verbose_errors=0):
+
+
+def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True, verbose_errors=0):
     '''Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in 'trials' can
         be uniquely identified by the value in their record keyed by 'metricX'. So if metricX='depth' this function asserts that
         no two trials in the input 'trials' list have the same depth value in their record. In the event of a conflict, the argument
@@ -115,40 +125,41 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
             verbose_errors -- Whether or not to output long trial summaries if a conflict is found and mode = 'error'
     '''
     trials = copy.copy(trials)
-    if(trials == None or (not hasattr(trials, '__iter__'))):
+    if (trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r" % type(trials))
-    if(not mode in ["error"]):
-        if(mode in ["max", "min"]):
-            if(metricY == None):
+    if (not mode in ["error"]):
+        if (mode in ["max", "min"]):
+            if (metricY == None):
                 raise ValueError("metricY must be defined if mode = %r" % mode)
         else:
             raise ValueError("mode %r not recognized. Please choose 'error', 'max' or 'min'.")
-            
+
     d = {}
-    if(ignoreIncomplete): trials = [t for t in trials if t.is_complete()]
+    if (ignoreIncomplete): trials = [t for t in trials if t.is_complete()]
     for trial in trials:
         x = trial.get_from_record(metricX)
-        if(isinstance(x, list)): x = tuple(x)
+        if (isinstance(x, list)): x = tuple(x)
         lst = d.get(x, [])
         lst.append(trial)
         d[x] = lst
     for x, lst in d.iteritems():
-        if(len(lst) > 1):
-            if(mode == "error"):
+        if (len(lst) > 1):
+            if (mode == "error"):
                 print(" \n\n ONE-TO-ONE ERROR! \n %r Trials with %r = %r" % (len(lst), metricX, x))
                 for trial in lst:
-                    if(not verbose_errors):
-                        trial.summary(showTraining=False,showValidation=False,showFit=False, showCompilation=False)
+                    if (not verbose_errors):
+                        trial.summary(showTraining=False, showValidation=False, showFit=False, showCompilation=False)
                     else:
-                        trial.summary(showTraining=True,showValidation=True,showFit=True, showCompilation=True)
-                raise AssertionError("Supplied trials cannot have one-to-one relationship on metricX = %r. See the printout above for more information. " % metricX)
+                        trial.summary(showTraining=True, showValidation=True, showFit=True, showCompilation=True)
+                raise AssertionError(
+                    "Supplied trials cannot have one-to-one relationship on metricX = %r. See the printout above for more information. " % metricX)
             else:
-                if(mode == "max" or mode == "min"):
+                if (mode == "max" or mode == "min"):
                     reverse = False
-                    if(mode == "max"): reverse = True
-                    lst.sort(key=lambda x:x.get_from_record(metricY), reverse=reverse)
-                    #Remove the tail trials from the big trial list
-                    for t in lst[1:]: trials.remove(t) 
+                    if (mode == "max"): reverse = True
+                    lst.sort(key=lambda x: x.get_from_record(metricY), reverse=reverse)
+                    # Remove the tail trials from the big trial list
+                    for t in lst[1:]: trials.remove(t)
                 else:
                     raise ImplementationError("need to write this")
     return trials
