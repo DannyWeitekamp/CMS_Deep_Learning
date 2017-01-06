@@ -170,14 +170,16 @@ def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=
     #         if(num_read >= num_samples):
     #             break
 
+    isTrial = False
     if(isinstance(model, KerasTrial)):
         trial = model
         model = trial.compile(loadweights=True,custom_objects=custom_objects)
+        isTrial = True
 
     def accum(X,Y):
         return model.test_on_batch(X,Y)
 
-    if (isinstance(model, KerasTrial)):
+    if (isTrial):
         dItr = TrialIterator(model, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
     else:
         dItr = DataIterator(data, return_X=False, return_Y=False,
