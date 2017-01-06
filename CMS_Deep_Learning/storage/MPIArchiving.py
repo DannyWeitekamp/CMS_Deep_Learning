@@ -15,6 +15,7 @@ from mpi_learn.train.model import ModelFromJson
 from mpi_learn.utils import import_keras
 
 
+import CMS_Deep_Learning
 from .archiving import KerasTrial, DataProcedure
 from .batch import batchAssertArchived
 
@@ -94,7 +95,8 @@ class MPI_KerasTrial(KerasTrial):
             
             # comm = MPI.COMM_WORLD.Dup()
             # print("Not MPI_Instance")
-            loc = "/data/shared/Software/CMS_Deep_Learning/utils/MPIKerasTrial_execute.py"
+            p = os.path.dirname( os.path.abspath(CMS_Deep_Learning.__file__))
+            loc = p + "/storage/MPIKerasTrial_execute.py"
             print(self.archive_dir, self.hash())
             RunCommand = 'mpirun -np %s python %s %s %s --masters %s --max-gpus %s' % (self.workers + self.masters, loc, self.archive_dir, self.hash(), self.masters, self.max_gpus)
             print(RunCommand)
