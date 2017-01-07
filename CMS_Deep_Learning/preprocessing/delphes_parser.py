@@ -495,7 +495,7 @@ def main(data_dir, argv):
     storeType = "hdf5"
     redo = False
     num_samples = None
-    screwup_error = "python delphes_parse.py <input_dir>"
+    screwup_error = "python delphes_parser.py <input_dir>"
     try:
         opts, args = getopt.getopt(argv,'n:mrh')
         print(opts)

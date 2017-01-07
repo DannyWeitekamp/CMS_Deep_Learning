@@ -6,7 +6,7 @@ if __package__ is None:
     sys.path.append(os.path.realpath("../"))
     sys.path.append(os.path.realpath("../../"))
 import CMS_Deep_Learning
-from CMS_Deep_Learning.preprocessing.delphes_parse import delphes_to_pandas
+from CMS_Deep_Learning.preprocessing.delphes_parser import delphes_to_pandas
 
 class TestDelphesParser(unittest.TestCase):
     def test_sanity(self):
