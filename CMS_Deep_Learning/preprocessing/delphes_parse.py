@@ -340,7 +340,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 sel = np.delete(sel, track_ommitions)
                 print(np.delete(np.arange(len(isoEta)), sel))
                 print("HERE")
-                Eta_Phi_PT_by_object[EFlowTrack] = isoEta[sel], isoPhi[sel], isoPt[sel]
+                Eta_Phi_PT_by_object["EFlowTrack"] = isoEta[sel], isoPhi[sel], isoPt[sel]
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
         #Compute isolation
