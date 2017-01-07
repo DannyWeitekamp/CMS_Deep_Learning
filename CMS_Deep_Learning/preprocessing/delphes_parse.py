@@ -70,7 +70,7 @@ def trackMatch(prtEta, prtPhi, trkEta, trkPhi):
     return index
 
 
-def Iso(A_Eta, A_Phi, A_Pt, B_Eta, B_Phi,maxdist=0.3):
+def Iso(A_Eta, A_Phi, A_Pt, B_Eta, B_Phi, to_ommit=None,maxdist=0.3):
     '''Computes the isolation between two object types
         #Arguments
             #consider N = # of particles in group A, M = # of particles in group B
@@ -323,6 +323,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
         #Do Track matching for objects with TRACK_MATCH = True
         trkEta, trkPhi, dummy = Eta_Phi_PT_by_object["EFlowTrack"]
         start_tracks = index_by_objects["EFlowTrack"]
+        track_ommitions = None
         for obj, ok in zip(OBJECT_TYPES, TRACK_MATCH):
             if(ok):
                 start = index_by_objects[obj]
@@ -330,7 +331,8 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 matches = trackMatch(Phi, Eta, trkEta, trkPhi)
                 #if(len(matches) > 0 ): print(entry, obj,len(matches))
                 #print(matches, to_ommit)
-                to_ommit += [start_tracks + x for x in matches.tolist()]
+                track_ommitions = [start_tracks + x for x in matches.tolist()]
+                to_ommit += track_ommitions
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
         #Compute isolation
@@ -340,7 +342,19 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 objEta, objPhi, objPt = Eta_Phi_PT_by_object[obj]
                 for iso_type, iso_obj in ISO_TYPES:
                     isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object[iso_obj]
-                    iso_val = Iso(objEta, objPhi, objPt, isoEta, isoPhi) 
+
+                    #Make sure we don't use removed Tracks in Iso calculation
+                    if(    iso_obj == "EFlowTrack"
+                           and not isinstance(track_ommitions, type(None)) \
+                           and len(track_ommitions) > 0):
+                        sel = np.arange(len(isoEta))
+                        print("START")
+                        print(sel)
+                        sel = np.delete(sel, track_ommitions)
+                        print(np.delete(np.arange(len(isoEta)), sel))
+                        print("HERE")
+                        isoEta, isoPhi, isoPt = isoEta[sel], isoPhi[sel], isoPt[sel]
+                    iso_val = Iso(objEta, objPhi, objPt, isoEta, isoPhi)
                     iso_val = iso_val - 1.0 if obj == iso_obj else iso_val
                     fillIso(dicts_by_object,obj, iso_type,  start, iso_val)
 
