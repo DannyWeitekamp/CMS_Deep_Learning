@@ -339,6 +339,8 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 print(sel)
                 sel = np.delete(sel, track_ommitions)
                 print(np.delete(np.arange(len(isoEta)), sel))
+                print(track_ommitions)
+                print(sel)
                 print("HERE")
                 Eta_Phi_PT_by_object["EFlowTrack"] = isoEta[sel], isoPhi[sel], isoPt[sel]
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
