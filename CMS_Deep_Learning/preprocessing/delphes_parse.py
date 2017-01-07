@@ -333,7 +333,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 #print(matches, to_ommit)
                 track_ommitions = matches.tolist()
                 to_ommit += [start_tracks + x for x in track_ommitions]
-                isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object[EFlowTrack]
+                isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object["EFlowTrack"]
                 sel = np.arange(len(isoEta))
                 print("START")
                 print(sel)
