@@ -323,25 +323,18 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
         #Do Track matching for objects with TRACK_MATCH = True
         trkEta, trkPhi, dummy = Eta_Phi_PT_by_object["EFlowTrack"]
         start_tracks = index_by_objects["EFlowTrack"]
-        track_ommitions = None
         for obj, ok in zip(OBJECT_TYPES, TRACK_MATCH):
             if(ok):
                 start = index_by_objects[obj]
                 Phi, Eta, PT = Eta_Phi_PT_by_object[obj]
                 matches = trackMatch(Phi, Eta, trkEta, trkPhi)
-                #if(len(matches) > 0 ): print(entry, obj,len(matches))
-                #print(matches, to_ommit)
                 track_ommitions = matches.tolist()
                 to_ommit += [start_tracks + x for x in track_ommitions]
                 isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object["EFlowTrack"]
+
+                #Omit info for repeat tracks, for Isolation calculation
                 sel = np.arange(len(isoEta))
-                print("START")
-                print(sel)
                 sel = np.delete(sel, track_ommitions)
-                print(np.delete(np.arange(len(isoEta)), sel))
-                print(track_ommitions)
-                print(sel)
-                print("HERE")
                 Eta_Phi_PT_by_object["EFlowTrack"] = isoEta[sel], isoPhi[sel], isoPt[sel]
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
