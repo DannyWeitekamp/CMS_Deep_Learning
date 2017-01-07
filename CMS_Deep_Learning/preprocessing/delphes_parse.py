@@ -331,8 +331,16 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 matches = trackMatch(Phi, Eta, trkEta, trkPhi)
                 #if(len(matches) > 0 ): print(entry, obj,len(matches))
                 #print(matches, to_ommit)
-                track_ommitions = [start_tracks + x for x in matches.tolist()]
-                to_ommit += track_ommitions
+                track_ommitions = matches.tolist()
+                to_ommit += [start_tracks + x for x in track_ommitions]
+                isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object[EFlowTrack]
+                sel = np.arange(len(isoEta))
+                print("START")
+                print(sel)
+                sel = np.delete(sel, track_ommitions)
+                print(np.delete(np.arange(len(isoEta)), sel))
+                print("HERE")
+                Eta_Phi_PT_by_object[EFlowTrack] = isoEta[sel], isoPhi[sel], isoPt[sel]
                 fillTrackMatch(dicts_by_object,obj, matches, start, start_tracks)
 
         #Compute isolation
@@ -342,18 +350,6 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
                 objEta, objPhi, objPt = Eta_Phi_PT_by_object[obj]
                 for iso_type, iso_obj in ISO_TYPES:
                     isoEta, isoPhi, isoPt = Eta_Phi_PT_by_object[iso_obj]
-
-                    #Make sure we don't use removed Tracks in Iso calculation
-                    if(    iso_obj == "EFlowTrack"
-                           and not isinstance(track_ommitions, type(None)) \
-                           and len(track_ommitions) > 0):
-                        sel = np.arange(len(isoEta))
-                        print("START")
-                        print(sel)
-                        sel = np.delete(sel, track_ommitions)
-                        print(np.delete(np.arange(len(isoEta)), sel))
-                        print("HERE")
-                        isoEta, isoPhi, isoPt = isoEta[sel], isoPhi[sel], isoPt[sel]
                     iso_val = Iso(objEta, objPhi, objPt, isoEta, isoPhi)
                     iso_val = iso_val - 1.0 if obj == iso_obj else iso_val
                     fillIso(dicts_by_object,obj, iso_type,  start, iso_val)
