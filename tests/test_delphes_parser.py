@@ -35,7 +35,8 @@ class TestDelphesParser(unittest.TestCase):
         self.assertTrue(isinstance(frames, dict))
         self.assertFalse( False in [isinstance(val, pd.DataFrame) for key, val in frames.items()])
         should_be = set(['Electron', 'MuonTight', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack'])
-        self.assertFalse(should_be.issubset(set([key for key, val in frames.items()])))
+        keys = set([key for key, val in frames.items()])
+        self.assertFalse(should_be.issubset(), "%r should be subset of output %r" %(should_be, keys))
 
         electrons = frames["Electron"].groupby(["Entry"], group_keys=True)
         muons = frames["MuonTight"].groupby(["Entry"], group_keys=True)
