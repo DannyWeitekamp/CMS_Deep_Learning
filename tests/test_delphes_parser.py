@@ -12,7 +12,7 @@ from CMS_Deep_Learning.preprocessing.delphes_parser import delphes_to_pandas, IS
 def checkOmission(t,particles, tracks):
     for entry, part_df in particles:
         track_df = tracks.get_group(entry)
-        for row in part_df.itterrows():
+        for row in part_df.iterrows():
             t.assertFalse((track_df == row).all(1).any())
 
 def checkIsoNonNegative(t,df):
