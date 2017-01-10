@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import pandas as pd
+import numpy as np
 
 if __package__ is None:
     sys.path.append(os.path.realpath("../"))
