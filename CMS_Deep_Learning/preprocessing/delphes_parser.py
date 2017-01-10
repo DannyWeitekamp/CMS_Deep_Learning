@@ -82,7 +82,7 @@ def Iso(A_Eta, A_Phi, A_Pt, B_Eta, B_Phi, to_ommit=None,maxdist=0.3):
                                 corresponding to the transverse momentum values of the particles
             maxdist -- The maximum cartesian distance between Eta and Phi to be included in the isolation
         #Returns
-            The isolations of each particle in B for each particle in A
+            The isolations of each particle in A w.r.t the particles in B
     '''
     DRsq = DeltaRsq(A_Eta, A_Phi, B_Eta, B_Phi)
 
