@@ -59,8 +59,9 @@ class TestDelphesParser(unittest.TestCase):
         checkOmission(self, muons, tracks)
         checkFillTrackInfo(self, electrons)
         checkFillTrackInfo(self, muons)
-        for df in frames.values():
-            checkIsoInRange(self, df)
+        for key, df in frames.items():
+            if(key != "NumValues"):
+                checkIsoInRange(self, df)
 
         print(df)
 
