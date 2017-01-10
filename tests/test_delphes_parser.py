@@ -23,8 +23,6 @@ def checkFillTrackInfo(t,dfs):
         t.assertTrue((df[['X', 'Y', 'Z', 'Dxy']] != 0.0).any(1).all(0))
 
 
-
-
 class TestDelphesParser(unittest.TestCase):
     def test_Iso(self):
         A_Eta = np.array([1.0, 1.1, 2.0])
