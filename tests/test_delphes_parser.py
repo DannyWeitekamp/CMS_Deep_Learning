@@ -3,6 +3,7 @@ import sys
 import unittest
 import pandas as pd
 import numpy as np
+from numpy.testing import assert_almost_equal
 
 if __package__ is None:
     sys.path.append(os.path.realpath("../"))
@@ -29,16 +30,14 @@ class TestDelphesParser(unittest.TestCase):
         A_Eta = np.array([1.0, 1.1, 2.0])
         A_Phi = np.array([1.0, 1.1, 2.0])
         A_PT = np.array([1.0, 0.1, 1.0])
-        self.assertEqual(Iso(A_Eta, A_Phi, A_PT, A_Eta, A_Phi),
-                            [0.02,0.2, 0.])
+        assert_almost_equal(Iso(A_Eta, A_Phi, A_PT, A_Eta, A_Phi),np.array([0.02,0.2, 0.]))
         A_Eta = np.array([1.0])
         A_Phi = np.array([1.0])
         A_PT = np.array([4.0])
         B_Eta = np.array([1.0, 1.2, 2.0])
         B_Phi = np.array([1.0, 1.0, 2.0])
 
-        self.assertEqual(Iso(A_Eta, A_Phi, A_PT, B_Eta, B_Phi),
-                        [0.01])
+        assert_almost_equal(Iso(A_Eta, A_Phi, A_PT, B_Eta, B_Phi),np.array([0.01]))
 
     def test_sanity(self):
         p = os.path.dirname(os.path.abspath(CMS_Deep_Learning.__file__))
