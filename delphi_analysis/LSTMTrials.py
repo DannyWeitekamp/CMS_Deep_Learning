@@ -28,9 +28,10 @@ DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', '
 
 
 DEFAULT_LABEL_DIR_PAIRS = \
-            [   ("ttbar", "/data/shared/Delphes/ttbar_lepFilter_13TeV/pandas_h5/"),
+            [   ("qcd", "/data/shared/Delphes/qcd_lepFilter_13TeV/pandas_h5/")
+                ("ttbar", "/data/shared/Delphes/ttbar_lepFilter_13TeV/pandas_h5/"),
                 ("wjet", "/data/shared/Delphes/wjets_lepFilter_13TeV/pandas_h5/"),
-                ("qcd", "/data/shared/Delphes/qcd_lepFilter_13TeV/pandas_h5/")
+
             ]
 def genModel(name,object_profiles,out_dim, depth, vecsize
             ,lstm_activation="relu", lstm_dropout = 0.0, dropout=0.0,output_activation="softmax", single_list=False):
@@ -76,7 +77,7 @@ def runTrials(archive_dir,
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
     #Make sure that we do 3-way classification as well
-    ldpsubsets.append(label_dir_pairs)
+    ldpsubsets.append(sorted(label_dir_pairs))
     #archive_dir = "/data/shared/Delphes/keras_archive/"
 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)

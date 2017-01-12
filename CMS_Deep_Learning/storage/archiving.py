@@ -968,7 +968,7 @@ class KerasTrial(Storable):
                         else:
                             pass
 
-                            records.append(str(key) + " = " + str(value))
+                            records.append(str(key) + " = " + json.dumps(value))
                     print(indent*2 + sep.join(records))
                 records = []
                 for key in record:
