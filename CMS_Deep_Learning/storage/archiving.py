@@ -5,6 +5,7 @@ Author: Danny Weitekamp
 e-mail: dannyweitekamp@gmail.com
 '''
 
+import os
 import copy
 import glob
 import hashlib
@@ -12,7 +13,8 @@ import re
 import shutil
 import types
 import h5py
-
+import json
+import numpy as np
 
 
 class Storable( object ):
@@ -308,7 +310,7 @@ class DataProcedure(Storable):
         except ImportError:
             raise ValueError("DataProcedure function %r does not exist in %r. \
                 For best results functions should be importable and not locally defined." % (str(name), str(module)))
-        return prep_func
+        return locals().get("prep_func", None)
 
     @classmethod
     def from_json(cls, archive_dir ,json_str, arg_decode_func=None):  
@@ -542,6 +544,7 @@ class KerasTrial(Storable):
                 sample_weight=None):
         '''Sets the fit arguments for the trial'''
         from CMS_Deep_Learning.callbacks import SmartCheckpoint
+        from keras.callbacks import Callback
 
         strCallbacks = []
         for c in callbacks:
@@ -569,6 +572,7 @@ class KerasTrial(Storable):
                 pickle_safe=False):
         '''Sets the fit arguments for the trial'''
         from CMS_Deep_Learning.callbacks import SmartCheckpoint
+        from keras.callbacks import Callback
 
         strCallbacks = []
         for c in callbacks:
