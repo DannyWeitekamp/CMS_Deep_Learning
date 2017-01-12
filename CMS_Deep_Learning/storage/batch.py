@@ -3,6 +3,8 @@ import re
 import socket
 import sys
 from multiprocessing import Process
+from time import sleep
+
 import numpy as np
 
 
@@ -50,6 +52,9 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         if(len(dependencies) > 0):
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
+        if(len(unarchived) == 0):
+            return None
+
         archive_dir = unarchived[0].archive_dir
         for u in unarchived:
             u.write()
@@ -71,6 +76,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             p = Process(target=f, args=(sublist,archive_dir,verbose,i+1))
             processes.append(p)
             p.start()
+            sleep(.001)
         try:
             f(splits[0],archive_dir,verbose=verbose)
         except:
@@ -78,6 +84,9 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
                 p.terminate()
         for p in processes:
             p.join()
+        if False in [u.is_archived() for u in unarchived]:
+            batchAssertArchived(dps, num_processes=num_processes)
+
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 
