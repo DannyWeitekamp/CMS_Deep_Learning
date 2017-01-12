@@ -51,9 +51,10 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
         def f(u, i=0):
+            if (verbose >= 1): print("Batch process %r started." % i)
             for u in unarchived:
                 u.getData(archive=True, verbose=verbose)
-                if(verbose >= 1): print("From process %r" % i)
+                if(verbose >= 1): print("From process %r." % i)
         processes = []
         if(verbose >= 1): print("Starting batchAssertArchived...")
         splits = np.array_split(unarchived, num_processes)
