@@ -82,7 +82,7 @@ def runTrials(archive_dir,
 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)
     trial_tups = []
-
+    print(archive_dir, workers)
     # Loop over all subsets
     print(ldpsubsets)
     for ldp in ldpsubsets:
@@ -105,7 +105,8 @@ def runTrials(archive_dir,
                                   sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 7})]
 
                 #resolveProfileMaxes(object_profiles, ldp)
-
+                print(archive_dir, (num_val, num_train), num_val+num_train, \
+                                              object_profiles, ldp, observ_types,)
                 dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
                                               single_list=single_list, sort_columns=sort_on, sort_ascending=sort_ascending,
@@ -189,4 +190,6 @@ def runTrials(archive_dir,
 
 if __name__ == '__main__':
     argv = sys.argv
+    print(arv)
+    raise ValueError
     runTrials(argv[1], argv[2])

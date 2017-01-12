@@ -498,6 +498,9 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
             all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that
                             each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  
         '''
+    assert isinstance(object_profiles, list)
+    assert isinstance(label_dir_pairs, list)
+    assert isinstance(observ_types, list)
     stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=megabytes)
     SNs = start_num_fromSplits(splits, length)
     all_dps = []
