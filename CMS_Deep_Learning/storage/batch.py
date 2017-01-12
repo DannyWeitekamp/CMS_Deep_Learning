@@ -50,7 +50,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         if(len(dependencies) > 0):
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
-        def f(u, i=0):
+        def f(unarchived, verbose=0,i=0):
             if (verbose >= 1): print("Batch process %r started." % i)
             for u in unarchived:
                 u.getData(archive=True, verbose=verbose)
@@ -60,11 +60,11 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         splits = np.array_split(unarchived, num_processes)
         for i, sublist in enumerate(splits[1:]):
             print "Thread Started"
-            p = Process(target=f, args=(sublist,i+1))
+            p = Process(target=f, args=(sublist,verbose,i+1))
             processes.append(p)
             p.start()
         try:
-            f(splits[0])
+            f(splits[0],verbose=verbose)
         except:
             for p in processes:
                 p.terminate()
