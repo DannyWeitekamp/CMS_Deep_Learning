@@ -1,14 +1,14 @@
 import unittest
 import sys, os
 if __package__ is None:
-    print(os.path.realpath("../../"))
-    sys.path.append(os.path.realpath("../../"))
+    print(os.path.realpath("../"))
+    sys.path.append(os.path.realpath("../"))
 else:
     print(__package__)
 import tempfile
 import numpy as np
 import pandas as pd
-from CMS_Deep_Learning.preprocessing.preprocessing import ObjectProfile, preprocessFromPandas_label_dir_pairs
+from CMS_Deep_Learning.preprocessing.preprocessing import ObjectProfile, preprocessFromPandas_label_dir_pairs,procsFrom_label_dir_pairs
 gen_observ_types = ['PT_ET','Eta', 'Phi']
 observ_types = gen_observ_types + ["ObjType"]
 
@@ -258,7 +258,26 @@ class PreprocessingTests(unittest.TestCase):
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,5, NUM, OPS, observ_types, verbose=1)
         sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
         justCheckSize(self,X,Y, sizes)
-        checkDuplicates(self,X,Y,OPS)               
+        checkDuplicates(self,X,Y,OPS)
+
+    def test_procsFrom_label_dir_pairs(self):
+        NUM = 20
+        frame_lists = {l: store_fake(d, 5, 4, object_profiles1) for l, d in label_dir_pairs}
+        OPS = object_profiles1
+
+        l = procsFrom_label_dir_pairs(start=0,
+                                        samples_per_label=20,
+                                        stride=4,
+                                        archive_dir=temp_dir+"keras_archive/",
+                                        label_dir_pairs=label_dir_pairs,
+                                        object_profiles=OPS,
+                                        observ_types=observ_types,
+                                        single_list=False,
+                                        sort_columns=None,
+                                        sort_ascending=True,
+                                        verbose=1)
+        self.assertEqual(len(l), 5)
+
 
 if __name__ == '__main__':
     unittest.main()

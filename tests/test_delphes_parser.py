@@ -14,7 +14,7 @@ from CMS_Deep_Learning.preprocessing.delphes_parser import delphes_to_pandas, IS
 def checkOmission(t,particles, tracks):
     for entry, part_df in particles:
         track_df = tracks.get_group(entry)
-        t.assertTrue(pd.merge(track_df, part_df).empty)
+        t.assertTrue(pd.merge(track_df, part_df).empty, "Tracks were not correctly omitted")
 
 def checkIsoInRange(t, df):
     t.assertFalse((df[[tup[0] for tup in ISO_TYPES]] < -1.0).any(1).any(0))

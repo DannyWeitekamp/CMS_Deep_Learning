@@ -38,7 +38,7 @@ print(archive_dir, hashcode, masters, max_gpus)
 
 comm = MPI.COMM_WORLD.Dup()
 # We have to assign GPUs to processes before importing Theano.
-device = get_device( comm, masters, gpu_limit=max_gpus )
+device = get_device( comm, masters, gpu_limit=max_gpus,  gpu_for_master=True)
 print("Process",comm.Get_rank(),"using device",device)
 os.environ['THEANO_FLAGS'] = "device=%s,floatX=float32" % (device)
 from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial

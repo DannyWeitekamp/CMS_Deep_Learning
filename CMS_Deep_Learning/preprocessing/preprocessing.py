@@ -472,7 +472,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     return X_train, y_train
     
 
-def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, batch_size=100, megabytes=500, verbose=1):
+def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, verbose=1):
     '''Creates a set of DataProcedures that return generators and their coressponding lengths. Each generator consists of a list DataProcedures that preprocess data
         from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by 'megabytes' so that each one is not too big. Each generator
         reads a number of samples per label type set by 'splits' and 'length', and feeds data in batches of 'batch_size' into training.
@@ -498,7 +498,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
             all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that
                             each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  
         '''
-    stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=500)
+    stride = strideFromTargetSize(object_profiles, label_dir_pairs, observ_types, megabytes=megabytes)
     SNs = start_num_fromSplits(splits, length)
     all_dps = []
     all_datasets = []
@@ -510,6 +510,9 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         label_dir_pairs,
                                         object_profiles,
                                         observ_types,
+                                        single_list=single_list,
+                                        sort_columns=sort_columns,
+                                        sort_ascending=sort_ascending,
                                         verbose=verbose)
         gen_DP = DataProcedure(archive_dir, False,genFromDPs,dps, batch_size, threading = False, verbose=verbose)
         num_samples = len(label_dir_pairs)*s[1]
@@ -623,7 +626,7 @@ def start_num_fromSplits(splits, length):
 
 
 
-def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
+def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,label_dir_pairs, object_profiles, observ_types, single_list=False, sort_columns=None, sort_ascending=True, verbose=1):
     '''Gets a list of DataProcedures that use preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
         #Arguments
             start -- Where to start reading in the filesystem (if we treat it as one long list for each directory)
@@ -652,6 +655,9 @@ def procsFrom_label_dir_pairs(start, samples_per_label, stride, archive_dir,labe
                 proc_num,
                 object_profiles,
                 observ_types,
+                single_list=single_list,
+                sort_columns=sort_columns,
+                sort_ascending=sort_ascending,
                 verbose=verbose
             )
         procs.append(dp)
