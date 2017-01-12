@@ -28,9 +28,9 @@ DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', '
 
 
 DEFAULT_LABEL_DIR_PAIRS = \
-            [   ("qcd", "/data/shared/Delphes/qcd_lepFilter_13TeV/pandas_h5/")
+            [   ("qcd", "/data/shared/Delphes/qcd_lepFilter_13TeV/pandas_h5/"),
                 ("ttbar", "/data/shared/Delphes/ttbar_lepFilter_13TeV/pandas_h5/"),
-                ("wjet", "/data/shared/Delphes/wjets_lepFilter_13TeV/pandas_h5/"),
+                ("wjet", "/data/shared/Delphes/wjets_lepFilter_13TeV/pandas_h5/")
 
             ]
 def genModel(name,object_profiles,out_dim, depth, vecsize
