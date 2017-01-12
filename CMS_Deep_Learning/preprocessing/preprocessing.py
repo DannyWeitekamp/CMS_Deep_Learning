@@ -50,8 +50,8 @@ class ObjectProfile():
         if(len(args) > 2):
             raise ValueError("Please explicitly name arguements with values %r" % args[2:])
 
-        if (isinstance(kargs["pre_sort_columns"], str)): kargs["pre_sort_columns"] == [kargs["pre_sort_columns"]]
-        if (isinstance(kargs["sort_columns"], str)): kargs["sort_columns"] == [kargs["sort_columns"]]
+        if (isinstance(kargs.get("pre_sort_columns",None), str)): kargs["pre_sort_columns"] == [kargs["pre_sort_columns"]]
+        if (isinstance(kargs.get("sort_columns",None), str)): kargs["sort_columns"] == [kargs["sort_columns"]]
 
         for key, value in DEFAULT_PROFILE.items():
             # print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
