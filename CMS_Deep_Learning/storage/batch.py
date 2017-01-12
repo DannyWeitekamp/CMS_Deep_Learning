@@ -3,6 +3,7 @@ import re
 import socket
 import sys
 from multiprocessing import Process
+import numpy as np
 
 
 from CMS_Deep_Learning.layers.lorentz import Lorentz
