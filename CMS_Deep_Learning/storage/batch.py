@@ -2,13 +2,15 @@ import os
 import re
 import socket
 import sys
+from multiprocessing import Process
+
 
 from CMS_Deep_Learning.layers.lorentz import Lorentz
 from CMS_Deep_Learning.layers.slice import Slice
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 
 
-def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_Deep_Learning/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
+def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_Deep_Learning/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
     '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
         a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
         DPs have completed their preprocessing and archived the result.
@@ -47,9 +49,25 @@ def batchAssertArchived(dps, time_str="01:00:00",repo="/scratch/daint/dweiteka/C
         if(len(dependencies) > 0):
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
+        def f(u, i=0):
+            for u in unarchived:
+                u.getData(archive=True, verbose=verbose)
+                if(verbose >= 1): print("From process %r" % i)
+        processes = []
         if(verbose >= 1): print("Starting batchAssertArchived...")
-        for u in unarchived:
-            u.getData(archive=True, verbose=verbose)
+        splits = np.array_split(unarchived, num_processes)
+        for i, sublist in enumerate(splits[1:]):
+            print "Thread Started"
+            p = Process(target=f, args=(sublist,i+1))
+            processes.append(p)
+            p.start()
+        try:
+            f(splits[0])
+        except:
+            for p in processes:
+                p.terminate()
+        for p in processes:
+            p.join()
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 

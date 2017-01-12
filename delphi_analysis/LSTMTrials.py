@@ -113,7 +113,7 @@ def runTrials(archive_dir,
                                               batch_size=batch_size, megabytes=100,
                                               verbose=0)
 
-                dependencies = batchAssertArchived(dps)
+                dependencies = batchAssertArchived(dps, 4)
                 val, num_val = l[0]
                 train, num_train = l[1]
                 max_q_size = l[2]
