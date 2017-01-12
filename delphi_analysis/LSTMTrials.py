@@ -105,7 +105,7 @@ def runTrials(archive_dir,
 
                 #resolveProfileMaxes(object_profiles, ldp)
 
-                dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), 0, \
+                dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
                                               single_list=single_list, sort_columns=sort_on, sort_ascending=sort_ascending,
                                               batch_size=batch_size, megabytes=100,
