@@ -11,13 +11,8 @@ import hashlib
 import re
 import shutil
 import types
-
 import h5py
-from keras.callbacks import *
-from keras.engine.training import Model
-from keras.models import model_from_json
 
-from CMS_Deep_Learning.callbacks import *
 
 
 class Storable( object ):
@@ -480,6 +475,8 @@ class KerasTrial(Storable):
 
     def setModel(self, model):
         '''Set the model used by the trial (either the object or derived json string)'''
+        from keras.engine.training import Model
+
         self.model = model
         self.compiled_model = None
         if(isinstance(model, Model)):
@@ -544,7 +541,8 @@ class KerasTrial(Storable):
                 class_weight=None,
                 sample_weight=None):
         '''Sets the fit arguments for the trial'''
-    	#Fit
+        from CMS_Deep_Learning.callbacks import SmartCheckpoint
+
         strCallbacks = []
         for c in callbacks:
             if(isinstance(c, SmartCheckpoint) == False):
@@ -570,7 +568,8 @@ class KerasTrial(Storable):
                 nb_worker=1,
                 pickle_safe=False):
         '''Sets the fit arguments for the trial'''
-        #Fit
+        from CMS_Deep_Learning.callbacks import SmartCheckpoint
+
         strCallbacks = []
         for c in callbacks:
             if(isinstance(c, SmartCheckpoint) == False):
@@ -655,6 +654,8 @@ class KerasTrial(Storable):
 
     def _generateCallbacks(self, verbose):
         '''A helper function that Generates a SmartCheckpoint used for storing the training history of a trial, plus more'''
+        from CMS_Deep_Learning.callbacks import SmartCheckpoint
+
         callbacks = []
         for c in self.callbacks:
             if(c != None):
@@ -879,6 +880,8 @@ class KerasTrial(Storable):
 
     def get_model(self, loadweights=False,custom_objects={}):
         '''Gets the model, optionally with the best set of weights'''
+        from keras.models import model_from_json
+
         model = model_from_json(self.model, custom_objects=custom_objects)
         if(loadweights):
             model.load_weights(self.get_path()+"weights.h5")
@@ -1056,6 +1059,9 @@ class KerasTrial(Storable):
 #TODO: Stopping Callbacks can't infer mode -> only auto works
 def encodeCallback(c):
     '''Encodes callbacks so that they can be decoded later'''
+    from keras.callbacks import EarlyStopping
+    from CMS_Deep_Learning.callbacks import OverfitStopping
+
     d = {}
     if(isinstance(c, EarlyStopping)):
         d['monitor'] = c.monitor
@@ -1075,6 +1081,9 @@ def encodeCallback(c):
 
 def decodeCallback(d):
     '''Decodes callbacks into usable objects'''
+    from keras.callbacks import EarlyStopping
+    from CMS_Deep_Learning.callbacks import OverfitStopping
+
     if(d['type'] == "OverfitStopping"):
         return OverfitStopping(  monitor=d['monitor'],
                                 comparison_monitor=d['comparison_monitor'],

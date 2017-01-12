@@ -9,14 +9,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .analysistools import *
 from .colors import *
-from keras.callbacks import History
-from keras.utils.visualize_util import plot
 from IPython.display import Image, display
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None, acclims=None, useGrid=True):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist, (optional) color), .... ]
         -Adopted from Jean-Roch Vlimant's Keras tutorial"""
+
+    from keras.callbacks import History
 
     colors=[tuple(np.random.random(3)) for i in range(len(histories))]
     if(plotLoss):
@@ -262,7 +262,10 @@ def plotEverything(trials, custom_objects={}):
         #Arguemnts
             trials -- A list of trials to plot
             custom_objects -- in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names
-    ''' 
+    '''
+
+    from keras.utils.visualize_util import plot
+
     if(not isinstance(trials, list)): trials = [trials]
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)

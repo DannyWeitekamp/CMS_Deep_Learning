@@ -85,7 +85,8 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         for p in processes:
             p.join()
         if False in [u.is_archived() for u in unarchived]:
-            batchAssertArchived(dps, num_processes=num_processes)
+            print("Batch Assert Failed")
+            pass#batchAssertArchived(dps, num_processes=num_processes)
 
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies

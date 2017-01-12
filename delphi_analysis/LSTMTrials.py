@@ -9,6 +9,9 @@ p = "/home/dweitekamp/mpi_learn/"
 if(not p in sys.path):
     sys.path.append(p)
 
+from CMS_Deep_Learning.utils.deepconfig import deepconfig
+deepconfig("cpu", backend="theano")
+
 #from keras.utils.visualize_util import plot
 #from IPython.display import Image, display
 
@@ -109,7 +112,7 @@ def runTrials(archive_dir,
                                               object_profiles, ldp, observ_types,)
                 dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
-                                              single_list=single_list, sort_columns=sort_on, sort_ascending=sort_ascending,
+                                              single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
                                               batch_size=batch_size, megabytes=100,
                                               verbose=0)
 

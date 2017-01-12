@@ -17,14 +17,14 @@ vecsize = len(obs_pl_t)
 RANDOM_SEED = 7
 np.random.seed(seed=RANDOM_SEED)
 
-object_profiles1 = [ObjectProfile("EFlowPhoton",20, pre_sort_columns=["PT_ET"],
+object_profiles1 = [ObjectProfile("EFlowPhoton",20, pre_sort_columns="PT_ET",
                                  pre_sort_ascending=False,
                                  addColumns={"ObjType":1}),
                    ObjectProfile("EFlowTracks",20, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=True,
                                  addColumns={"ObjType":2}),
                    ObjectProfile("EFlowNeutralHadron",20, pre_sort_columns=["PT_ET"],
-                                 pre_sort_ascending=False, sort_columns=["Phi"], sort_ascending=True,
+                                 pre_sort_ascending=False, sort_columns="Phi", sort_ascending=True,
                                  addColumns={"ObjType":3}),
                    ObjectProfile("MET",1, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=False, sort_columns=["Phi"],

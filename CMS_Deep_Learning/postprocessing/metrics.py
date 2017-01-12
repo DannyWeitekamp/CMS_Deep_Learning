@@ -1,10 +1,11 @@
 import types
 
-from keras.metrics import *
+# from keras.metrics import
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 from CMS_Deep_Learning.storage.iterators import TrialIterator, DataIterator
 from .plot import plotBins
+import numpy as np
 
 
 def accVsEventChar(model,
