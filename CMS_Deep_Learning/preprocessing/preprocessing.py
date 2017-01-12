@@ -50,6 +50,9 @@ class ObjectProfile():
         if(len(args) > 2):
             raise ValueError("Please explicitly name arguements with values %r" % args[2:])
 
+        if (isinstance(kargs["pre_sort_columns"], str)): kargs["pre_sort_columns"] == [kargs["pre_sort_columns"]]
+        if (isinstance(kargs["sort_columns"], str)): kargs["sort_columns"] == [kargs["sort_columns"]]
+
         for key, value in DEFAULT_PROFILE.items():
             # print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
             setattr(self, key, kargs.get(key, d.get(key, value)))
@@ -58,7 +61,9 @@ class ObjectProfile():
             raise ValueError("max_size cannot be less than -1. Got %r" % self.max_size)
         if(self.addColumns != None and not isinstance(self.addColumns, dict)):
             raise ValueError("arguement addColumns must be a dictionary, but got %r" % type(self.addColumns))
-       
+
+
+
         self.class_name = self.__class__.__name__
 
 
