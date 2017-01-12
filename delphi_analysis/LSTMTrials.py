@@ -190,6 +190,4 @@ def runTrials(archive_dir,
 
 if __name__ == '__main__':
     argv = sys.argv
-    print(arv)
-    raise ValueError
     runTrials(argv[1], argv[2])
