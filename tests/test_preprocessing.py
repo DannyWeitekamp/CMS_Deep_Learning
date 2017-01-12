@@ -241,9 +241,9 @@ class PreprocessingTests(unittest.TestCase):
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
 
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
-                                                    sort_columns=["Eta"], sort_ascending=False)
+                                                    sort_columns="Eta", sort_ascending=False)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
-                         sort_columns=["Eta"], sort_ascending=False)
+                         sort_columns="Eta", sort_ascending=False)
 
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
                                                     sort_columns=["Phi"], sort_ascending=True)

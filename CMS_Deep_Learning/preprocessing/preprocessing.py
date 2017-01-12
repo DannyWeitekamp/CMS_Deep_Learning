@@ -50,12 +50,12 @@ class ObjectProfile():
         if(len(args) > 2):
             raise ValueError("Please explicitly name arguements with values %r" % args[2:])
 
-        if (isinstance(kargs.get("pre_sort_columns",None), str)): kargs["pre_sort_columns"] == [kargs["pre_sort_columns"]]
-        if (isinstance(kargs.get("sort_columns",None), str)): kargs["sort_columns"] == [kargs["sort_columns"]]
-
         for key, value in DEFAULT_PROFILE.items():
             # print(kargs.get(key, "Nope"),d.get(key, "Nope"), value)
             setattr(self, key, kargs.get(key, d.get(key, value)))
+
+        if (isinstance(self.pre_sort_columns, str)): self.pre_sort_columns = [self.pre_sort_columns]
+        if (isinstance(self.sort_columns, str)): self.sort_columns = [self.sort_columns]
 
         if(self.max_size < -1):
             raise ValueError("max_size cannot be less than -1. Got %r" % self.max_size)
@@ -275,6 +275,7 @@ def _padAndSort(df, profile,vecsize):
     else:
         #Find sort_locs before we convert to np array
         sort_locs = None
+
         if(profile.sort_columns != None):
             sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
         
