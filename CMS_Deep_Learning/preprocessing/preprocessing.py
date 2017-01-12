@@ -276,6 +276,7 @@ def _padAndSort(df, profile,vecsize):
         #Find sort_locs before we convert to np array
         sort_locs = None
 
+        assert not isinstance(profile.sort_columns,str), "profile.sort_columns improperly stored"
         if(profile.sort_columns != None):
             sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
         
