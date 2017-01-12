@@ -1,5 +1,6 @@
 #We can go into our root file and see what Trees are availiable
-import sys, os
+import sys
+
 if __package__ is None:
     import sys, os
     #sys.path.append(os.path.realpath("/data/shared/Software/"))
@@ -12,21 +13,12 @@ if(not p in sys.path):
 #from IPython.display import Image, display
 
 from CMS_Deep_Learning.preprocessing.preprocessing import *
-from CMS_Deep_Learning.callbacks import OverfitStopping, SmartCheckpoint
-from CMS_Deep_Learning.storage.batch import batchAssertArchived, batchExecuteAndTestTrials
-from CMS_Deep_Learning.storage.archiving import *
 from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
-from CMS_Deep_Learning.layers.lorentz import Lorentz, _lorentz
-from CMS_Deep_Learning.layers.slice import Slice
 
-from keras.models import Sequential, Model, model_from_json
-from keras.layers import Dense, Flatten, Reshape, Activation, Dropout, Convolution2D, merge, Input, Flatten, Lambda, LSTM, Masking
-from keras.engine.topology import Layer
+from keras.models import Model
+from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking
 from keras.callbacks import EarlyStopping
-from keras.utils.visualize_util import plot
-from keras.layers.advanced_activations import LeakyReLU
-
 
 #dc = deepconfig.deepconfig(gpu='gpu0', backend='theano')
 
