@@ -50,21 +50,29 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         if(len(dependencies) > 0):
             dep_clause = "--dependency=afterok:" + ":".join(dependencies)
     else:
-        def f(unarchived, verbose=0,i=0):
+        archive_dir = unarchived[0].archive_dir
+        for u in unarchived:
+            u.write()
+
+        hashes = [u.hash() for u in unarchived]
+        def f(hashes,archive_dir, verbose=0,i=0):
+            from CMS_Deep_Learning.storage.archiving import DataProcedure
             if (verbose >= 1): print("Batch process %r started." % i)
-            for u in unarchived:
+            for h in hashes:
+                u = DataProcedure.find_by_hashcode(archive_dir=archive_dir, hashcode=h)
                 u.getData(archive=True, verbose=verbose)
                 if(verbose >= 1): print("From process %r." % i)
+
         processes = []
         if(verbose >= 1): print("Starting batchAssertArchived...")
-        splits = np.array_split(unarchived, num_processes)
+        splits = np.array_split(hashes, num_processes)
         for i, sublist in enumerate(splits[1:]):
-            print "Thread Started"
-            p = Process(target=f, args=(sublist,verbose,i+1))
+            print("Thread %r Started" % i)
+            p = Process(target=f, args=(sublist,archive_dir,verbose,i+1))
             processes.append(p)
             p.start()
         try:
-            f(splits[0],verbose=verbose)
+            f(splits[0],archive_dir,verbose=verbose)
         except:
             for p in processes:
                 p.terminate()
