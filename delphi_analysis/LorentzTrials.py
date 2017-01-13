@@ -105,16 +105,14 @@ def runTrials(archive_dir,
     for ldp in ldpsubsets:
         labels = [x[0] for x in ldp]
 
-        object_profiles = [ObjectProfile("Electron", 8),
-                           ObjectProfile("MuonTight", 8),
+        object_profiles = [ObjectProfile("Electron", 8, pre_sort_columns=[sort_on], pre_sort_ascending=False),
+                           ObjectProfile("MuonTight", 8, pre_sort_columns=[sort_on], pre_sort_ascending=False),
                            # ObjectProfile("Photon", -1),
-                           ObjectProfile("MissingET", 1),
-                           ObjectProfile("EFlowPhoton", 100, pre_sort_columns=[sort_on],
-                                         sort_ascending=False),
-                           ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=[sort_on],
-                                         sort_ascending=False),
-                           ObjectProfile("EFlowTrack", 100, pre_sort_columns=[sort_on],
-                                         sort_ascending=False)]
+                           ObjectProfile("MissingET", 1, pre_sort_columns=[sort_on], pre_sort_ascending=False),
+                           ObjectProfile("EFlowPhoton", 100, pre_sort_columns=[sort_on], pre_sort_ascending=False),
+                           ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=[sort_on], pre_sort_ascending=False),
+                           ObjectProfile("EFlowTrack", 100, pre_sort_columns=[sort_on], pre_sort_ascending=False)
+                           ]
         dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val + num_train, \
                                       object_profiles, ldp, observ_types,
                                       batch_size=batch_size, megabytes=100,
