@@ -1,4 +1,3 @@
-#We can go into our root file and see what Trees are availiable
 import sys
 
 if __package__ is None:
@@ -12,9 +11,6 @@ if(not p in sys.path):
 from CMS_Deep_Learning.utils.deepconfig import deepconfig
 deepconfig("cpu", backend="theano")
 
-#from keras.utils.visualize_util import plot
-#from IPython.display import Image, display
-
 from CMS_Deep_Learning.preprocessing.preprocessing import *
 from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
@@ -22,8 +18,6 @@ from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
 from keras.models import Model
 from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking
 from keras.callbacks import EarlyStopping
-
-#dc = deepconfig.deepconfig(gpu='gpu0', backend='theano')
 
 #The observables taken from the table
 DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
@@ -121,8 +115,8 @@ def runTrials(archive_dir,
                 train, _num_train = l[1]
                 max_q_size = l[2]
 
-                train_dps = train.args[0]
                 val_dps = val.args[0]
+                train_dps = train.args[0]
 
                 for name in ['LSTM']:
                     for depth in [1]:
@@ -156,17 +150,6 @@ def runTrials(archive_dir,
                                         callbacks=[earlyStopping],
                                         max_q_size=max_q_size)
                                     trial.write()
-
-                                    #                                print("EXECUTE: ", name,labels, depth, activation_name)
-                                    #                                trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice},
-                                    #                                             train_arg_decode_func=label_dir_pairs_args_decoder,
-                                    #                                             val_arg_decode_func=label_dir_pairs_args_decoder)
-
-
-                                    #                                trial.test(test_proc=test,
-                                    #                                             test_samples=num_test,
-                                    #                                             custom_objects={"Lorentz":Lorentz,"Slice": Slice},
-                                    #                                            arg_decode_func = label_dir_pairs_args_decoder)
 
                                     trial_tups.append((trial, None, None, dependencies))
 
