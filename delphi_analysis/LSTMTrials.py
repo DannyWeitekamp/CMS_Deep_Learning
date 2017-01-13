@@ -117,8 +117,8 @@ def runTrials(archive_dir,
                                               verbose=0)
 
                 dependencies = batchAssertArchived(dps, 4)
-                val, num_val = l[0]
-                train, num_train = l[1]
+                val, _num_val = l[0]
+                train, _num_train = l[1]
                 max_q_size = l[2]
 
                 train_dps = train.args[0]
@@ -141,10 +141,10 @@ def runTrials(archive_dir,
                                     # trial = KerasTrial(archive_dir, name=name, model=model)
 
                                     trial.setTrain(train_procedure=train_dps,
-                                                   samples_per_epoch=num_train
+                                                   samples_per_epoch=_num_train
                                                    )
                                     trial.setValidation(val_procedure=val_dps,
-                                                        nb_val_samples=num_val)
+                                                        nb_val_samples=_num_val)
 
                                     trial.setCompilation(loss=loss,
                                                          optimizer=optimizer,
