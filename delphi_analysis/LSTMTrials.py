@@ -176,4 +176,4 @@ def runTrials(archive_dir,
 
 if __name__ == '__main__':
     argv = sys.argv
-    runTrials(argv[1], argv[2])
+    runTrials(argv[1], int(argv[2]))
