@@ -143,7 +143,8 @@ def runTrials(archive_dir,
                                                      dense_activation=activation, output_activation=output_activation,
                                                      dropout=dropout, sphereCoords=sphereCoords, weight_output=weight_output)
 
-                                    trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers)
+                                    trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,
+                                                           custom_objects={"Lorentz": Lorentz, "Slice": Slice})
 
                                     trial.setTrain(train_procedure=train_dps,
                                                    samples_per_epoch=_num_train
