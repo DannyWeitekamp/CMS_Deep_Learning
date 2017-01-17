@@ -134,7 +134,7 @@ def runTrials(archive_dir,
                             for activation in activation_options:
                                 for dropout in dropout_options:
                                     # Weight output is really only for lorentz
-                                    if (weight_output == True and name != 'lorentz'): continue
+                                    if (weight_output == True and name != 'lorentz' and len(weight_output_options) > 1): continue
 
                                     activation_name = activation if isinstance(activation, str) \
                                         else activation.__name__
