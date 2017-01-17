@@ -35,7 +35,7 @@ def genModel(name,object_profiles,out_dim, depth, vecsize
     inputs = []
     mergelist = []
     if(single_list):
-        a = Input(shape=(sum([p.max_size for p in object_profiles]) , vecsize), name="input_" + str(i))
+        a = Input(shape=(sum([p.max_size for p in object_profiles]) , vecsize), name="input")
     else:
         for i, profile in enumerate(object_profiles):
             inp = a = Input(shape=(profile.max_size , vecsize), name="input_" + str(i))
