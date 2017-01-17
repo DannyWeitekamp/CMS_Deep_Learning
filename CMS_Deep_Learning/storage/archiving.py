@@ -142,7 +142,7 @@ class DataProcedure(Storable):
         if(isinstance(func, types.FunctionType) == False):
             raise TypeError("func must be function, but got %r" % type(func))
 
-        self.archive_dir = _archive_dir
+        self.archive_dir = os.path.realpath(_archive_dir)  + "/"
         self.func = func.__name__
         self.func_module = func.__module__
         self.args = args
@@ -440,7 +440,7 @@ class KerasTrial(Storable):
         Storable.__init__(self)
         if(archive_dir[len(archive_dir)-1] != "/"):
             archive_dir = archive_dir + "/"
-        self.archive_dir = archive_dir
+        self.archive_dir = os.path.realpath(archive_dir) + "/"
         self.name = name
         for key in INPUT_DEFAULTS:
             if(not key in kargs):
