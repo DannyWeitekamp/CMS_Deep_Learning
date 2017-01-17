@@ -126,8 +126,9 @@ def runTrials(archive_dir,
                                     activation_name = activation if isinstance(activation, str) \
                                         else activation.__name__
 
-                                    model = genModel(name, object_profiles, len(labels), depth,vecsize, activation, lstm_dropout,
-                                                     dropout, output_activation=output_activation)
+                                    model = genModel(name, object_profiles, len(labels), depth,vecsize, lstm_activation=activation,
+                                                     lstm_dropout=lstm_dropout,dropout=dropout, output_activation=output_activation,
+                                                    single_list=single_list)
 
 
 
