@@ -47,11 +47,15 @@ class MPI_KerasTrial(KerasTrial):
         else:
             self.custom_objects = {}
 
+
         for key,value in MPI_INPUT_DEFAULTS.items():
             if(key in kargs):
                 setattr(self, key, kargs[key])
             else:
                 setattr(self, key, value)
+
+        if not "max_gpus" in kargs:
+            setattr(self, "max_gpus", self.masters + self.workers)
 
         #print(self.custom_objects)
         #raise ValueError()
