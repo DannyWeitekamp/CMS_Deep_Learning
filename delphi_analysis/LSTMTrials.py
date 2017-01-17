@@ -2,7 +2,7 @@ import sys
 
 if __package__ is None:
     import sys, os
-    #sys.path.append(os.path.realpath("/data/shared/Software/"))
+    sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
 p = "/home/dweitekamp/mpi_learn/"
 if(not p in sys.path):
