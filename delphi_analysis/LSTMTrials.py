@@ -33,10 +33,11 @@ DEFAULT_LABEL_DIR_PAIRS = \
 def genModel(name,object_profiles,out_dim, depth, vecsize
             ,lstm_activation="relu", lstm_dropout = 0.0, dropout=0.0,output_activation="softmax", single_list=False):
     inputs = []
-    mergelist = []
     if(single_list):
         a = Input(shape=(sum([p.max_size for p in object_profiles]) , vecsize), name="input")
+        inputs.append(a)
     else:
+        mergelist = []
         for i, profile in enumerate(object_profiles):
             inp = a = Input(shape=(profile.max_size , vecsize), name="input_" + str(i))
             inputs.append(inp)
