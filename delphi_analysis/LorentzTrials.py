@@ -42,8 +42,13 @@ def genModel(name,out_dim, depth, width, vecsize, object_profiles, dense_activat
         inputs.append(inp)
 
         if(name == 'lorentz'):
-            b1 = Lorentz(sphereCoords=sphereCoords, weight_output=weight_output ,name="lorentz_"+str(i))(a)
+            b1 = Lorentz(sphereCoords=sphereCoords, weight_output=weight_output,
+                         name="lorentz_"+str(i))(a)
             b1 = Flatten(name="flatten1_"+str(i))(b1)
+        elif(name == 'lorentz_vsum'):
+            b1 = Lorentz(sphereCoords=sphereCoords, weight_output=weight_output,
+                         name="lorentz_" + str(i), sum_input=True)(a)
+            b1 = Flatten(name="flatten1_" + str(i))(b1)
         elif(name == 'control_dense'):
             b1 = Slice('[:,0:4]',name='slice_1_'+str(i))(a)
             b1 = Flatten(name="4_flatten_"+str(i))(b1)
@@ -54,8 +59,10 @@ def genModel(name,out_dim, depth, width, vecsize, object_profiles, dense_activat
         else:
             raise ValueError("Model name %r not understood." % name)
 
-        
-        b2 = Slice('[:,4:]',name='slice_2_'+str(i))(a)
+        if("_vsum" in name):
+            b2 = a
+        else:
+            b2 = Slice('[:,4:]',name='slice_2_'+str(i))(a)
         b2 = Flatten(name="flatten_2_"+str(i))(b2)
         # b2 = Dense(10, activation='relu')(b2)
         mergelist.append(b1)
@@ -126,7 +133,7 @@ def runTrials(archive_dir,
         val_dps = val.args[0]
         train_dps = train.args[0]
         # resolveProfileMaxes(object_profiles, ldp)
-        for name in ['lorentz', 'control', 'control_dense']:
+        for name in ['lorentz', 'lorentz_vsum', 'control', 'control_dense']:
             for sphereCoords in sphereCoords_options:
                 for weight_output in weight_output_options:  # [False, True]:
                     for depth in depth_options:
