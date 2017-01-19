@@ -67,7 +67,8 @@ class SmartCheckpoint(ModelCheckpoint):
 
         if not os.path.exists(self.smartDir):
             os.makedirs(self.smartDir)
-        
+
+        self.start_time = "%s %s" % (time.strftime("%m-%d-%Y %H:%M:%S"), "-".join(time.tzname))
         self.epochOffset = histDict.get("last_epoch", 0);
         # self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
         try:
@@ -83,6 +84,9 @@ class SmartCheckpoint(ModelCheckpoint):
         epoch = epoch + self.epochOffset + 1
         ModelCheckpoint.on_epoch_end(self, epoch, logs)
         histDict["last_epoch"] = epoch
+        if(not "start_time" in histDict):
+            histDict["start_time"] = self.start_time
+
         for k, v in logs.items():
             if k not in histDict:
                 histDict[k] = []

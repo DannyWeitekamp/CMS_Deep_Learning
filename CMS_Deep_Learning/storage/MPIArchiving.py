@@ -132,7 +132,10 @@ class MPI_KerasTrial(KerasTrial):
             print("Trial %r Already Complete" % self.hash())
         self._history_to_record(['val_acc'])
         history = self.get_history()
-        if(history != None):self.to_record( {'elapse_time' : history.get('elapse_time', "??")}, replace=True)
+        if(history != None):self.to_record( {'elapse_time' : history.get('elapse_time', "??"),
+                                             'last_epoch': history.get('last_epoch'),
+                                             'start_time': history.get('start_time')
+                                            }, replace=True)
         # dct =  {'num_train' : self.samples_per_epoch,
         #             'num_validation' : num_val,
         #             'elapse_time' : self.get_history()['elapse_time'],

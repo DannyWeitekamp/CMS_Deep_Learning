@@ -771,10 +771,12 @@ class KerasTrial(Storable):
             if(num_val == None):
                 num_val = num_train*(self.validation_split)
 
+            history = self.get_history()
             dct =  {'num_train' : int(num_train*(1.0-self.validation_split)),
                     'num_validation' : num_val,
-                    'elapse_time' : self.get_history()['elapse_time'],
-                    'last_epoch' : self.get_history()['last_epoch']
+                    'elapse_time' : history.get('elapse_time'),
+                    'last_epoch' : history.get('last_epoch'),
+                    'start_time' :  history.get('start_time')
                     }
             self.to_record( dct, replace=True)
         else:
@@ -957,7 +959,7 @@ class KerasTrial(Storable):
             record = self.read_record()
             
             if(record != None):
-                groups = [  _getPairsFromKeys(record, ["name","elapse_time","last_epoch"]),
+                groups = [  _getPairsFromKeys(record, ["name","elapse_time","last_epoch", "start_time"]),
                             _getPairsFromKeys(record, ["test_acc","val_acc", "acc", "test_loss", "val_loss", "loss"]) ,
                             _getPairsFromKeys(record, ["num_train","num_validation", "num_test"])
                         ]
