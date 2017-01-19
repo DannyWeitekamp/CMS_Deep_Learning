@@ -255,7 +255,7 @@ class MPI_KerasTrial(KerasTrial):
             if(not "num_train" in record):
                 self.to_record({"num_train": num_train})
             if(not "num_val" in record):
-                val_data = H5Data( train_list, batch_size=self.batch_size, 
+                val_data = H5Data( val_list, batch_size=self.batch_size,
                 features_name="X", labels_name="Y")
                 self.to_record({"num_val": val_data.count_data()})
 

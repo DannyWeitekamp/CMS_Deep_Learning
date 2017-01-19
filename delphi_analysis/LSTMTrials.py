@@ -164,6 +164,7 @@ def runTrials(archive_dir,
                                                      "lstm_dropout": lstm_dropout,
                                                      "query": None,
                                                      "patience": patience,
+                                                     "single_list" : single_list,
                                                      #"useObjTypeColumn": True,
                                                      "output_activation": output_activation
                                                      # "Non_MPI" :True

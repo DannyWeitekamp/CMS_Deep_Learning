@@ -17,22 +17,22 @@ vecsize = len(obs_pl_t)
 RANDOM_SEED = 7
 np.random.seed(seed=RANDOM_SEED)
 
-object_profiles1 = [ObjectProfile("EFlowPhoton",20, pre_sort_columns="PT_ET",
+object_profiles1 = [ObjectProfile("EFlowPhoton",2, pre_sort_columns="PT_ET",
                                  pre_sort_ascending=False,
                                  addColumns={"ObjType":1}),
-                   ObjectProfile("EFlowTracks",20, pre_sort_columns=["PT_ET"],
+                   ObjectProfile("EFlowTracks",2, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=True,
                                  addColumns={"ObjType":2}),
-                   ObjectProfile("EFlowNeutralHadron",20, pre_sort_columns=["PT_ET"],
+                   ObjectProfile("EFlowNeutralHadron",2, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=False, sort_columns="Phi", sort_ascending=True,
                                  addColumns={"ObjType":3}),
                    ObjectProfile("MET",1, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=False, sort_columns=["Phi"],
                                  addColumns={"ObjType":4}),
-                   ObjectProfile("MuonTight",10, pre_sort_columns=["PT_ET"],
+                   ObjectProfile("MuonTight",2, pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=False, sort_columns=["Phi"], sort_ascending=False,
                                  addColumns={"ObjType":5}),
-                   ObjectProfile("Electron",10, #pre_sort_columns=["PT_ET"],
+                   ObjectProfile("Electron",2, #pre_sort_columns=["PT_ET"],
                                  pre_sort_ascending=False, sort_columns=["Phi"],
                                  addColumns={"ObjType":6})
                   ]
@@ -226,11 +226,12 @@ def checkDuplicates(t,X, Y, object_profiles):
 class PreprocessingTests(unittest.TestCase):
 
     def test_normal(self):
-        NUM = 5
+        NUM = 2
         frame_lists = {l:store_fake(d,NUM, 1, object_profiles1) for l, d in label_dir_pairs}
         OPS = object_profiles1
 
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
+        print(Y)
         sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
         checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
@@ -244,7 +245,7 @@ class PreprocessingTests(unittest.TestCase):
                                                     sort_columns="Eta", sort_ascending=False)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
                          sort_columns="Eta", sort_ascending=False)
-
+        print(Y)
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
                                                     sort_columns=["Phi"], sort_ascending=True)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,

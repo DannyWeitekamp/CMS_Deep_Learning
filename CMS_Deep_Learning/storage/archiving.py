@@ -973,13 +973,11 @@ class KerasTrial(Storable):
                         elif(re.match(".*_(acc|loss)", key) != None):
                             records.append(str(key) + " = " + "%.4f" % value)
                         else:
-                            pass
-
                             records.append(str(key) + " = " + json.dumps(value))
                     print(indent*2 + sep.join(records))
                 records = []
                 for key in record:
-                    records.append(str(key) + " = " + str(record[key]))
+                    records.append(str(key) + " = " + json.dumps(record[key]))
                 records.sort()
                 print(indent*2 + sep.join(records))
             else:
