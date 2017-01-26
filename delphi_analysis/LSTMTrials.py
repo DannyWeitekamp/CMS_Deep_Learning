@@ -68,9 +68,9 @@ def runTrials(archive_dir,
                 num_train = 75000,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
-                optimizer='rmsprop',
+                optimizer_options = ['rmsprop','adam'],
                 sortings = [("Phi", False),("Eta", False), ("PT_ET", False), ("PT_ET", True)],
-                single_list_options = [True, False]
+                single_list_options = [False]#[True, False]
                 ):
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
@@ -120,55 +120,56 @@ def runTrials(archive_dir,
                 train_dps = train.args[0]
 
                 for name in ['LSTM']:
-                    for depth in [1]:
-                        for activation in ['tanh']:
-                            for lstm_dropout in [0.0]:
-                                for dropout in [0.0]:
-                                    activation_name = activation if isinstance(activation, str) \
-                                        else activation.__name__
+                    for optimizer in optimizer_options:
+                        for depth in [1]:
+                            for activation in ['tanh']:
+                                for lstm_dropout in [0.0]:
+                                    for dropout in [0.0]:
+                                        activation_name = activation if isinstance(activation, str) \
+                                            else activation.__name__
 
-                                    model = genModel(name, object_profiles, len(labels), depth,vecsize, lstm_activation=activation,
-                                                     lstm_dropout=lstm_dropout,dropout=dropout, output_activation=output_activation,
-                                                    single_list=single_list)
+                                        model = genModel(name, object_profiles, len(labels), depth,vecsize, lstm_activation=activation,
+                                                         lstm_dropout=lstm_dropout,dropout=dropout, output_activation=output_activation,
+                                                        single_list=single_list)
 
 
 
-                                    trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers)
-                                    # trial = KerasTrial(archive_dir, name=name, model=model)
+                                        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers)
+                                        # trial = KerasTrial(archive_dir, name=name, model=model)
 
-                                    trial.setTrain(train_procedure=train_dps,
-                                                   samples_per_epoch=_num_train
-                                                   )
-                                    trial.setValidation(val_procedure=val_dps,
-                                                        nb_val_samples=_num_val)
+                                        trial.setTrain(train_procedure=train_dps,
+                                                       samples_per_epoch=_num_train
+                                                       )
+                                        trial.setValidation(val_procedure=val_dps,
+                                                            nb_val_samples=_num_val)
 
-                                    trial.setCompilation(loss=loss,
-                                                         optimizer=optimizer,
-                                                         metrics=['accuracy']
-                                                         )
+                                        trial.setCompilation(loss=loss,
+                                                             optimizer=optimizer,
+                                                             metrics=['accuracy']
+                                                             )
 
-                                    trial.setFit_Generator(
-                                        nb_epoch=epochs,
-                                        callbacks=[earlyStopping],
-                                        max_q_size=max_q_size)
-                                    trial.write()
+                                        trial.setFit_Generator(
+                                            nb_epoch=epochs,
+                                            callbacks=[earlyStopping],
+                                            max_q_size=max_q_size)
+                                        trial.write()
 
-                                    trial_tups.append((trial, None, None, dependencies))
+                                        trial_tups.append((trial, None, None, dependencies))
 
-                                    trial.to_record({"labels": labels,
-                                                     "depth": depth,
-                                                     "sort_on": sort_on,
-                                                     "sort_ascending": sort_ascending,
-                                                     "activation": activation_name,
-                                                     "dropout": dropout,
-                                                     "lstm_dropout": lstm_dropout,
-                                                     "query": None,
-                                                     "patience": patience,
-                                                     "single_list" : single_list,
-                                                     #"useObjTypeColumn": True,
-                                                     "output_activation": output_activation
-                                                     # "Non_MPI" :True
-                                                     })
+                                        trial.to_record({"labels": labels,
+                                                         "depth": depth,
+                                                         "sort_on": sort_on,
+                                                         "sort_ascending": sort_ascending,
+                                                         "activation": activation_name,
+                                                         "dropout": dropout,
+                                                         "lstm_dropout": lstm_dropout,
+                                                         "query": None,
+                                                         "patience": patience,
+                                                         "single_list" : single_list,
+                                                         #"useObjTypeColumn": True,
+                                                         "output_activation": output_activation
+                                                         # "Non_MPI" :True
+                                                         })
     # trial_tups[0][0].summary()
     # trial_tups[0][0].execute()
     for tup in trial_tups:

@@ -89,7 +89,7 @@ def runTrials(archive_dir,
                 num_train = 75000,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
-                optimizer='rmsprop',
+                optimizer_options = ['rmsprop', 'adam'],
                 sort_on="PT_ET",
                 depth_options = [2,3],
                 width_options = [10],
@@ -134,52 +134,53 @@ def runTrials(archive_dir,
         train_dps = train.args[0]
         # resolveProfileMaxes(object_profiles, ldp)
         for name in ['lorentz', 'lorentz_vsum', 'control', 'control_dense']:
-            for sphereCoords in sphereCoords_options:
-                for weight_output in weight_output_options:  # [False, True]:
-                    for depth in depth_options:
-                        for width in width_options:
-                            for activation in activation_options:
-                                for dropout in dropout_options:
-                                    # Weight output is really only for lorentz
-                                    if (weight_output == True and name != 'lorentz' and len(weight_output_options) > 1): continue
+            for optimizer in optimizer_options:
+                for sphereCoords in sphereCoords_options:
+                    for weight_output in weight_output_options:  # [False, True]:
+                        for depth in depth_options:
+                            for width in width_options:
+                                for activation in activation_options:
+                                    for dropout in dropout_options:
+                                        # Weight output is really only for lorentz
+                                        if (weight_output == True and name != 'lorentz' and len(weight_output_options) > 1): continue
 
-                                    activation_name = activation if isinstance(activation, str) \
-                                        else activation.__name__
+                                        activation_name = activation if isinstance(activation, str) \
+                                            else activation.__name__
 
-                                    model = genModel(name, len(labels), depth, width, vecsize ,object_profiles,
-                                                     dense_activation=activation, output_activation=output_activation,
-                                                     dropout=dropout, sphereCoords=sphereCoords, weight_output=weight_output)
+                                        model = genModel(name, len(labels), depth, width, vecsize ,object_profiles,
+                                                         dense_activation=activation, output_activation=output_activation,
+                                                         dropout=dropout, sphereCoords=sphereCoords, weight_output=weight_output)
 
-                                    trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,
-                                                           custom_objects={"Lorentz": Lorentz, "Slice": Slice})
+                                        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,
+                                                               custom_objects={"Lorentz": Lorentz, "Slice": Slice})
 
-                                    trial.setTrain(train_procedure=train_dps,
-                                                   samples_per_epoch=_num_train
-                                                   )
-                                    trial.setValidation(val_procedure=val_dps,
-                                                        nb_val_samples=_num_val)
+                                        trial.setTrain(train_procedure=train_dps,
+                                                       samples_per_epoch=_num_train
+                                                       )
+                                        trial.setValidation(val_procedure=val_dps,
+                                                            nb_val_samples=_num_val)
 
-                                    trial.setCompilation(loss=loss,
-                                                         optimizer=optimizer,
-                                                         metrics=['accuracy']
-                                                         )
+                                        trial.setCompilation(loss=loss,
+                                                             optimizer=optimizer,
+                                                             metrics=['accuracy']
+                                                             )
 
-                                    trial.setFit_Generator(
-                                        nb_epoch=epochs,
-                                        callbacks=[earlyStopping],
-                                        max_q_size=max_q_size)
-                                    trial.write()
+                                        trial.setFit_Generator(
+                                            nb_epoch=epochs,
+                                            callbacks=[earlyStopping],
+                                            max_q_size=max_q_size)
+                                        trial.write()
 
-                                    trial.to_record({"labels": labels,
-                                                     "depth": depth,
-                                                     "width": width,
-                                                     "sort_on": sort_on,
-                                                     "activation": activation_name,
-                                                     "weight_output": weight_output,
-                                                     "dropout": dropout,
-                                                     "optimizer": "adam",
-                                                     })
-                                    trial_tups.append((trial, None, None, dependencies))
+                                        trial.to_record({"labels": labels,
+                                                         "depth": depth,
+                                                         "width": width,
+                                                         "sort_on": sort_on,
+                                                         "activation": activation_name,
+                                                         "weight_output": weight_output,
+                                                         "dropout": dropout,
+                                                         "optimizer": optimizer,
+                                                         })
+                                        trial_tups.append((trial, None, None, dependencies))
     for tup in trial_tups:
         tup[0].summary()
     for tup in trial_tups:
