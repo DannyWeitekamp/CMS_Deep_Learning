@@ -69,7 +69,7 @@ def runTrials(archive_dir,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
                 optimizer_options = ['rmsprop','adam'],
-                sortings = [("Phi", False),("Eta", False), ("PT_ET", False), ("PT_ET", True)],
+                sortings = [(["Phi"], False),(["Eta"], False), (["PT_ET"], False), (["PT_ET"], True), (None,True)],
                 single_list_options = [False]#[True, False]
                 ):
     vecsize = len(observ_types)
@@ -89,25 +89,25 @@ def runTrials(archive_dir,
             for single_list in single_list_options:
 
                 object_profiles = [
-                    ObjectProfile("Electron", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on],
+                    ObjectProfile("Electron", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=sort_on,
                                   sort_ascending=sort_ascending, addColumns={"ObjType": 1}),
-                    ObjectProfile("MuonTight", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on],
+                    ObjectProfile("MuonTight", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=sort_on,
                                   sort_ascending=sort_ascending, addColumns={"ObjType": 2}),
-                    # ObjectProfile("Photon", -1, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on], sort_ascending=False, addColumns={"ObjType":3}),
+                    # ObjectProfile("Photon", -1, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=sort_on, sort_ascending=False, addColumns={"ObjType":3}),
                     ObjectProfile("MissingET", 1, addColumns={"ObjType": 4}),
                     ObjectProfile("EFlowPhoton", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 5}),
+                                  sort_columns=sort_on, sort_ascending=sort_ascending, addColumns={"ObjType": 5}),
                     ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 6}),
+                                  sort_columns=sort_on, sort_ascending=sort_ascending, addColumns={"ObjType": 6}),
                     ObjectProfile("EFlowTrack", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 7})]
+                                  sort_columns=sort_on, sort_ascending=sort_ascending, addColumns={"ObjType": 7})]
 
                 #resolveProfileMaxes(object_profiles, ldp)
                 print(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,)
                 dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
-                                              single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
+                                              single_list=single_list, sort_columns=sort_on, sort_ascending=sort_ascending,
                                               batch_size=batch_size, megabytes=100,
                                               verbose=0)
 
