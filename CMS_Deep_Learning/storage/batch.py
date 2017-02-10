@@ -69,7 +69,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
                 if(verbose >= 1): print("From process %r." % i)
 
         processes = []
-        if(verbose >= 1): print("Starting batchAssertArchived...")
+        if(verbose >= 1): print("Starting batchAssertArchived stating with %r/%r DataProcedures" % (len(unarchived), len(dps)))
         splits = np.array_split(hashes, num_processes)
         for i, sublist in enumerate(splits[1:]):
             print("Thread %r Started" % i)
