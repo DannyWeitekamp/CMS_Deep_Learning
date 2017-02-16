@@ -114,7 +114,7 @@ def checkGeneralSanity(t, X, Y, frame_lists, sizes,  NUM, label_dir_pairs):
         is_single_list = True
         X = [X]
     justCheckSize(t,X, Y,sizes)
-    
+
     all_values_by_label = {tup[0]:[None] * NUM for tup in label_dir_pairs}
     
     for entry in range(NUM):

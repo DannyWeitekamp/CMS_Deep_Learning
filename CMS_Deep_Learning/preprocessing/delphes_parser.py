@@ -93,7 +93,39 @@ def Iso(A_Eta, A_Phi, A_Pt, B_Eta, B_Phi, to_ommit=None,maxdist=0.3):
     out = np.sum(DRsq, axis=1, dtype='float64')/A_Pt
     return out
 
-def fill_object(dicts_by_object,leaves_by_object,entry, start_index,obj, PT_ET_MET, M, others):
+def getMaxPt_Eta_Phi(leaves_by_object,entry,obj, PT_ET_MET="PT"):
+    '''Returns the PT, Eta and Phi corresponding to the particle of the highest PT in the object collection
+        #Arguments
+            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays
+                                    keyed by observable type. Arrays are expected to be prefilled with
+                                    zeros
+            leaves_by_object -- A dictionary keyed by object type, containing dictionaries of tuples
+                                like (leaf, branch) keyed by observable type. Only valid ROOT
+                                observables are used as keys. Each (leaf,branch) pair corresponds
+                                to the leaf and branch of a ROOT observable.
+            entry -- The entry to in the ROOT file to read from
+        #Returns PT, Eta, Phi or if empty 0,0,0
+    '''
+    d = leaves_by_object[obj]
+    for (leaf, branch) in d.values():
+        branch.GetEntry(entry)
+    n_values = d["Phi"][0].GetLen()
+    l_PT = d[PT_ET_MET][0]
+    l_Eta = d["Eta"][0]
+    l_Phi = d["Phi"][0]
+    max_PT, max_index = 0.0,-1
+    print(obj,n_values)
+    for i in range(n_values):
+        PT = l_PT.GetValue(i)
+        if(PT > max_PT):
+            max_PT, max_index = PT, i
+    if(max_index == -1):
+        return 0.0,0.0,0.0
+
+    return max_PT, l_Eta.GetValue(max_index), l_Phi.GetValue(max_index)
+
+
+def fill_object(dicts_by_object,leaves_by_object,entry, start_index,obj, PT_ET_MET, M, others, maxLepPT_Eta_Phi, METPT_Eta_Phi):
     '''Fills an object with values for a given entry
         #Arguments
             dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays
@@ -130,6 +162,8 @@ def fill_object(dicts_by_object,leaves_by_object,entry, start_index,obj, PT_ET_M
     l_Phi = d["Phi"][0]
     l_others = [(other, d[other][0]) for other in others]
     #lv_leaves = [d[ lorentz_vars[i] ][0] for i in range(lorentz_vars)]
+    maxLepPT, maxLepEta, maxLepPhi = maxLepPT_Eta_Phi
+    METPT, METEta, METPhi = METPT_Eta_Phi
     for i in range(n_values):
         index = start_index + i
         # print(obj,index)
@@ -145,7 +179,16 @@ def fill_object(dicts_by_object,leaves_by_object,entry, start_index,obj, PT_ET_M
         fill_dict["PT_ET"][index] = PT
         fill_dict["Eta"][index] = Eta
         fill_dict["Phi"][index] = Phi
-        #print(Phi)
+
+        # maxLepDeltaRSqr = (Eta-maxLepEta) ** 2 + (Phi-maxLepPhi)**2
+        # fill_dict["MaxLepDeltaR"][index] = np.sqrt(maxLepDeltaRSqr)
+        # fill_dict["MaxLepKt"][index] = min(PT**2, maxLepPT**2) * maxLepDeltaRSqr
+        # fill_dict["MaxLepAntiKt"][index] = min(PT**-2, maxLepPT**-2) * maxLepDeltaRSqr
+        # METDeltaRSqr = (Eta-METEta)**2 + (Phi-METPhi)**2
+        # fill_dict["METDeltaR"][index] = np.sqrt(METDeltaRSqr)
+        # fill_dict["METKt"][index] = min(PT ** 2, METPT ** 2) * METDeltaRSqr
+        # fill_dict["METAntiKt"][index] = min(PT ** -2, METPT ** -2) * METDeltaRSqr
+
         for (other, l_other) in l_others:
             #if(obj == "EFlowTrack"): print(other, l_other.GetValue(i))
             fill_dict[other][index] = l_other.GetValue(i)
@@ -234,6 +277,7 @@ mass_of_electron = np.float64(0.0005109989461) #eV/c
 mass_of_muon = np.float64(0.1056583715) 
 
 OBJECT_TYPES = ['Electron', 'MuonTight', 'Photon', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack']
+LEPTON_TYPES = ['Electron', 'MuonTight']
 PT_ET_TYPES  = ['PT',          'PT',       'PT',      'MET',        'ET',           'ET',               'PT', ]
 EXTRA_FILLS  = [['Charge'], ['Charge'],     [],        [],     ['Ehad', 'Eem'],  ['Ehad', 'Eem'], ['Charge','X', 'Y', 'Z', 'Dxy'],]
 MASSES =    [mass_of_electron, mass_of_muon, 0,        0,           0,                0,                 0]
@@ -241,8 +285,9 @@ TRACK_MATCH =   [True,        True,        False,    False,        False,       
 COMPUTE_ISO =   [True,        True,        True,     False,        True,           True,              False]
 
 ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
-OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
-                     'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']
+OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
+                    'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt','METDeltaR', 'METKt', 'METAntiKt',
+                    'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso','ChHadIso','NeuHadIso','GammaIso']
 ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','EFlowPhoton')]
 
 def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
@@ -256,7 +301,6 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
 
     tree.SetCacheSize(30*1024*1024)
 
-
     #Get all the leaves that we need to read and their associated branches
     leaves_by_object = {}
     for obj in OBJECT_TYPES:
@@ -265,7 +309,6 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
             leaf = tree.GetLeaf(obj + '.' + observ)
             if(isinstance(leaf,ROOT.TLeafElement)):
                 leaves_by_object[obj][observ] = (leaf, leaf.GetBranch())
-                #print(leaf.GetBranch())
 
 
     #Allocate the data for the tables by filling arrays with zeros
@@ -273,7 +316,6 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
     dicts_by_object["NumValues"] = {}
     for obj in OBJECT_TYPES:
         dicts_by_object[obj] = {}
-        # print(obj)
         (leaf, branch) = leaves_by_object[obj]['Phi']
         total_values = 0
 
@@ -287,13 +329,13 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
         for observ in OUTPUT_OBSERVS:
             dicts_by_object[obj][observ] = [0] * total_values
         dicts_by_object["NumValues"][obj] = [0] * n_entries
-        # print(total_values)
-    
+
 
     index_by_objects = {o:0 for o in OBJECT_TYPES}
     last_time = time.clock()
     prev_entry = 0
     to_ommit = []
+    beep_count = 0
     for entry in range(n_entries):
 
         #Make a pretty progress bar in the terminal
@@ -311,11 +353,18 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
         number_by_object = {}
         Eta_Phi_PT_by_object = {}
 
+        #Find the PT,Eta, and Phi for the leption with the highest PT, and for the MET
+        maxLepPT_Eta_Phi = max([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES], \
+                                            key=lambda x: x[0])
+        print([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES])
+        if(maxLepPT_Eta_Phi[0] == 0.0): beep_count += 1
+        METPT_Eta_Phi = getMaxPt_Eta_Phi(leaves_by_object, entry,"MissingET", "MET")
+
         #Fill each type of object with everything that is observable in the ROOT file for that object
         #   in addition to Energy and the three components of momentum
         for obj, PT_ET_type, mass, extra_fills in zip(OBJECT_TYPES, PT_ET_TYPES, MASSES, EXTRA_FILLS):
             start = index_by_objects[obj]
-            n = fill_object(dicts_by_object,leaves_by_object,entry, start, obj, PT_ET_type, mass, extra_fills)
+            n = fill_object(dicts_by_object,leaves_by_object,entry, start, obj, PT_ET_type, mass, extra_fills, maxLepPT_Eta_Phi, METPT_Eta_Phi)
             dicts_by_object["NumValues"][obj][entry] = n
             number_by_object[obj] = n
             Eta_Phi_PT_by_object[obj] = getEtaPhiPTasNumpy(dicts_by_object,obj, start, n)
@@ -355,7 +404,6 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
     for obj,d in dicts_by_object.items():
         if(obj == "NumValues"):
             pandas_out[obj] = pd.DataFrame(d, columns=OBJECT_TYPES)
-            #print(pandas_out[obj])
         else:
             pandas_out[obj] = pd.DataFrame(d, columns=OUTPUT_OBSERVS)
     
@@ -372,16 +420,9 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
     
     cleaned = df.drop(df.index[to_ommit]).reset_index(drop=True)
     pandas_out["EFlowTrack"] = cleaned
-    #print(pandas_out["EFlowTrack"])
-
-        # pandas_out["NumValues"][obj][]
-        # if(TRACK_MATCH[OBJECT_TYPES.index(obj)] or obj == "EFlowTrack"):
-        # if(COMPUTE_ISO[OBJECT_TYPES.index(obj)]):
-            # print(obj)
-            # print(pandas_out[obj][['MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso']])
 
     print("ElapseTime: %.2f" % float(time.clock()-start_time))
-
+    print(beep_count, n_entries)
     return pandas_out
 
 
@@ -398,8 +439,6 @@ def roundrobin(*iterables):
       except StopIteration:
          pending -= 1
          nexts = cycle(islice(nexts, pending))
-
-
 
 
 def makeJobs(filename,

@@ -277,7 +277,7 @@ def _padAndSort(df, profile,vecsize):
         sort_locs = None
 
         assert not isinstance(profile.sort_columns,str), "profile.sort_columns improperly stored"
-        if(profile.sort_columns != None):
+        if(profile.sort_columns != None and not None in profile.sort_columns):
             sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
         
         #x is an np array not a DataFrame
@@ -470,7 +470,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     indices = np.arange(len(y_train))
     np.random.shuffle(indices)
     if(single_list):
-        X_train = np.array(X_train)
+        X_train = np.array(X_train)[indices]
     else:
         for index in range(len(X_train)):
             X_train[index] = np.array(X_train[index])[indices]

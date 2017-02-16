@@ -9,6 +9,15 @@ def findsubsets(S):
         out = out + [set(x) for x in itertools.combinations(S, m)]
     return out
 
+def get_trial_dps(trial, data_type="train"):
+    from CMS_Deep_Learning.storage.archiving import DataProcedure
+    if (data_type == "val"):
+        proc = [DataProcedure.from_json(trial.archive_dir, t) for t in trial.val_procedure]
+        # num_samples = trial.nb_val_samples
+    elif (data_type == "train"):
+        proc = [DataProcedure.from_json(trial.archive_dir, t) for t in trial.train_procedure]
+        # num_samples = trial.samples_per_epoch
+    return proc
 
 def group_by_labels(trials):
     '''Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding
