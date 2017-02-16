@@ -114,7 +114,7 @@ def getMaxPt_Eta_Phi(leaves_by_object,entry,obj, PT_ET_MET="PT"):
     l_Eta = d["Eta"][0]
     l_Phi = d["Phi"][0]
     max_PT, max_index = 0.0,-1
-    print(obj,n_values)
+    # print(obj,n_values)
     for i in range(n_values):
         PT = l_PT.GetValue(i)
         if(PT > max_PT):
@@ -356,7 +356,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
         #Find the PT,Eta, and Phi for the leption with the highest PT, and for the MET
         maxLepPT_Eta_Phi = max([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES], \
                                             key=lambda x: x[0])
-        print([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES])
+        # print([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES])
         if(maxLepPT_Eta_Phi[0] == 0.0): beep_count += 1
         METPT_Eta_Phi = getMaxPt_Eta_Phi(leaves_by_object, entry,"MissingET", "MET")
 
@@ -422,7 +422,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None):
     pandas_out["EFlowTrack"] = cleaned
 
     print("ElapseTime: %.2f" % float(time.clock()-start_time))
-    print(beep_count, n_entries)
+    print("BEEP:",beep_count, n_entries)
     return pandas_out
 
 
