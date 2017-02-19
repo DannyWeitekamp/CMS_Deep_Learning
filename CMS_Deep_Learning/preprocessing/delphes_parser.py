@@ -558,8 +558,8 @@ def main(data_dir, argv):
     screwup_error = "python delphes_parser.py <input_dir>"
     try:
         opts, args = getopt.getopt(argv,'n:p:mrh')
-        # print(opts)
-        # print(args)
+        print(opts)
+        print(args)
     except getopt.GetoptError:
         print(argv)
         # print(args)
