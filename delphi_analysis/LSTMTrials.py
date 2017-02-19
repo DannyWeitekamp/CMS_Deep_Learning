@@ -89,7 +89,6 @@ def runTrials(archive_dir,
     # Loop over all subsets
     print(ldpsubsets)
     for sort_on, sort_ascending in sortings:
-        sort_on = [sort_on]
         for single_list in single_list_options:
             for ldp in ldpsubsets:
                 labels = [x[0] for x in ldp]
