@@ -21,7 +21,8 @@ from keras.callbacks import EarlyStopping
 
 #The observables taken from the table
 DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
-                      'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt','METDeltaR', 'METKt', 'METAntiKt',
+                      "MaxLepDeltaEta", "MaxLepDeltaPhi",'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt',
+                      "METDeltaEta","METDeltaPhi",'METDeltaR', 'METKt', 'METAntiKt',
                       'Charge', 'X', 'Y', 'Z',
                       'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso', "ObjFt1","ObjFt2","ObjFt3"]
 
@@ -71,8 +72,9 @@ def runTrials(archive_dir,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
                 optimizer_options = ['rmsprop'],
-                sortings = [("Phi", False),("Eta", False), ("PT_ET", False), ("PT_ET", True),
-                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False), ('METDeltaR', False), ('METKt',False), ('METAntiKt',False)],
+                sortings = [("MaxLepDeltaPhi", False),("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),
+                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False), ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+                            ("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True, False]
                 ):
     vecsize = len(observ_types)
