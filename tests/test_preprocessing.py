@@ -39,7 +39,7 @@ object_profiles1 = [ObjectProfile("EFlowPhoton",2, pre_sort_columns="PT_ET",
 
 def rand_pl_entry(entry, a,b,marker=None):
     out = np.concatenate([np.full((a,1),entry, dtype='float64'), np.random.randn(a,b) if marker is None else np.full((a,b),marker)], axis = 1)
-    print(out)
+    # print(out)
     return out
 def norm_uint(mean, std):
     return max(int(np.random.normal(mean, std)),0)
@@ -50,7 +50,7 @@ def fake_frames(N,object_profiles, marker=None):
     num_val_dict = {key:[None]*N for key, frame in frames.items()}
     for profile in object_profiles:
         frames[profile.name] = pd.DataFrame(columns=obs_pl_t)
-    print("MARKER",marker)
+    # print("MARKER",marker)
     for entry in range(N):
         #n = norm_uint(100,35)
         n = norm_uint(3,1)
@@ -227,73 +227,76 @@ def checkDuplicates(t,X, Y, object_profiles):
 
 class PreprocessingTests(unittest.TestCase):
 
-    # def test_normal(self):
-    #     NUM = 2
-    #     frame_lists = {l:store_fake(d,NUM, 1, object_profiles1) for l, d in label_dir_pairs}
-    #     OPS = object_profiles1
-    #
-    #     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
-    #     print([x.shape for x in X], Y.shape)
-    #     sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
-    #     checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
-    #     checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
-    #
-    #     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True)
-    #     print(X.shape, Y.shape)
-    #     sizes = np.array([[len(label_dir_pairs)*NUM, sum([p.max_size for p in OPS]), vecsize]])
-    #     checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
-    #     checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
-    #
-    #     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
-    #                                                 sort_columns="Eta", sort_ascending=False)
-    #     checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
-    #                      sort_columns="Eta", sort_ascending=False)
-    #     print(Y)
-    #     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
-    #                                                 sort_columns=["Phi"], sort_ascending=True)
-    #     checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
-    #                       sort_columns=["Phi"], sort_ascending=True)
-    #
-    # def test_multiple_files(self):
-    #     NUM = 15
-    #     OPS = object_profiles1
-    #     frame_lists = {l:store_fake(d,5, 4, object_profiles1) for l, d in label_dir_pairs}
-    #
-    #     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,5, NUM, OPS, observ_types, verbose=1)
-    #     sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
-    #     justCheckSize(self,X,Y, sizes)
-    #     checkDuplicates(self,X,Y,OPS)
-    #
-    # def test_procsFrom_label_dir_pairs(self):
-    #     NUM = 20
-    #     frame_lists = {l: store_fake(d, 5, 4, object_profiles1) for l, d in label_dir_pairs}
-    #     OPS = object_profiles1
-    #
-    #     l = procsFrom_label_dir_pairs(start=0,
-    #                                     samples_per_label=20,
-    #                                     stride=4,
-    #                                     archive_dir=temp_dir+"keras_archive/",
-    #                                     label_dir_pairs=label_dir_pairs,
-    #                                     object_profiles=OPS,
-    #                                     observ_types=observ_types,
-    #                                     single_list=False,
-    #                                     sort_columns=None,
-    #                                     sort_ascending=True,
-    #                                     verbose=1)
-    #     self.assertEqual(len(l), 5)
+    def test_normal(self):
+        NUM = 2
+        frame_lists = {l:store_fake(d,NUM, 1, object_profiles1) for l, d in label_dir_pairs}
+        OPS = object_profiles1
+
+        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
+        # print([x.shape for x in X], Y.shape)
+        sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
+        checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
+        checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
+
+        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True)
+        # print(X.shape, Y.shape)
+        sizes = np.array([[len(label_dir_pairs)*NUM, sum([p.max_size for p in OPS]), vecsize]])
+        checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
+        checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
+
+        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
+                                                    sort_columns="Eta", sort_ascending=False)
+        checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
+                         sort_columns="Eta", sort_ascending=False)
+        # print(Y)
+        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
+                                                    sort_columns=["Phi"], sort_ascending=True)
+        checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
+                          sort_columns=["Phi"], sort_ascending=True)
+
+    def test_multiple_files(self):
+        NUM = 15
+        OPS = object_profiles1
+        frame_lists = {l:store_fake(d,5, 4, object_profiles1) for l, d in label_dir_pairs}
+
+        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,5, NUM, OPS, observ_types, verbose=1)
+        sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
+        justCheckSize(self,X,Y, sizes)
+        checkDuplicates(self,X,Y,OPS)
+
+    def test_procsFrom_label_dir_pairs(self):
+        NUM = 20
+        frame_lists = {l: store_fake(d, 5, 4, object_profiles1) for l, d in label_dir_pairs}
+        OPS = object_profiles1
+
+        l = procsFrom_label_dir_pairs(start=0,
+                                        samples_per_label=20,
+                                        stride=4,
+                                        archive_dir=temp_dir+"keras_archive/",
+                                        label_dir_pairs=label_dir_pairs,
+                                        object_profiles=OPS,
+                                        observ_types=observ_types,
+                                        single_list=False,
+                                        sort_columns=None,
+                                        sort_ascending=True,
+                                        verbose=1)
+        self.assertEqual(len(l), 5)
 
     def test_shuffle(self):
         NUM = 20
         frame_lists = {l: store_fake(d, NUM, 1, object_profiles1, marker=i) for i,(l, d) in enumerate(label_dir_pairs)}
-        #NUM = 2
         OPS = object_profiles1
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
-        x_check, y_check = np.array([x[0][0] for x in X[0]]), np.array([y.tolist().index(1.0) for y in Y])
+
+        #Use MET because there is 0 chance that it does not exist
+        x_check, y_check = np.array([int(x[0][0]) for x in X[3]]), np.array([y.tolist().index(1.0) for y in Y])
+        # print(zip(x_check, y_check))
         self.assertTrue(np.array_equal(x_check, y_check))
 
         X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, OPS, observ_types, verbose=1,
                                                     single_list=True,sort_columns=["Phi"], sort_ascending=True)
-        x_check, y_check = np.array([x[0][0] for x in X]), np.array([y.tolist().index(1.0) for y in Y])
+        x_check, y_check = np.array([int(x[0][0]) for x in X]), np.array([y.tolist().index(1.0) for y in Y])
+        # print(zip(x_check, y_check))
         self.assertTrue(np.array_equal(x_check, y_check))
 
 if __name__ == '__main__':

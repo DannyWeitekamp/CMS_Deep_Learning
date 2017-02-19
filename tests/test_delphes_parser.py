@@ -45,7 +45,7 @@ class TestDelphesParser(unittest.TestCase):
         loc = os.path.abspath(loc)
         print(loc)
         self.assertTrue(os.path.exists(loc))
-        frames = delphes_to_pandas(loc, fixedNum=10)
+        frames = delphes_to_pandas(loc, fixedNum=20)
         self.assertTrue(isinstance(frames, dict))
         self.assertFalse( False in [isinstance(val, pd.DataFrame) for key, val in frames.items()])
         should_be = set(['Electron', 'MuonTight', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack'])
@@ -60,10 +60,15 @@ class TestDelphesParser(unittest.TestCase):
         checkFillTrackInfo(self, electrons)
         checkFillTrackInfo(self, muons)
         for key, df in frames.items():
+            print(key)
+            print(df)
+
             if(key != "NumValues"):
                 checkIsoInRange(self, df)
+            else:
+                self.assertTrue((df["Electron"]+ df["MuonTight"]).all())
 
-        print(df)
+        # print(df)
 
 if __name__ == '__main__':
     unittest.main()

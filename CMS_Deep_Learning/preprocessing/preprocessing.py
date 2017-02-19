@@ -282,7 +282,8 @@ def _padAndSort(df, profile,vecsize):
         
         #x is an np array not a DataFrame
         x = df.values
-        
+        # x = df.to_records(index=False)
+
         if(sort_locs != None):
             for loc in reversed(sort_locs):
                 if(profile.sort_ascending == True):
@@ -292,6 +293,7 @@ def _padAndSort(df, profile,vecsize):
     
         #pad the array
         x = np.append(x ,np.array(np.zeros((profile.max_size - len(x), vecsize))), axis=0)
+        # x = np.append(x ,np.array(np.zeros((profile.max_size - len(x),), dtype=x.dtype)))
     return x    
 
 def _initializeXY(single_list, label_dir_pairs, num_object_profiles, samples_per_label, num_labels):
