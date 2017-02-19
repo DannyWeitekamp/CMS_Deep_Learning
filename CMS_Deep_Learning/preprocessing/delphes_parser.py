@@ -539,11 +539,11 @@ def main(data_dir, argv):
     num_processes = 1
     screwup_error = "python delphes_parser.py <input_dir>"
     try:
-        opts, args = getopt.getopt(argv,'n:mrh')
+        opts, args = getopt.getopt(argv,'n:p:mrh')
         # print(opts)
         # print(args)
     except getopt.GetoptError:
-        # print(opts)
+        print(argv)
         # print(args)
         print screwup_error
         sys.exit(2)
