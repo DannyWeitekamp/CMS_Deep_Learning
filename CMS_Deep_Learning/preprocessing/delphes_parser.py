@@ -181,11 +181,29 @@ def fill_object(dicts_by_object,leaves_by_object,entry,new_entry, start_index,ob
         fill_dict["Eta"][index] = Eta
         fill_dict["Phi"][index] = Phi
 
-        maxLepDeltaRSqr = (Eta-maxLepEta) ** 2 + (Phi-maxLepPhi)**2
+        MaxLepDeltaEta = maxLepEta - Eta
+        MaxLepDeltaPhi = maxLepPhi - Phi
+
+        tooLarge = -2.0 * math.pi * (MaxLepDeltaPhi > math.pi)
+        tooSmall = 2.0 * math.pi * (MaxLepDeltaPhi < -math.pi)
+        MaxLepDeltaPhi = MaxLepDeltaPhi + tooLarge + tooSmall
+
+        METDeltaEta = maxLepEta - Eta
+        METDeltaPhi = maxLepPhi - Phi
+
+        tooLarge = -2.0 * math.pi * (METDeltaPhi > math.pi)
+        tooSmall = 2.0 * math.pi * (METDeltaPhi < -math.pi)
+        METDeltaPhi = METDeltaPhi + tooLarge + tooSmall
+
+        maxLepDeltaRSqr = (MaxLepDeltaEta) ** 2 + (MaxLepDeltaPhi)**2
+        fill_dict["MaxLepDeltaEta"][index] = MaxLepDeltaEta
+        fill_dict["MaxLepDeltaPhi"][index] = MaxLepDeltaPhi
         fill_dict["MaxLepDeltaR"][index] = np.sqrt(maxLepDeltaRSqr)
         fill_dict["MaxLepKt"][index] = min(PT**2, maxLepPT**2) * maxLepDeltaRSqr
         fill_dict["MaxLepAntiKt"][index] = min(PT**-2, maxLepPT**-2) * maxLepDeltaRSqr
-        METDeltaRSqr = (Eta-METEta)**2 + (Phi-METPhi)**2
+        METDeltaRSqr = (METDeltaEta)**2 + (METDeltaPhi)**2
+        fill_dict["METDeltaEta"][index] = METDeltaEta
+        fill_dict["METDeltaPhi"][index] = METDeltaPhi
         fill_dict["METDeltaR"][index] = np.sqrt(METDeltaRSqr)
         fill_dict["METKt"][index] = min(PT ** 2, METPT ** 2) * METDeltaRSqr
         fill_dict["METAntiKt"][index] = min(PT ** -2, METPT ** -2) * METDeltaRSqr
@@ -287,7 +305,7 @@ COMPUTE_ISO =   [True,        True,        True,     False,        True,        
 
 ROOT_OBSERVS =  ['PT', 'ET', 'MET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem']
 OUTPUT_OBSERVS =  ['Entry','E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
-                    'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt','METDeltaR', 'METKt', 'METAntiKt',
+                    "MaxLepDeltaEta", "MaxLepDeltaPhi",'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt', "METDeltaEta","METDeltaPhi",'METDeltaR', 'METKt', 'METAntiKt',
                     'Charge', 'X', 'Y', 'Z', 'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso','ChHadIso','NeuHadIso','GammaIso']
 ISO_TYPES = [('MuIso', 'MuonTight'), ('EleIso','Electron'), ('ChHadIso','EFlowTrack') ,('NeuHadIso','EFlowNeutralHadron'),('GammaIso','EFlowPhoton')]
 

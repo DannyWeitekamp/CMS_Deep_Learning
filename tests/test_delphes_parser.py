@@ -59,6 +59,7 @@ class TestDelphesParser(unittest.TestCase):
         checkOmission(self, muons, tracks)
         checkFillTrackInfo(self, electrons)
         checkFillTrackInfo(self, muons)
+        pd.set_option('display.max_columns', 50)
         for key, df in frames.items():
             print(key)
             print(df)

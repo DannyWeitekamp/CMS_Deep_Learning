@@ -20,8 +20,10 @@ from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking
 from keras.callbacks import EarlyStopping
 
 #The observables taken from the table
-DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',\
-                     'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso', "ObjType"]
+DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
+                      'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt','METDeltaR', 'METKt', 'METAntiKt',
+                      'Charge', 'X', 'Y', 'Z',
+                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso', "ObjFt1","ObjFt2","ObjFt3"]
 
 
 DEFAULT_LABEL_DIR_PAIRS = \
@@ -65,12 +67,13 @@ def runTrials(archive_dir,
                 batch_size = 100,
                 patience = 8,
                 num_val = 20000,
-                num_train = 75000,
+                num_train = 100000,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
-                optimizer_options = ['rmsprop','adam'],
-                sortings = [("Phi", False),("Eta", False), ("PT_ET", False), ("PT_ET", True), (None,False)],
-                single_list_options = [False]#[True, False]
+                optimizer_options = ['rmsprop'],
+                sortings = [("Phi", False),("Eta", False), ("PT_ET", False), ("PT_ET", True),
+                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False), ('METDeltaR', False), ('METKt',False), ('METAntiKt',False)],
+                single_list_options = [True, False]
                 ):
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
@@ -83,25 +86,27 @@ def runTrials(archive_dir,
     print(archive_dir, workers)
     # Loop over all subsets
     print(ldpsubsets)
-    for ldp in ldpsubsets:
-        labels = [x[0] for x in ldp]
-        for sort_on, sort_ascending in sortings:
-            sort_on = [sort_on]
-            for single_list in single_list_options:
+    for sort_on, sort_ascending in sortings:
+        sort_on = [sort_on]
+        for single_list in single_list_options:
+            for ldp in ldpsubsets:
+                labels = [x[0] for x in ldp]
 
                 object_profiles = [
-                    ObjectProfile("Electron", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on],
-                                  sort_ascending=sort_ascending, addColumns={"ObjType": 1}),
-                    ObjectProfile("MuonTight", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on],
-                                  sort_ascending=sort_ascending, addColumns={"ObjType": 2}),
                     # ObjectProfile("Photon", -1, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on], sort_ascending=False, addColumns={"ObjType":3}),
-                    ObjectProfile("MissingET", 1, addColumns={"ObjType": 4}),
                     ObjectProfile("EFlowPhoton", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 5}),
+                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": -1,"ObjFt3": -1}),
                     ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 6}),
+                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": -1,"ObjFt3": 1}),
                     ObjectProfile("EFlowTrack", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjType": 7})]
+                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": 1,"ObjFt3": -1}),
+                    ObjectProfile("Electron", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
+                                  sort_columns=[sort_on],
+                                  sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": 1,"ObjFt3": 1}),
+                    ObjectProfile("MuonTight", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
+                                  sort_columns=[sort_on],
+                                  sort_ascending=sort_ascending, addColumns={"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": -1}),
+                    ObjectProfile("MissingET", 1, addColumns={"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": 1}),]
 
                 #resolveProfileMaxes(object_profiles, ldp)
                 print(archive_dir, (num_val, num_train), num_val+num_train, \
@@ -109,7 +114,7 @@ def runTrials(archive_dir,
                 dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
                                               single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
-                                              batch_size=batch_size, megabytes=100,
+                                              batch_size=batch_size, megabytes=250,
                                               verbose=0)
 
                 dependencies = batchAssertArchived(dps, 4)
