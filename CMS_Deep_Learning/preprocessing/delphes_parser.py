@@ -527,7 +527,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         #     pd.to_msgpack(meta_out_file, meta_frames)
     else:
         raise ValueError("storeType %r not recognized" % storeType)
-    return num
+    return num, out_file
 
 def main(data_dir, argv):
     from multiprocessing import Process
@@ -571,10 +571,10 @@ def main(data_dir, argv):
         samples_read = 0
         if (verbose >= 1): print("Parse process %r started." % i)
         for job in jobs:
-            samples_in_job = doJob(job)
+            samples_in_job, out_file = doJob(job)
             ok = True
             try:
-                store = pd.HDFStore(job[0])
+                store = pd.HDFStore(out_file)
                 num_val_frame = store.get('/NumValues')
             except Exception as e:
                 ok = False
