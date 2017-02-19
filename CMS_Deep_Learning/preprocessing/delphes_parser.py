@@ -571,7 +571,7 @@ def main(data_dir, argv):
         samples_read = 0
         if (verbose >= 1): print("Parse process %r started." % i)
         for job in jobs:
-            samples_in_job, out_file = doJob(job)
+            samples_from_job, out_file = doJob(job)
             ok = True
             try:
                 store = pd.HDFStore(out_file)
@@ -581,8 +581,8 @@ def main(data_dir, argv):
                 print(e)
                 print("Corrupted HDFStore. Skipping...")
             if(ok):
-                samples_read += samples_in_job
-                print("Parsed %r of %r samples dedicated to process %r" % (samples_read, num_samples, i))
+                samples_read += samples_from_job
+                print("Parsed %r of %r samples dedicated to process %r" % (samples_read, samples_per_process, i))
                 if (samples_read >= samples_per_process):
                     break
 
