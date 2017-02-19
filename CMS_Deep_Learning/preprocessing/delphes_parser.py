@@ -540,9 +540,11 @@ def main(data_dir, argv):
     screwup_error = "python delphes_parser.py <input_dir>"
     try:
         opts, args = getopt.getopt(argv,'n:mrh')
+        # print(opts)
+        # print(args)
+    except getopt.GetoptError:
         print(opts)
         print(args)
-    except getopt.GetoptError:
         print screwup_error
         sys.exit(2)
   
