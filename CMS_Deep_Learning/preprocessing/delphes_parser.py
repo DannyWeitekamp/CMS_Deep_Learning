@@ -543,8 +543,8 @@ def main(data_dir, argv):
         # print(opts)
         # print(args)
     except getopt.GetoptError:
-        print(opts)
-        print(args)
+        # print(opts)
+        # print(args)
         print screwup_error
         sys.exit(2)
   
