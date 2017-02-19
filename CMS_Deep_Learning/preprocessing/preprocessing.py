@@ -278,6 +278,8 @@ def _padAndSort(df, profile,vecsize):
 
         assert not isinstance(profile.sort_columns,str), "profile.sort_columns improperly stored"
         if(profile.sort_columns != None and not None in profile.sort_columns):
+            assert not False in [isinstance(type(s),str) or isinstance(type(s),unicode)  for s in profile.sort_columns], \
+                "Type should be string got %r" % ",".join([type(s) for s in profile.sort_columns])
             sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
         
         #x is an np array not a DataFrame
