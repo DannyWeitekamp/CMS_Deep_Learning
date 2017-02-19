@@ -447,21 +447,15 @@ def roundrobin(*iterables):
          nexts = cycle(islice(nexts, pending))
 
 
-def makeJobs(filename,
+def makeJobs(data_folder,
                 storeType,
-                directory="/data/shared/Delphes/",
-                folder="/pandas/"):
-    if(filename[len(filename)-1] == "/"): filename = filename[0:-1]
-    files = glob.glob(directory + filename + "/*.root")
-    store_dir = directory + filename + folder
+                pandas_folder ="/pandas/"):
+    if(data_folder[-1] == "/"): data_folder = data_folder[0:-1]
+    files = glob.glob(data_folder + "/*.root")
+    store_dir = data_folder + pandas_folder
     print(store_dir)
-    if not os.path.exists(store_dir):
-        os.makedirs(store_dir)
-
+    if not os.path.exists(store_dir): os.makedirs(store_dir)
     jobs = [ (f,  store_dir, storeType) for f in files]
-    # for f in files:
-    #    f_name =
-    #    jobs.append((f, store_dir))
     return jobs
 
 def doJob(job, redo=False):
@@ -536,10 +530,13 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
     return num
 
 def main(data_dir, argv):
+    from multiprocessing import Process
+    from time import sleep
     # print(data_dir)
     storeType = "hdf5"
     redo = False
     num_samples = None
+    num_processes = 1
     screwup_error = "python delphes_parser.py <input_dir>"
     try:
         opts, args = getopt.getopt(argv,'n:mrh')
@@ -560,19 +557,69 @@ def main(data_dir, argv):
         elif opt in ('-n', "--num_samples"):
             if(arg == ''): arg = None
             num_samples = int(arg)
+        elif opt in ('-p', "--num_processes"):
+            if(arg == ''): arg = None
+            num_processes = int(arg)
     print(num_samples)
     print(storeType)
-    folder = "/pandas_h5/" if storeType == "hdf5" else "/pandas_msg/"
-    jobs = makeJobs(data_dir,storeType, folder=folder)
+    pandas_folder = "/pandas_h5/" if storeType == "hdf5" else "/pandas_msg/"
+    jobs = makeJobs(data_dir,storeType, pandas_folder=pandas_folder)
 
-    samples_read = 0
-    for job in jobs:
-        # print(job)
-        samples_read += doJob(job, redo=redo)
-        if(num_samples != None):
-            print("Parsed %r of %r samples" %(samples_read, num_samples))
-            if(samples_read >= num_samples):
-                break
+    def f(jobs ,samples_per_process,verbose=0 , i=0):
+        samples_read = 0
+        if (verbose >= 1): print("Parse process %r started." % i)
+        for job in jobs:
+            samples_in_job = doJob(job)
+            ok = True
+            try:
+                store = pd.HDFStore(job[0])
+                num_val_frame = store.get('/NumValues')
+            except Exception as e:
+                ok = False
+                print(e)
+                print("Corrupted HDFStore. Skipping...")
+            if(ok):
+                samples_read += samples_in_job
+                print("Parsed %r of %r samples dedicated to process %r" % (samples_read, num_samples, i))
+                if (samples_read >= samples_per_process):
+                    break
+
+
+    processes = []
+    # if (verbose >= 1): print("Starting  stating with %r/%r DataProcedures" % (len(dps) - len(unarchived), len(dps)))
+    splits = [ jobs[i::num_processes] for i in range(num_processes)]
+    samples_per_process = np.ceil(num_samples / num_processes)
+        # np.array_split(jobs, num_processes)
+    for i, sublist in enumerate(splits[1:]):
+        print("Thread %r Started" % i)
+        p = Process(target=f, args=(sublist,samples_per_process,1, i + 1))
+        processes.append(p)
+        p.start()
+        sleep(.001)
+    try:
+        f(splits[0], samples_per_process, verbose=1)
+    except:
+        for p in processes:
+            p.terminate()
+    for p in processes:
+        p.join()
+    # for job in jobs:
+    #     pandas_file = job[0]
+    #     store = pd.HDFStore(pandas_file)
+
+    # if False in [u.is_archived() for u in unarchived]:
+    #     print("Batch Assert Failed")
+    #     pass  # batchAssertArchived(dps, num_processes=num_processes)
+
+
+    # samples_read = 0
+    # for job in jobs:
+    #     # print(job)
+    #     samples_read += doJob(job, redo=redo)
+    #     if(num_samples != None):
+    #         print("Parsed %r of %r samples" %(samples_read, num_samples))
+    #         if(samples_read >= num_samples):
+    #             break
             
 
 
