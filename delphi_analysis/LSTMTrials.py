@@ -62,6 +62,7 @@ def genModel(name,object_profiles,out_dim, depth, vecsize
 
 def runTrials(archive_dir,
                 workers,
+                batchProcesses,
                 observ_types=DEFAULT_OBSV_TYPES,
                 label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
                 epochs = 30,
@@ -118,7 +119,7 @@ def runTrials(archive_dir,
                                               batch_size=batch_size, megabytes=250,
                                               verbose=0)
 
-                dependencies = batchAssertArchived(dps, 4)
+                dependencies = batchAssertArchived(dps, batchProcesses)
                 val, _num_val = l[0]
                 train, _num_train = l[1]
                 max_q_size = l[2]
@@ -187,4 +188,4 @@ def runTrials(archive_dir,
 
 if __name__ == '__main__':
     argv = sys.argv
-    runTrials(argv[1], int(argv[2]))
+    runTrials(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
