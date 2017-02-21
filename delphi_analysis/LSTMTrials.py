@@ -74,8 +74,8 @@ def runTrials(archive_dir,
                 loss='categorical_crossentropy',
                 optimizer_options = ['rmsprop'],
                 sortings = [("MaxLepDeltaPhi", False),("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),
-                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False), ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
-                            ("METDeltaPhi", False), ("METDeltaEta", False)],
+                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+                            #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True, False]
                 ):
     vecsize = len(observ_types)
