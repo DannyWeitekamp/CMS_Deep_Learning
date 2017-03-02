@@ -275,9 +275,12 @@ def plotEverything(trials, custom_objects={}):
         model = b.get_model(custom_objects=custom_objects)
         history = b.get_history()
         plot_history([(name, history)], plotLoss = False)
-        dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
-        image = Image("model.png")
-        display(image)
+        try:
+            dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
+            image = Image("model.png")
+            display(image)
+        except Exception as e:
+            print(e)
 
 def showColors(colors):
     '''Plots a list of colors with outlines taken from the same list'''
