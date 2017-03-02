@@ -264,8 +264,6 @@ def plotEverything(trials, custom_objects={}):
             custom_objects -- in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names
     '''
 
-    from keras.utils.visualize_util import plot
-
     if(not isinstance(trials, list)): trials = [trials]
     for b in trials:
         b.summary(showTraining=False,showValidation=False,showFit=True, showCompilation=False)
@@ -276,6 +274,7 @@ def plotEverything(trials, custom_objects={}):
         history = b.get_history()
         plot_history([(name, history)], plotLoss = False)
         try:
+            from keras.utils.visualize_util import plot
             dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
             image = Image("model.png")
             display(image)
