@@ -124,6 +124,12 @@ def getMaxPt_Eta_Phi(leaves_by_object,entry,obj, PT_ET_MET="PT"):
 
     return max_PT, l_Eta.GetValue(max_index), l_Phi.GetValue(max_index)
 
+def passJetCuts(entry, leaves_by_object, num_jets=2, threshold=40.0):
+    leaf,branch = leaves_by_object["Jet.PT"]
+    branch.GetEntry(entry)
+    n_values = leaf.GetLen()
+    vals = [leaf.GetValue(i) > threshold for i in range(n_values)]
+    return sum(vals) >= num_jets
 
 def fill_object(dicts_by_object,leaves_by_object,entry,new_entry, start_index,obj, PT_ET_MET, M, others, maxLepPT_Eta_Phi, METPT_Eta_Phi):
     '''Fills an object with values for a given entry
@@ -328,7 +334,8 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
             leaf = tree.GetLeaf(obj + '.' + observ)
             if(isinstance(leaf,ROOT.TLeafElement)):
                 leaves_by_object[obj][observ] = (leaf, leaf.GetBranch())
-
+    leaf = tree.GetLeaf('Jet.PT')
+    leaves_by_object["Jet.PT"] = (leaf, leaf.GetBranch())
 
     #Allocate the data for the tables by filling arrays with zeros
     dicts_by_object = {}
@@ -377,7 +384,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
         maxLepPT_Eta_Phi = max([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES], \
                                             key=lambda x: x[0])
         # print([getMaxPt_Eta_Phi(leaves_by_object, entry, obj) for obj in LEPTON_TYPES])
-        if(maxLepPT_Eta_Phi != (0.0,0.0,0.0) or not requireLepton):
+        if((maxLepPT_Eta_Phi != (0.0,0.0,0.0) or not requireLepton) and passJetCuts(entry, leaves_by_object)):
             METPT_Eta_Phi = getMaxPt_Eta_Phi(leaves_by_object, entry,"MissingET", "MET")
 
             #Fill each type of object with everything that is observable in the ROOT file for that object
