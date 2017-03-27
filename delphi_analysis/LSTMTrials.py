@@ -73,10 +73,9 @@ def runTrials(archive_dir,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
                 optimizer_options = ['rmsprop'],
-                sortings = [("MaxLepDeltaPhi", False),("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),
-                            ('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+                sortings = [("MaxLepDeltaPhi", False),("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
-                single_list_options = [True, False]
+                single_list_options = [True]
                 ):
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
@@ -89,8 +88,8 @@ def runTrials(archive_dir,
     print(archive_dir, workers)
     # Loop over all subsets
     print(ldpsubsets)
-    for sort_on, sort_ascending in sortings:
-        for single_list in single_list_options:
+    for single_list in single_list_options:
+    	for sort_on, sort_ascending in sortings:
             for ldp in ldpsubsets:
                 labels = [x[0] for x in ldp]
 
@@ -111,8 +110,9 @@ def runTrials(archive_dir,
                     ObjectProfile("MissingET", 1, addColumns={"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": 1}),]
 
                 #resolveProfileMaxes(object_profiles, ldp)
-                print(archive_dir, (num_val, num_train), num_val+num_train, \
-                                              object_profiles, ldp, observ_types,)
+                #print(archive_dir, (num_val, num_train), num_val+num_train, \
+                #                             object_profiles, ldp, observ_types,)
+		print(sort_on, labels, single_list)
                 dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
                                               object_profiles, ldp, observ_types,
                                               single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
@@ -183,6 +183,7 @@ def runTrials(archive_dir,
     for tup in trial_tups:
         tup[0].summary()
     for tup in trial_tups:
+	tup[0].summary()
         tup[0].execute()
     # batchExecuteAndTestTrials(trial_tups)
 
