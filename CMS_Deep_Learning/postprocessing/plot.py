@@ -278,6 +278,13 @@ def plotEverything(trials, custom_objects={}):
         #dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
         #image = Image("model.png")
         #display(image)
+        try:
+            from keras.utils.visualize_util import plot
+            dot = plot(model, to_file="model.png", show_shapes=True, show_layer_names=False)
+            image = Image("model.png")
+            display(image)
+        except Exception as e:
+            print(e)
 
 def showColors(colors):
     '''Plots a list of colors with outlines taken from the same list'''
