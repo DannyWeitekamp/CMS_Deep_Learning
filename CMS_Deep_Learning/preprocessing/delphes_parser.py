@@ -490,7 +490,7 @@ def doJob(job, redo=False):
     except Exception as e:
         print(e)
         print("Something weird happened when parsing %r." % f)
-    return 0
+    return None
 
 
 
@@ -596,20 +596,28 @@ def main(data_dir, argv):
         samples_read = 0
         if (verbose >= 1): print("Parse process %r started." % i)
         for job in jobs:
-            samples_from_job, out_file = doJob(job)
-            ok = True
+            # ok = True
+            out = doJob(job)
+            if(out == None):
+                print("Something wrong with root file. Skipping...")
+                continue
+                # ok = False
+            # else:
+
+            samples_from_job, out_file = out
             try:
                 store = pd.HDFStore(out_file)
                 num_val_frame = store.get('/NumValues')
             except Exception as e:
-                ok = False
+                # ok = False
                 print(e)
                 print("Corrupted HDFStore. Skipping...")
-            if(ok):
-                samples_read += samples_from_job
-                print("Parsed %r of %r samples dedicated to process %r" % (samples_read, samples_per_process, i))
-                if (samples_read >= samples_per_process):
-                    break
+                continue
+            # if(ok):
+            samples_read += samples_from_job
+            print("Parsed %r of %r samples dedicated to process %r" % (samples_read, samples_per_process, i))
+            if (samples_read >= samples_per_process):
+                break
 
 
     processes = []
