@@ -12,12 +12,12 @@ def forwardComp(archive_dir):
 	trial_record = KerasTrial.read_record(archive_dir)
 	data_record = DataProcedure.read_record(archive_dir)
 	for key, value in trial_record.items():
-		trial = KerasTrial.find_by_hashcode(archive_dir, key)
+		trial = KerasTrial.find(archive_dir, key)
 		path = trial.get_path()
 		print(path)
 		write_json_obj(value, path,'record.json')
 	for key, value in data_record.items():
-		dp = DataProcedure.find_by_hashcode(archive_dir, key)
+		dp = DataProcedure.find(archive_dir, key)
 		path = dp.get_path()
 		print(path)
 		write_json_obj(value, path,'record.json')

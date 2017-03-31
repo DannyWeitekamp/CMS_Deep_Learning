@@ -13,9 +13,9 @@ else:
 class DataIterator:
     def __init__(self, proc, num_samples=None, return_X=False, return_Y=True, accumilate=None, prediction_model=None):
         if (isinstance(proc, list)):
-            first_data = proc[0].getData()
+            first_data = proc[0].get_data()
         else:
-            first_data = proc.getData()
+            first_data = proc.get_data()
         if (isinstance(first_data, types.GeneratorType)):
             proc = first_data
 
@@ -45,7 +45,7 @@ class DataIterator:
             num_samples = 0
             for p in self.proc:
                 if (isinstance(p, DataProcedure)):
-                    X, Y = p.getData()
+                    X, Y = p.get_data()
                 else:
                     X, Y = p
                 if (not isinstance(Y, list)): Y = [Y]
@@ -61,7 +61,7 @@ class DataIterator:
         acc_out = None
         pos = 0
         for p in self.proc:
-            X, Y = p.getData()
+            X, Y = p.get_data()
 
             if (not isinstance(Y, list)): Y = [Y]
             L = Y[0].shape[0]

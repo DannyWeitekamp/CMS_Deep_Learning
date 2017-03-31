@@ -41,9 +41,9 @@ class SmartCheckpoint(ModelCheckpoint):
         histDict = {}
         try:
             histDict = json.load(open( self.historyFilename, "rb" ))
-            print('Sucessfully loaded history at ' + self.historyFilename)
+            if(verbose >= 0): print('SC: Sucessfully loaded history at ' + self.historyFilename)
         except (IOError, EOFError):
-            print('Failed to load history at ' + self.historyFilename)
+            if (verbose >= 0): print('SC: Failed to load history at ' + self.historyFilename)
 
         self.histobj.history = histDict
 
@@ -73,15 +73,15 @@ class SmartCheckpoint(ModelCheckpoint):
         # self.__checkMaxEpoch(self.max_epoch + self.epochOffset)
         try:
             self.model.load_weights(self.checkpointFilename)
-            print('Sucessfully loaded weights at ' + self.checkpointFilename)
+            if(self.verbose >= 1): print('Sucessfully loaded weights at ' + self.checkpointFilename)
         except (IOError, EOFError):
-            print('Failed to load weights at ' + self.checkpointFilename)
+            if (self.verbose >= 1): print('Failed to load weights at ' + self.checkpointFilename)
 
 
     def on_epoch_end(self, epoch, logs={}):
         histDict = self.histobj.history
 
-        epoch = epoch + self.epochOffset + 1
+        epoch = epoch + 1#self.epochOffset + 1
         ModelCheckpoint.on_epoch_end(self, epoch, logs)
         histDict["last_epoch"] = epoch
         if(not "start_time" in histDict):

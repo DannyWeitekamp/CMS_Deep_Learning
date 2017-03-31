@@ -512,6 +512,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
             except Exception as e:
                 print(e)
                 print("Failed to parse file %r. File may be corrupted." % f)
+                store.close()
                 return 0
             try:
                 for key,frame in frames.items():
@@ -519,6 +520,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
             except Exception as e:
                 print(e)
                 print("Failed to write to HDFStore %r" % out_file)
+                store.close()
                 return 0
         num = len(store.get('NumValues').index)
         store.close()

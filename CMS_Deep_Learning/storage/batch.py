@@ -64,8 +64,8 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             from CMS_Deep_Learning.storage.archiving import DataProcedure
             if (verbose >= 1): print("Batch process %r started." % i)
             for h in hashes:
-                u = DataProcedure.find_by_hashcode(archive_dir=archive_dir, hashcode=h)
-                u.getData(archive=True, verbose=verbose)
+                u = DataProcedure.find(archive_dir=archive_dir, hashcode=h)
+                u.get_data(archive=True, verbose=verbose)
                 if(verbose >= 1): print("From process %r." % i)
 
         processes = []
@@ -116,13 +116,13 @@ def batchExecuteAndTestTrials(tups, time_str="12:00:00", repo="/scratch/daint/dw
             out = os.popen(sbatch).read()
             if(verbose >=1): print("THIS IS THE OUTPUT:",out)
         else:
-            trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
+            trial = KerasTrial.find(archive_dir, hashcode)
             if(verbose >=1): print("EXECUTE %r" % trial.hash())
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
             if(test_hashcode != None):
                 if(verbose >=1): print("TEST %r" % trial.hash())
-                test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
+                test = DataProcedure.find(archive_dir, test_hashcode)
                 trial.test(test_proc=test,
                              test_samples=num_test,
                              custom_objects={"Lorentz":Lorentz,"Slice": Slice})

@@ -43,7 +43,7 @@ print("Process",comm.Get_rank(),"using device",device)
 os.environ['THEANO_FLAGS'] = "device=%s,floatX=float32" % (device)
 from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
 
-trial = MPI_KerasTrial.find_by_hashcode(archive_dir, hashcode)
+trial = MPI_KerasTrial.find(archive_dir, hashcode)
 if(trial == None):
     raise ValueError("hashcode does not exist")
 if(not isinstance(trial, MPI_KerasTrial)):

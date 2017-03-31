@@ -17,23 +17,33 @@ import json
 import numpy as np
 
 
+
 class Storable( object ):
     """An object that we can hash, archive as a json String, and reconstitute"""
     def __init__(self):
         '''Initialize the Storable'''
-        def recurseStore(x):
+        def recurse_store(x):
             if(isinstance(x,Storable)):
                 return x.to_json()
             else:
                 return x.__dict__ 
-                
-        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurseStore)
+        self.encoder = json.JSONEncoder(sort_keys=True, indent=4, default=recurse_store)
         self.hashcode = None
-    def hash(self, rehash=False):
+        self.gen_hashcode = None
+        self.seed = None
+    def hash(self, rehash=False, with_seed=True):
         '''Compute the hashcode for the Storable from its json string'''
         if(self.hashcode is None):
             self.hashcode = compute_hash(self.to_hashable())
+            if(hasattr(self, "seed")):
+                temp_seed = self.seed
+                self.seed = None
+                self.gen_hashcode = compute_hash(self.to_hashable())
+                self.seed = temp_seed
         return self.hashcode
+    def gen_hash(self):
+        self.hash()
+        return self.gen_hashcode
     def get_path(self):
         '''Gets the archive (blob) path from its hash'''
         hashcode = self.hash()
@@ -110,7 +120,7 @@ class Storable( object ):
         return records
 
     @classmethod
-    def find_by_hashcode(cls, archive_dir,hashcode, verbose=0 ):
+    def find(cls, archive_dir, hashcode, verbose=0):
         '''Returns the archived DataProcedure with the given hashcode or None if one is not found'''
         name = cls.__name__
         if(issubclass(cls,KerasTrial)):
@@ -154,7 +164,7 @@ class DataProcedure(Storable):
         '''Set the json encoder for the procedure in case its arguements are not json encodable'''
         self.encoder = encoder
 
-    def _genJsonableDict(self):
+    def _gen_jsonable_dict(self):
         d = self.__dict__
         d = copy.deepcopy(d)
 
@@ -169,7 +179,7 @@ class DataProcedure(Storable):
     def to_hashable(self):
         '''Gets a string that uniquely defines an object as far as its model, complilation, and training parameters are concerned'''
 
-        d = self._genJsonableDict()
+        d = self._gen_jsonable_dict()
         #Don't hash on verbose or verbosity if they are in the function
         if("verbose" in d.get("kargs", [])): del d['kargs']["verbose"]
         if("verbosity" in d.get("kargs", [])): del d['kargs']["verbosity"]
@@ -178,8 +188,7 @@ class DataProcedure(Storable):
 
     def to_json(self):
         '''Returns the json string for the Procedure with only its essential characteristics'''
-        d = self._genJsonableDict()
-
+        d = self._gen_jsonable_dict()
         return self.encoder.encode(d)
 
 
@@ -235,9 +244,9 @@ class DataProcedure(Storable):
             raise ValueError("Cannot archive DataProcedure with NoneType X or Y")
         
 
-    def getData(self, archive=True, redo=False, verbose=1):
+    def get_data(self, archive=True, redo=False, verbose=1):
         '''Apply the DataProcedure returning X,Y from the archive or generating them from func'''
-
+        # if verbose == 1: raise ValueError()
         if(self.is_archived() and redo == False):
             h5f = None
             try:
@@ -264,7 +273,7 @@ class DataProcedure(Storable):
                 print(e)
                 if(h5f != None): h5f.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
-                return self.getData(archive=archive, redo=True, verbose=verbose)
+                return self.get_data(archive=archive, redo=True, verbose=verbose)
         else:
             prep_func = self.get_func(self.func, self.func_module)
 
@@ -365,7 +374,7 @@ class DataProcedure(Storable):
 
 #                 "validation_split" : 0.0,
 #                 "batch_size" : 32,
-#                 "nb_epoch" : 10,
+#                 "epochs" : 10,
 #                 "callbacks" : [],
 
 #                 "shuffle" : True,
@@ -378,6 +387,7 @@ class DataProcedure(Storable):
 #                 "pickle_safe" : False
 #                 }
 INPUT_DEFAULTS = {
+    "seed" : None,
     "model":None,
     "train_procedure":None,
     "samples_per_epoch":None,
@@ -391,7 +401,7 @@ INPUT_DEFAULTS = {
     "sample_weight_mode":None,
 
     "batch_size":32,
-    "nb_epoch":10,
+    "epochs":10,
     "callbacks":[],
     
     "max_q_size":10,
@@ -404,7 +414,7 @@ INPUT_DEFAULTS = {
 }
 
 REQUIRED_INPUTS = set(["optimizer", "loss"])
-
+HASH_SPLIT_POINT = 2
 
 class KerasTrial(Storable):
     '''An archivable object representing a machine learning trial in keras'''
@@ -424,7 +434,7 @@ class KerasTrial(Storable):
         #             sample_weight_mode=None,
 
         #             batch_size=32,
-        #             nb_epoch=10,
+        #             epochs=10,
         #             callbacks=[],
                     
         #             max_q_size=10,
@@ -446,41 +456,42 @@ class KerasTrial(Storable):
             if(not key in kargs):
                 kargs[key] = INPUT_DEFAULTS[key]
 
-        self.setModel(kargs["model"])
+        self.set_model(kargs["model"], seed=kargs["seed"])
 
-        self.setTrain(train_procedure=kargs["train_procedure"],samples_per_epoch=kargs["samples_per_epoch"])
+        self.set_train(train_procedure=kargs["train_procedure"], samples_per_epoch=kargs["samples_per_epoch"])
 
-        self.setValidation( validation_split=kargs["validation_split"],
+        self.set_validation(validation_split=kargs["validation_split"],
                             val_procedure=kargs["val_procedure"],
                             nb_val_samples=kargs["nb_val_samples"])
 
-        self.setCompilation(optimizer=kargs["optimizer"],
-                                loss=kargs["loss"],
-                                metrics=kargs["metrics"],
-                                sample_weight_mode=kargs["sample_weight_mode"])
+        self.set_compilation(optimizer=kargs["optimizer"],
+                             loss=kargs["loss"],
+                             metrics=kargs["metrics"],
+                             sample_weight_mode=kargs["sample_weight_mode"])
 
 
-        self.setFit(    batch_size=kargs["batch_size"],
-                        nb_epoch=kargs["nb_epoch"],
-                        callbacks=kargs["callbacks"],
-                        shuffle=kargs["shuffle"],
-                        class_weight=kargs["class_weight"],
-                        sample_weight=kargs["sample_weight"])
+        self.set_fit(batch_size=kargs["batch_size"],
+                     epochs=kargs["epochs"],
+                     callbacks=kargs["callbacks"],
+                     shuffle=kargs["shuffle"],
+                     class_weight=kargs["class_weight"],
+                     sample_weight=kargs["sample_weight"])
 
-        self.setFit_Generator(  nb_epoch=kargs["nb_epoch"],
-                                callbacks=kargs["callbacks"],
-                                class_weight=kargs["class_weight"],
-                                max_q_size=kargs["max_q_size"],
-                                nb_worker=kargs["nb_worker"],
-                                pickle_safe=kargs["pickle_safe"])
+        self.set_fit_generator(epochs=kargs["epochs"],
+                               callbacks=kargs["callbacks"],
+                               class_weight=kargs["class_weight"],
+                               max_q_size=kargs["max_q_size"],
+                               nb_worker=kargs["nb_worker"],
+                               pickle_safe=kargs["pickle_safe"])
     
 
-    def setModel(self, model):
+    def set_model(self, model, seed=None):
         '''Set the model used by the trial (either the object or derived json string)'''
         from keras.engine.training import Model
 
         self.model = model
         self.compiled_model = None
+        self.seed = seed
         if(isinstance(model, Model)):
             self.model = model.to_json()
 
@@ -501,14 +512,14 @@ class KerasTrial(Storable):
         else:
             return None
 
-    def setTrain(self,
-                   train_procedure=None, samples_per_epoch=None):
+    def set_train(self,
+                  train_procedure=None, samples_per_epoch=None):
         '''Sets the training data for the trial'''
         self.train_procedure = self._prep_procedure(train_procedure, 'train')
         self.samples_per_epoch = samples_per_epoch
     
-    def setValidation(self,
-                  val_procedure=None, validation_split=0.0, nb_val_samples=None):
+    def set_validation(self,
+                       val_procedure=None, validation_split=0.0, nb_val_samples=None):
         '''Sets the training data for the trial'''
     
         if(isinstance(val_procedure, float)):
@@ -523,11 +534,11 @@ class KerasTrial(Storable):
         self.val_procedure = self._prep_procedure(val_procedure, 'val')
         self.nb_val_samples = nb_val_samples
 
-    def setCompilation(self,
-    				optimizer,
-                    loss,
-                    metrics=[],
-                    sample_weight_mode=None):
+    def set_compilation(self,
+                        optimizer,
+                        loss,
+                        metrics=[],
+                        sample_weight_mode=None):
         '''Sets the compilation arguments for the trial'''
         metrics.sort()
         self.optimizer=optimizer
@@ -535,9 +546,9 @@ class KerasTrial(Storable):
         self.metrics=metrics
         self.sample_weight_mode=sample_weight_mode
 
-    def setFit(self,
+    def set_fit(self,
                 batch_size=32,
-                nb_epoch=10,
+                epochs=10,
                 callbacks=[],
                 shuffle=True,
                 class_weight=None,
@@ -550,26 +561,25 @@ class KerasTrial(Storable):
         for c in callbacks:
             if(isinstance(c, SmartCheckpoint) == False):
                 if(isinstance(c, Callback) == True):
-                    strCallbacks.append(encodeCallback(c))
+                    strCallbacks.append(encode_callback(c))
                 else:
                     strCallbacks.append(c)
         callbacks = strCallbacks
-
         self.batch_size=batch_size
-        self.nb_epoch=nb_epoch
+        self.epochs=epochs
         self.callbacks=callbacks
 
         self.shuffle=shuffle
         self.class_weight=class_weight
         self.sample_weight=sample_weight
 
-    def setFit_Generator(self,
-                nb_epoch=10,
-                callbacks=[],
-                class_weight={},
-                max_q_size=10,
-                nb_worker=1,
-                pickle_safe=False):
+    def set_fit_generator(self,
+                          epochs=10,
+                          callbacks=[],
+                          class_weight={},
+                          max_q_size=10,
+                          nb_worker=1,
+                          pickle_safe=False):
         '''Sets the fit arguments for the trial'''
         from CMS_Deep_Learning.callbacks import SmartCheckpoint
         from keras.callbacks import Callback
@@ -578,12 +588,12 @@ class KerasTrial(Storable):
         for c in callbacks:
             if(isinstance(c, SmartCheckpoint) == False):
                 if(isinstance(c, Callback) == True):
-                    strCallbacks.append(encodeCallback(c))
+                    strCallbacks.append(encode_callback(c))
                 else:
                     strCallbacks.append(c)
         callbacks = strCallbacks
 
-        self.nb_epoch=nb_epoch
+        self.epochs=epochs
         self.callbacks=callbacks
  
         self.class_weight=class_weight
@@ -663,7 +673,7 @@ class KerasTrial(Storable):
         callbacks = []
         for c in self.callbacks:
             if(c != None):
-                callbacks.append(decodeCallback(c))
+                callbacks.append(decode_callback(c))
         monitor = 'val_acc'
         if(self.validation_split == 0.0 and self.val_procedure is None):
             monitor = 'acc'
@@ -685,37 +695,40 @@ class KerasTrial(Storable):
                 dct[x] = max(histDict[x])
             self.to_record(dct)
 
-    def fit(self, model, x_train, y_train, record_store=["val_acc"], verbose=1):
+    def fit(self, model, x_train, y_train, record_store=["val_acc"],initial_epoch=0, verbose=1):
         '''Runs model.fit(x_train, y_train) for the trial using the arguments passed to trial.setFit(...)'''
         
         callbacks = self._generateCallbacks(verbose)
 
         model.fit(x_train, y_train,
-            batch_size=self.batch_size,
-            nb_epoch=self.nb_epoch,
-            verbose=verbose,
-            callbacks=callbacks,
-            validation_split=self.validation_split,
-            shuffle=self.shuffle,
-            class_weight=self.class_weight,
-            sample_weight=self.sample_weight)
+                  batch_size=self.batch_size,
+                  epochs=self.epochs,
+                  verbose=verbose,
+                  callbacks=callbacks,
+                  validation_split=self.validation_split,
+                  shuffle=self.shuffle,
+                  class_weight=self.class_weight,
+                  sample_weight=self.sample_weight,
+                  initial_epoch=initial_epoch
+                  )
         self._history_to_record(record_store)
        
 
-    def fit_generator(self, model, generator, validation_data=None, record_store=["val_acc"] ,verbose=1):
+    def fit_generator(self, model, generator, validation_data=None, record_store=["val_acc"],initial_epoch=0 ,verbose=1):
         '''Runs model.fit_generator(gen, samples) for the trial using the arguments passed to trial.setFit_Generator(...)'''
         callbacks = self._generateCallbacks(verbose)
 
         model.fit_generator(generator, self.samples_per_epoch,
-                    nb_epoch=self.nb_epoch,
-                    verbose=verbose,
-                    callbacks=callbacks,
-                    validation_data=validation_data,
-                    nb_val_samples=self.nb_val_samples,
-                    class_weight=self.class_weight,
-                    max_q_size=self.max_q_size,
-                    nb_worker=self.nb_worker,
-                    pickle_safe=self.pickle_safe)
+                            epochs=self.epochs,
+                            verbose=verbose,
+                            callbacks=callbacks,
+                            validation_data=validation_data,
+                            nb_val_samples=self.nb_val_samples,
+                            class_weight=self.class_weight,
+                            max_q_size=self.max_q_size,
+                            nb_worker=self.nb_worker,
+                            pickle_safe=self.pickle_safe,
+                            initial_epoch=initial_epoch)
         self._history_to_record(record_store)
 
 
@@ -728,11 +741,12 @@ class KerasTrial(Storable):
         self.to_record({'name' : self.name}, append=True)
                  
 
-    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, verbose=1):
+    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, verbosity=1):
         '''Executes the trial, fitting the traing data in each DataProcedure in series'''
     	if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
         if(self.is_complete() == False):
+            
             model = self.compile(custom_objects=custom_objects)
             train_procs = self.train_procedure
             if(isinstance(train_procs, list) == False): train_procs = [train_procs]
@@ -743,7 +757,7 @@ class KerasTrial(Storable):
                 if(len(self.val_procedure) != 1):
                     raise ValueError("val_procedure must be single procedure, but got list")
                 val_proc = DataProcedure.from_json(self.archive_dir,self.val_procedure[0], arg_decode_func=val_arg_decode_func)
-                val = val_proc.getData(archive=archiveValidation)
+                val = val_proc.get_data(archive=archiveValidation, verbose=int(verbosity > 1))
                 num_val = self.nb_val_samples
             else:
                 val = None
@@ -751,10 +765,13 @@ class KerasTrial(Storable):
             for p in train_procs:
                 train_proc = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=train_arg_decode_func)
 
-                train = train_proc.getData(archive=archiveTraining)
-
+                train = train_proc.get_data(archive=archiveTraining, verbose=int(verbosity > 1))
+                
+                history = self.get_history()
+                
+                if history == None: history = {} 
                 if(isinstance(train, types.GeneratorType)):
-                    self.fit_generator(model,train, val, verbose=verbose)
+                    self.fit_generator(model, train, val, verbose=verbosity>=1, initial_epoch=history.get("last_epoch", 0))
                     num_train += self.samples_per_epoch
                 elif(isinstance(train, tuple)):
                     if(isinstance(val,  types.GeneratorType)):
@@ -763,7 +780,7 @@ class KerasTrial(Storable):
                     if(isinstance(X, list) == False): X = [X]
                     if(isinstance(Y, list) == False): Y = [Y]
                     num_train += Y[0].shape[0]
-                    self.fit(model,X, Y, verbose=verbose)
+                    self.fit(model, X, Y, verbose=verbosity>=1, initial_epoch=history.get("last_epoch", 0))
                 else:
                     raise ValueError("Traning DataProcedure returned useable type %r" % type(train))
             self.write()
@@ -803,7 +820,7 @@ class KerasTrial(Storable):
                 elif(isinstance(p, DataProcedure) == False):
                      raise TypeError("test_proc expected DataProcedure, but got %r" % type(p))
 
-                test_data = p.getData(archive=archiveTraining)
+                test_data = p.get_data(archive=archiveTraining)
                 n_samples = 0
                 if(isinstance(test_data, types.GeneratorType)):
                     metrics = model.evaluate_generator(test_data, test_samples,
@@ -879,7 +896,7 @@ class KerasTrial(Storable):
 
     def get_history(self, verbose=0):
         '''Get the training history for this trial'''
-        history = read_json_obj(self.get_path(), "history.json")
+        history = read_json_obj(self.get_path(), "history.json",verbose=verbose)
         if(history == {}):
             history = None
         return history
@@ -1015,7 +1032,7 @@ class KerasTrial(Storable):
 
         if(showFit):
             print(indent + "Fit:")
-            fits = _listIfNotNone(["batch_size", "nb_epoch", "verbose", "callbacks",
+            fits = _listIfNotNone(["batch_size", "epochs", "verbose", "callbacks",
                                      "validation_split", "validation_data", "shuffle",
                                      "class_weight", "sample_weight"])
             print(indent*2 + sep.join(fits))
@@ -1046,7 +1063,7 @@ class KerasTrial(Storable):
                 # metrics=d.get('metrics', []),
                 # sample_weight_mode=d.get('sample_weight_mode', INPUT_DEFAULTS['sample_weight_mode']),
                 # batch_size=d.get('batch_size', INPUT_DEFAULTS['batch_size']),
-                # nb_epoch=d.get('nb_epoch', INPUT_DEFAULTS['nb_epoch']),
+                # epochs=d.get('epochs', INPUT_DEFAULTS['epochs']),
                 # callbacks=d.get('callbacks', INPUT_DEFAULTS['callbacks']),
 
                 # max_q_size=d.get('max_q_size', INPUT_DEFAULTS['max_q_size']),
@@ -1061,7 +1078,7 @@ class KerasTrial(Storable):
         
 
 #TODO: Stopping Callbacks can't infer mode -> only auto works
-def encodeCallback(c):
+def encode_callback(c):
     '''Encodes callbacks so that they can be decoded later'''
     from keras.callbacks import EarlyStopping
     from CMS_Deep_Learning.callbacks import OverfitStopping
@@ -1078,28 +1095,32 @@ def encodeCallback(c):
             d['max_percent_diff'] = c.max_percent_diff
         else:
             d['type'] = "EarlyStopping"
-    return d
+        return d
+    else:
+        return c
+    
 
 
 
 
-def decodeCallback(d):
+def decode_callback(d):
     '''Decodes callbacks into usable objects'''
     from keras.callbacks import EarlyStopping
     from CMS_Deep_Learning.callbacks import OverfitStopping
-
-    if(d['type'] == "OverfitStopping"):
-        return OverfitStopping(  monitor=d['monitor'],
-                                comparison_monitor=d['comparison_monitor'],
-                                max_percent_diff=d['max_percent_diff'],
-                                patience=d['patience'],
-                                verbose=d['verbose'],
-                                mode =d['mode'])
-    elif(d['type'] == "EarlyStopping"):
-        return EarlyStopping(   monitor=d['monitor'],
-                                patience=d['patience'],
-                                verbose=d['verbose'],
-                                mode =d['mode'])
+    if(isinstance(d, dict)):
+        if(d.get('type', "") == "OverfitStopping"):
+            return OverfitStopping(  monitor=d['monitor'],
+                                    comparison_monitor=d['comparison_monitor'],
+                                    max_percent_diff=d['max_percent_diff'],
+                                    patience=d['patience'],
+                                    verbose=d['verbose'],
+                                    mode =d['mode'])
+        elif(d.get('type', "") == "EarlyStopping"):
+            return EarlyStopping(   monitor=d['monitor'],
+                                    patience=d['patience'],
+                                    verbose=d['verbose'],
+                                    mode =d['mode'])
+    return d
 
 
 
@@ -1113,8 +1134,8 @@ def compute_hash(inp):
     return h.hexdigest()
 
 def split_hash(hashcode):
-    '''Splits a SHA1 hash string into two strings. One with the first 5 characters and another with the rest'''
-    return hashcode[:5], hashcode[5:]
+    '''Splits a SHA1 hash string into two strings. One with the first 2 characters and another with the rest'''
+    return hashcode[:HASH_SPLIT_POINT], hashcode[HASH_SPLIT_POINT:]
 
 def get_blob_path(*args, **kwargs):
     '''Blob path (archive location) from either (storable,archive_dir), (hashcode, archive_dir), or
@@ -1154,10 +1175,10 @@ def get_blob_path(*args, **kwargs):
     return blob_path
 
 
-def read_dataArchive(archive_dir, verbose=0):
+def read_data_archive(archive_dir, verbose=0):
     '''Returns the data archive read from the trial directory'''
     return read_json_obj(archive_dir, 'data_archive.json')
-def write_dataArchive(data_archive, archive_dir, verbose=0):
+def write_data_archive(data_archive, archive_dir, verbose=0):
     '''Writes the data archive to the trial directory'''
     write_json_obj(data_archive, archive_dir, 'data_archive.json')
 
@@ -1224,7 +1245,7 @@ def get_data_by_function(func, archive_dir,verbose=0):
         t_func = record[key].get("func", 'unknown')
         t_module = record[key].get("func_module", 'unknown')
         if(re.match(func_name, t_func) != None and (func_module is None or re.match(func_module, t_module) != None)):
-            dp = DataProcedure.find_by_hashcode(archive_dir,key,verbose=verbose)
+            dp = DataProcedure.find(archive_dir, key, verbose=verbose)
             if(dp != None):
                 out.append(dp)
 
@@ -1244,7 +1265,7 @@ def get_trials_by_name(name, archive_dir, verbose=0):
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
         if True in [re.match(name, x) != None for x in t_name]:
-            trial = KerasTrial.find_by_hashcode(archive_dir,key, verbose=verbose)
+            trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
                 out.append(trial)
     return out

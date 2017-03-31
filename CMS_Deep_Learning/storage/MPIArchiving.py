@@ -87,10 +87,10 @@ class MPI_KerasTrial(KerasTrial):
         del p
         sys.exit()
     def execute(self, archiveTraining=True,
-                    archiveValidation=True,
-                    verbose=1,
-                    # numProcesses=2
-                    ):
+                archiveValidation=True,
+                verbosity=1,
+                # numProcesses=2
+                ):
         
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
@@ -246,10 +246,10 @@ class MPI_KerasTrial(KerasTrial):
         callbacks = self._generateCallbacks(verbose=verbose)
 
         # Creating the MPIManager object causes all needed worker and master nodes to be created
-        manager = MPIManager( comm=comm, data=data, num_epochs=self.nb_epoch,
-                algo=algo, model_builder=model_builder,
-                train_list=train_list, val_list=val_list, num_masters=self.masters,
-                synchronous=self.synchronous, callbacks=callbacks, custom_objects=custom_objects )
+        manager = MPIManager(comm=comm, data=data, num_epochs=self.epochs,
+                             algo=algo, model_builder=model_builder,
+                             train_list=train_list, val_list=val_list, num_masters=self.masters,
+                             synchronous=self.synchronous, callbacks=callbacks, custom_objects=custom_objects)
 
 
         # Process 0 defines the model and propagates it to the workers.

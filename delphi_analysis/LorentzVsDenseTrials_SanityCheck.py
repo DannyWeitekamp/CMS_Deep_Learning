@@ -147,18 +147,18 @@ for ldp in ldpsubsets:
 
                                         trial = KerasTrial(archive_dir, name=name, model=model)
 
-                                        trial.setTrain(train_procedure=train,
-                                                       samples_per_epoch=num_train
-                                                      )
-                                        trial.setValidation(val_procedure=val,
-                                                           nb_val_samples=num_val)
-                                        trial.setCompilation(loss='categorical_crossentropy',
-                                                  optimizer='adam',
-                                                  metrics=['accuracy']
-                                                      )
+                                        trial.set_train(train_procedure=train,
+                                                        samples_per_epoch=num_train
+                                                        )
+                                        trial.set_validation(val_procedure=val,
+                                                             nb_val_samples=num_val)
+                                        trial.set_compilation(loss='categorical_crossentropy',
+                                                              optimizer='adam',
+                                                              metrics=['accuracy']
+                                                              )
 
-                                        trial.setFit_Generator( 
-                                                        nb_epoch=epochs,
+                                        trial.set_fit_generator(
+                                                        epochs=epochs,
                                                         callbacks=[earlyStopping],
                                                         max_q_size = max_q_size)
 

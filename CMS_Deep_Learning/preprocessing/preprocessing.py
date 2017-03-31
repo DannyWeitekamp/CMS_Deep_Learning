@@ -697,7 +697,7 @@ class dataFetchThread(threading.Thread):
         return
 
     def run(self):
-        self.X, self.Y = self.proc.getData()
+        self.X, self.Y = self.proc.get_data()
         return
 
 def genFromDPs(dps, batch_size, threading=False, verbose=1):
@@ -728,7 +728,7 @@ def genFromDPs(dps, batch_size, threading=False, verbose=1):
                     datafetch = dataFetchThread(dps[0])
                 datafetch.start()
             else:
-                X,Y = dps[i].getData(verbose=verbose)
+                X,Y = dps[i].get_data(verbose=verbose)
                                    
             if(isinstance(X,list) == False): X = [X]
             if(isinstance(Y,list) == False): Y = [Y]

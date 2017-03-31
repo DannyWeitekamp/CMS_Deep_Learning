@@ -28,7 +28,7 @@ if(not imports_ok):
 def main(archive_dir,hashcode, test_hashcode, num_test):
     print("STARTING: %s" % hashcode)
     sys.stdout.flush()
-    trial = KerasTrial.find_by_hashcode(archive_dir, hashcode)
+    trial = KerasTrial.find(archive_dir, hashcode)
     print("EXECUTING: %s" % hashcode)
     sys.stdout.flush() 
     trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
@@ -39,7 +39,7 @@ def main(archive_dir,hashcode, test_hashcode, num_test):
     raise NotImplementedError("Will not run test, evaluate_generator acts weird on CSCS")    
     print("TESTING: %s, num_samples: %r" % (hashcode,num_test))
     sys.stdout.flush()
-    test = DataProcedure.find_by_hashcode(archive_dir,test_hashcode)
+    test = DataProcedure.find(archive_dir, test_hashcode)
     metrics = trial.test(test_proc=test,
                  test_samples=num_test,
                  custom_objects={"Lorentz":Lorentz,"Slice": Slice})

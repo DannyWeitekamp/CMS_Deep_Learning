@@ -154,19 +154,19 @@ def runTrials(archive_dir,
                                         trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,
                                                                custom_objects={"Lorentz": Lorentz, "Slice": Slice})
 
-                                        trial.setTrain(train_procedure=train_dps,
-                                                       samples_per_epoch=_num_train
-                                                       )
-                                        trial.setValidation(val_procedure=val_dps,
-                                                            nb_val_samples=_num_val)
+                                        trial.set_train(train_procedure=train_dps,
+                                                        samples_per_epoch=_num_train
+                                                        )
+                                        trial.set_validation(val_procedure=val_dps,
+                                                             nb_val_samples=_num_val)
 
-                                        trial.setCompilation(loss=loss,
-                                                             optimizer=optimizer,
-                                                             metrics=['accuracy']
-                                                             )
+                                        trial.set_compilation(loss=loss,
+                                                              optimizer=optimizer,
+                                                              metrics=['accuracy']
+                                                              )
 
-                                        trial.setFit_Generator(
-                                            nb_epoch=epochs,
+                                        trial.set_fit_generator(
+                                            epochs=epochs,
                                             callbacks=[earlyStopping],
                                             max_q_size=max_q_size)
                                         trial.write()
