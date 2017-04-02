@@ -11,6 +11,7 @@ if(not p in sys.path):
 from CMS_Deep_Learning.utils.deepconfig import deepconfig
 deepconfig("cpu", backend="theano")
 
+from CMS_Deep_Learning.storage.batch import *
 from CMS_Deep_Learning.preprocessing.preprocessing import *
 from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
@@ -18,6 +19,7 @@ from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
 from keras.models import Model
 from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking
 from keras.callbacks import EarlyStopping
+
 
 #The observables taken from the table
 DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
@@ -149,8 +151,8 @@ def runTrials(archive_dir,
 
 
 
-                                        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
-                                        # trial = KerasTrial(archive_dir, name=name, model=model)
+                                        # trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
+                                        trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
 
                                         trial.set_train(train_procedure=train_dps,
                                                         samples_per_epoch=_num_train
@@ -189,10 +191,10 @@ def runTrials(archive_dir,
     # trial_tups[0][0].execute()
     for tup in trial_tups:
         tup[0].summary()
-    for tup in trial_tups:
-	tup[0].summary()
-        tup[0].execute()
-    # batchExecuteAndTestTrials(trial_tups)
+    # for tup in trial_tups:
+	# tup[0].summary()
+     #    tup[0].execute()
+    batchExecuteAndTestTrials(trial_tups)
 
 if __name__ == '__main__':
     argv = sys.argv

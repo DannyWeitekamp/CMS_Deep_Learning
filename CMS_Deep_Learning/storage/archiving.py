@@ -218,7 +218,9 @@ class DataProcedure(Storable):
 
             if(isinstance(X, list) == False): X = [X]
             if(isinstance(Y, list) == False): Y = [Y]
-            h5f = h5py.File(self.get_path() + 'archive.h5', 'w')
+            blob_path = self.get_path()
+            data_path = "/".join([blob_path, "archive.h5"])
+            h5f = h5py.File(data_path, 'w')
             h5f.create_group("X")
             for i, x in enumerate(X):
                 h5f.create_dataset('X/'+str(i), data=x)
@@ -314,6 +316,7 @@ class DataProcedure(Storable):
     @staticmethod
     def get_func(name, module):
         '''Get a function from its name and module path'''
+        print("from " + module +  " import " + name + " as prep_func")
         try:
             exec("from " + module +  " import " + name + " as prep_func")
         except ImportError:
@@ -365,7 +368,7 @@ class DataProcedure(Storable):
     def get_all_paths(archive_dir):
         '''Gets the blob paths of all of the DataProcedures in the archive_dir'''
         paths = Storable.get_all_paths(archive_dir)
-        paths = [p for p in paths if os.path.isfile(p + "procedure.json")]
+        paths = [p for p in paths if os.path.isfile("/".join([p , "procedure.json"]))]
         return paths
 
 # INPUT_DEFAULTS ={
@@ -851,7 +854,7 @@ class KerasTrial(Storable):
     def get_all_paths(archive_dir):
         '''Get a list of all the blob paths of the KerasTrials in the given archive_dir'''
         paths = Storable.get_all_paths(archive_dir)
-        paths = [p for p in paths if os.path.isfile(p + "trial.json")]
+        paths = [p for p in paths if os.path.isfile("/".join([p , "trial.json"]))]
         return paths
 
 

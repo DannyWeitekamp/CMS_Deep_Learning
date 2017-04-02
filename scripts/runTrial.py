@@ -10,8 +10,8 @@ start_time = time.clock()
 while(time.clock() - start_time < 5):
     try:
         from CMS_Deep_Learning.storage.archiving import KerasTrial, DataProcedure
-        from CMS_Deep_Learning.layers.lorentz import Lorentz
-        from CMS_Deep_Learning.layers.slice import Slice
+        # from CMS_Deep_Learning.layers.lorentz import Lorentz
+        # from CMS_Deep_Learning.layers.slice import Slice
         from CMS_Deep_Learning.storage.rsyncUtils import rsyncStorable
         imports_ok = True
         break
@@ -31,8 +31,8 @@ def main(archive_dir,hashcode, test_hashcode, num_test):
     trial = KerasTrial.find(archive_dir, hashcode)
     print("EXECUTING: %s" % hashcode)
     sys.stdout.flush() 
-    trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
-    rsyncStorable(trial.hash(), archive_dir, "dweitekamp@titans.hep.caltech.edu:/data/shared/Delphes/CSCS_output/keras_archive")
+    trial.execute()#custom_objects={"Lorentz":Lorentz,"Slice": Slice})
+    rsyncStorable(trial.hash(), archive_dir, "dweitekamp@culture-plate.hep.caltech.edu:/bigdata/shared/Delphes/keras_archive_4_1")
     #addCommitPushDir(trial.get_path())
 
     return

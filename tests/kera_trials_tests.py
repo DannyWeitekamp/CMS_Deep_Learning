@@ -2,11 +2,14 @@
 import unittest
 import tempfile
 
-
+import sys, os
 if __package__ is None:
-	import sys, os
-	sys.path.append(os.path.realpath("/data/shared/Software/"))
-	sys.path.append(os.path.realpath("../.."))
+    print("BOOOGALLOO")
+    sys.path.append(os.path.realpath("/data/shared/Software/"))
+# print(__package__)
+# sys.exit()
+if not os.path.realpath("../") in sys.path:
+    sys.path.append(os.path.realpath("../"))
 
 import numpy as np
 from keras.callbacks import EarlyStopping
@@ -68,7 +71,11 @@ def myGetXY(thousand, one, b=24, d=10):
 # We include as arguments to DataProcedures the function that generates our training data its arguments
 data = [DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10) for i in range(2)]
 val_data = DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10)
-
+# for d in data+[val_data]:
+#     d.get_data()
+# from 
+# for d in val_data:
+#     d.get_data()
 
 def myGen(dps, batch_size):
     if (isinstance(dps, list) == False): dps = [dps]
@@ -104,7 +111,9 @@ def removeEverything(m):
 
 
 class TestDelphesParser(unittest.TestCase):
+    
     def testGeneral(self):
+        # global myGetXY, myGen
         model = simpleModel()
         # Build our KerasTrial object and name it
         trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
@@ -152,6 +161,7 @@ class TestDelphesParser(unittest.TestCase):
         removeEverything(self)
 
     def testGenerator(self):
+        # global myGetXY, myGen
         model = simpleModel()
 
         train_proc = DataProcedure(archive_dir, True, myGen, data, 100)
@@ -186,6 +196,7 @@ class TestDelphesParser(unittest.TestCase):
         print("Test_Accuracy:", accuracy)
         removeEverything(self)
     def testTrainingContinuation(self):
+        # global myGetXY,myGen
         model = simpleModel()
         # Build our KerasTrial object and name it
         trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
@@ -228,9 +239,11 @@ class TestDelphesParser(unittest.TestCase):
             genCodes.append(trial.gen_hash())
             print(trial.get_path())
             trial.write()
-        print(codes,genCodes)
+        # print(codes,genCodes)
         paths = sorted(Storable.get_all_paths(archive_dir))
         paths_indv = sorted([t.get_path() for t in trials]) #+ [data.]
+        print(paths)
+        print(paths_indv)
         self.assertListEqual(paths,paths_indv)
         #print("LENGTH:", paths, paths_indv)
         for path in paths:
