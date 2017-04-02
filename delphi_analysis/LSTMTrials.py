@@ -79,7 +79,7 @@ def runTrials(archive_dir,
                 single_list_options = [True]
                 ):
     if(delphes_dir == None):
-        split = os.path.split(archive_dir)
+        split = list(os.path.split(archive_dir))
         split = split[:split.index("Delphes")+1]
         delphes_dir = "/".join(split)
         
@@ -149,7 +149,7 @@ def runTrials(archive_dir,
 
 
 
-                                        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers)
+                                        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
                                         # trial = KerasTrial(archive_dir, name=name, model=model)
 
                                         trial.set_train(train_procedure=train_dps,
