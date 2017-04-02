@@ -176,12 +176,10 @@ def getFiles_StoreType(data_dir):
     if(len(files) < 1):
         raise IOError("Cannot read from empty directory %r" % data_dir)
     return (files, storeType)
-
-# def saveSizeMetaData(filename,storeType, size=None):
-#     sizesDict = getSizesDict(filename)
-#     
+     
     
 def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
+    '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary'''
     if(sizesDict == None):
         sizesDict = getSizesDict(filename)
     modtime = os.path.getmtime(filename)
@@ -196,6 +194,7 @@ def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     return sizesDict[filename][0]
         
 def getSizesDict(directory,verbose=0):
+    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
     if(not os.path.isdir(directory)):
         split = os.path.split(directory)
         directory = "/".join(split[:-1])
@@ -243,7 +242,7 @@ def _getStore(f, storeType):
     return store,frames
 def _getFrame(store, storeType, key, select_start, select_stop,
               samples_to_read, file_total_entries, frames):
-    '''Helper Function - gets '''
+    '''Helper Function - gets frame from its store/msgpack'''
     if(storeType == "hdf5"):
         #If we are reading all the samples use get since it might be faster
         #TODO: check if it is actually faster
@@ -281,11 +280,24 @@ def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_
 
 def _applyCuts(df, profile,vecsize, observ_types):
     '''Helper Function - presorts, applies queries, adds columns, and makes cuts'''
-    if(profile.pre_sort_columns != None):
-        df = df.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
-    if(profile.query != None):
+    if (profile.query != None):
         df = df.query(profile.query)
     x = df.values
+    if(profile.pre_sort_columns != None):
+        # Find sort_locs
+        sort_locs = None
+        assert not isinstance(profile.pre_sort_columns, str), "profile.pre_sort_columns improperly stored"
+        if (profile.pre_sort_columns != None and not None in profile.pre_sort_columns):
+            assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.pre_sort_columns], \
+                "Type should be string got %s" % (",".join([str(type(s)) for s in profile.pre_sort_columns]))
+            sort_locs = [df.columns.get_loc(s) for s in profile.pre_sort_columns]
+            # print(df.columns, sort_locs, )
+        # Sort
+        x = _sortByLocs(x, sort_locs, profile.pre_sort_ascending, observ_types)
+        # x = _sortByColumns(x, profile.pre_sort_columns, profile.pre_sort_ascending, observ_types)
+        # df = df.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
+    
+    # x = df.values
     # Make cut, preserving only profile.max_size of top of table
     x = x[:profile.max_size]
     # Only use observable columns
@@ -294,49 +306,38 @@ def _applyCuts(df, profile,vecsize, observ_types):
     return x
     
 def _addColumns(x,profile,observ_types):
-    # if (profile.addColumns != None):
-    # before = x.shape
+    '''Helpher Function - adds columns of constants to the data'''
     for i, o in enumerate(observ_types):
-        # print(i,o)
         if o in profile.addColumns:
-            # print(o , addColumns[o])
             x = np.insert(x, i, profile.addColumns[o], axis=1)
-        # print("%r -> %r" % (before, x.shape), (profile.max_size - len(x), "n"))
     return x
     
+def _sortByLocs(x,sort_locs,sort_ascending, observ_types,):
+    # print(sort_locs)
+    if (sort_locs != None):
+        for loc in reversed(sort_locs):
+            if (sort_ascending == True):
+                x = x[x[:, loc].argsort()]
+            else:
+                x = x[x[:, loc].argsort()[::-1]]
+    return x
+
 def _padAndSort(x, profile,vecsize, observ_types):
     '''Helper Function - pads the data and sorts it'''
     if(isinstance(x, type(None))):
         #If a DataFrame does not exist for this entry then just inject zeros 
         x = np.array(np.zeros((profile.max_size, vecsize)))
     else:
-        #Find sort_locs before we convert to np array
+        #Find sort_locs
         sort_locs = None
-
-        assert not isinstance(profile.sort_columns,str), "profile.sort_columns improperly stored"
-        if(profile.sort_columns != None and not None in profile.sort_columns):
-            assert not False in [isinstance(s,str) or isinstance(s,unicode)  for s in profile.sort_columns], \
+        assert not isinstance(profile.sort_columns, str), "profile.sort_columns improperly stored"
+        if (profile.sort_columns != None and not None in profile.sort_columns):
+            assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in profile.sort_columns]))
-            # sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
             sort_locs = [observ_types.index(s) for s in profile.sort_columns]
-        
-
-        #x is an np array not a DataFrame
-        # x = df.values
-        # x = df.to_records(index=False)
-        # print(profile.addColumns)
-        
-        
-
-        if(sort_locs != None):
-            for loc in reversed(sort_locs):
-                if(profile.sort_ascending == True):
-                    x = x[x[:,loc].argsort()]
-                else:
-                    x = x[x[:,loc].argsort()[::-1]]
-    
+        #Sort
+        x = _sortByLocs(x, sort_locs, profile.sort_ascending, observ_types)
         #pad the array
-        sys.stdout.flush()
         x = np.append(x ,np.array(np.zeros((profile.max_size - len(x), vecsize))), axis=0)
     return x    
 
