@@ -188,7 +188,7 @@ def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     if(not filename in sizesDict or sizesDict[filename][1] != modtime):
         num_val_frame = getNumValFrame(filename, storeType)
         file_total_entries = len(num_val_frame.index)
-        print(file_total_entries)
+        # print(file_total_entries)
         sizesDict[filename] = (file_total_entries,modtime)
         if (not os.path.isdir(filename)):
             split = os.path.split(filename)
