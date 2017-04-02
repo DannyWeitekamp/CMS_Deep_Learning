@@ -28,9 +28,9 @@ DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
 
 
 DEFAULT_LABEL_DIR_PAIRS = \
-            [   ("qcd", "/data/shared/Delphes/qcd_lepFilter_13TeV/pandas_h5/"),
-                ("ttbar", "/data/shared/Delphes/ttbar_lepFilter_13TeV/pandas_h5/"),
-                ("wjet", "/data/shared/Delphes/wjets_lepFilter_13TeV/pandas_h5/")
+            [   ("qcd", "$DELPHES_DIR/qcd_lepFilter/pandas_h5/"),
+                ("ttbar", "$DELPHES_DIR/ttbar_lepFilter/pandas_h5/"),
+                ("wjet", "$DELPHES_DIR/wjets_lepFilter/pandas_h5/")
 
             ]
 def genModel(name,object_profiles,out_dim, depth, vecsize
@@ -63,6 +63,7 @@ def genModel(name,object_profiles,out_dim, depth, vecsize
 def runTrials(archive_dir,
                 workers,
                 batchProcesses,
+                delphes_dir="/data/shared/Delphes",
                 observ_types=DEFAULT_OBSV_TYPES,
                 label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
                 epochs = 30,
@@ -77,6 +78,7 @@ def runTrials(archive_dir,
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
                 ):
+    os.environ["DELPHES_DIR"] = delphes_dir
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
     #Make sure that we do 3-way classification as well

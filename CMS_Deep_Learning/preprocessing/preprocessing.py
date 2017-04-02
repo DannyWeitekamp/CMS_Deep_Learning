@@ -8,7 +8,7 @@ import time
 import numpy as np
 import pandas as pd
 
-from CMS_Deep_Learning.storage.archiving import DataProcedure
+from CMS_Deep_Learning.storage.archiving import DataProcedure,read_json_obj,write_json_obj
 from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
 
 DEFAULT_PROFILE = {
@@ -177,6 +177,34 @@ def getFiles_StoreType(data_dir):
         raise IOError("Cannot read from empty directory %r" % data_dir)
     return (files, storeType)
 
+# def saveSizeMetaData(filename,storeType, size=None):
+#     sizesDict = getSizesDict(filename)
+#     
+    
+def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
+    if(sizesDict == None):
+        sizesDict = getSizesDict(filename)
+    modtime = os.path.getmtime(filename)
+    if(not filename in sizesDict or sizesDict[filename][1] != modtime):
+        num_val_frame = getNumValFrame(filename, storeType)
+        file_total_entries = len(num_val_frame.index)
+        sizesDict[filename] = (file_total_entries,modtime)
+        if (not os.path.isdir(filename)):
+            split = os.path.split(filename)
+            directory = "/".join(split[:-1])
+        write_json_obj(sizesDict,directory,"sizesMetaData.json",verbose=verbose )
+    return sizesDict[filename][0]
+        
+def getSizesDict(directory,verbose=0):
+    if(not os.path.isdir(directory)):
+        split = os.path.split(directory)
+        directory = "/".join(split[:-1])
+    sizesDict = read_json_obj(directory, "sizesMetaData.json", verbose=verbose)
+    return sizesDict
+    
+    
+    
+
 def getNumValFrame(filename, storeType):
     '''Finds the num_val_frame frame in a pandas file in either msg or h5 format'''
     if(storeType == "hdf5"):
@@ -257,19 +285,28 @@ def _applyCuts(df, profile,vecsize, observ_types):
         df = df.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)
     if(profile.query != None):
         df = df.query(profile.query)
-    #Add any additional columns
-    if(profile.addColumns != None):
-        for key, value in profile.addColumns.items():
-            df[key] = value
-    #Make cut, preserving only profile.max_size of top of table
-    df = df.head(profile.max_size)
-    #Only use observable columns
-    df = df[observ_types]
-    return df
+    x = df.values
+    # Make cut, preserving only profile.max_size of top of table
+    x = x[:profile.max_size]
+    # Only use observable columns
+    x = np.take(x,[df.columns.get_loc(o) for o in observ_types],axis=1)
     
-def _padAndSort(df, profile,vecsize):
+    return x
+    
+def _addColumns(x,profile,observ_types):
+    # if (profile.addColumns != None):
+    # before = x.shape
+    for i, o in enumerate(observ_types):
+        # print(i,o)
+        if o in profile.addColumns:
+            # print(o , addColumns[o])
+            x = np.insert(x, i, profile.addColumns[o], axis=1)
+        # print("%r -> %r" % (before, x.shape), (profile.max_size - len(x), "n"))
+    return x
+    
+def _padAndSort(x, profile,vecsize, observ_types):
     '''Helper Function - pads the data and sorts it'''
-    if(isinstance(df, type(None))):
+    if(isinstance(x, type(None))):
         #If a DataFrame does not exist for this entry then just inject zeros 
         x = np.array(np.zeros((profile.max_size, vecsize)))
     else:
@@ -280,11 +317,16 @@ def _padAndSort(df, profile,vecsize):
         if(profile.sort_columns != None and not None in profile.sort_columns):
             assert not False in [isinstance(s,str) or isinstance(s,unicode)  for s in profile.sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in profile.sort_columns]))
-            sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
+            # sort_locs = [df.columns.get_loc(s) for s in profile.sort_columns]
+            sort_locs = [observ_types.index(s) for s in profile.sort_columns]
         
+
         #x is an np array not a DataFrame
-        x = df.values
+        # x = df.values
         # x = df.to_records(index=False)
+        # print(profile.addColumns)
+        
+        
 
         if(sort_locs != None):
             for loc in reversed(sort_locs):
@@ -294,8 +336,8 @@ def _padAndSort(df, profile,vecsize):
                     x = x[x[:,loc].argsort()[::-1]]
     
         #pad the array
+        sys.stdout.flush()
         x = np.append(x ,np.array(np.zeros((profile.max_size - len(x), vecsize))), axis=0)
-        # x = np.append(x ,np.array(np.zeros((profile.max_size - len(x),), dtype=x.dtype)))
     return x    
 
 def _initializeXY(single_list, label_dir_pairs, num_object_profiles, samples_per_label, num_labels):
@@ -361,9 +403,12 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             Training data with its correspoinding labels
             (X_train, Y_train)
     '''
+    
     _check_inputs(label_dir_pairs, observ_types)
     #Make sure that all the profile are proper objects and have resolved max_sizes
     object_profiles = _check_Object_Profiles(object_profiles,observ_types)
+
+    non_add_observtypes = [o for o in observ_types if not o in set.union(*[set(p.addColumns) for p in object_profiles])]
     
     vecsize = len(observ_types)
     num_labels = len(label_dir_pairs)
@@ -380,17 +425,18 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         samples_read = 0
         location = 0
         
+        sizesDict = getSizesDict(data_dir)
          #Loop the files associated with the current label
         for f in files:
-            num_val_frame = getNumValFrame(f,storeType)
-
-            file_total_entries = len(num_val_frame.index)
+            file_total_entries = getSizeMetaData(f,storeType,sizesDict=sizesDict)#len(num_val_frame.index)
 
             assert file_total_entries > 0, "num_val_frame has zero values"
             
             if(location + file_total_entries <= start):
                 location += file_total_entries
                 continue
+
+            num_val_frame = getNumValFrame(f, storeType)
             
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
@@ -426,24 +472,24 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                         #print(groupBys.keys())
                         groupBy = groupBys[profile.name]
                         if(entry in groupBy.groups):
-                            df = _applyCuts(groupBy.get_group(entry), profile, vecsize, observ_types)
-                            cut_tables[index] = df
+                            x = _applyCuts(groupBy.get_group(entry), profile, vecsize, non_add_observtypes)
+                            cut_tables[index] = _addColumns(x, profile, observ_types)
                         else:
                             cut_tables[index] = None
                 if(single_list):
-                    df = pd.concat(cut_tables)
+                    x = np.concatenate([c for c in cut_tables if c != None], axis=0)
                     list_profile = ObjectProfile("single_list",
                                                 sum([profile.max_size for profile in object_profiles]),
                                                 sort_columns=sort_columns,
                                                 sort_ascending=sort_ascending)    
                                                     
-                    x  = _padAndSort(df,list_profile,vecsize)
+                    x  = _padAndSort(x,list_profile,vecsize,observ_types)
                     X_train[X_train_index + entry - file_start_read] = x
                 else:
                     for index, profile in enumerate(object_profiles):
                         arr = X_train[index]
                         df = cut_tables[index]
-                        x  = _padAndSort(df,profile, vecsize)
+                        x  = _padAndSort(df,profile, vecsize,observ_types)
                         arr[X_train_index + entry - file_start_read] = x
             
             X_train_index += samples_to_read

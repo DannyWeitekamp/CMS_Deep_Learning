@@ -43,7 +43,7 @@ def rand_pl_entry(entry, a,b,marker=None):
     return out
 def norm_uint(mean, std):
     return max(int(np.random.normal(mean, std)),0)
-def fake_frames(N,object_profiles, marker=None):
+def fake_frames(N,object_profiles, marker=None, nb_eflow=3,std_eflow=1):
     vecsize = len(obs_pl_t)
     frames = {profile.name:pd.DataFrame(columns=obs_pl_t) for profile in object_profiles}
     #print(frames.values()[0].shape, (1,1, vecsize))
@@ -53,17 +53,17 @@ def fake_frames(N,object_profiles, marker=None):
     # print("MARKER",marker)
     for entry in range(N):
         #n = norm_uint(100,35)
-        n = norm_uint(3,1)
+        n = norm_uint(nb_eflow,std_eflow)
         num_val_dict["EFlowPhoton"][entry] = n       
         frames["EFlowPhoton"] = pd.concat([frames["EFlowPhoton"],pd.DataFrame(rand_pl_entry(entry,n, vecsize-1,marker), columns=obs_pl_t)])
        
         #n = norm_uint(120, 23)
-        n = norm_uint(3,1)
+        n = norm_uint(nb_eflow,std_eflow)
         num_val_dict["EFlowTracks"][entry] = n  
         frames["EFlowTracks"] = pd.concat([frames["EFlowTracks"] ,pd.DataFrame(rand_pl_entry(entry,n, vecsize-1,marker), columns=obs_pl_t)])
         
         #n = norm_uint(90, 27)
-        n = norm_uint(3,1)
+        n = norm_uint(nb_eflow,std_eflow)
         num_val_dict["EFlowNeutralHadron"][entry] = n
         frames["EFlowNeutralHadron"] = pd.concat([frames["EFlowNeutralHadron"] ,pd.DataFrame(rand_pl_entry(entry,n, vecsize-1,marker), columns=obs_pl_t)])
 
@@ -86,13 +86,14 @@ def store_frames(frames, filepath):
     for key,frame in frames.items():
         store.put(key, frame, format='table')
     store.close()
+    
 
-def store_fake(directory, size, num, object_profiles, marker=None):
+def store_fake(directory, size, num, object_profiles, marker=None, nb_eflow=3,std_eflow=1):
     if not os.path.exists(directory):
         os.makedirs(directory)
     frames_list = [None]* num
     for i in range(num):
-        frames = fake_frames(size, object_profiles, marker=marker)
+        frames = fake_frames(size, object_profiles, marker=marker,nb_eflow=nb_eflow,std_eflow=std_eflow)
         store_frames(frames, directory+"%03i.h5" % i)
         frames_list[i] = frames
     return frames_list
@@ -222,7 +223,34 @@ def checkDuplicates(t,X, Y, object_profiles):
                 if(not iszero):
                     rows.append(tuple(row))
     t.assertEqual(len(set(rows)), len(rows), msg="Duplicate Found")
+    
+
        
+def speedTest():
+    OPS = [ObjectProfile("EFlowPhoton", 100, pre_sort_columns="PT_ET",
+                                      pre_sort_ascending=False,
+                                      addColumns={"ObjType": 1}),
+                        ObjectProfile("EFlowTracks", 100, pre_sort_columns=["PT_ET"],
+                                      pre_sort_ascending=True,
+                                      addColumns={"ObjType": 2}),
+                        ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=["PT_ET"],
+                                      pre_sort_ascending=False, sort_columns="Phi", sort_ascending=True,
+                                      addColumns={"ObjType": 3}),
+                        ObjectProfile("MET", 1, pre_sort_columns=["PT_ET"],
+                                      pre_sort_ascending=False, sort_columns=["Phi"],
+                                      addColumns={"ObjType": 4}),
+                        ObjectProfile("MuonTight", 5, pre_sort_columns=["PT_ET"],
+                                      pre_sort_ascending=False, sort_columns=["Phi"], sort_ascending=False,
+                                      addColumns={"ObjType": 5}),
+                        ObjectProfile("Electron", 5,  # pre_sort_columns=["PT_ET"],
+                                      pre_sort_ascending=False, sort_columns=["Phi"],
+                                      addColumns={"ObjType": 6})
+                        ]
+    NUM = 1000
+    if(os.path.getsize(temp_dir + "qcd/000.h5") < 14738451):
+        frame_lists = {l: store_fake(d, NUM, 1, object_profiles1, nb_eflow=120, std_eflow=40) for l, d in label_dir_pairs}
+
+    X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, OPS, observ_types, verbose=1)
 
 
 class PreprocessingTests(unittest.TestCase):
@@ -300,7 +328,8 @@ class PreprocessingTests(unittest.TestCase):
         self.assertTrue(np.array_equal(x_check, y_check))
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    speedTest()
 
 
 

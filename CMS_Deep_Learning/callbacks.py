@@ -25,15 +25,16 @@ class SmartCheckpoint(ModelCheckpoint):
     def __init__(self, name, directory='', associated_trial=None, monitor='val_loss', verbose=0,
                  save_best_only=True, mode='auto'):
         self.name = name
+        directory = os.path.normpath(directory)
         if(associated_trial != None):
             
             self.smartDir = associated_trial.get_path()
-            self.checkpointFilename = self.smartDir + "weights.h5"
-            self.historyFilename = self.smartDir + "history.json"
+            self.checkpointFilename = "/".join([self.smartDir, "weights.h5"])
+            self.historyFilename = "/".join([self.smartDir, "history.json"])
         else:
-            self.smartDir = directory + 'SmartCheckpoint/'
-            self.checkpointFilename = self.smartDir + name + "_weights.h5"
-            self.historyFilename = self.smartDir + name + "_history.json"
+            self.smartDir = "/".join([directory, 'SmartCheckpoint'])
+            self.checkpointFilename = "/".join([self.smartDir, name + "_weights.h5"])
+            self.historyFilename = "/".join([self.smartDir, name + "_history.json"])
         self.startTime = 0  
         # self.max_epoch = max_epoch
         self.histobj = History()
@@ -41,9 +42,9 @@ class SmartCheckpoint(ModelCheckpoint):
         histDict = {}
         try:
             histDict = json.load(open( self.historyFilename, "rb" ))
-            if(verbose >= 0): print('SC: Sucessfully loaded history at ' + self.historyFilename)
+            if(verbose >= 0): print('SC: Sucessfully loaded history at %r' % self.historyFilename)
         except (IOError, EOFError):
-            if (verbose >= 0): print('SC: Failed to load history at ' + self.historyFilename)
+            if (verbose >= 0): print('SC: Failed to load history at %r' % self.historyFilename)
 
         self.histobj.history = histDict
 
@@ -91,7 +92,9 @@ class SmartCheckpoint(ModelCheckpoint):
             if k not in histDict:
                 histDict[k] = []
             histDict[k].append(v)
+        # print("DFDMFD:", self.historyFilename, histDict)
         json.dump(histDict,  open( self.historyFilename, "wb" ))
+        # sys.exit()
 
     def on_train_end(self, logs={}):
         histDict = self.histobj.history
@@ -108,7 +111,7 @@ class SmartCheckpoint(ModelCheckpoint):
         stops = histDict.get("stops", [])
         stops.append( (stop,  histDict.get("last_epoch", 0)) )
         histDict['stops'] = stops
-
+        print("BODOSDFDS:", self.historyFilename, histDict)
         json.dump(histDict,  open( self.historyFilename, "wb" ))
         # print("DONE!")
         # print(logs)

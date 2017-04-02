@@ -33,6 +33,7 @@ class SneakyStopping(Callback):
 
 
 archive_dir = tempfile.mkdtemp()
+other_tempFile = tempfile.mkdtemp()
 
 # Define callback
 earlystopping = EarlyStopping(patience=10, verbose=1)
@@ -103,83 +104,87 @@ def removeEverything(m):
 
 
 class TestDelphesParser(unittest.TestCase):
-    # def testGeneral(self):
-    #     model = simpleModel()
-    #     # Build our KerasTrial object and name it
-    #     trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
-    #     # Set the training data
-    #     trial.set_train(train_procedure=data)
-    #     trial.set_validation(.2)
-    #     # Set the compilation paramters
-    #     trial.set_compilation(optimizer='rmsprop',
-    #                           loss='categorical_crossentropy',
-    #                           metrics=['accuracy']
-    #                           )
-    #     # Set the fit parameters
-    #     trial.set_fit(callbacks=[earlystopping], epochs=2)
-    # 
-    #     # If we like we can store information about the trial so we can keep track of what we've done
-    #     trial.to_record({"stuff1": 100, "data_stuff": "Regular"})
-    # 
-    #     print(trial.hash())
-    #     # trial.to_hashable()
-    #     # raise ValueError()
-    # 
-    # 
-    #     trial.execute(verbose=0)
-    #     print("OK IT FINISHED!")
-    # 
-    #     # Luckily no information was lost. We can still get the training history for the trial.
-    #     history = trial.get_history()
-    #     # plot_history([('myhistory', history)])
-    # 
-    #     test_pp = [DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10) for i in range(2)]
-    #     # test_X, test_Y = test_pp.getXY()
-    #     # And even the model and weights are still intact
-    #     model = trial.compile(loadweights=True)
-    #     ev = trial.test(test_pp)
-    #     loss = ev[0]
-    #     accuracy = ev[1]
-    # 
-    #     print('\n')
-    #     print("Test_Loss:", loss)
-    #     print("Test_Accuracy:", accuracy)
-    #     removeEverything(self)
-    #     
-    # def testGenerator(self):
-    #     model = simpleModel()
-    #     
-    #     train_proc = DataProcedure(archive_dir, True, myGen, data, 100)
-    # 
-    #     # Build our KerasTrial object and name it
-    #     trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
-    #     # Set the training data
-    #     trial.set_train(train_procedure=train_proc,
-    #                     samples_per_epoch=500)
-    #     trial.set_validation(train_proc, nb_val_samples=100)
-    #     # Set the compilation paramters
-    #     trial.set_compilation(optimizer='rmsprop',
-    #                           loss='categorical_crossentropy',
-    #                           metrics=['accuracy']
-    #                           )
-    #     # Set the fit parameters
-    #     trial.set_fit_generator(callbacks=[earlystopping], epochs=2)
-    # 
-    #     # If we like we can store information about the trial so we can keep track of what we've done
-    #     trial.to_record({"stuff1": 777, "data_stuff": "Generator"})
-    # 
-    #     # Execute the trial running fitting on each DataProcedure in turn 
-    #     trial.execute(verbose=0)
-    #     print("OK IT FINISHED!")
-    # 
-    #     ev = trial.test(train_proc, 1000)
-    #     loss = ev[0]
-    #     accuracy = ev[1]
-    # 
-    #     print('\n')
-    #     print("Test_Loss:", loss)
-    #     print("Test_Accuracy:", accuracy)
-    #     removeEverything(self)
+    def testGeneral(self):
+        model = simpleModel()
+        # Build our KerasTrial object and name it
+        trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+        # Set the training data
+        trial.set_train(train_procedure=data)
+        trial.set_validation(.2)
+        # Set the compilation paramters
+        trial.set_compilation(optimizer='rmsprop',
+                              loss='categorical_crossentropy',
+                              metrics=['accuracy']
+                              )
+        # Set the fit parameters
+        trial.set_fit(callbacks=[earlystopping], epochs=2)
+
+        # If we like we can store information about the trial so we can keep track of what we've done
+        trial.to_record({"stuff1": 100, "data_stuff": "Regular"})
+
+        print(trial.hash())
+        # trial.to_hashable()
+        # raise ValueError()
+
+
+        trial.execute(verbosity=0)
+        # print()
+        trial.summary()
+        print("OK IT FINISHED!")
+
+        self.assertIsNotNone(KerasTrial.find(archive_dir, trial.hash()))
+
+        # Luckily no information was lost. We can still get the training history for the trial.
+        history = trial.get_history()
+        # plot_history([('myhistory', history)])
+
+        test_pp = [DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10) for i in range(2)]
+        # test_X, test_Y = test_pp.getXY()
+        # And even the model and weights are still intact
+        model = trial.compile(loadweights=True)
+        ev = trial.test(test_pp)
+        loss = ev[0]
+        accuracy = ev[1]
+
+        print('\n')
+        print("Test_Loss:", loss)
+        print("Test_Accuracy:", accuracy)
+        removeEverything(self)
+
+    def testGenerator(self):
+        model = simpleModel()
+
+        train_proc = DataProcedure(archive_dir, True, myGen, data, 100)
+
+        # Build our KerasTrial object and name it
+        trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+        # Set the training data
+        trial.set_train(train_procedure=train_proc,
+                        samples_per_epoch=500)
+        trial.set_validation(train_proc, nb_val_samples=100)
+        # Set the compilation paramters
+        trial.set_compilation(optimizer='rmsprop',
+                              loss='categorical_crossentropy',
+                              metrics=['accuracy']
+                              )
+        # Set the fit parameters
+        trial.set_fit_generator(callbacks=[earlystopping], epochs=2)
+
+        # If we like we can store information about the trial so we can keep track of what we've done
+        trial.to_record({"stuff1": 777, "data_stuff": "Generator"})
+
+        # Execute the trial running fitting on each DataProcedure in turn 
+        trial.execute(verbosity=0)
+        print("OK IT FINISHED!")
+
+        ev = trial.test(train_proc, 1000)
+        loss = ev[0]
+        accuracy = ev[1]
+
+        print('\n')
+        print("Test_Loss:", loss)
+        print("Test_Accuracy:", accuracy)
+        removeEverything(self)
     def testTrainingContinuation(self):
         model = simpleModel()
         # Build our KerasTrial object and name it
@@ -205,6 +210,7 @@ class TestDelphesParser(unittest.TestCase):
                 continue
 
     def testGenHash(self):
+        trials = []
         codes = []
         genCodes = []
         for i in range(10):
@@ -217,13 +223,56 @@ class TestDelphesParser(unittest.TestCase):
                                   metrics=['accuracy']
                                   )
             trial.set_fit(epochs=10)
+            trials.append(trial)
             codes.append(trial.hash())
             genCodes.append(trial.gen_hash())
             print(trial.get_path())
+            trial.write()
         print(codes,genCodes)
+        paths = sorted(Storable.get_all_paths(archive_dir))
+        paths_indv = sorted([t.get_path() for t in trials]) #+ [data.]
+        self.assertListEqual(paths,paths_indv)
+        #print("LENGTH:", paths, paths_indv)
+        for path in paths:
+             self.assertTrue(os.path.isdir(path))
+            
 
         self.assertTrue(not False in [c == genCodes[0] for c in genCodes])
         self.assertTrue(len(codes) == len(set(codes)))
+        
+    def testEnvironmentVars(self):
+        os.environ["TEST_ENV_VAR"] = archive_dir
+        
+        model = simpleModel()
+        trial = KerasTrial("$TEST_ENV_VAR", name="MyKerasTrial", model=model, seed=i)
+        trial.set_train(train_procedure=data)
+        trial.set_validation(.2)
+        trial.set_compilation(optimizer='rmsprop',
+                              loss='categorical_crossentropy',
+                              metrics=['accuracy']
+                              )
+        trial.set_fit(epochs=10)
+        hash1 = trial.hash()
+        path1 = trial.get_path()
+
+        os.environ["TEST_ENV_VAR"] = other_tempFile
+        model = simpleModel()
+        trial = KerasTrial("$TEST_ENV_VAR", name="MyKerasTrial", model=model, seed=i)
+        trial.set_train(train_procedure=data)
+        trial.set_validation(.2)
+        trial.set_compilation(optimizer='rmsprop',
+                              loss='categorical_crossentropy',
+                              metrics=['accuracy']
+                              )
+        trial.set_fit(epochs=10)
+        hash2 = trial.hash()
+        path2 = trial.get_path()
+        
+        print(hash1, hash2)
+        print(path1, path2)
+        self.assertTrue(hash1 == hash2)
+        # self.assertFalse()
+
         
         
     

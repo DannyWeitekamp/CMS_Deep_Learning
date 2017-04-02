@@ -47,7 +47,8 @@ class Storable( object ):
     def get_path(self):
         '''Gets the archive (blob) path from its hash'''
         hashcode = self.hash()
-        return get_blob_path(hashcode=hashcode, archive_dir=self.archive_dir) 
+        expanded_archive_dir = os.path.normpath(os.path.expandvars(self.archive_dir))
+        return get_blob_path(hashcode=hashcode, archive_dir=expanded_archive_dir) 
     def to_json( self ):
         '''Must implement a function that returns the json string corresponding to the Storable'''
         raise NotImplementedError( "Should have implemented to_json" )
@@ -61,7 +62,7 @@ class Storable( object ):
         '''Removes all the data that the Storable has archived in its archive path'''
         folder = self.get_path()
         blob_dir, blob = split_hash(self.hash()) 
-        parentfolder = self.archive_dir + "blobs/" +  blob_dir + '/'
+        parentfolder = "/".join([self.archive_dir,'blob', blob_dir])
         try:
             if(os.path.isdir(folder)):
                 shutil.rmtree(folder)
@@ -96,18 +97,18 @@ class Storable( object ):
     @staticmethod
     def get_all_paths(archive_dir):
         '''Get a list of all the blob paths of the Storables in the given archive_dir'''
-        if(archive_dir[-1] != "/"):
-            archive_dir += "/"
-        directories = glob.glob(archive_dir + "blobs/*")
+        archive_dir = os.path.normpath(archive_dir)
+        directories = glob.glob("/".join([archive_dir,"blob","*"]))
         paths = []
         for d in directories:
             p = glob.glob(d + "/*")
-            paths += [path +"/" for path in p]
+            paths += [path for path in p]
         return paths
 
     @classmethod
     def get_all_records(cls,archive_dir,verbose=0):
         '''Get a dicionary of all the records in the archive_dir keyed by their hashcodes'''
+        archive_dir = os.path.normpath(archive_dir)
         paths = cls.get_all_paths(archive_dir)
         records = {}
         for path in paths:
@@ -127,9 +128,9 @@ class Storable( object ):
             name = "trial"
         elif(issubclass(cls,DataProcedure)):
             name  = "procedure"
-        path = get_blob_path(hashcode, archive_dir) + name +'.json'
+        path = "/".join([get_blob_path(hashcode, archive_dir), name +'.json'])
         try:
-            f = open( path, "rb" )
+            f = open( path, "r" )
             json_str = f.read()
             f.close()
             out = cls.from_json(archive_dir,json_str)
@@ -143,16 +144,15 @@ class Storable( object ):
 class DataProcedure(Storable):
     '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
         data and Y contains the labels/targets for each entry'''
-    def __init__(self, _archive_dir,archive_getData, func,  *args, **kargs):
+    def __init__(self, archive_dir, archive_getData, func, *args, **kargs):
         Storable.__init__(self)
-        if(isinstance(_archive_dir, str) == False and isinstance(_archive_dir, unicode) == False):
-            raise TypeError("_archive_dir must be str, but got %r" %type(_archive_dir))
+        if(isinstance(archive_dir, str) == False and isinstance(archive_dir, unicode) == False):
+            raise TypeError("_archive_dir must be str, but got %r" % type(archive_dir))
         if(isinstance(archive_getData, bool) == False):
             raise TypeError("archive_getData must be bool, but got %r" % type(archive_getData))
         if(isinstance(func, types.FunctionType) == False):
             raise TypeError("func must be function, but got %r" % type(func))
-
-        self.archive_dir = os.path.realpath(_archive_dir)  + "/"
+        self.archive_dir =  os.path.normpath(archive_dir)
         self.func = func.__name__
         self.func_module = func.__module__
         self.args = args
@@ -201,7 +201,7 @@ class DataProcedure(Storable):
     def is_archived(self):
         '''Returns True if this procedure is already archived'''
         blob_path = self.get_path()
-        data_path = blob_path+"archive.h5"
+        data_path = "/".join([blob_path,"archive.h5"])
         if(os.path.exists(data_path)):
             return True
         else:
@@ -213,7 +213,7 @@ class DataProcedure(Storable):
             blob_path = self.get_path()
             if( os.path.exists(blob_path) == False):
                 os.makedirs(blob_path)
-            if( os.path.exists(blob_path + 'procedure.json') == False):
+            if( os.path.exists("/".join([blob_path, 'procedure.json'])) == False):
                 self.write()
 
             if(isinstance(X, list) == False): X = [X]
@@ -250,7 +250,7 @@ class DataProcedure(Storable):
         if(self.is_archived() and redo == False):
             h5f = None
             try:
-                h5f = h5py.File(self.get_path() + 'archive.h5', 'r')
+                h5f = h5py.File("/".join([self.get_path(), 'archive.h5']), 'r')
                 X = []
                 X_group = h5f['X']
                 keys = list(X_group.keys())
@@ -448,9 +448,9 @@ class KerasTrial(Storable):
                 ):
     	
         Storable.__init__(self)
-        if(archive_dir[len(archive_dir)-1] != "/"):
-            archive_dir = archive_dir + "/"
-        self.archive_dir = os.path.realpath(archive_dir) + "/"
+        # if(archive_dir[len(archive_dir)-1] != "/"):
+        #     archive_dir = archive_dir + "/"
+        self.archive_dir = os.path.normpath(archive_dir)
         self.name = name
         for key in INPUT_DEFAULTS:
             if(not key in kargs):
@@ -743,7 +743,7 @@ class KerasTrial(Storable):
 
     def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, verbosity=1):
         '''Executes the trial, fitting the traing data in each DataProcedure in series'''
-    	if(self.train_procedure is None):
+        if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
         if(self.is_complete() == False):
             
@@ -907,16 +907,16 @@ class KerasTrial(Storable):
 
         model = model_from_json(self.model, custom_objects=custom_objects)
         if(loadweights):
-            model.load_weights(self.get_path()+"weights.h5")
+            model.load_weights("/".join([self.get_path(),"weights.h5"]))
         return model
 
     def is_complete(self):
         '''Return True if the trial has completed'''
         blob_path = get_blob_path(self, self.archive_dir)
-        history_path = blob_path+"history.json"
+        history_path = "/".join([blob_path,"history.json"])
         if(os.path.exists(history_path)):
 
-            histDict = json.load(open( history_path, "rb" ))
+            histDict = json.load(open( history_path, "r" ))
             if(len(histDict.get('stops', [])) > 0):
                 return True
             else:
@@ -1171,7 +1171,7 @@ def get_blob_path(*args, **kwargs):
     else:
         raise ValueError("Too Many arguments")
 
-    blob_path = archive_dir + "blobs/" +  blob_dir + '/' + blob + "/"
+    blob_path = "/".join([archive_dir,"blob", blob_dir,blob])
     return blob_path
 
 
@@ -1187,37 +1187,40 @@ def write_data_archive(data_archive, archive_dir, verbose=0):
 
 def read_json_obj(directory, filename, verbose=0):
     '''Return a json object read from the given directory'''
+    directory = os.path.normpath(directory)
     try:
-        obj = json.load(open( directory + filename, "rb" ))
-        if(verbose >= 1): print('Sucessfully loaded ' + filename +'  at ' + directory)
+        obj = json.load(open( "/".join([directory, filename]), "r" ))
+        if(verbose >= 1): print('Sucessfully loaded %r at %r' % (filename, directory))
     except (IOError, EOFError):
         obj = {}
-        if(verbose >= 1): print('Failed to load '+ filename +'  at ' + directory)
+        if(verbose >= 1): print('Failed to load %r at %r' % (filename, directory))
     return obj
 
 def write_json_obj(obj,directory, filename, verbose=0):
     '''Writes a json object to the given directory'''
+    directory = os.path.normpath(directory)
     if not os.path.exists(directory):
         os.makedirs(directory)
     try:
-        json.dump(obj,  open( directory + filename, "wb" ))
-        if(verbose >= 1): print('Sucessfully wrote ' + filename +'  at ' + directory)
+        json.dump(obj,  open( "/".join([directory, filename]), "w" ))
+        if(verbose >= 1): print('Sucessfully wrote %r at %r' % (filename, directory))
     except (IOError, EOFError):
-        if(verbose >= 1): print('Failed to write '+ filename +'  at ' + directory)
+        if(verbose >= 1): print('Failed to write %r at %r' % (filename, directory))
 
 
 
 def write_object(directory, filename, data, verbose=0):
     '''Writes an object from the given data with the given filename in the given directory'''
+    directory = os.path.normpath(directory)
     if not os.path.exists(directory):
         os.makedirs(directory)
-    path = directory + filename
+    path = "/".join([directory, filename])
     try:
         f = open(path, 'w')
         f.write(data)
-        if(verbose >= 1): print('Sucessfully wrote %r at %r' + (filename, directory))
+        if(verbose >= 1): print('Sucessfully wrote %r at %r' % (filename, directory))
     except (IOError, EOFError):
-        if(verbose >= 1): print('Failed to write %r at %r' + (filename, directory))
+        if(verbose >= 1): print('Failed to write %r at %r' % (filename, directory))
     f.close()
 
 
