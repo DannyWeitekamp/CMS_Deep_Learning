@@ -63,7 +63,7 @@ def genModel(name,object_profiles,out_dim, depth, vecsize
 def runTrials(archive_dir,
                 workers,
                 batchProcesses,
-                delphes_dir="/data/shared/Delphes",
+                delphes_dir=None,
                 observ_types=DEFAULT_OBSV_TYPES,
                 label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
                 epochs = 30,
@@ -78,6 +78,11 @@ def runTrials(archive_dir,
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
                 ):
+    if(delphes_dir == None):
+        split = os.path.split(archive_dir)
+        split = split[:split.index("Delphes")+1]
+        delphes_dir = "/".join(split)
+        
     os.environ["DELPHES_DIR"] = delphes_dir
     vecsize = len(observ_types)
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
