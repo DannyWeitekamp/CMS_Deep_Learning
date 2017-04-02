@@ -159,6 +159,7 @@ def getFiles_StoreType(data_dir):
     '''Gets a list of files from a directory in the filesystem and the type of data stored in it. Asserts that the directory is not empty.'''
     if(not os.path.isdir(data_dir)):
             raise IOError("Directory %r does not exist." % data_dir)
+    data_dir = os.path.expandvars(data_dir)
     msgFiles = glob.glob(data_dir+"*.msg")
     hdfFiles = glob.glob(data_dir+"*.h5")
     if(len(msgFiles) == 0):
