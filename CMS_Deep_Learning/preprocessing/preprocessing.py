@@ -183,9 +183,11 @@ def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     if(sizesDict == None):
         sizesDict = getSizesDict(filename)
     modtime = os.path.getmtime(filename)
+    # print(sizesDict[filename][1],modtime)
     if(not filename in sizesDict or sizesDict[filename][1] != modtime):
         num_val_frame = getNumValFrame(filename, storeType)
         file_total_entries = len(num_val_frame.index)
+        print(file_total_entries)
         sizesDict[filename] = (file_total_entries,modtime)
         if (not os.path.isdir(filename)):
             split = os.path.split(filename)
@@ -265,6 +267,7 @@ def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_
 
 
     groupBys = {}
+    colDict = {}
     #Loop over every profile and read the corresponding tables in the pandas file
     for index, profile in enumerate(object_profiles):
         key = profile.name                
@@ -274,15 +277,37 @@ def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_
 
         frame = _getFrame(store, storeType, key, select_start, select_stop,
                           samples_to_read, file_total_entries,frames)
+        columns = list(frame.columns)
+        entryIndex = columns.index("Entry")
+        X = frame.values
+        colDict[key] = columns
+        def entryGen():
+            currEntry = -1
+            start = 0
+            for i, x in enumerate(X):
+                # print(x,x[entryIndex])
+                entry = x[entryIndex]
+                # print(entry)
+                if (entry != currEntry):
+                    if (entry < currEntry):
+                        raise ValueError("Dataframe 'Entry' column not sorted")
+                    if (start != i): yield int(currEntry), X[start: i]
+                    start = i
+                    currEntry = entry
+            yield int(currEntry), X[start: len(X)]
+            
+        
         #Group by Entry
-        groupBys[key] = frame.groupby(["Entry"], group_keys=True)
-    return groupBys, store
+        # groupBys[key] = frame.groupby(["Entry"], group_keys=True)
+        groupBys[key] = {entry:x for entry,x  in entryGen()}#frame.groupby(["Entry"], group_keys=True)
+        # print(key,groupBys[key].keys())
+    return groupBys,colDict, store
 
-def _applyCuts(df, profile,vecsize, observ_types):
+def _applyCuts(x, columns,profile,vecsize, observ_types):
     '''Helper Function - presorts, applies queries, adds columns, and makes cuts'''
-    if (profile.query != None):
-        df = df.query(profile.query)
-    x = df.values
+    # if (profile.query != None):
+    #     df = df.query(profile.query)
+    # x = df.values
     if(profile.pre_sort_columns != None):
         # Find sort_locs
         sort_locs = None
@@ -290,7 +315,7 @@ def _applyCuts(df, profile,vecsize, observ_types):
         if (profile.pre_sort_columns != None and not None in profile.pre_sort_columns):
             assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.pre_sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in profile.pre_sort_columns]))
-            sort_locs = [df.columns.get_loc(s) for s in profile.pre_sort_columns]
+            sort_locs = [columns.index(s) for s in profile.pre_sort_columns]
             # print(df.columns, sort_locs, )
         # Sort
         x = _sortByLocs(x, sort_locs, profile.pre_sort_ascending, observ_types)
@@ -301,8 +326,8 @@ def _applyCuts(df, profile,vecsize, observ_types):
     # Make cut, preserving only profile.max_size of top of table
     x = x[:profile.max_size]
     # Only use observable columns
-    x = np.take(x,[df.columns.get_loc(o) for o in observ_types],axis=1)
-    
+    x = np.take(x,[columns.index(o) for o in observ_types],axis=1)
+    # print(x.shape)
     return x
     
 def _addColumns(x,profile,observ_types):
@@ -438,7 +463,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 continue
 
             num_val_frame = getNumValFrame(f, storeType)
-            
+            assert file_total_entries == len(num_val_frame.index)
             #Determine what row to start reading the num_val table which contains
             #information about how many rows there are for each entry
             file_start_read = start-location if start > location else 0
@@ -449,7 +474,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
             
             if(verbose >= 1): print("Reading %r samples from %r:" % (samples_to_read,f))
             
-            groupBys,store = _groupsByEntry(f, storeType, samples_per_label,samples_to_read, file_total_entries,
+            groupBys,colDict,store = _groupsByEntry(f, storeType, samples_per_label,samples_to_read, file_total_entries,
                                             num_val_frame,file_start_read,object_profiles)
                 
             if(verbose >= 1): print("Values/Sample from: %r" % {p.name: p.max_size for p in object_profiles})
@@ -472,12 +497,16 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
                 for index, profile in enumerate(object_profiles):
                         #print(groupBys.keys())
                         groupBy = groupBys[profile.name]
-                        if(entry in groupBy.groups):
-                            x = _applyCuts(groupBy.get_group(entry), profile, vecsize, non_add_observtypes)
+                        columns = colDict[profile.name]
+                        # print(entry,entry in groupBy)
+                        if(entry in groupBy):
+                            x = _applyCuts(groupBy[entry],columns, profile, vecsize, non_add_observtypes)
+                            # x = _applyCuts(groupBy.get_group(entry), profile, vecsize, non_add_observtypes)
                             cut_tables[index] = _addColumns(x, profile, observ_types)
                         else:
                             cut_tables[index] = None
                 if(single_list):
+                    # print([c.shape if c != None else None for c in cut_tables])
                     x = np.concatenate([c for c in cut_tables if c != None], axis=0)
                     list_profile = ObjectProfile("single_list",
                                                 sum([profile.max_size for profile in object_profiles]),

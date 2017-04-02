@@ -79,6 +79,7 @@ def fake_frames(N,object_profiles, marker=None, nb_eflow=3,std_eflow=1):
         num_val_dict["Electron"][entry] = n
         frames["Electron"] = pd.concat([frames["Electron"] ,pd.DataFrame(rand_pl_entry(entry,n, vecsize-1,marker), columns=obs_pl_t)])
     frames["NumValues"] = pd.DataFrame(num_val_dict)
+    print("NOOOOOP",num_val_dict)
     return frames
 
 def store_frames(frames, filepath):
@@ -246,9 +247,9 @@ def speedTest():
                                       pre_sort_ascending=False, sort_columns=["Phi"],
                                       addColumns={"ObjType": 6})
                         ]
-    NUM = 1000
+    NUM = 10000
     if(os.path.getsize(temp_dir + "qcd/000.h5") < 14738451):
-        frame_lists = {l: store_fake(d, NUM, 1, object_profiles1, nb_eflow=120, std_eflow=40) for l, d in label_dir_pairs}
+        frame_lists = {l: store_fake(d, NUM/10, 10, object_profiles1, nb_eflow=120, std_eflow=40) for l, d in label_dir_pairs}
 
     X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, OPS, observ_types, verbose=1)
 
