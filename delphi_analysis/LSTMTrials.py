@@ -79,7 +79,7 @@ def runTrials(archive_dir,
                 single_list_options = [True]
                 ):
     if(delphes_dir == None):
-        split = list(os.path.split(archive_dir))
+        split = list(archive_dir.split("/"))
         split = split[:split.index("Delphes")+1]
         delphes_dir = "/".join(split)
         
