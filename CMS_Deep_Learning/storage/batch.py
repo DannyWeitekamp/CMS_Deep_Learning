@@ -39,7 +39,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             u.write()
             ofile = dp_out_dir + u.hash()[:5] + ".%j"
             if(verbose >= 1): print("OutFile: ",ofile)
-            f.write('sbatch -C mc -t %s -o %s -e %s %srunDP.sh %s %s %s\n' % (time_str,ofile,ofile,scripts_dir, repo,u.archive_dir,u.hash()))
+            f.write('sbatch -C gpu -t %s -o %s -e %s %srunDP.sh %s %s %s\n' % (time_str,ofile,ofile,scripts_dir, repo,u.archive_dir,u.hash()))
             
         f.close()
         
