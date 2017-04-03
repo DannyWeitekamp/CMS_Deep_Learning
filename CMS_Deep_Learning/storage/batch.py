@@ -39,7 +39,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             u.write()
             ofile = dp_out_dir + u.hash()[:5] + ".%j"
             if(verbose >= 1): print("OutFile: ",ofile)
-            f.write('sbatch -t %s -o %s -e %s %srunDP.sh %s %s %s\n' % (time_str,ofile,ofile,scripts_dir, repo,u.archive_dir,u.hash()))
+            f.write('sbatch -C mc -t %s -o %s -e %s %srunDP.sh %s %s %s\n' % (time_str,ofile,ofile,scripts_dir, repo,u.archive_dir,u.hash()))
             
         f.close()
         
@@ -110,7 +110,7 @@ def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/
                 os.makedirs(trial_out_dir)
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
             ofile = trial_out_dir + hashcode[:5] + ".%j"
-            sbatch = 'sbatch -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
+            sbatch = 'sbatch -C gpu -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
             sbatch += '%srunTrial.sh %s %s %s %s %s\n' % (scripts_dir,repo,archive_dir,hashcode, test_hashcode, num_test)
             if(verbose >=1): print(sbatch)
             out = os.popen(sbatch).read()
