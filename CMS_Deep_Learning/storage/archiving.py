@@ -316,7 +316,6 @@ class DataProcedure(Storable):
     @staticmethod
     def get_func(name, module):
         '''Get a function from its name and module path'''
-        print("from " + module +  " import " + name + " as prep_func")
         try:
             exec("from " + module +  " import " + name + " as prep_func")
         except ImportError:
