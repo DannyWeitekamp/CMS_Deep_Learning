@@ -76,7 +76,7 @@ def runTrials(archive_dir,
                 output_activation = "softmax",
                 loss='categorical_crossentropy',
                 optimizer_options = ['rmsprop'],
-                sortings = [("MaxLepDeltaPhi", False),("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+                sortings = [("MaxLepDeltaPhi", False)],#,("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
                 ):
@@ -154,10 +154,10 @@ def runTrials(archive_dir,
                                         # trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
                                         trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
 
-                                        trial.set_train(train_procedure=train_dps,
+                                        trial.set_train(train_procedure=train,#train_dps,
                                                         samples_per_epoch=_num_train
                                                         )
-                                        trial.set_validation(val_procedure=val_dps,
+                                        trial.set_validation(val_procedure=val,#val_dps,
                                                              nb_val_samples=_num_val)
 
                                         trial.set_compilation(loss=loss,

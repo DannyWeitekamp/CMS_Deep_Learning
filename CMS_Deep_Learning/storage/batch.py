@@ -103,6 +103,7 @@ def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/
 
         test_hashcode = None
         if(test != None):
+            
             test.write()
             test_hashcode = test.hash()
         if(isdaint):
