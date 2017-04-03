@@ -23,6 +23,7 @@ if(not imports_ok):
 
 def main(archive_dir,hashcode):
     print(archive_dir,hashcode)
+    sys.stdout.flush()
     dp = DataProcedure.find(archive_dir=archive_dir, hashcode=hashcode, verbose=1)
     if(not dp.is_archived()):
     	dp.get_data(archive=True)

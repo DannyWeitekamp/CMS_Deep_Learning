@@ -8,6 +8,8 @@
 #module load gcc/4.8.2
 #source /scratch/daint/vlimant/p2.7/bin/activate
 
+echo "Start"
 source /scratch/snx3000/dweiteka/p2.7/bin/activate
+echo "Sourced"
 
 python $1scripts/runDP.py $1 $2 $3 
