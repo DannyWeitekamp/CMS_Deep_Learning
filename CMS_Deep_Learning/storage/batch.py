@@ -91,7 +91,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 
-def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/dweiteka/CMS_Deep_Learning/", trial_out_dir='/scratch/snx3000/dweiteka/trial_out', verbose=1):
+def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/dweiteka/CMS_Deep_Learning/", trial_out_dir='/scratch/snx3000/dweiteka/trial_out/', verbose=1):
     '''Takes in a list of tuples 'tups' of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
         each trial, either in in order or in separate batches in the case of CSCS.
     '''
