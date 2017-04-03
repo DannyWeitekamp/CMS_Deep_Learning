@@ -150,14 +150,19 @@ def runTrials(archive_dir,
                                                         single_list=single_list)
 
 
+                                        if(workers == 1):
+                                            trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
+                                            t,v= train,val
+                                        else:
+                                            from CMS_Deep_Learning.storage.archiving import MPI_KerasTrial
+                                            trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
+                                            t,v= train_dps,val_dps
 
-                                        # trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
-                                        trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
 
-                                        trial.set_train(train_procedure=train,#train_dps,
+                                        trial.set_train(train_procedure=t,  # train_dps,
                                                         samples_per_epoch=_num_train
                                                         )
-                                        trial.set_validation(val_procedure=val,#val_dps,
+                                        trial.set_validation(val_procedure=v,  # val_dps,
                                                              nb_val_samples=_num_val)
 
                                         trial.set_compilation(loss=loss,
