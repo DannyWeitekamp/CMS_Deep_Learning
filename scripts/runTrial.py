@@ -1,13 +1,13 @@
 import sys
 import time
 
-repo_outerdir = sys.argv[1]+"../"
+repo_outerdir = sys.argv[1]
 if(not repo_outerdir in sys.path):
     sys.path.append(repo_outerdir)
 
 imports_ok = False
-start_time = time.clock()
-while(time.clock() - start_time < 5):
+start_time = time.time()
+while(time.time() - start_time < 5):
     try:
         from CMS_Deep_Learning.storage.archiving import KerasTrial, DataProcedure
         # from CMS_Deep_Learning.layers.lorentz import Lorentz
