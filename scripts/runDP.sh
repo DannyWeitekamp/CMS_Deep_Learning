@@ -1,15 +1,18 @@
-#!/bin/bash
-#DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-#echo $DIR
-#module load Python/2.7.11-CrayGNU-2016.03
-#module load pycuda/2015.1.3-CrayGNU-2016.03-Python-2.7.11
+#!/bin/bash -l
 
-#module unload gcc/4.9.3
-#module load gcc/4.8.2
-#source /scratch/daint/vlimant/p2.7/bin/activate
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-core=1
+#SBATCH --cpus-per-task=1
+#SBATCH --constraint=gpu
 
-echo "Start"
+export CRAY_CUDA_MPS=1
+
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+module load daint-gpu
+module load h5py/2.6.0-CrayGNU-2016.11-Python-3.5.2-serial
+module load pycuda/2016.1.2-CrayGNU-2016.11-Python-3.5.2-cuda-8.0.54
+
 source /scratch/snx3000/dweiteka/p2.7/bin/activate
-echo "Sourced"
 
 python $1scripts/runDP.py $1 $2 $3 
