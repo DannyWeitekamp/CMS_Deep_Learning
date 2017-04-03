@@ -1,13 +1,14 @@
 import sys
 import time
 
-repo_outerdir = sys.argv[1]+"../"
+repo_outerdir = sys.argv[1]
+print(repo_outerdir)
 if(not repo_outerdir in sys.path):
     sys.path.append(repo_outerdir)
 
 imports_ok = False
-start_time = time.clock()
-while(time.clock() - start_time < 60):
+start_time = time.time()
+while(time.time() - start_time < 60):
     try:
         from CMS_Deep_Learning.storage.archiving import DataProcedure
         imports_ok = True
