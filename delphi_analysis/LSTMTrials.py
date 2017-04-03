@@ -4,16 +4,16 @@ if __package__ is None:
     import sys, os
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
-p = "/home/dweitekamp/mpi_learn/"
-if(not p in sys.path):
-    sys.path.append(p)
+# p = "/home/dweitekamp/mpi_learn/"
+# if(not p in sys.path):
+#     sys.path.append(p)
 
-from CMS_Deep_Learning.utils.deepconfig import deepconfig
-deepconfig("cpu", backend="theano")
+# from CMS_Deep_Learning.utils.deepconfig import deepconfig
+# deepconfig("cpu", backend="theano")
 
 from CMS_Deep_Learning.storage.batch import *
 from CMS_Deep_Learning.preprocessing.preprocessing import *
-from CMS_Deep_Learning.storage.MPIArchiving import *
+# from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
 
 from keras.models import Model

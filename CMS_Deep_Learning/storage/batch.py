@@ -13,7 +13,7 @@ from CMS_Deep_Learning.layers.slice import Slice
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 
 
-def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch/daint/dweiteka/CMS_Deep_Learning/", dp_out_dir='/scratch/daint/dweiteka/dp_out/', verbose=1):
+def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch/snx3000/dweiteka/CMS_Deep_Learning/", dp_out_dir='/scratch/snx3000/dweiteka/dp_out/', verbose=1):
     '''Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
         a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
         DPs have completed their preprocessing and archived the result.
