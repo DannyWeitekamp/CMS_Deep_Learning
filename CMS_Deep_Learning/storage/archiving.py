@@ -377,7 +377,7 @@ class DataProcedure(Storable):
 
 #                 "validation_split" : 0.0,
 #                 "batch_size" : 32,
-#                 "epochs" : 10,
+#                 "nb_epoch" : 10,
 #                 "callbacks" : [],
 
 #                 "shuffle" : True,
@@ -404,7 +404,7 @@ INPUT_DEFAULTS = {
     "sample_weight_mode":None,
 
     "batch_size":32,
-    "epochs":10,
+    "nb_epoch":10,
     "callbacks":[],
     
     "max_q_size":10,
@@ -437,7 +437,7 @@ class KerasTrial(Storable):
         #             sample_weight_mode=None,
 
         #             batch_size=32,
-        #             epochs=10,
+        #             nb_epoch=10,
         #             callbacks=[],
                     
         #             max_q_size=10,
@@ -474,13 +474,13 @@ class KerasTrial(Storable):
 
 
         self.set_fit(batch_size=kargs["batch_size"],
-                     epochs=kargs["epochs"],
+                     nb_epoch=kargs["nb_epoch"],
                      callbacks=kargs["callbacks"],
                      shuffle=kargs["shuffle"],
                      class_weight=kargs["class_weight"],
                      sample_weight=kargs["sample_weight"])
 
-        self.set_fit_generator(epochs=kargs["epochs"],
+        self.set_fit_generator(nb_epoch=kargs["nb_epoch"],
                                callbacks=kargs["callbacks"],
                                class_weight=kargs["class_weight"],
                                max_q_size=kargs["max_q_size"],
@@ -551,7 +551,7 @@ class KerasTrial(Storable):
 
     def set_fit(self,
                 batch_size=32,
-                epochs=10,
+                nb_epoch=10,
                 callbacks=[],
                 shuffle=True,
                 class_weight=None,
@@ -569,7 +569,7 @@ class KerasTrial(Storable):
                     strCallbacks.append(c)
         callbacks = strCallbacks
         self.batch_size=batch_size
-        self.epochs=epochs
+        self.nb_epoch=nb_epoch
         self.callbacks=callbacks
 
         self.shuffle=shuffle
@@ -577,7 +577,7 @@ class KerasTrial(Storable):
         self.sample_weight=sample_weight
 
     def set_fit_generator(self,
-                          epochs=10,
+                          nb_epoch=10,
                           callbacks=[],
                           class_weight={},
                           max_q_size=10,
@@ -596,7 +596,7 @@ class KerasTrial(Storable):
                     strCallbacks.append(c)
         callbacks = strCallbacks
 
-        self.epochs=epochs
+        self.nb_epoch=nb_epoch
         self.callbacks=callbacks
  
         self.class_weight=class_weight
@@ -705,7 +705,7 @@ class KerasTrial(Storable):
 
         model.fit(x_train, y_train,
                   batch_size=self.batch_size,
-                  epochs=self.epochs,
+                  nb_epoch=self.nb_epoch,
                   verbose=verbose,
                   callbacks=callbacks,
                   validation_split=self.validation_split,
@@ -722,7 +722,7 @@ class KerasTrial(Storable):
         callbacks = self._generateCallbacks(verbose)
 
         model.fit_generator(generator, self.samples_per_epoch,
-                            epochs=self.epochs,
+                            nb_epoch=self.nb_epoch,
                             verbose=verbose,
                             callbacks=callbacks,
                             validation_data=validation_data,
@@ -1035,7 +1035,7 @@ class KerasTrial(Storable):
 
         if(showFit):
             print(indent + "Fit:")
-            fits = _listIfNotNone(["batch_size", "epochs", "verbose", "callbacks",
+            fits = _listIfNotNone(["batch_size", "nb_epoch", "verbose", "callbacks",
                                      "validation_split", "validation_data", "shuffle",
                                      "class_weight", "sample_weight"])
             print(indent*2 + sep.join(fits))
@@ -1066,7 +1066,7 @@ class KerasTrial(Storable):
                 # metrics=d.get('metrics', []),
                 # sample_weight_mode=d.get('sample_weight_mode', INPUT_DEFAULTS['sample_weight_mode']),
                 # batch_size=d.get('batch_size', INPUT_DEFAULTS['batch_size']),
-                # epochs=d.get('epochs', INPUT_DEFAULTS['epochs']),
+                # nb_epoch=d.get('nb_epoch', INPUT_DEFAULTS['nb_epoch']),
                 # callbacks=d.get('callbacks', INPUT_DEFAULTS['callbacks']),
 
                 # max_q_size=d.get('max_q_size', INPUT_DEFAULTS['max_q_size']),

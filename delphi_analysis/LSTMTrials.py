@@ -63,23 +63,23 @@ def genModel(name,object_profiles,out_dim, depth, vecsize
     return model
 
 def runTrials(archive_dir,
-                workers,
-                batchProcesses,
-                delphes_dir=None,
-                observ_types=DEFAULT_OBSV_TYPES,
-                label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
-                epochs = 30,
-                batch_size = 100,
-                patience = 8,
-                num_val = 20000,
-                num_train = 100000,
-                output_activation = "softmax",
-                loss='categorical_crossentropy',
-                optimizer_options = ['rmsprop'],
-                sortings = [("MaxLepDeltaPhi", False)],#,("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+              workers,
+              batchProcesses,
+              delphes_dir=None,
+              observ_types=DEFAULT_OBSV_TYPES,
+              label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
+              nb_epoch = 30,
+              batch_size = 100,
+              patience = 8,
+              num_val = 20000,
+              num_train = 100000,
+              output_activation = "softmax",
+              loss='categorical_crossentropy',
+              optimizer_options = ['rmsprop'],
+              sortings = [("MaxLepDeltaPhi", False)],  #,("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
-                ):
+              ):
     if(delphes_dir == None):
         split = list(archive_dir.split("/"))
         split = split[:split.index("Delphes")+1]
@@ -171,7 +171,7 @@ def runTrials(archive_dir,
                                                               )
 
                                         trial.set_fit_generator(
-                                            epochs=epochs,
+                                            nb_epoch=nb_epoch,
                                             callbacks=[earlyStopping],
                                             max_q_size=max_q_size)
                                         trial.write()

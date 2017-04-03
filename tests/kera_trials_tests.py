@@ -126,7 +126,7 @@ class TestDelphesParser(unittest.TestCase):
                               metrics=['accuracy']
                               )
         # Set the fit parameters
-        trial.set_fit(callbacks=[earlystopping], epochs=2)
+        trial.set_fit(callbacks=[earlystopping], nb_epoch=2)
 
         # If we like we can store information about the trial so we can keep track of what we've done
         trial.to_record({"stuff1": 100, "data_stuff": "Regular"})
@@ -178,7 +178,7 @@ class TestDelphesParser(unittest.TestCase):
                               metrics=['accuracy']
                               )
         # Set the fit parameters
-        trial.set_fit_generator(callbacks=[earlystopping], epochs=2)
+        trial.set_fit_generator(callbacks=[earlystopping], nb_epoch=2)
 
         # If we like we can store information about the trial so we can keep track of what we've done
         trial.to_record({"stuff1": 777, "data_stuff": "Generator"})
@@ -211,7 +211,7 @@ class TestDelphesParser(unittest.TestCase):
         # Set the fit parameters
         sneakyStopping = SneakyStopping(2)
         print([sneakyStopping])
-        trial.set_fit(callbacks=[sneakyStopping], epochs=10)
+        trial.set_fit(callbacks=[sneakyStopping], nb_epoch=10)
 
         while trial.is_complete() == False:
             try:
@@ -233,7 +233,7 @@ class TestDelphesParser(unittest.TestCase):
                                   loss='categorical_crossentropy',
                                   metrics=['accuracy']
                                   )
-            trial.set_fit(epochs=10)
+            trial.set_fit(nb_epoch=10)
             trials.append(trial)
             codes.append(trial.hash())
             genCodes.append(trial.gen_hash())
@@ -264,7 +264,7 @@ class TestDelphesParser(unittest.TestCase):
                               loss='categorical_crossentropy',
                               metrics=['accuracy']
                               )
-        trial.set_fit(epochs=10)
+        trial.set_fit(nb_epoch=10)
         hash1 = trial.hash()
         path1 = trial.get_path()
 
@@ -277,7 +277,7 @@ class TestDelphesParser(unittest.TestCase):
                               loss='categorical_crossentropy',
                               metrics=['accuracy']
                               )
-        trial.set_fit(epochs=10)
+        trial.set_fit(nb_epoch=10)
         hash2 = trial.hash()
         path2 = trial.get_path()
         
