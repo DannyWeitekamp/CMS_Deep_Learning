@@ -154,7 +154,7 @@ def runTrials(archive_dir,
                                             trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
                                             t,v= train,val
                                         else:
-                                            from CMS_Deep_Learning.storage.archiving import MPI_KerasTrial
+                                            from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
                                             trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
                                             t,v= train_dps,val_dps
 
