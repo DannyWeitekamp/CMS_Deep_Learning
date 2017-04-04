@@ -123,7 +123,7 @@ def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/
                 from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
                 trial = MPI_KerasTrial.find(archive_dir, hashcode)
             if(verbose >=1): print("EXECUTE %r" % trial.hash())
-            trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
+            trial.execute()#custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
             if(test_hashcode != None):
                 if(verbose >=1): print("TEST %r" % trial.hash())
