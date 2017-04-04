@@ -99,6 +99,8 @@ class Storable( object ):
         '''Get a list of all the blob paths of the Storables in the given archive_dir'''
         archive_dir = os.path.normpath(archive_dir)
         directories = glob.glob("/".join([archive_dir,"blob","*"]))
+        print("SDFSDFSDFSDF",archive_dir)
+        print(directories)
         paths = []
         for d in directories:
             p = glob.glob(d + "/*")
@@ -110,11 +112,13 @@ class Storable( object ):
         '''Get a dicionary of all the records in the archive_dir keyed by their hashcodes'''
         archive_dir = os.path.normpath(archive_dir)
         paths = cls.get_all_paths(archive_dir)
+        print(paths)
         records = {}
         for path in paths:
             s = path.split('/')
-            hashcode = s[-3] + s[-2]
-            assert len(hashcode) > len(s[-3]) and len(hashcode) > len(s[-2])
+            print(s)
+            hashcode = s[-2] + s[-1]
+            assert len(hashcode) > len(s[-2]) and len(hashcode) > len(s[-1])
             record = read_json_obj(path, "record.json",verbose=verbose)
             if(record != {}):
                 records[hashcode] = record
@@ -1261,15 +1265,18 @@ def get_all_trials(archive_dir, verbose=0):
     '''Get all the trials listed in the trial_record'''
     return get_trials_by_name('.', archive_dir, verbose=verbose)
 
-def get_trials_by_name(name, archive_dir, verbose=0):
+def get_trials_by_name(archive_dir,name, verbose=0):
     '''Get all the trials with a particluar name or that match a given regular expression'''
     record = KerasTrial.get_all_records(archive_dir)
+    if(not os.path.exists(archive_dir)):
+        raise ValueError("Path %r does not exist")
     out = []
     for key in record:
         t_name = record[key].get("name", 'unknown')
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
         if True in [re.match(name, x) != None for x in t_name]:
+            print("KEY", key)
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
                 out.append(trial)
