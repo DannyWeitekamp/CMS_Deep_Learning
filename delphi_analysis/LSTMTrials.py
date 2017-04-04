@@ -155,6 +155,7 @@ def runTrials(archive_dir,
                                             t,v= train,val
                                         else:
                                             from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
+                                            sys.path.append(("../../mpi_learn"))
                                             trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
                                             t,v= train_dps,val_dps
 
