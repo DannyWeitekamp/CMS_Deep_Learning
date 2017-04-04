@@ -116,7 +116,7 @@ class TestDelphesParser(unittest.TestCase):
         # global myGetXY, myGen
         model = simpleModel()
         # Build our KerasTrial object and name it
-        trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)
+        trial = KerasTrial(archive_dir, name=["MyKerasTrial"], model=model)
         # Set the training data
         trial.set_train(train_procedure=data)
         trial.set_validation(.2)

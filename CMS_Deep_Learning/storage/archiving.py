@@ -1296,11 +1296,9 @@ def get_trials_by_name(archive_dir,name, verbose=0):
         raise ValueError("Path %r does not exist")
     out = []
     for key in records:
-        t_name = str(records[key].get("name", 'unknown'))
-
+        t_name = records[key].get("name", 'unknown')
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
-        print(name, t_name[0])
         if True in [re.match(unicode(name), unicode(x)) != None for x in t_name]:
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
