@@ -1300,8 +1300,8 @@ def get_trials_by_name(archive_dir,name, verbose=0):
 
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
-        if True in [re.match(unicode(name), x) != None for x in unicode(t_name)]:
-            print("FOUND")
+        print(name, t_name[0])
+        if True in [re.match(unicode(name), unicode(x)) != None for x in t_name]:
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
                 out.append(trial)
