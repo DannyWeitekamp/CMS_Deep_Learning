@@ -141,7 +141,7 @@ class TestDelphesParser(unittest.TestCase):
         trial.summary()
         print("OK IT FINISHED!")
 
-        print("HERERERERER:", get_trials_by_name(archive_dir, "MyKerasTrial")[0].summary())
+        #print("HERERERERER:", get_trials_by_name(archive_dir, "MyKerasTrial")[0].summary())
         self.assertNotEqual(len(get_trials_by_name(archive_dir, "MyKerasTrial")), 0)
         self.assertIsNotNone(KerasTrial.find(archive_dir, trial.hash()))
 
