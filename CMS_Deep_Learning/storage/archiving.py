@@ -1291,16 +1291,16 @@ def get_all_trials(archive_dir, verbose=0):
 
 def get_trials_by_name(archive_dir,name, verbose=0):
     '''Get all the trials with a particluar name or that match a given regular expression'''
-    record = KerasTrial.get_all_records(archive_dir)
+    records = KerasTrial.get_all_records(archive_dir)
     if(not os.path.exists(archive_dir)):
         raise ValueError("Path %r does not exist")
     out = []
-    for key in record:
-        t_name = str(record[key].get("name", 'unknown'))
+    for key in records:
+        t_name = str(records[key].get("name", 'unknown'))
 
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
-        if True in [re.match(name, x) != None for x in t_name]:
+        if True in [re.match(unicode(name), x) != None for x in unicode(t_name)]:
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
                 out.append(trial)
