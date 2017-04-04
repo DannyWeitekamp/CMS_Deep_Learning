@@ -99,8 +99,6 @@ class Storable( object ):
         '''Get a list of all the blob paths of the Storables in the given archive_dir'''
         archive_dir = os.path.normpath(archive_dir)
         directories = glob.glob("/".join([archive_dir,"blob","*"]))
-        print("SDFSDFSDFSDF",archive_dir)
-        print(directories)
         paths = []
         for d in directories:
             p = glob.glob(d + "/*")
@@ -112,11 +110,9 @@ class Storable( object ):
         '''Get a dicionary of all the records in the archive_dir keyed by their hashcodes'''
         archive_dir = os.path.normpath(archive_dir)
         paths = cls.get_all_paths(archive_dir)
-        print(paths)
         records = {}
         for path in paths:
             s = path.split('/')
-            print(s)
             hashcode = s[-2] + s[-1]
             assert len(hashcode) > len(s[-2]) and len(hashcode) > len(s[-1])
             record = read_json_obj(path, "record.json",verbose=verbose)
@@ -1273,10 +1269,10 @@ def get_trials_by_name(archive_dir,name, verbose=0):
     out = []
     for key in record:
         t_name = record[key].get("name", 'unknown')
+        print(t_name)
         if(isinstance(t_name, list) == False):
             t_name = [t_name]
         if True in [re.match(name, x) != None for x in t_name]:
-            print("KEY", key)
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
             if(trial != None):
                 out.append(trial)
