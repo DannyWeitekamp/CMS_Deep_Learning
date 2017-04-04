@@ -145,10 +145,10 @@ class TrialIterator(DataIterator):
     def __init__(self, trial, data_type="val", return_X=False, return_Y=True, accumilate=None, return_prediction=False,
                  custom_objects={}):
         if (data_type == "val"):
-            proc = [DataProcedure.from_json(trial.archive_dir, t) for t in trial.val_procedure]
+            proc = trial.get_val()
             num_samples = trial.nb_val_samples
         elif (data_type == "train"):
-            proc = [DataProcedure.from_json(trial.archive_dir, t) for t in trial.train_procedure]
+            proc = trial.get_train()
             num_samples = trial.samples_per_epoch
         else:
             raise ValueError("data_type must be either val or train but got %r" % data_type)

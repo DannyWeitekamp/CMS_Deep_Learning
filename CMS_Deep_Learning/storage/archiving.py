@@ -848,7 +848,11 @@ class KerasTrial(Storable):
             print("Test %r already Complete with test_loss: %0.4f, test_acc: %0.4f" % (self.hash(), record_loss, record_acc))
             return [record_loss, record_acc]
 
-
+    def get_train(self):
+        return [DataProcedure.from_json(self.archive_dir, t) for t in self.train_procedure]
+        
+    def get_val(self):
+        return [DataProcedure.from_json(self.archive_dir, t) for t in self.val_procedure]
     @staticmethod
     def get_all_paths(archive_dir):
         '''Get a list of all the blob paths of the KerasTrials in the given archive_dir'''
