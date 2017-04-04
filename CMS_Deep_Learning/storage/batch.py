@@ -91,7 +91,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         if(verbose >= 1): sys.stdout.write("Done.")
     return dependencies
 
-def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/dweiteka/CMS_Deep_Learning/", trial_out_dir='/scratch/snx3000/dweiteka/trial_out/', verbose=1):
+def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/dweiteka/CMS_Deep_Learning/", trial_out_dir='/scratch/snx3000/dweiteka/trial_out/',use_mpi=False, verbose=1):
     '''Takes in a list of tuples 'tups' of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
         each trial, either in in order or in separate batches in the case of CSCS.
     '''
@@ -117,7 +117,11 @@ def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/
             out = os.popen(sbatch).read()
             if(verbose >=1): print("THIS IS THE OUTPUT:",out)
         else:
-            trial = KerasTrial.find(archive_dir, hashcode)
+            if(use_mpi):
+                trial = KerasTrial.find(archive_dir, hashcode) 
+            else:
+                from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
+                trial = MPI_KerasTrial.find(archive_dir, hashcode)
             if(verbose >=1): print("EXECUTE %r" % trial.hash())
             trial.execute(custom_objects={"Lorentz":Lorentz,"Slice": Slice})
 
