@@ -16,5 +16,5 @@ module load pycuda/2016.1.2-CrayGNU-2016.11-Python-2.7.12-cuda-8.0.54
 
 source /scratch/snx3000/dweiteka/kerasP2/bin/activate
 
-python $1scripts/runTrial.py $1 $2 $3 $4 $5
+python $1scripts/runTrial.py $1 $2 $3 $4 $5 $6
 
