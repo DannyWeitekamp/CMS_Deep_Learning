@@ -1,5 +1,7 @@
 import sys
 import time
+#Prevent this from being imported on this front end script
+sys.modules['mpi4py']=None
 
 repo_outerdir = sys.argv[1]
 if(not repo_outerdir in sys.path):
