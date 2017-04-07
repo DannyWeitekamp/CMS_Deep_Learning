@@ -90,6 +90,7 @@ def runTrials(archive_dir,
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
     #Make sure that we do 3-way classification as well
     ldpsubsets.append(sorted(label_dir_pairs))
+    ldpsubsets = ldpsubsets[:1]
     #archive_dir = "/data/shared/Delphes/keras_archive/"
 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)

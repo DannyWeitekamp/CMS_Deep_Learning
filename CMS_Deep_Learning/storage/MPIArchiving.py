@@ -3,16 +3,10 @@ import numpy as np
 import json
 import shlex
 import subprocess
-from mpi4py import MPI
+
 from time import time,sleep
 import select
 import importlib
-
-from mpi_learn.mpi.manager import MPIManager, get_device
-from mpi_learn.train.algo import Algo
-from mpi_learn.train.data import H5Data
-from mpi_learn.train.model import ModelFromJson
-from mpi_learn.utils import import_keras
 
 
 import CMS_Deep_Learning
@@ -91,7 +85,11 @@ class MPI_KerasTrial(KerasTrial):
                 verbosity=1,
                 # numProcesses=2
                 ):
-        
+        from mpi4py import MPI
+        from mpi_learn.mpi.manager import MPIManager, get_device
+        from mpi_learn.train.algo import Algo
+        from mpi_learn.train.data import H5Data
+        from mpi_learn.train.model import ModelFromJson
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
         if(not self.is_complete()):
