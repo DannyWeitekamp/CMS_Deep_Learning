@@ -32,10 +32,10 @@ def main(archive_dir,hashcode, test_hashcode, num_test,useMpi=False):
     print("STARTING: %s" % hashcode)
     sys.stdout.flush()
     if(useMpi):
-        trial = KerasTrial.find(archive_dir, hashcode)
-    else:
         from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
         trial = MPI_KerasTrial.find(archive_dir, hashcode)
+    else:
+        trial = KerasTrial.find(archive_dir, hashcode)
     print("EXECUTING: %s" % hashcode)
     sys.stdout.flush() 
     trial.execute()#custom_objects={"Lorentz":Lorentz,"Slice": Slice})
