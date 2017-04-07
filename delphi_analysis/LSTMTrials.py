@@ -4,6 +4,9 @@ if __package__ is None:
     import sys, os
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
+
+#Prevent Theano from finding this for this front end script
+sys.modules['mpi4py']=None
 # p = "/home/dweitekamp/mpi_learn/"
 # if(not p in sys.path):
 #     sys.path.append(p)
@@ -156,7 +159,10 @@ def runTrials(archive_dir,
                                             trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
                                             t,v= train,val
                                         else:
-                                            sys.path.append(("../../mpi_learn"))
+                                            print("USING MPI")
+                                            p = "../../mpi_learn"
+                                            if not p in sys.path:
+                                                sys.path.append(p)
                                             from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
                                             trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
                                             t,v= train_dps,val_dps
