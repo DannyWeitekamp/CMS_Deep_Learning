@@ -32,6 +32,9 @@ def main(archive_dir,hashcode, test_hashcode, num_test,useMpi=False):
     print("STARTING: %s" % hashcode)
     sys.stdout.flush()
     if(useMpi):
+        p = "../../mpi_learn"
+        if not p in sys.path:
+            sys.path.append(p)
         from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
         trial = MPI_KerasTrial.find(archive_dir, hashcode)
     else:
