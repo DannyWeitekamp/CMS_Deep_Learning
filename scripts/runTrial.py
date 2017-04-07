@@ -28,7 +28,8 @@ if(not imports_ok):
 
 
 def main(archive_dir,hashcode, test_hashcode, num_test,useMpi=False):
-    assert useMpi is bool
+    print(useMpi, type(useMpi))
+    assert useMpi is int
     print("STARTING: %s" % hashcode)
     sys.stdout.flush()
     if(useMpi):
