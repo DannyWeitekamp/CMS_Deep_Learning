@@ -27,10 +27,15 @@ if(not imports_ok):
     raise IOError("Failed to import CMS_Deep_Learning or keras, ~/.keras/keras.json is probably being read by multiple processes")
 
 
-def main(archive_dir,hashcode, test_hashcode, num_test):
+def main(archive_dir,hashcode, test_hashcode, num_test,useMpi=False):
+    assert useMpi is bool
     print("STARTING: %s" % hashcode)
     sys.stdout.flush()
-    trial = KerasTrial.find(archive_dir, hashcode)
+    if(useMpi):
+        trial = KerasTrial.find(archive_dir, hashcode)
+    else:
+        from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
+        trial = MPI_KerasTrial.find(archive_dir, hashcode)
     print("EXECUTING: %s" % hashcode)
     sys.stdout.flush() 
     trial.execute()#custom_objects={"Lorentz":Lorentz,"Slice": Slice})
@@ -50,5 +55,5 @@ def main(archive_dir,hashcode, test_hashcode, num_test):
     
 
 if __name__ == "__main__":
-    main(sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5])
+    main(sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5], sys.argv[6])
 

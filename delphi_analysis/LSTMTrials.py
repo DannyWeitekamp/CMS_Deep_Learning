@@ -208,7 +208,7 @@ def runTrials(archive_dir,
     # for tup in trial_tups:
 	# tup[0].summary()
      #    tup[0].execute()
-    batchExecuteAndTestTrials(trial_tups, time_str="1:00:00")
+    batchExecuteAndTestTrials(trial_tups, time_str="1:00:00", use_mpi=workers > 1)
     
 if __name__ == '__main__':
     argv = sys.argv

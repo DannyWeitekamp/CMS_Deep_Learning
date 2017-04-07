@@ -112,7 +112,7 @@ def batchExecuteAndTestTrials(tups, time_str="24:00:00", repo="/scratch/snx3000/
             dep_clause = "" if len(deps)==0 else "--dependency=afterok:" + ":".join(deps)
             ofile = trial_out_dir + hashcode[:5] + ".%j"
             sbatch = 'sbatch -C gpu -t %s -o %s -e %s %s ' % (time_str,ofile,ofile,dep_clause)
-            sbatch += '%srunTrial.sh %s %s %s %s %s\n' % (scripts_dir,repo,archive_dir,hashcode, test_hashcode, num_test)
+            sbatch += '%srunTrial.sh %s %s %s %s %s %s\n' % (scripts_dir,repo,archive_dir,hashcode, test_hashcode, num_test, use_mpi)
             if(verbose >=1): print(sbatch)
             out = os.popen(sbatch).read()
             if(verbose >=1): print("THIS IS THE OUTPUT:",out)
