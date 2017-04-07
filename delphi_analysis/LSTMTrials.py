@@ -90,7 +90,8 @@ def runTrials(archive_dir,
     ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
     #Make sure that we do 3-way classification as well
     ldpsubsets.append(sorted(label_dir_pairs))
-    ldpsubsets = ldpsubsets[:1]
+    ldpsubsets = ldpsubsets[:1
+                 ]
     #archive_dir = "/data/shared/Delphes/keras_archive/"
 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)
@@ -201,8 +202,8 @@ def runTrials(archive_dir,
     # for tup in trial_tups:
 	# tup[0].summary()
      #    tup[0].execute()
-    batchExecuteAndTestTrials(trial_tups)
-
+    batchExecuteAndTestTrials(trial_tups, time_str="1:00:00")
+    
 if __name__ == '__main__':
     argv = sys.argv
     runTrials(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
