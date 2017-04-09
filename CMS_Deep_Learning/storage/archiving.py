@@ -106,6 +106,7 @@ class Storable( object ):
             for i, t in enumerate(archive_paths):
                 p  = "/".join([path, "%04i.h5" % i])
                 if (check and not os.path.exists(t)):
+                    self.summary()
                     import warnings
                     warnings.warn("Data does not exist %r" % t)
                     if(raiseError):
@@ -127,7 +128,7 @@ class Storable( object ):
                     model = model_from_json(self.model)
                 except:
                     import warnings
-                    warnings.warn("MODEL JSON DOESN'T LOAD %r" % p)
+                    warnings.warn("MODEL JSON DOESN'T LOAD %r" % self.hash())
                     if(raiseError): raise IOError()
             # write_json_obj(self.model, directory, "model.json")
         if (output_train):
