@@ -93,30 +93,46 @@ class Storable( object ):
             return 1
         return 0
 
-    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False):
+    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False, check=True):
         import shutil
         def _assertPath(p):
             if (not os.path.exists(p)):
                 os.makedirs(p)
 
-        def _dirFromData(path, data_paths, symlink=False):
+        def _dirFromData(path, data_paths, symlink=False, check=True):
             cop = os.symlink if symlink else shutil.copyfile
             _assertPath(path)
             archive_paths = ["/".join([x.get_path(), "archive.h5"]) for x in data_paths]
             for i, t in enumerate(archive_paths):
-                cop(t, "/".join([path, "%04i.h5" % i]))
+                p  = "/".join([path, "%04i.h5" % i])
+                if (check and not os.path.exists(t)):
+                    import warnings
+                    warnings.warn("Data does not exist %r" % t)
+                cop(t, p)
 
         directory = os.path.normpath(directory)
 
         if (output_model):
             _assertPath(directory)
-            write_json_obj(self.model, directory, "model.json")
+            p = "/".join([directory, "model.json"])
+            f = open(p, 'r')
+            f.write(self.model)
+            f.close()
+            
+            if(check)
+                try:
+                    from keras.models import model_from_json
+                    model = model_from_json(self.model)
+                except:
+                    import warnings
+                    warnings.warn("MODEL JSON DOESN'T LOAD %r" % p)
+            # write_json_obj(self.model, directory, "model.json")
         if (output_train):
             train_dir = "/".join([directory, "trian"])
-            _dirFromData(train_dir, self.get_train(), symlink=symlink)
+            _dirFromData(train_dir, self.get_train(), symlink=symlink, check=check)
         if (output_val):
             val_dir = "/".join([directory, "val"])
-            _dirFromData(val_dir, self.get_val(), symlink=symlink)
+            _dirFromData(val_dir, self.get_val(), symlink=symlink, check=check)
 
     @staticmethod
     def get_all_paths(archive_dir):
