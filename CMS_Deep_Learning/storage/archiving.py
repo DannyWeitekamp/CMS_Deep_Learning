@@ -117,7 +117,7 @@ class Storable( object ):
         if (output_model):
             _assertPath(directory)
             p = "/".join([directory, "model.json"])
-            f = open(p, 'r')
+            f = open(p, 'w')
             f.write(self.model)
             f.close()
             
