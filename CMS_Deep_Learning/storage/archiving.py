@@ -121,14 +121,14 @@ class Storable( object ):
             f.write(self.model)
             f.close()
             
-            # if(check):
-            #     try:
-            #         from keras.models import model_from_json
-            #         model = model_from_json(self.model)
-            #     except:
-            #         import warnings
-            #         warnings.warn("MODEL JSON DOESN'T LOAD %r" % p)
-            #         if(raiseError): raise IOError()
+            if(check):
+                try:
+                    from keras.models import model_from_json
+                    model = model_from_json(self.model)
+                except:
+                    import warnings
+                    warnings.warn("MODEL JSON DOESN'T LOAD %r" % p)
+                    if(raiseError): raise IOError()
             # write_json_obj(self.model, directory, "model.json")
         if (output_train):
             train_dir = "/".join([directory, "trian"])
