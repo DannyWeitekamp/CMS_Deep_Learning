@@ -322,6 +322,7 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
 
 
 def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve"):
+    from CMS_Deep_Learning.storage.iterators import TrialIterator
     from sklearn.metrics import roc_curve, auc
     if (trial != None):
         tr = TrialIterator(trial, return_X=False, return_Y=True, return_prediction=True)
