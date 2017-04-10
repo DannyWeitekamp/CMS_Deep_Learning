@@ -319,3 +319,42 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
     table.set_fontsize(textSize)
     table.scale(scale, scale)
     plt.show()
+
+
+def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve"):
+    from sklearn.metrics import roc_curve, auc
+    if (trial != None):
+        tr = TrialIterator(trial, return_X=False, return_Y=True, return_prediction=True)
+        labels, predictions = tr.asList()
+        labels = labels[0]
+
+    labels = np.array(labels)
+    predictions = np.array(predictions)
+    # Draw the ROC curve
+    labels = np.array(labels)
+    predictions = np.array(predictions)
+
+    assert labels.shape == predictions.shape, "labels and predictions should have \
+        the same shape, %r != %r" % (labels.shape == predictions.shape)
+    n = labels.shape[0]
+    if (len(labels.shape) > 1 and labels.shape[1] > 1):
+        if (true_index != None):
+            labels = labels[:, true_index].ravel()
+            predictions = predictions[:, true_index].ravel()
+        else:
+            raise ValueError("must designate index of true class for data of shape %r" % list(labels.shape))
+
+    fpr, tpr, _ = roc_curve(labels, predictions)
+    roc_auc = auc(fpr, tpr)
+    plt.figure()
+    lw = 2
+    plt.plot(fpr, tpr, color='darkorange', \
+             lw=lw, label='Area under curve: %0.4f' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.xlim([-0.05, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(title)
+    plt.legend(loc="lower right")
+    plt.show()
