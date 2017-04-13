@@ -11,7 +11,7 @@ from .analysistools import *
 from .colors import *
 from IPython.display import Image, display
 
-def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None, acclims=None, useGrid=True):
+def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None, acclims=None, useGrid=True, show=True):
     """ Plots an array of training histories against each other
         -input: [(String label, History hist, (optional) color), .... ]
         -Adopted from Jean-Roch Vlimant's Keras tutorial"""
@@ -48,7 +48,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         plt.legend()
         plt.yscale('log')
         plt.grid(useGrid)
-        plt.show()
+        if(show): plt.show()
         return plt
     
     if(plotAccuracy):
@@ -85,7 +85,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
              plt.ylim(acclims)
         plt.legend(loc='lower right')
         plt.grid(useGrid)
-        plt.show()
+        if (show): plt.show()
         return plt
 
 
@@ -121,7 +121,8 @@ def plotBins(bins,
              shapes=None,
              xlim=None,
              ylim=(0.0,1.025),
-             useGrid=True):
+             useGrid=True,
+             show=True):
     ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
         #Arguments:
             bins -- A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
@@ -180,11 +181,11 @@ def plotBins(bins,
     
     plt.ylim(ylim)
     plt.xlim(xlim)
-    
-    plt.show()
+
+    if (show): plt.show()
     return plt
 
-def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
+def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0, show=True):
     '''Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
         Asserts a one to one relationship incase of duplicate entries.
         #Arguments:
@@ -258,7 +259,7 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
     #plt.legend()
     plt.setp(legend.get_title(),fontsize=14)
     #plt.tight_layout()
-    plt.show()
+    if (show):plt.show()
     return plt
 
 def plotEverything(trials, custom_objects={}):
@@ -306,7 +307,7 @@ def showColors(colors):
         ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)
     return plt
 
-def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title=""):
+def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title="",show=True):
     nrows, ncols = len(rows), len(columns)
     hcell, wcell = 0.005, 1.
     hpad, wpad = 0, 0    
@@ -323,11 +324,11 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
                           loc="bottom")
     table.set_fontsize(textSize)
     table.scale(scale, scale)
-    plt.show()
+    if (show):plt.show()
     return plt
 
 
-def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve"):
+def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve", show=True):
     from CMS_Deep_Learning.storage.iterators import TrialIterator
     from sklearn.metrics import roc_curve, auc
     if (trial != None):
@@ -364,5 +365,5 @@ def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, t
     plt.ylabel('True Positive Rate')
     plt.title(title)
     plt.legend(loc="lower right")
-    plt.show()
+    if (show): plt.show()
     return plt
