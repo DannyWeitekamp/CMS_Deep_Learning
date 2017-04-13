@@ -361,7 +361,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
     last_time = time.clock()
     prev_entry = 0
     to_ommit = []
-    no_lepton_count = 0
+    cut_sample_count = 0
     new_entry = 0
     for entry in range(n_entries):
 
@@ -429,7 +429,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
                 index_by_objects[obj] += number_by_object[obj]
             new_entry += 1
         else:
-            no_lepton_count +=1
+            cut_sample_count +=1
     pandas_out = {}
     for obj,d in dicts_by_object.items():
         if(obj == "NumValues"):
@@ -453,7 +453,8 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
     pandas_out["EFlowTrack"] = cleaned
 
     if (verbosity > 0): print("ElapseTime: %.2f" % float(time.clock()-start_time))
-    if (verbosity > 0): print("Converted to DataFrame: %r of %r Entries" % (n_entries-no_lepton_count, n_entries))
+    if (verbosity > 0): print("Converted: %r of %r Entries %r%% ommited %r%% retained" \
+                              % (n_entries-cut_sample_count, n_entries, float(n_entries-cut_sample_count)/float(n_entries), float(cut_sample_count)/float(n_entries)))
     return pandas_out
 
 
@@ -511,7 +512,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
                 frames = delphes_to_pandas(filepath)
             except Exception as e:
                 print(e)
-                print("Failed to parse file %r. File may be corrupted." % f)
+                print("Failed to parse file %r. File may be corrupted." % filepath)
                 store.close()
                 return 0
             try:
@@ -533,7 +534,7 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
                 frames = delphes_to_pandas(filepath)
             except Exception as e:
                 print(e)
-                print("Failed to parse file %r. File may be corrupted." % f)
+                print("Failed to parse file %r. File may be corrupted." % filepath)
                 return 0
             try:
                 pd.to_msgpack(out_file, frames)

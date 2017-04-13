@@ -49,6 +49,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         plt.yscale('log')
         plt.grid(useGrid)
         plt.show()
+        return plt
     
     if(plotAccuracy):
         plt.figure(figsize=(10,10))
@@ -85,6 +86,7 @@ def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, ti
         plt.legend(loc='lower right')
         plt.grid(useGrid)
         plt.show()
+        return plt
 
 
 def print_accuracy( p, test_target):
@@ -180,6 +182,7 @@ def plotBins(bins,
     plt.xlim(xlim)
     
     plt.show()
+    return plt
 
 def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0):
     '''Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
@@ -256,6 +259,7 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
     plt.setp(legend.get_title(),fontsize=14)
     #plt.tight_layout()
     plt.show()
+    return plt
 
 def plotEverything(trials, custom_objects={}):
     '''Plots all the information about a list of trials. For each trial: the model summary, a picture of the model and a plot of accuracy vs Epoch
@@ -300,6 +304,7 @@ def showColors(colors):
         b = colors[j]
         
         ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)
+    return plt
 
 def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title=""):
     nrows, ncols = len(rows), len(columns)
@@ -319,6 +324,7 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
     table.set_fontsize(textSize)
     table.scale(scale, scale)
     plt.show()
+    return plt
 
 
 def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve"):
@@ -359,3 +365,4 @@ def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, t
     plt.title(title)
     plt.legend(loc="lower right")
     plt.show()
+    return plt
