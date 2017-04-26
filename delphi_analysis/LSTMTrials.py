@@ -79,7 +79,7 @@ def runTrials(archive_dir,
               output_activation = "softmax",
               loss='categorical_crossentropy',
               optimizer_options = ['rmsprop'],
-              sortings = [("MaxLepDeltaPhi", False)],  #,("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+              sortings = [("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False), ("PT_ET", False), ("PT_ET", True),('MaxLepDeltaR', False), ('MaxLepKt',False), ('MaxLepAntiKt',False), ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
               ):

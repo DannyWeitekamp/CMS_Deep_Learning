@@ -309,11 +309,14 @@ def _applyCuts(x, columns,profile,vecsize, observ_types):
     # if (profile.query != None):
     #     df = df.query(profile.query)
     # x = df.values
+    # print(type(x))
     if(profile.pre_sort_columns != None):
         # Find sort_locs
         sort_locs = None
         assert not isinstance(profile.pre_sort_columns, str), "profile.pre_sort_columns improperly stored"
-        if (profile.pre_sort_columns != None and not None in profile.pre_sort_columns):
+        if (True in [c in profile.pre_sort_columns for c in ["shuffle", "random"]]):
+            np.random.shuffle(x)
+        elif (not None in profile.pre_sort_columns):
             assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.pre_sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in profile.pre_sort_columns]))
             sort_locs = [columns.index(s) for s in profile.pre_sort_columns]
@@ -340,6 +343,7 @@ def _addColumns(x,profile,observ_types):
     
 def _sortByLocs(x,sort_locs,sort_ascending, observ_types,):
     # print(sort_locs)
+    # print sort_locs, type(x)
     if (sort_locs != None):
         for loc in reversed(sort_locs):
             if (sort_ascending == True):
@@ -357,10 +361,13 @@ def _padAndSort(x, profile,vecsize, observ_types):
         #Find sort_locs
         sort_locs = None
         assert not isinstance(profile.sort_columns, str), "profile.sort_columns improperly stored"
-        if (profile.sort_columns != None and not None in profile.sort_columns):
-            assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.sort_columns], \
-                "Type should be string got %s" % (",".join([str(type(s)) for s in profile.sort_columns]))
-            sort_locs = [observ_types.index(s) for s in profile.sort_columns]
+        if(profile.sort_columns != None):
+            if(True in [c in profile.sort_columns for c in ["shuffle", "random"]]):
+                np.random.shuffle(x)
+            elif (not None in profile.sort_columns):
+                assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in profile.sort_columns], \
+                    "Type should be string got %s" % (",".join([str(type(s)) for s in profile.sort_columns]))
+                sort_locs = [observ_types.index(s) for s in profile.sort_columns]
         #Sort
         x = _sortByLocs(x, sort_locs, profile.sort_ascending, observ_types)
         #pad the array
