@@ -53,7 +53,7 @@ class DataIterator:
             self.num_samples = num_samples
         return self.num_samples
 
-    def asList(self):
+    def asList(self,verbose=False):
         if (self.accumilate != None): num_params  =getNumParams(self.accumilate)
         X_out = None
         Y_out = None
@@ -61,7 +61,7 @@ class DataIterator:
         acc_out = None
         pos = 0
         for p in self.proc:
-            X, Y = p.get_data()
+            X, Y = p.get_data(verbose=verbose)
 
             if (not isinstance(Y, list)): Y = [Y]
             L = Y[0].shape[0]
@@ -100,7 +100,7 @@ class DataIterator:
                     acc_out[pos + j] = acc[j]
 
             pos += L
-            print(pos, self.accumilate)  # ,acc_out))
+            #print(pos, self.accumilate)  # ,acc_out))
         out = []
         if (X_out != None):
             for i, xo in enumerate(X_out):
