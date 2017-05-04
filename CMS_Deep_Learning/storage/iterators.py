@@ -40,12 +40,12 @@ class DataIterator:
             raise ValueError("Bad input.")
             # initialize(proc, num_samples=num_samples, accumilate=accumilate, prediction_model=prediction_model)
 
-    def getLength(self):
+    def getLength(self,verbose=verbose):
         if (self.num_samples == None):
             num_samples = 0
             for p in self.proc:
                 if (isinstance(p, DataProcedure)):
-                    X, Y = p.get_data()
+                    X, Y = p.get_data(verbose=verbose)
                 else:
                     X, Y = p
                 if (not isinstance(Y, list)): Y = [Y]
@@ -68,7 +68,7 @@ class DataIterator:
 
             if (not isinstance(X, list)): X = [X]
             if (self.return_X):
-                if (X_out == None): X_out = [[None] * self.getLength() for i in range(len(X))]
+                if (X_out == None): X_out = [[None] * self.getLength(verbose=verbose) for i in range(len(X))]
                 # print([len(x) for x in X_out])
                 # print([len(x) for x in X])
                 for i, x in enumerate(X):
@@ -78,20 +78,20 @@ class DataIterator:
                         Xi_out[pos + j] = x[j]
 
             if (self.return_Y):
-                if (Y_out == None): Y_out = [[None] * self.getLength() for i in range(len(Y))]
+                if (Y_out == None): Y_out = [[None] * self.getLength(verbose=verbose) for i in range(len(Y))]
                 for i, y in enumerate(Y):
                     Yi_out = Y_out[i]
                     for j in range(L):
                         Yi_out[pos + j] = y[j]
 
             if (self.prediction_model != None):
-                if (pred_out == None): pred_out = [None] * self.getLength()
+                if (pred_out == None): pred_out = [None] * self.getLength(verbose=verbose)
                 pred = self.prediction_model.predict_on_batch(X)
                 for j in range(L):
                     pred_out[pos + j] = pred[j]
 
             if (self.accumilate != None):
-                if (acc_out == None): acc_out = [None] * self.getLength()
+                if (acc_out == None): acc_out = [None] * self.getLength(verbose=verbose)
                 if(num_params == 1):
                     acc = self.accumilate(X)
                 else:
