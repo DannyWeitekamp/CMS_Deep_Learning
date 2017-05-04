@@ -40,7 +40,7 @@ class DataIterator:
             raise ValueError("Bad input.")
             # initialize(proc, num_samples=num_samples, accumilate=accumilate, prediction_model=prediction_model)
 
-    def getLength(self,verbose=verbose):
+    def getLength(self,verbose=0):
         if (self.num_samples == None):
             num_samples = 0
             for p in self.proc:
@@ -53,7 +53,7 @@ class DataIterator:
             self.num_samples = num_samples
         return self.num_samples
 
-    def asList(self,verbose=False):
+    def asList(self,verbose=0):
         if (self.accumilate != None): num_params  =getNumParams(self.accumilate)
         X_out = None
         Y_out = None
