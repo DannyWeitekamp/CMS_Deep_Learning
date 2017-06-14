@@ -15,6 +15,8 @@ gen_observ_types = ['PT_ET','Eta', 'Phi']
 observ_types = gen_observ_types + ["ObjType"]
 
 obs_pl_t = ["Entry"] + gen_observ_types
+jet_cols = ['Entry','E/c', 'Px', 'Py', 'Pz','PT']
+ev_cols = ['Entry','MET','HT','MuonMul','ElectronMul','JetMul'] 
 vecsize = len(obs_pl_t)
 RANDOM_SEED = 7
 np.random.seed(seed=RANDOM_SEED)
@@ -68,10 +70,13 @@ def norm_uint(mean, std):
 def fake_frames(N,object_profiles, marker=None, nb_eflow=3,std_eflow=1):
     vecsize = len(obs_pl_t)
     frames = {profile.name:pd.DataFrame(columns=obs_pl_t) for profile in object_profiles}
+    frames["Jet"] = pd.DataFrame(columns=jet_cols)
+    frames["EventChars"] = pd.DataFrame(columns=ev_cols) 
     #print(frames.values()[0].shape, (1,1, vecsize))
     num_val_dict = {key:[None]*N for key, frame in frames.items()}
     for profile in object_profiles:
         frames[profile.name] = pd.DataFrame(columns=obs_pl_t)
+    # frames["Jet"] = pd.DataFrame(columns=obs_pl_t) *******************
     # print("MARKER",marker)
     for entry in range(N):
         #n = norm_uint(100,35)
@@ -100,8 +105,22 @@ def fake_frames(N,object_profiles, marker=None, nb_eflow=3,std_eflow=1):
         n = int(np.random.uniform(0, 5))
         num_val_dict["Electron"][entry] = n
         frames["Electron"] = pd.concat([frames["Electron"] ,pd.DataFrame(rand_pl_entry(entry,n, vecsize-1,marker), columns=obs_pl_t)])
+
+        n = int(np.random.uniform(2, 5))
+        num_val_dict["Jet"][entry] = n
+        frames["Jet"] = pd.concat(
+            [frames["Jet"], pd.DataFrame(rand_pl_entry(entry, n, len(jet_cols) - 1, marker), columns=jet_cols)])
+
+        n = 1
+        num_val_dict["EventChars"][entry] = n
+        frames["EventChars"] = pd.concat(
+            [frames["EventChars"],
+             pd.DataFrame(rand_pl_entry(entry, n, len(ev_cols) - 1, marker), columns=ev_cols)])
+        
+    #print(frames["EventChars"])
+    #print(frames["Jets"])
     frames["NumValues"] = pd.DataFrame(num_val_dict)
-    print("NOOOOOP",num_val_dict)
+    # print("NOOOOOP",num_val_dict)
     return frames
 
 def store_frames(frames, filepath):
@@ -143,10 +162,12 @@ def checkGeneralSanity(t, X, Y, frame_lists, sizes,  NUM, label_dir_pairs):
 
     all_values_by_label = {tup[0]:[None] * NUM for tup in label_dir_pairs}
     
+   # particle_frame_list = {key:val for key,val in frame_lists.items() if key != "Jets" and key != "EventChars"} 
+    
     for entry in range(NUM):
         for label, frame_list in frame_lists.items():
             for f in frame_list:
-                f = {k: df.query("Entry == %r" % entry) for k, df in f.items() if k != "NumValues"}
+                f = {k: df.query("Entry == %r" % entry) for k, df in f.items() if k != "NumValues" and k != "Jet" and k != "EventChars"}
                 all_values_by_label[label][entry] =pd.concat([df for df in f.values()]) 
     
     tn = [0]*5
@@ -302,46 +323,55 @@ def speedTest():
 
 
 class PreprocessingTests(unittest.TestCase):
+    def testInitializeXY(self):
+        from CMS_Deep_Learning.preprocessing.preprocessing import _initializeArrays, _gen_label_vecs
+        label_vecs = _gen_label_vecs(label_dir_pairs, num_labels=3)
+        X_train, y_train, jets, eventChars = _initializeArrays(single_list=True, label_dir_pairs=label_dir_pairs, num_object_profiles=5, samples_per_label=10, num_labels=3)
+        print(label_vecs)
+        X_train, y_train, jets, eventChars = _initializeArrays(single_list=True, label_dir_pairs=[("qcd", qcd_dir), ("ttbar", ttbar_dir), ("wjet", wjet_dir)],
+                                                         num_object_profiles=5, samples_per_label=10, num_labels=3)
+        print(label_vecs)
 
     def test_normal(self):
         NUM = 2
         frame_lists = {l:store_fake(d,NUM, 1, object_profiles1) for l, d in label_dir_pairs}
         OPS = object_profiles1
+        # print("KEYS",frame_lists['wjet'].keys())
         
         #SORTED
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
+        X, Y, Jets,EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
+        print(Jets,EventChars)
         # print([x.shape for x in X], Y.shape)
         sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
         checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
 
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True)
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True)
         # print(X.shape, Y.shape)
         sizes = np.array([[len(label_dir_pairs)*NUM, sum([p.max_size for p in OPS]), vecsize]])
         checkGeneralSanity(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types)
         
         #RANDOM SHUFFLES
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, RAND_OPS, observ_types, verbose=1)
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, RAND_OPS, observ_types, verbose=1)
         # print([x.shape for x in X], Y.shape)
         sizes = np.array([[len(label_dir_pairs) * NUM, p.max_size, vecsize] for p in RAND_OPS])
         checkGeneralSanity(self, X, Y, frame_lists, sizes, NUM, label_dir_pairs)
         checkCutsAndSorts(self, X, Y, frame_lists, sizes, NUM, label_dir_pairs, RAND_OPS, observ_types)
 
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, RAND_OPS, observ_types, verbose=1,
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, RAND_OPS, observ_types, verbose=1,
                                                     single_list=True)
         # print(X.shape, Y.shape)
         sizes = np.array([[len(label_dir_pairs) * NUM, sum([p.max_size for p in RAND_OPS]), vecsize]])
         checkGeneralSanity(self, X, Y, frame_lists, sizes, NUM, label_dir_pairs)
         checkCutsAndSorts(self, X, Y, frame_lists, sizes, NUM, label_dir_pairs, RAND_OPS, observ_types)
-        
 
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
                                                     sort_columns="Eta", sort_ascending=False)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
                          sort_columns="Eta", sort_ascending=False)
         # print(Y)
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1, single_list=True,
                                                     sort_columns=["Phi"], sort_ascending=True)
         checkCutsAndSorts(self,X, Y, frame_lists, sizes,  NUM, label_dir_pairs, OPS, observ_types,
                           sort_columns=["Phi"], sort_ascending=True)
@@ -351,7 +381,7 @@ class PreprocessingTests(unittest.TestCase):
         OPS = object_profiles1
         frame_lists = {l:store_fake(d,5, 4, object_profiles1) for l, d in label_dir_pairs}
 
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,5, NUM, OPS, observ_types, verbose=1)
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,5, NUM, OPS, observ_types, verbose=1)
         sizes = np.array([[len(label_dir_pairs)*NUM, p.max_size, vecsize] for p in OPS])
         justCheckSize(self,X,Y, sizes)
         checkDuplicates(self,X,Y,OPS)
@@ -378,14 +408,14 @@ class PreprocessingTests(unittest.TestCase):
         NUM = 20
         frame_lists = {l: store_fake(d, NUM, 1, object_profiles1, marker=i) for i,(l, d) in enumerate(label_dir_pairs)}
         OPS = object_profiles1
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs,0, NUM, OPS, observ_types, verbose=1)
 
         #Use MET because there is 0 chance that it does not exist
         x_check, y_check = np.array([int(x[0][0]) for x in X[3]]), np.array([y.tolist().index(1.0) for y in Y])
         # print(zip(x_check, y_check))
         self.assertTrue(np.array_equal(x_check, y_check))
 
-        X, Y = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, OPS, observ_types, verbose=1,
+        X, Y, Jets, EventChars = preprocessFromPandas_label_dir_pairs(label_dir_pairs, 0, NUM, OPS, observ_types, verbose=1,
                                                     single_list=True,sort_columns=["Phi"], sort_ascending=True)
         x_check, y_check = np.array([int(x[0][0]) for x in X]), np.array([y.tolist().index(1.0) for y in Y])
         # print(zip(x_check, y_check))

@@ -69,8 +69,8 @@ def myGetXY(thousand, one, b=24, d=10):
     
 # Define a list of two DataProcedures for the model to be fit on one after the other 
 # We include as arguments to DataProcedures the function that generates our training data its arguments
-data = [DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10) for i in range(2)]
-val_data = DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10)
+data = [DataProcedure(archive_dir, True, myGetXY, [500, 1], {'b':24, 'd':10}) for i in range(2)]
+val_data = DataProcedure(archive_dir, True, myGetXY, [500, 1], {'b':24, 'd':10})
 # for d in data+[val_data]:
 #     d.get_data()
 # from 
@@ -149,7 +149,7 @@ class TestDelphesParser(unittest.TestCase):
         history = trial.get_history()
         # plot_history([('myhistory', history)])
 
-        test_pp = [DataProcedure(archive_dir, True, myGetXY, 500, 1, b=24, d=10) for i in range(2)]
+        test_pp = [DataProcedure(archive_dir, True, myGetXY, [500, 1], {'b':24, 'd':10}) for i in range(2)]
         # test_X, test_Y = test_pp.getXY()
         # And even the model and weights are still intact
         model = trial.compile(loadweights=True)
@@ -166,7 +166,7 @@ class TestDelphesParser(unittest.TestCase):
         # global myGetXY, myGen
         model = simpleModel()
 
-        train_proc = DataProcedure(archive_dir, True, myGen, data, 100)
+        train_proc = DataProcedure(archive_dir, True, myGen, [data, 100])
 
         # Build our KerasTrial object and name it
         trial = KerasTrial(archive_dir, name="MyKerasTrial", model=model)

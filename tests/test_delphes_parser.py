@@ -48,7 +48,7 @@ class TestDelphesParser(unittest.TestCase):
         frames = delphes_to_pandas(loc, fixedNum=20)
         self.assertTrue(isinstance(frames, dict))
         self.assertFalse( False in [isinstance(val, pd.DataFrame) for key, val in frames.items()])
-        should_be = set(['Electron', 'MuonTight', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack'])
+        should_be = set(['Electron', 'MuonTight', 'MissingET', 'EFlowPhoton', 'EFlowNeutralHadron', 'EFlowTrack', 'Jet'])
         keys = set([key for key, val in frames.items()])
         self.assertTrue(should_be.issubset(keys), "%r should be subset of output %r" %(should_be, keys))
 
@@ -63,11 +63,11 @@ class TestDelphesParser(unittest.TestCase):
         for key, df in frames.items():
             print(key)
             print(df)
-
-            if(key != "NumValues"):
-                checkIsoInRange(self, df)
-            else:
-                self.assertTrue((df["Electron"]+ df["MuonTight"]).all())
+            if(key != "Jet" and key != "EventChars"):
+                if(key != "NumValues"):
+                    checkIsoInRange(self, df)
+                else:
+                    self.assertTrue((df["Electron"]+ df["MuonTight"]).all())
 
         # print(df)
 

@@ -11,7 +11,7 @@ else:
 
 
 class DataIterator:
-    def __init__(self, proc, num_samples=None, return_X=False, return_Y=True, accumilate=None, prediction_model=None):
+    def __init__(self, proc, num_samples=None, data_keys=[], input_key="X", label_key="Y",accumilate=None, prediction_model=None):
         if (isinstance(proc, list)):
             first_data = proc[0].get_data()
         else:
@@ -23,67 +23,72 @@ class DataIterator:
         self.num_samples = num_samples
         self.accumilate = accumilate
         self.prediction_model = prediction_model
-        self.return_X = return_X
-        self.return_Y = return_Y
+        self.data_keys= data_keys
+        self.input_key= input_key
+        self.label_key= label_key
         if (isinstance(proc, list)):
             if (False in [isinstance(p, DataProcedure) for p in proc]):
                 raise ValueError("procedure list must contain only DataProcedures")
-            # self.next = _listNext
             self.proc_itr = iter(self.proc)
             self.mode = "list"
         elif (isinstance(proc, types.GeneratorType)):
             if (num_samples == None):
                 raise ValueError("num_samples must be passed along with procedure generator.")
-            # self.next = _genNext
             self.mode = "generator"
         else:
             raise ValueError("Bad input.")
-            # initialize(proc, num_samples=num_samples, accumilate=accumilate, prediction_model=prediction_model)
 
     def getLength(self,verbose=0):
         if (self.num_samples == None):
             num_samples = 0
             for p in self.proc:
                 if (isinstance(p, DataProcedure)):
-                    X, Y = p.get_data(verbose=verbose)
+                    out = p.get_data(verbose=verbose, data_keys=[self.label_key])
                 else:
-                    X, Y = p
-                if (not isinstance(Y, list)): Y = [Y]
-                num_samples += Y[0].shape[0]
+                    out = p[0]
+                Z = out[0]
+                if (not isinstance(Z, list)): Z = [Z]
+                num_samples += Z[0].shape[0]
             self.num_samples = num_samples
         return self.num_samples
 
     def asList(self,verbose=0):
-        if (self.accumilate != None): num_params  =getNumParams(self.accumilate)
-        X_out = None
-        Y_out = None
+        if (self.accumilate != None): num_params = getNumParams(self.accumilate)
+        x_required = self.prediction_model != None and self.accumilate != None
+        y_required = self.accumilate != None and num_params > 1
+        
+        union_keys = self.data_keys
+        if(x_required):
+            if(not self.input_key in union_keys):
+                union_keys.append(self.input_key)
+            input_index = union_keys.index(self.input_key)
+        if(y_required):
+            if(not self.label_key in union_keys):
+                union_keys.append(self.label_key)
+            label_index = union_keys.index(self.label_key)
+
+        samples_outs = [None] * len(union_keys)
+        
         pred_out = None
         acc_out = None
         pos = 0
         for p in self.proc:
-            X, Y = p.get_data(verbose=verbose)
+            out = p.get_data(data_keys=union_keys,verbose=verbose)
+            
+            for i,Z in enumerate(out):
+                if (not isinstance(Z, list)): Z = [Z]
+                L = Z[0].shape[0]
 
-            if (not isinstance(Y, list)): Y = [Y]
-            L = Y[0].shape[0]
+                if (samples_outs[i] == None): samples_outs[i]= [[None] * self.getLength(verbose=verbose) for i in range(len(Z))]
+                for j, z in enumerate(Z):
+                    Zj_out = samples_outs[i][j]
+                    for k in range(L):
+                        Zj_out[pos + k] = z[k]
 
-            if (not isinstance(X, list)): X = [X]
-            if (self.return_X):
-                if (X_out == None): X_out = [[None] * self.getLength(verbose=verbose) for i in range(len(X))]
-                # print([len(x) for x in X_out])
-                # print([len(x) for x in X])
-                for i, x in enumerate(X):
-                    Xi_out = X_out[i]
-                    # print(len(xi))
-                    for j in range(L):
-                        Xi_out[pos + j] = x[j]
-
-            if (self.return_Y):
-                if (Y_out == None): Y_out = [[None] * self.getLength(verbose=verbose) for i in range(len(Y))]
-                for i, y in enumerate(Y):
-                    Yi_out = Y_out[i]
-                    for j in range(L):
-                        Yi_out[pos + j] = y[j]
-
+            if(x_required):
+                X = samples_outs[input_index]
+            if(y_required):
+                Y = samples_outs[label_index]
             if (self.prediction_model != None):
                 if (pred_out == None): pred_out = [None] * self.getLength(verbose=verbose)
                 pred = self.prediction_model.predict_on_batch(X)
@@ -92,36 +97,27 @@ class DataIterator:
 
             if (self.accumilate != None):
                 if (acc_out == None): acc_out = [None] * self.getLength(verbose=verbose)
-                if(num_params == 1):
+                if (num_params == 1):
                     acc = self.accumilate(X)
                 else:
-                    acc = self.accumilate(X,Y)
+                    acc = self.accumilate(X, Y)
                 for j in range(L):
                     acc_out[pos + j] = acc[j]
 
             pos += L
-            #print(pos, self.accumilate)  # ,acc_out))
         out = []
-        if (X_out != None):
-            for i, xo in enumerate(X_out):
-                X_out[i] = np.array(xo)
-            out.append(X_out)
-        if (Y_out != None):
-            for i, yo in enumerate(Y_out):
-                Y_out[i] = np.array(yo)
-            out.append(Y_out)
+        for key in self.data_keys:
+            Z_out = samples_outs[union_keys.index(key)]
+            if (Z_out != None):
+                for j, zo in enumerate(Z_out):
+                    Z_out[j] = np.array(zo)
+                out.append(Z_out)
         if (pred_out != None):
             out.append(np.array(pred_out))
         if (acc_out != None):
             out.append(np.array(acc_out))
         return out
 
-    # def _genNext():
-    #    #N = num_samples/ba
-    #    data = data.getData()
-    #    for i in range(self.num_samples)
-    #        yield next(data)
-    #    return StopIteration()
     '''
     def _listNext():
         for p in self.proc:
@@ -136,13 +132,10 @@ class DataIterator:
     def __iter__(self):
         return self
 
-        # def next(self):
-        #    self.count += 1
-        #    if(self.mode == 0):
 
 
 class TrialIterator(DataIterator):
-    def __init__(self, trial, data_type="val", return_X=False, return_Y=True, accumilate=None, return_prediction=False,
+    def __init__(self, trial, data_type="val", data_keys=[], accumilate=None, return_prediction=False,
                  custom_objects={}):
         if (data_type == "val"):
             proc = trial.get_val()
@@ -155,5 +148,5 @@ class TrialIterator(DataIterator):
         model = None
         if (return_prediction):
             model = trial.compile(loadweights=True, custom_objects=custom_objects)
-        DataIterator.__init__(self, proc, num_samples=num_samples, return_X=return_X, return_Y=return_Y,
+        DataIterator.__init__(self, proc, num_samples=num_samples, data_keys=data_keys,
                               accumilate=accumilate, prediction_model=model)
