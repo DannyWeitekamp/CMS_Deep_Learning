@@ -350,7 +350,7 @@ def fillEventChars(entry, new_entry, leaves_by_object,dicts_by_object, METPT_Eta
     
     HT = 0.0
     for i in range(num_jets):
-        print(jetPT_l.GetValue(i))
+        # print(jetPT_l.GetValue(i))
         HT += jetPT_l.GetValue(i)
         
     d['Entry'][new_entry] = new_entry
@@ -455,7 +455,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
 
         #Fill arrays with zeros to avoid reallocating data later
         O_OBSERVS = OUTPUT_OBSERVS if obj != "Jet" else JET_OUTPUT_OBSERVS
-        print(obj, len(OBSERVS), )
+        # print(obj, len(OBSERVS), )
         for observ in O_OBSERVS:
             dicts_by_object[obj][observ] = [0] * total_values
         dicts_by_object["NumValues"][obj] = [0] * n_entries
@@ -569,7 +569,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
 
     if (verbosity > 0): print("ElapseTime: %.2f" % float(time.clock()-start_time))
     if (verbosity > 0): print("Converted: %r of %r Entries %r%% ommited %r%% retained" \
-                              % (n_entries-cut_sample_count, n_entries, 100*float(n_entries-cut_sample_count)/float(n_entries), 100*float(cut_sample_count)/float(n_entries)))
+                              % (n_entries-cut_sample_count, n_entries, 100*float(cut_sample_count)/float(n_entries),100*float(n_entries-cut_sample_count)/float(n_entries) ))
     return pandas_out
 
 

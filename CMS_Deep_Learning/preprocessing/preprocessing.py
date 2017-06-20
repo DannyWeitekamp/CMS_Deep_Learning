@@ -662,7 +662,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         sort_columns=sort_columns,
                                         sort_ascending=sort_ascending,
                                         verbose=verbose)
-        gen_DP = DataProcedure(archive_dir, False,genFromDPs,dps, [batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
+        gen_DP = DataProcedure(archive_dir, False,genFromDPs,[dps, batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
         all_dps += dps
