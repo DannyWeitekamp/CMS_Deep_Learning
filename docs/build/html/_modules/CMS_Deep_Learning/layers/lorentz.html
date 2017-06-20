@@ -104,7 +104,6 @@
     <span class="c1"># K.clip(boosts, 0.0, .33-_EPSILON)</span>
     <span class="c1">#Initialize Helpful variables</span>
     <span class="n">x_shape</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="c1"># printed_x = theano.printing.Print(&#39;this is a very important value&#39;)(x_shape)</span>
     <span class="c1"># f = function([x], printed_x)</span>
 
 
@@ -190,9 +189,9 @@
 <span class="sd">            Bo (boost: which boosts each of any number of input 4-vectors)</span>
 <span class="sd">            W  (weight: applies a mulitplier to the boosted 4-vectors)</span>
 <span class="sd">            DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</span>
-<span class="sd">        #Arguements:</span>
-<span class="sd">            sphereCoords -- if True uses spherical coordinates for calculating the boost instead of Cartesian.</span>
-<span class="sd">            vec_start -- determines where to start reading the 4-vector along the last axis of the input.</span>
+<span class="sd">            </span>
+<span class="sd">            :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.</span>
+<span class="sd">            :parma vec_start: determines where to start reading the 4-vector along the last axis of the input.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sphereCoords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vec_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sum_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">weight_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sphereCoords</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
@@ -207,7 +206,6 @@
         
 <div class="viewcode-block" id="Lorentz.build"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
         <span class="c1">#The cluster size</span>
-        <span class="c1"># print(input_shape)</span>
         <span class="n">input_dim</span> <span class="o">=</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sum_input</span><span class="p">):</span> <span class="n">input_dim</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="c1"># self.vec_start</span>
@@ -253,10 +251,6 @@
         <span class="n">v</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="c1"># T_slice = T[:,:,0:4]</span>
         <span class="n">T_slice</span> <span class="o">=</span> <span class="n">T</span><span class="p">[:,:,</span><span class="n">v</span><span class="p">:</span><span class="n">v</span><span class="o">+</span><span class="mi">4</span><span class="p">]</span>
-        <span class="c1"># print(type(T))</span>
-        <span class="c1"># print(K.eval(T).shape)</span>
-        <span class="c1"># print(K.eval(T_slice).shape)</span>
-        <span class="c1"># print(&quot;SHAPE:&lt; &quot;,K.eval(T).shape)</span>
         <span class="c1"># summed_boosted = _lorentz( T_slice, self.Bo, weights=self.W, sphereCoords=self.sphereCoords)</span>
         <span class="n">boosted</span> <span class="o">=</span> <span class="n">_lorentz</span><span class="p">(</span> <span class="n">T_slice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">)</span>
         <span class="c1"># out = _lorentz(summed_boosted, self.Bi, sphereCoords=self.sphereCoords)</span>
@@ -274,82 +268,6 @@
         
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">base_config</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div></div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<span class="c1">#DEPRICATED -- Can be made easily by simply chaining a regular convolutional layer after the lorentz layer</span>
-
-<div class="viewcode-block" id="ConvLorentz"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.ConvLorentz">[docs]</a><span class="k">class</span> <span class="nc">ConvLorentz</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; A layer that uses the lorentz transformation to analyze input 4-vectors</span>
-<span class="sd">        in different relativistic frames.</span>
-<span class="sd">        Trains on a set of weights:</span>
-<span class="sd">            Bo (boost: which boosts each of any number of input 4-vectors)</span>
-<span class="sd">            W  (weight: applies a mulitplier to the boosted 4-vectors)</span>
-<span class="sd">            Bi (bias: boosts the vectorial sum of the input 4-vectors)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cluster_size</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vec_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">=</span> <span class="mi">4</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span> <span class="o">=</span> <span class="n">sphereCoords</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span> <span class="o">=</span> <span class="n">vec_start</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">cluster_size</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">LorentzLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        
-<div class="viewcode-block" id="ConvLorentz.build"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.ConvLorentz.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
-        <span class="c1">#The cluster size</span>
-        <span class="n">input_dim</span> <span class="o">=</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        
-        <span class="c1">#Boosts for each vector in the cluster</span>
-        <span class="n">initial_boosts_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">input_dim</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-        <span class="c1">#Bias Boost for the vector sum</span>
-        <span class="n">initial_bias_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-        <span class="c1">#Weight values for each vector in the cluster</span>
-        <span class="n">initial_weights_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">input_dim</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-        
-        <span class="c1">#If in Cartesian Coordinates scale so maxNorm = 1</span>
-        <span class="k">if</span><span class="p">(</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">):</span>
-            <span class="n">initial_boosts_value</span> <span class="o">*=</span> <span class="o">.</span><span class="mi">33</span>
-            <span class="n">initial_bias_value</span> <span class="o">*=</span> <span class="o">.</span><span class="mi">33</span>
-        
-        <span class="c1">#store weights</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">initial_boosts_value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Bi</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">initial_bias_value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">initial_weights_value</span><span class="p">)</span>
-        
-        <span class="c1">#If in Cartesian Coordinates apply maxnorm constraint so that we can</span>
-        <span class="c1">#only boost our vectors into real reference frames</span>
-        <span class="k">if</span><span class="p">(</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxnorm</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Bi</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxnorm</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        
-        <span class="c1">#Let keras know about our weights</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trainable_weights</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">]</span></div>
-
-<div class="viewcode-block" id="ConvLorentz.call"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.ConvLorentz.call">[docs]</a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1">#T dimensions are (batch_size, cluster_size, 4)</span>
-        <span class="c1">#lorentzboost of the vectorial sum of each lorentzboosted 4 vector in the cluster</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span>
-        <span class="n">T_slice</span> <span class="o">=</span> <span class="n">T</span><span class="p">[:,:,</span><span class="n">v</span><span class="p">:</span><span class="n">v</span><span class="o">+</span><span class="mi">4</span><span class="p">]</span>
-
-        <span class="n">summed_boosted</span> <span class="o">=</span> <span class="n">_lorentz</span><span class="p">(</span> <span class="n">T_slice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">_lorentz</span><span class="p">(</span><span class="n">summed_boosted</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bi</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span></div>
-
-<div class="viewcode-block" id="ConvLorentz.get_output_shape_for"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.ConvLorentz.get_output_shape_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_shape_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>

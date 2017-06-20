@@ -716,7 +716,7 @@ def main(data_dir, argv):
         for job in jobs:
             # ok = True
             out = doJob(job)
-            if(out == None):
+            if(not isinstance(out,tuple)):
                 print("Something wrong with root file. Skipping...")
                 continue
                 # ok = False
