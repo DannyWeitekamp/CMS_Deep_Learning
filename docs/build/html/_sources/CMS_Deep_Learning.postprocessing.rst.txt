@@ -1,0 +1,46 @@
+CMS\_Deep\_Learning\.postprocessing package
+===========================================
+
+Submodules
+----------
+
+CMS\_Deep\_Learning\.postprocessing\.analysistools module
+---------------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.postprocessing.analysistools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+CMS\_Deep\_Learning\.postprocessing\.colors module
+--------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.postprocessing.colors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+CMS\_Deep\_Learning\.postprocessing\.metrics module
+---------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.postprocessing.metrics
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+CMS\_Deep\_Learning\.postprocessing\.plot module
+------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.postprocessing.plot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: CMS_Deep_Learning.postprocessing
+    :members:
+    :undoc-members:
+    :show-inheritance:

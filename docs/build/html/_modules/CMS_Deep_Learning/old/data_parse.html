@@ -1,0 +1,614 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.old.data_parse &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.old.data_parse</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; </span>
+<span class="sd">data_parse.py</span>
+<span class="sd">Contains tools for parsing High Energy Physics data</span>
+<span class="sd">Author: Danny Weitekamp</span>
+<span class="sd">e-mail: dannyweitekamp@gmail.com</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">import</span> <span class="nn">ROOT</span>
+<span class="kn">from</span> <span class="nn">ROOT</span> <span class="k">import</span> <span class="n">TTree</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">gc</span>
+
+
+<div class="viewcode-block" id="DataProcessingProcedure"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.DataProcessingProcedure">[docs]</a><span class="k">class</span> <span class="nc">DataProcessingProcedure</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        An object that can be passed as a leaf in ROOT_to_pandas. Instead of simply grabbing a</span>
+<span class="sd">        leaf, it takes in data and applies a function to it. The outputs of that function are</span>
+<span class="sd">        written instead of the leaf to the pandas frame.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">input_leaves</span><span class="p">,</span> <span class="n">output_names</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">             Initialization</span>
+<span class="sd">        # Arguments</span>
+<span class="sd">            func: a function that maps the inputs (a list or tuple)</span>
+<span class="sd">                 to the outputs (a list or tuple).</span>
+<span class="sd">            input_leaves: The fully qualifed names of the leaves whose</span>
+<span class="sd">                values func will take as inputs</span>
+<span class="sd">            output_names: The names of the column headers for the outputs</span>
+<span class="sd">         &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_leaves</span> <span class="o">=</span> <span class="n">input_leaves</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_names</span> <span class="o">=</span> <span class="n">output_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_leaf_objs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> -&gt; </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_leaves</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_names</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="leaves_from_obj"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.leaves_from_obj">[docs]</a><span class="k">def</span> <span class="nf">leaves_from_obj</span><span class="p">(</span><span class="n">objname</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Takes the name of an object and a list of properties (Columns). Expands like So </span>
+<span class="sd">        leaves_from_obj(&quot;ObjectName&quot;, [&quot;Prop1, &quot;Prop2&quot;, &quot;Prop3&quot;]) -&gt;</span>
+<span class="sd">         [&quot;ObjectName.Prop1, &quot;ObjectName.Prop2&quot;, &quot;ObjectName.Prop3&quot;] , [&quot;Prop1, &quot;Prop2&quot;, &quot;Prop3&quot;]</span>
+<span class="sd">        Can also take in DataProcessingProcedures which it will properly expand in the column output</span>
+<span class="sd">        # Arguments</span>
+<span class="sd">            objname: The name of the object</span>
+<span class="sd">            input_leaves: The name of its properties </span>
+<span class="sd">        # Returns</span>
+<span class="sd">            leaves, columns</span>
+<span class="sd">            leaves: The a list of fully qualified leaf names</span>
+<span class="sd">            columns: The a list of column names. Expanded if a DataProcessingProcedure was given.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">out_col</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objname</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">col</span><span class="p">)</span>
+            <span class="n">out_col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">DataProcessingProcedure</span><span class="p">)):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">col</span><span class="o">.</span><span class="n">output_names</span><span class="p">:</span>
+                <span class="n">out_col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="n">out_col</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">out_col</span></div>
+
+
+<div class="viewcode-block" id="ROOT_NumValues_to_pandas"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.ROOT_NumValues_to_pandas">[docs]</a><span class="k">def</span> <span class="nf">ROOT_NumValues_to_pandas</span><span class="p">(</span><span class="n">inputfilepath</span><span class="p">,</span> <span class="n">leaves</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tree_name</span><span class="o">=</span><span class="s2">&quot;Delphes&quot;</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TFile</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">inputfilepath</span><span class="p">)</span>
+    <span class="c1"># if(trees == None):</span>
+    <span class="c1">#     trees = [x.GetName() for x in f.GetListOfKeys() if isinstance(x.ReadObj(), TTree)]</span>
+    <span class="c1"># Loop over the tree</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># for tree_name in trees:</span>
+    <span class="c1"># tree_out = {}</span>
+    <span class="c1"># out[tree_name] = tree_out</span>
+    <span class="c1"># if we didn&#39;t get any column names, just names just use the fully qualified leaf names</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">columns</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="n">leaves</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="s2">&quot;columns input length mismatch: </span><span class="se">\</span>
+<span class="s2">            len(leaves) = </span><span class="si">%r</span><span class="s2"> , len(columns) = </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">leaves</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">tree_name</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">SetCacheSize</span><span class="p">(</span><span class="mi">30</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="n">branches</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">leaf_name</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">:</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetBranch</span><span class="p">(</span><span class="n">leaf_name</span><span class="p">)</span>
+        <span class="n">branches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">AddBranchToCache</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">StopCacheLearningPhase</span><span class="p">()</span>
+
+    <span class="n">columnmap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">l_leaves</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">leaves</span><span class="p">):</span>
+        <span class="n">columnmap</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">l_leaf</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetLeaf</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">l_leaf</span><span class="p">,</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TLeafElement</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Leaf </span><span class="si">%r</span><span class="s2"> does not exist in Tree </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">tree_name</span><span class="p">))</span>
+        <span class="n">l_leaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_leaf</span><span class="p">)</span>
+
+    <span class="n">total_values</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">n_entries</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetEntries</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">l_leaf</span> <span class="ow">in</span> <span class="n">l_leaves</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">columnmap</span><span class="p">[</span><span class="n">name</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_entries</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_entries</span><span class="p">):</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">LoadTree</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">branches</span><span class="p">:</span>
+            <span class="n">b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="c1"># Entries have multiple values that we need to extract. Get that number</span>
+
+        <span class="k">for</span> <span class="n">l_leaf</span> <span class="ow">in</span> <span class="n">l_leaves</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span>
+            <span class="n">nValues</span> <span class="o">=</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">columnmap</span><span class="p">[</span><span class="n">name</span><span class="p">]][</span><span class="n">entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">nValues</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ROOT_to_pandas"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.ROOT_to_pandas">[docs]</a><span class="k">def</span> <span class="nf">ROOT_to_pandas</span><span class="p">(</span><span class="n">inputfilepath</span><span class="p">,</span>
+                   <span class="n">leaves</span><span class="p">,</span>
+                   <span class="n">trees</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">addEntry</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">entrylabel</span><span class="o">=</span><span class="s2">&quot;Entry&quot;</span><span class="p">,</span>
+                   <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Extracts values from a .root file and writes them to a pandas frame.</span>
+<span class="sd">         Essentially takes root data out of its tree format and puts it in a table.</span>
+<span class="sd">    # Arguments</span>
+<span class="sd">        inputfilepath: The path to the .root file held locally or in a distributed system</span>
+<span class="sd">        leaves: A list of the names of the leaves that need to be extracted </span>
+<span class="sd">        trees: A list of the trees in the .root file that need to be parsed.</span>
+<span class="sd">            Reads all trees in the file if not set.</span>
+<span class="sd">        columns: A list of the column names for the table. Uses the leaf names</span>
+<span class="sd">            if not seet</span>
+<span class="sd">        verbosity: 0:No print output, 1:Some, 2:A lot of the table is printed</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># Open the root file</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TFile</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">inputfilepath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">last_time</span> <span class="o">=</span> <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting data from &quot;</span> <span class="o">+</span> <span class="n">inputfilepath</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">trees</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">trees</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">GetName</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">GetListOfKeys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">ReadObj</span><span class="p">(),</span> <span class="n">TTree</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using trees: &quot;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trees</span><span class="p">))</span>
+
+    <span class="n">writeColumns</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">columns</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">writeColumns</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># Loop over the leaves, and make sure they are in the correct format. Also do some preprocessing.</span>
+    <span class="n">columnmap</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">output_length</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">leaf_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">col_iter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">DataProcessingProcedure</span><span class="p">)):</span>
+            <span class="n">output_length</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">output_names</span><span class="p">)</span>
+            <span class="n">leaf_names</span> <span class="o">=</span> <span class="n">leaf_names</span> <span class="o">+</span> <span class="n">leaf</span><span class="o">.</span><span class="n">input_leaves</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">writeColumns</span><span class="p">):</span>
+                <span class="n">columns</span> <span class="o">=</span> <span class="n">columns</span> <span class="o">+</span> <span class="n">leaf</span><span class="o">.</span><span class="n">output_names</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Procedure at column </span><span class="si">%r</span><span class="s2"> maps </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col_iter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">leaf</span><span class="p">)))</span>
+            <span class="n">col_iter</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">output_names</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">leaf_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">writeColumns</span><span class="p">):</span>
+                <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">columnmap</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">col_iter</span><span class="p">]</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">IndexError</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Too few Columns for evaluated output: </span><span class="se">\n</span><span class="s2"> Columns:</span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">columns</span><span class="p">)</span>
+
+            <span class="n">col_iter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">output_length</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># if we didn&#39;t get any column names, just names just use the fully qualified leaf names</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">columns</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="n">leaf_names</span>
+
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">seen_add</span> <span class="o">=</span> <span class="n">seen</span><span class="o">.</span><span class="n">add</span>
+    <span class="n">leaf_names_no_repeat</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">leaf_names</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="n">seen_add</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting Leaves: &quot;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">leaf_names_no_repeat</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">~</span><span class="n">writeColumns</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Renaming to: &quot;</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+
+    <span class="k">assert</span> <span class="n">output_length</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">),</span> <span class="s2">&quot;columns input length mismatch: </span><span class="se">\</span>
+<span class="s2">            len(leaves) = </span><span class="si">%r</span><span class="s2"> , len(columns) = </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output_length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">columns</span><span class="p">))</span>
+
+    <span class="n">dataDict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dataDict</span><span class="p">[</span><span class="n">entrylabel</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">dataDict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Loop over the tree</span>
+    <span class="k">for</span> <span class="n">tree_name</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="n">tree_name</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">SetCacheSize</span><span class="p">(</span><span class="mi">30</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">)</span>
+        <span class="n">branches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">leaf_name</span> <span class="ow">in</span> <span class="n">leaf_names_no_repeat</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetBranch</span><span class="p">(</span><span class="n">leaf_name</span><span class="p">)</span>
+            <span class="n">branches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">AddBranchToCache</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">StopCacheLearningPhase</span><span class="p">()</span>
+
+        <span class="c1"># Make sure that the leaves all exist in the tree</span>
+        <span class="n">l_leaves</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">procedures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">DataProcessingProcedure</span><span class="p">)):</span>
+                <span class="n">proc</span> <span class="o">=</span> <span class="n">leaf</span>
+                <span class="n">procedures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proc</span><span class="p">)</span>
+                <span class="n">proc</span><span class="o">.</span><span class="n">input_leaf_objs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">proc</span><span class="o">.</span><span class="n">input_leaves</span><span class="p">:</span>
+                    <span class="n">obj</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetLeaf</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TLeafElement</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;Input Leaf </span><span class="si">%r</span><span class="s2"> in Procedure </span><span class="si">%r</span><span class="s2"> does not exist in Tree </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">proc</span><span class="p">),</span> <span class="n">tree_name</span><span class="p">))</span>
+                    <span class="n">proc</span><span class="o">.</span><span class="n">input_leaf_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">l_leaf</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetLeaf</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">l_leaf</span><span class="p">,</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TLeafElement</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Leaf </span><span class="si">%r</span><span class="s2"> does not exist in Tree </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">tree_name</span><span class="p">))</span>
+                <span class="n">l_leaves</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_leaf</span><span class="p">)</span>
+
+        <span class="c1"># Iterate over all the data and figure out how many total values there are</span>
+        <span class="n">total_values</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">n_entries</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetEntries</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_entries</span><span class="p">):</span>
+
+            <span class="n">tree</span><span class="o">.</span><span class="n">LoadTree</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">branches</span><span class="p">:</span>
+                <span class="n">b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="c1"># Entries have multiple values that we need to extract. Get that number</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l_leaves</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="n">l_leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">procedures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="p">(</span><span class="n">procedures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input_leaf_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">total_values</span> <span class="o">+=</span> <span class="n">nValues</span>
+
+        <span class="c1"># Prepopulate every array in the dictionary with values</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dataDict</span><span class="p">:</span>
+            <span class="n">dataDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_values</span>
+
+        <span class="c1"># Loop over all the entries </span>
+        <span class="n">percent</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">prev_entry</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">val_num</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># n_entries=tree.GetEntries()</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_entries</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">last_time</span> <span class="o">+</span> <span class="o">.</span><span class="mi">25</span><span class="p">):</span>
+                    <span class="n">percent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">n_entries</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+                    <span class="c1"># the exact output you&#39;re looking for:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%-20s</span><span class="s2">] </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2">  </span><span class="si">%r</span><span class="s2">(Entry/sec)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="mi">20</span> <span class="o">*</span> <span class="n">percent</span><span class="p">),</span> <span class="n">entry</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_entries</span><span class="p">),</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">entry</span> <span class="o">-</span> <span class="n">prev_entry</span><span class="p">)))</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">last_time</span> <span class="o">=</span> <span class="n">c</span>
+                    <span class="n">prev_entry</span> <span class="o">=</span> <span class="n">entry</span>
+
+            <span class="c1"># Point the tree to the next entry &lt;- IMPORTANT this is how we loop</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">LoadTree</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">branches</span><span class="p">:</span>
+                <span class="n">b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+
+            <span class="c1"># Entries have multiple values that we need to extract. Get that number</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">l_leaves</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="n">l_leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">procedures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="p">(</span><span class="n">procedures</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">input_leaf_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nValues</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># Store what entry we are in in the table</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">addEntry</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nValues</span><span class="p">):</span>
+                    <span class="c1"># dataDict[entrylabel] = dataDict[entrylabel] + [entry]*nValues</span>
+                    <span class="n">dataDict</span><span class="p">[</span><span class="n">entrylabel</span><span class="p">][</span><span class="n">val_num</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+
+            <span class="c1"># Loop over all the leaves that we just need to copy</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">l_leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l_leaves</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span> <span class="o">==</span> <span class="n">nValues</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> entries in leaf &#39;</span><span class="si">%r</span><span class="s2">&#39; does not match  </span><span class="se">\</span>
+<span class="s2">                    </span><span class="si">%r</span><span class="s2"> entries in leaf &#39;</span><span class="si">%r</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">l_leaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">(),</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetName</span><span class="p">(),</span> <span class="n">nValues</span><span class="p">,</span> <span class="n">l_leaves</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetName</span><span class="p">())</span>
+                <span class="c1"># Place all the values in the dictionary</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nValues</span><span class="p">):</span>
+                    <span class="c1"># dataDict[columnmap[l_leaf.GetName()]].append(l_leaf.GetValue(i))</span>
+                    <span class="n">dataDict</span><span class="p">[</span><span class="n">columnmap</span><span class="p">[</span><span class="n">l_leaf</span><span class="o">.</span><span class="n">GetName</span><span class="p">()]][</span><span class="n">val_num</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">l_leaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="c1"># Loop over all the DataProcessingProcedures</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">proc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">procedures</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nValues</span><span class="p">):</span>
+                    <span class="n">inputs</span> <span class="o">=</span> <span class="p">[]</span>
+
+                    <span class="c1"># Loop over all the leaves that we for DataProcessingProcedure inputs</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">l_leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">input_leaf_objs</span><span class="p">):</span>
+                        <span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l_leaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+                    <span class="c1"># Apply the mapping function</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">proc</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+                    <span class="c1"># If we forgot to make the output of our function a list, fix that.</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="p">]</span>
+
+                    <span class="c1"># Put our outputs in the dictionary</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">proc</span><span class="o">.</span><span class="n">output_names</span><span class="p">):</span>
+                        <span class="c1"># dataDict[name].append(out[k])</span>
+                        <span class="n">dataDict</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">val_num</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+
+            <span class="n">val_num</span> <span class="o">+=</span> <span class="n">nValues</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">addEntry</span><span class="p">):</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">entrylabel</span><span class="p">]</span> <span class="o">+</span> <span class="n">columns</span>
+
+    <span class="c1"># Make the dataframe from the dictionary</span>
+    <span class="n">dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dataDict</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+
+    <span class="c1"># f = None</span>
+    <span class="c1"># t = None</span>
+    <span class="n">dataDict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">option_context</span><span class="p">(</span><span class="s1">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">999</span><span class="p">,</span> <span class="s1">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">option_context</span><span class="p">(</span><span class="s1">&#39;display.max_rows&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">dataframe</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading </span><span class="si">%r</span><span class="s2"> bytes in </span><span class="si">%d</span><span class="s2"> transactions</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">GetBytesRead</span><span class="p">(),</span> <span class="n">f</span><span class="o">.</span><span class="n">GetReadCalls</span><span class="p">()));</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Elapse time: </span><span class="si">%.2f</span><span class="s2"> seconds&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">Close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dataframe</span></div>
+
+
+<div class="viewcode-block" id="getPandasNumValues"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasNumValues">[docs]</a><span class="k">def</span> <span class="nf">getPandasNumValues</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ROOT_NumValues_to_pandas</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="p">[</span><span class="s2">&quot;Photon.Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron.Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight.Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;MissingET.Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowPhoton.Phi&quot;</span><span class="p">,</span>
+                                     <span class="s2">&quot;EFlowNeutralHadron.Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack.Phi&quot;</span><span class="p">],</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Photon&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span> <span class="s2">&quot;MissingET&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">])</span></div>
+
+
+<span class="n">mass_of_electron</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mf">0.0005109989461</span><span class="p">)</span>  <span class="c1"># eV/c</span>
+<span class="n">mass_of_muon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mf">0.1056583715</span><span class="p">)</span>  <span class="c1"># eV/c</span>
+
+
+<div class="viewcode-block" id="four_vec_from_PT"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.four_vec_from_PT">[docs]</a><span class="k">def</span> <span class="nf">four_vec_from_PT</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper function that converts (PT, Eta, Phi) -&gt; (E/c, Px, Py, Pz)&#39;&#39;&#39;</span>
+    <span class="n">PT</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Eta</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">Phi</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="c1"># M has units of eV/(c^2)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">M</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">momentum_mag</span> <span class="o">=</span> <span class="n">PT</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cosh</span><span class="p">(</span><span class="n">Eta</span><span class="p">)</span>
+
+    <span class="n">E_over_c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">M</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">momentum_mag</span><span class="p">))</span>
+    <span class="n">px</span> <span class="o">=</span> <span class="n">PT</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phi</span><span class="p">)</span>
+    <span class="n">py</span> <span class="o">=</span> <span class="n">PT</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phi</span><span class="p">)</span>
+    <span class="n">pz</span> <span class="o">=</span> <span class="n">PT</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sinh</span><span class="p">(</span><span class="n">Eta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">E_over_c</span><span class="p">,</span> <span class="n">px</span><span class="p">,</span> <span class="n">py</span><span class="p">,</span> <span class="n">pz</span><span class="p">]</span></div>
+
+
+<span class="c1"># DEGENERATE</span>
+<div class="viewcode-block" id="getPandasParticles"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasParticles">[docs]</a><span class="k">def</span> <span class="nf">getPandasParticles</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cull</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="c1"># C=1 in natural units so no processing needs to be done</span>
+    <span class="n">E_over_c_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Particle.E&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;E/c&quot;</span><span class="p">])</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">E_over_c_proc</span><span class="p">,</span> <span class="s2">&quot;Px&quot;</span><span class="p">,</span> <span class="s2">&quot;Py&quot;</span><span class="p">,</span> <span class="s2">&quot;Pz&quot;</span><span class="p">,</span> <span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="s2">&quot;Charge&quot;</span><span class="p">]</span>  <span class="c1"># , &quot;Status&quot;]</span>
+    <span class="n">leaves</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">leaves_from_obj</span><span class="p">(</span><span class="s2">&quot;Particle&quot;</span><span class="p">,</span> <span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;Eta&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">dxy_proc</span> <span class="o">+</span> <span class="n">elfow_proc</span><span class="p">)</span>
+    <span class="n">original_frame</span> <span class="o">=</span> <span class="n">ROOT_to_pandas</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="n">leaves</span><span class="p">,</span>
+                                    <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+                                    <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">cull</span><span class="p">):</span>
+        <span class="n">particle_frame</span> <span class="o">=</span> <span class="n">cullNonObservables</span><span class="p">(</span><span class="n">original_frame</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">particle_frame</span> <span class="o">=</span> <span class="n">original_frame</span>
+    <span class="k">return</span> <span class="n">particle_frame</span></div>
+
+
+<div class="viewcode-block" id="getPandasSpecificObject"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasSpecificObject">[docs]</a><span class="k">def</span> <span class="nf">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chrg_def</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">XT</span><span class="o">=</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">Dxy_Ehad_Eem</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Converts a particular type of ROOT object to table format</span>
+<span class="sd">        Arguements:</span>
+<span class="sd">        filaname      -- Path to the .root filen</span>
+<span class="sd">        name          -- The name of the object being converted</span>
+<span class="sd">        mass=None     -- The mass of the object being converted, by default reads the mass from the object</span>
+<span class="sd">        pid=None      -- The pid of the object, by default reads the pid from the object</span>
+<span class="sd">        chrg_def=-1   -- The default charge of a particle, (e.g. an electron would be -1) as opposed to its anti-particle</span>
+<span class="sd">        charge=None   -- The charge, by default reads it from object</span>
+<span class="sd">        XT=&quot;PT&quot;       -- The transverse measurement. Can be PT, ET, or MET. Used to compute the 4-momentum</span>
+<span class="sd">        Dxy_Ehad_Eem=None -- A string indicating if the Dxy,Ehad, or Eem properties should be read. They occupy one column since</span>
+<span class="sd">                                they are never mutually non-zero.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">        A pandas frame of the format: [E/c, Px, Py, Pz, PID, Charge, PT_ET, Eta, Phi, Dxy_Ehad_Eem]</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="n">Dxy_Ehad_Eem</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Dxy&quot;</span><span class="p">,</span> <span class="s2">&quot;Ehad&quot;</span><span class="p">,</span> <span class="s2">&quot;Eem&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">XT</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="s2">&quot;ET&quot;</span><span class="p">,</span> <span class="s2">&quot;MET&quot;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">mass</span> <span class="o">&gt;=</span> <span class="mf">0.0</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">mass</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">four_vec_inputs</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="n">leaves_from_obj</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="n">XT</span><span class="p">,</span> <span class="s2">&quot;Eta&quot;</span><span class="p">,</span> <span class="s2">&quot;Phi&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">four_vec_inputs</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="n">leaves_from_obj</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">[</span><span class="n">XT</span><span class="p">,</span> <span class="s2">&quot;Eta&quot;</span><span class="p">,</span> <span class="s2">&quot;Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;Mass&quot;</span><span class="p">])</span>
+
+    <span class="n">four_vec_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">four_vec_from_PT</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
+                                            <span class="p">,</span> <span class="n">four_vec_inputs</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;E/c&quot;</span><span class="p">,</span> <span class="s2">&quot;Px&quot;</span><span class="p">,</span> <span class="s2">&quot;Py&quot;</span><span class="p">,</span> <span class="s2">&quot;Pz&quot;</span><span class="p">])</span>
+
+    <span class="c1"># status_proc = DataProcessingProcedure(lambda x:[1], [], [&quot;Status&quot;])</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">charge</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">PID_charge_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">pid</span> <span class="o">*</span> <span class="n">chrg_def</span> <span class="o">*</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                                                      <span class="p">,</span> <span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.Charge&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="s2">&quot;Charge&quot;</span><span class="p">])</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">four_vec_proc</span><span class="p">,</span> <span class="n">PID_charge_proc</span><span class="p">]</span>  <span class="c1"># , status_proc]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">four_vec_proc</span><span class="p">,</span> <span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="s2">&quot;Charge&quot;</span><span class="p">]</span>  <span class="c1"># , status_proc]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">charge_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">charge</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span><span class="s2">&quot;Charge&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">pid</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">PID_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">pid</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span><span class="s2">&quot;PID&quot;</span><span class="p">])</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">four_vec_proc</span><span class="p">,</span> <span class="n">PID_proc</span><span class="p">,</span> <span class="n">charge_proc</span><span class="p">]</span>  <span class="c1"># ,status_proc]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">four_vec_proc</span><span class="p">,</span> <span class="s2">&quot;PID&quot;</span><span class="p">,</span> <span class="n">charge_proc</span><span class="p">]</span>  <span class="c1"># ,status_proc]</span>
+
+    <span class="n">xt_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">XT</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;PT_ET&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Dxy_Ehad_Eem</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">dxy_eflow_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">[],</span> <span class="p">[</span><span class="s2">&quot;Dxy_Ehad_Eem&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dxy_eflow_proc</span> <span class="o">=</span> <span class="n">DataProcessingProcedure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">Dxy_Ehad_Eem</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;Dxy_Ehad_Eem&quot;</span><span class="p">])</span>
+
+    <span class="n">leaves</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">leaves_from_obj</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">columns</span> <span class="o">+</span> <span class="p">[</span><span class="n">xt_proc</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">,</span> <span class="s2">&quot;Eta&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">dxy_eflow_proc</span><span class="p">])</span>
+
+    <span class="c1"># Extract the tables from the root file</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">ROOT_to_pandas</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
+                           <span class="n">leaves</span><span class="p">,</span>
+                           <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span>
+                           <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">frame</span></div>
+
+
+<div class="viewcode-block" id="getPandasPhotons"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasPhotons">[docs]</a><span class="k">def</span> <span class="nf">getPandasPhotons</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the Photon objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;Photon&quot;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasElectrons"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasElectrons">[docs]</a><span class="k">def</span> <span class="nf">getPandasElectrons</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the Electron objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">mass_of_electron</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasTightMuons"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasTightMuons">[docs]</a><span class="k">def</span> <span class="nf">getPandasTightMuons</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the MuonTight objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="n">mass_of_muon</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasJets"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasJets">[docs]</a><span class="k">def</span> <span class="nf">getPandasJets</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the Jet objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;Jet&quot;</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">chrg_def</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasMissingET"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasMissingET">[docs]</a><span class="k">def</span> <span class="nf">getPandasMissingET</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MissingET&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the MissingET objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="n">pid</span> <span class="o">=</span> <span class="mi">83</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;PuppiMissingET&quot;</span><span class="p">):</span> <span class="n">pid</span> <span class="o">=</span> <span class="mi">84</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="n">pid</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">XT</span><span class="o">=</span><span class="s2">&quot;MET&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasEFlowParticle"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasEFlowParticle">[docs]</a><span class="k">def</span> <span class="nf">getPandasEFlowParticle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the EFlowPhoton objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="n">pid</span> <span class="o">=</span> <span class="mi">90</span>
+    <span class="n">Dxy_Ehad_Eem</span> <span class="o">=</span> <span class="s2">&quot;Eem&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">):</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="mi">91</span>
+        <span class="n">Dxy_Ehad_Eem</span> <span class="o">=</span> <span class="s2">&quot;Ehad&quot;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="n">pid</span><span class="p">,</span> <span class="n">XT</span><span class="o">=</span><span class="s2">&quot;ET&quot;</span><span class="p">,</span> <span class="n">Dxy_Ehad_Eem</span><span class="o">=</span><span class="n">Dxy_Ehad_Eem</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasEFlowTrack"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasEFlowTrack">[docs]</a><span class="k">def</span> <span class="nf">getPandasEFlowTrack</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from the EFlowTrack objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">getPandasSpecificObject</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pid</span><span class="o">=</span><span class="mi">89</span><span class="p">,</span> <span class="n">XT</span><span class="o">=</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">Dxy_Ehad_Eem</span><span class="o">=</span><span class="s2">&quot;Dxy&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getPandasAll"><a class="viewcode-back" href="../../../CMS_Deep_Learning.old.html#CMS_Deep_Learning.old.data_parse.getPandasAll">[docs]</a><span class="k">def</span> <span class="nf">getPandasAll</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">includePuppi</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Returns a pandas frame derived from several observable objects in the given ROOT file&#39;&#39;&#39;</span>
+    <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="n">getPandasPhotons</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+           <span class="n">getPandasElectrons</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+           <span class="n">getPandasTightMuons</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+           <span class="n">getPandasEFlowParticle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">),</span>
+           <span class="n">getPandasEFlowParticle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">),</span>
+           <span class="n">getPandasEFlowTrack</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
+           <span class="n">getPandasMissingET</span><span class="p">(</span><span class="n">filename</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">includePuppi</span><span class="p">):</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="n">lst</span> <span class="o">+</span> <span class="p">[</span><span class="n">getPandasMissingET</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;PuppiMissingET&quot;</span><span class="p">)]</span>
+    <span class="c1"># Merge all these frames</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

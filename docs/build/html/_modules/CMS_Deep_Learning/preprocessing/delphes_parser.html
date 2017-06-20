@@ -1,0 +1,888 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.preprocessing.delphes_parser &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.preprocessing.delphes_parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1">#sys.path.append(os.path.realpath(&quot;../&quot;))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="o">+</span><span class="s2">&quot;/../../../&quot;</span><span class="p">))</span>
+    <span class="c1">#print(os.path.realpath(__file__+&quot;/../../../&quot;))</span>
+<span class="kn">import</span> <span class="nn">ROOT</span> 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">islice</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">getopt</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.meta</span> <span class="k">import</span> <span class="n">msgpack_assertMeta</span>
+
+
+<div class="viewcode-block" id="DeltaRsq"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.DeltaRsq">[docs]</a><span class="k">def</span> <span class="nf">DeltaRsq</span><span class="p">(</span><span class="n">A_Eta</span><span class="p">,</span> <span class="n">A_Phi</span><span class="p">,</span> <span class="n">B_Eta</span><span class="p">,</span> <span class="n">B_Phi</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes the </span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            #consider N = # of A, M = # of B</span>
+<span class="sd">            A_Eta -- A numpy array of shape (N,) of all the Eta values of a certain</span>
+<span class="sd">                        type of object in a given sample</span>
+<span class="sd">            A_Phi -- A numpy array of shape (N,) of all the Phi values of a certain</span>
+<span class="sd">                        type of object in a given sample</span>
+<span class="sd">            B_Eta -- A numpy array of shape (M,) of all the Eta values of a certain</span>
+<span class="sd">                        type of object in a given sample</span>
+<span class="sd">            B_Phi -- A numpy array of shape (M,) of all the Phi values of a certain</span>
+<span class="sd">                        type of object in a given sample</span>
+<span class="sd">        #Returns</span>
+<span class="sd">            A numpy ndarray of shape (N,M) containing the pairwise squared angular distances  </span>
+<span class="sd">            between two sets of objects of types A and B</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">B_Eta</span> <span class="o">=</span> <span class="n">B_Eta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">B_Eta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">B_Phi</span> <span class="o">=</span> <span class="n">B_Phi</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">B_Phi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">A_Eta</span> <span class="o">=</span> <span class="n">A_Eta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A_Eta</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">A_Phi</span> <span class="o">=</span> <span class="n">A_Phi</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">A_Phi</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1">#print(A_Eta.shape, B_Eta.shape)</span>
+    <span class="n">DeltaEta</span> <span class="o">=</span> <span class="n">A_Eta</span> <span class="o">-</span> <span class="n">B_Eta</span>
+    <span class="n">DeltaPhi</span> <span class="o">=</span> <span class="n">A_Phi</span> <span class="o">-</span> <span class="n">B_Phi</span>
+    
+    <span class="n">tooLarge</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">DeltaPhi</span> <span class="o">&gt;</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">tooSmall</span> <span class="o">=</span> <span class="mf">2.</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">DeltaPhi</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">DeltaPhi</span> <span class="o">=</span> <span class="n">DeltaPhi</span> <span class="o">+</span> <span class="n">tooLarge</span> <span class="o">+</span> <span class="n">tooSmall</span>    
+    <span class="n">delRsq</span> <span class="o">=</span> <span class="n">DeltaEta</span><span class="o">*</span><span class="n">DeltaEta</span><span class="o">+</span><span class="n">DeltaPhi</span><span class="o">*</span><span class="n">DeltaPhi</span>
+    <span class="k">return</span> <span class="n">delRsq</span></div>
+
+<div class="viewcode-block" id="trackMatch"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.trackMatch">[docs]</a><span class="k">def</span> <span class="nf">trackMatch</span><span class="p">(</span><span class="n">prtEta</span><span class="p">,</span> <span class="n">prtPhi</span><span class="p">,</span> <span class="n">trkEta</span><span class="p">,</span> <span class="n">trkPhi</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Matches a reconstructed particle with its track</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            #consider N = # of particles, M = # of tracks</span>
+<span class="sd">            prtEta -- A numpy array of shape (N,) of all the Eta values of a certain</span>
+<span class="sd">                        type of reconstructed particle in a given sample</span>
+<span class="sd">            prtPhi -- A numpy array of shape (N,) of all the Phi values of a certain</span>
+<span class="sd">                        type of reconstructed particle in a given sample</span>
+<span class="sd">            trkEta -- A numpy array of shape (M,) of all the Eta values of a track in </span>
+<span class="sd">                        a given sample</span>
+<span class="sd">            trkPhi -- A numpy array of shape (M,) of all the trkPhi values of a track in </span>
+<span class="sd">                        a given sample</span>
+<span class="sd">        #Returns</span>
+<span class="sd">            A numpy array of shape (N,) containing the index of each track corresponding to each</span>
+<span class="sd">            reconstruced particle.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">delRsq</span> <span class="o">=</span> <span class="n">DeltaRsq</span><span class="p">(</span><span class="n">prtEta</span><span class="p">,</span> <span class="n">prtPhi</span><span class="p">,</span> <span class="n">trkEta</span><span class="p">,</span> <span class="n">trkPhi</span><span class="p">)</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">delRsq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">index</span></div>
+
+
+<div class="viewcode-block" id="Iso"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.Iso">[docs]</a><span class="k">def</span> <span class="nf">Iso</span><span class="p">(</span><span class="n">A_Eta</span><span class="p">,</span> <span class="n">A_Phi</span><span class="p">,</span> <span class="n">A_Pt</span><span class="p">,</span> <span class="n">B_Eta</span><span class="p">,</span> <span class="n">B_Phi</span><span class="p">,</span> <span class="n">to_ommit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">maxdist</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes the isolation between two object types</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            #consider N = # of particles in group A, M = # of particles in group B</span>
+<span class="sd">            (A or B)_Eta --  numpy array with shape (N or M,) </span>
+<span class="sd">                                corresponding to the Eta values of the particles</span>
+<span class="sd">            (A or B)_Phi --  numpy array with shape (N or M,) </span>
+<span class="sd">                                corresponding to the Phi values of the particles</span>
+<span class="sd">            (A or B)_Pt --  numpy array with shape (N or M,) </span>
+<span class="sd">                                corresponding to the transverse momentum values of the particles</span>
+<span class="sd">            maxdist -- The maximum cartesian distance between Eta and Phi to be included in the isolation</span>
+<span class="sd">        #Returns</span>
+<span class="sd">            The isolations of each particle in A w.r.t the particles in B</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">DRsq</span> <span class="o">=</span> <span class="n">DeltaRsq</span><span class="p">(</span><span class="n">A_Eta</span><span class="p">,</span> <span class="n">A_Phi</span><span class="p">,</span> <span class="n">B_Eta</span><span class="p">,</span> <span class="n">B_Phi</span><span class="p">)</span>
+
+    <span class="c1">#Exclude particles in B that are too far away</span>
+    <span class="n">CloseTracks</span> <span class="o">=</span> <span class="n">DRsq</span> <span class="o">&lt;</span> <span class="n">maxdist</span><span class="o">*</span><span class="n">maxdist</span>
+    <span class="n">DRsq</span> <span class="o">=</span> <span class="n">DRsq</span> <span class="o">*</span> <span class="n">CloseTracks</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">DRsq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">A_Pt</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="getMaxPt_Eta_Phi"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.getMaxPt_Eta_Phi">[docs]</a><span class="k">def</span> <span class="nf">getMaxPt_Eta_Phi</span><span class="p">(</span><span class="n">leaves_by_object</span><span class="p">,</span><span class="n">entry</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">PT_ET_MET</span><span class="o">=</span><span class="s2">&quot;PT&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns the PT, Eta and Phi corresponding to the particle of the highest PT in the object collection</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                    keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                    zeros</span>
+<span class="sd">            leaves_by_object -- A dictionary keyed by object type, containing dictionaries of tuples</span>
+<span class="sd">                                like (leaf, branch) keyed by observable type. Only valid ROOT</span>
+<span class="sd">                                observables are used as keys. Each (leaf,branch) pair corresponds</span>
+<span class="sd">                                to the leaf and branch of a ROOT observable.</span>
+<span class="sd">            entry -- The entry to in the ROOT file to read from</span>
+<span class="sd">        #Returns PT, Eta, Phi or if empty 0,0,0</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">n_values</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    <span class="n">l_PT</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">PT_ET_MET</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Eta</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Phi</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">max_PT</span><span class="p">,</span> <span class="n">max_index</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span>
+    <span class="c1"># print(obj,n_values)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_values</span><span class="p">):</span>
+        <span class="n">PT</span> <span class="o">=</span> <span class="n">l_PT</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">PT</span> <span class="o">&gt;</span> <span class="n">max_PT</span><span class="p">):</span>
+            <span class="n">max_PT</span><span class="p">,</span> <span class="n">max_index</span> <span class="o">=</span> <span class="n">PT</span><span class="p">,</span> <span class="n">i</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">max_index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="n">max_PT</span><span class="p">,</span> <span class="n">l_Eta</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">max_index</span><span class="p">),</span> <span class="n">l_Phi</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">max_index</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="passJetCuts"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.passJetCuts">[docs]</a><span class="k">def</span> <span class="nf">passJetCuts</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">num_jets</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">PT_threshold</span><span class="o">=</span><span class="mf">40.0</span><span class="p">):</span>
+    <span class="n">leaf</span><span class="p">,</span><span class="n">branch</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;Jet&quot;</span><span class="p">][</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+    <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">n_values</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">leaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PT_threshold</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_values</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">num_jets</span></div>
+
+<div class="viewcode-block" id="passLeptonCuts"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.passLeptonCuts">[docs]</a><span class="k">def</span> <span class="nf">passLeptonCuts</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">num_leptons</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">PT_threshold</span><span class="o">=</span><span class="mf">20.0</span><span class="p">):</span>
+    <span class="n">eleaf</span><span class="p">,</span><span class="n">branch</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;Electron&quot;</span><span class="p">][</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+    <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">mleaf</span><span class="p">,</span><span class="n">branch</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;MuonTight&quot;</span><span class="p">][</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+    <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    
+    <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">eleaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PT_threshold</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">eleaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">())]</span> <span class="o">+</span>\
+           <span class="p">[</span><span class="n">mleaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">PT_threshold</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mleaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">())]</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">num_leptons</span></div>
+
+
+<div class="viewcode-block" id="fill_object"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.fill_object">[docs]</a><span class="k">def</span> <span class="nf">fill_object</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">leaves_by_object</span><span class="p">,</span><span class="n">entry</span><span class="p">,</span><span class="n">new_entry</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">PT_ET_MET</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">others</span><span class="p">,</span> <span class="n">maxLepPT_Eta_Phi</span><span class="p">,</span> <span class="n">METPT_Eta_Phi</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Fills an object with values for a given entry</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                zeros</span>
+<span class="sd">            leaves_by_object -- A dictionary keyed by object type, containing dictionaries of tuples </span>
+<span class="sd">                                like (leaf, branch) keyed by observable type. Only valid ROOT </span>
+<span class="sd">                                observables are used as keys. Each (leaf,branch) pair corresponds</span>
+<span class="sd">                                to the leaf and branch of a ROOT observable.</span>
+<span class="sd">            entry -- The entry to in the ROOT file to read from</span>
+<span class="sd">            new_entry -- The new entry number for the sample (Does not correspond to entry if samples are removed)</span>
+<span class="sd">            start_index -- Where to start filling each array in the dictionary dicts_by_object[obj].</span>
+<span class="sd">                            They should all have the same length since each array is a column in a table.</span>
+<span class="sd">            obj -- The type of object we are filling</span>
+<span class="sd">            PT_ET_MET -- The particluar flavor of transverse energy for this kind of object either </span>
+<span class="sd">                        (&#39;PT&#39;,  &#39;ET&#39;, &#39;MET&#39;)</span>
+<span class="sd">            M -- The mass of this kind of object</span>
+<span class="sd">            others -- Any ROOT observables unique to this kind of object that we should read</span>
+<span class="sd">                                             </span>
+<span class="sd">        #Returns </span>
+<span class="sd">            The number of values filled in for each column of our table</span>
+<span class="sd">            </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+    <span class="n">fill_dict</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">n_values</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    <span class="c1"># print(obj,n_values)</span>
+
+    <span class="c1">#start_index = index_by_objects[obj]</span>
+    <span class="n">lv</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TLorentzVector</span><span class="p">()</span>
+    <span class="n">l_PT</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">PT_ET_MET</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Eta</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Phi</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_others</span> <span class="o">=</span> <span class="p">[(</span><span class="n">other</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">other</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">others</span><span class="p">]</span>
+    <span class="c1">#lv_leaves = [d[ lorentz_vars[i] ][0] for i in range(lorentz_vars)]</span>
+    <span class="n">maxLepPT</span><span class="p">,</span> <span class="n">maxLepEta</span><span class="p">,</span> <span class="n">maxLepPhi</span> <span class="o">=</span> <span class="n">maxLepPT_Eta_Phi</span>
+    <span class="n">METPT</span><span class="p">,</span> <span class="n">METEta</span><span class="p">,</span> <span class="n">METPhi</span> <span class="o">=</span> <span class="n">METPT_Eta_Phi</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_values</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">start_index</span> <span class="o">+</span> <span class="n">i</span>
+        <span class="c1"># print(obj,index)</span>
+        <span class="n">PT</span> <span class="o">=</span> <span class="n">l_PT</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">Eta</span> <span class="o">=</span> <span class="n">l_Eta</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">Phi</span> <span class="o">=</span> <span class="n">l_Phi</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">lv</span><span class="o">.</span><span class="n">SetPtEtaPhiM</span><span class="p">(</span><span class="n">PT</span><span class="p">,</span><span class="n">Eta</span><span class="p">,</span><span class="n">Phi</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Entry&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_entry</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;E/c&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">E</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Px&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Px</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Py&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Py</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Pz&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Pz</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;PT_ET&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">PT</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Eta</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">Phi</span>
+
+        <span class="n">MaxLepDeltaEta</span> <span class="o">=</span> <span class="n">maxLepEta</span> <span class="o">-</span> <span class="n">Eta</span>
+        <span class="n">MaxLepDeltaPhi</span> <span class="o">=</span> <span class="n">maxLepPhi</span> <span class="o">-</span> <span class="n">Phi</span>
+
+        <span class="n">tooLarge</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">MaxLepDeltaPhi</span> <span class="o">&gt;</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">tooSmall</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">MaxLepDeltaPhi</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">MaxLepDeltaPhi</span> <span class="o">=</span> <span class="n">MaxLepDeltaPhi</span> <span class="o">+</span> <span class="n">tooLarge</span> <span class="o">+</span> <span class="n">tooSmall</span>
+
+        <span class="n">METDeltaEta</span> <span class="o">=</span> <span class="n">maxLepEta</span> <span class="o">-</span> <span class="n">Eta</span>
+        <span class="n">METDeltaPhi</span> <span class="o">=</span> <span class="n">maxLepPhi</span> <span class="o">-</span> <span class="n">Phi</span>
+
+        <span class="n">tooLarge</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">METDeltaPhi</span> <span class="o">&gt;</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">tooSmall</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">METDeltaPhi</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">METDeltaPhi</span> <span class="o">=</span> <span class="n">METDeltaPhi</span> <span class="o">+</span> <span class="n">tooLarge</span> <span class="o">+</span> <span class="n">tooSmall</span>
+
+        <span class="n">maxLepDeltaRSqr</span> <span class="o">=</span> <span class="p">(</span><span class="n">MaxLepDeltaEta</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">MaxLepDeltaPhi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;MaxLepDeltaEta&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">MaxLepDeltaEta</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;MaxLepDeltaPhi&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">MaxLepDeltaPhi</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;MaxLepDeltaR&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">maxLepDeltaRSqr</span><span class="p">)</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;MaxLepKt&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">PT</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxLepPT</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">maxLepDeltaRSqr</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;MaxLepAntiKt&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">PT</span><span class="o">**-</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxLepPT</span><span class="o">**-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">maxLepDeltaRSqr</span>
+        <span class="n">METDeltaRSqr</span> <span class="o">=</span> <span class="p">(</span><span class="n">METDeltaEta</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">METDeltaPhi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;METDeltaEta&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">METDeltaEta</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;METDeltaPhi&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">METDeltaPhi</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;METDeltaR&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">METDeltaRSqr</span><span class="p">)</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;METKt&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">PT</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">METPT</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">METDeltaRSqr</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;METAntiKt&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">PT</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">METPT</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">METDeltaRSqr</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">l_other</span><span class="p">)</span> <span class="ow">in</span> <span class="n">l_others</span><span class="p">:</span>
+            <span class="c1">#if(obj == &quot;EFlowTrack&quot;): print(other, l_other.GetValue(i))</span>
+            <span class="n">fill_dict</span><span class="p">[</span><span class="n">other</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">l_other</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="c1"># for OUTPUT_OBSERVS</span>
+    <span class="k">return</span> <span class="n">n_values</span></div>
+
+
+<div class="viewcode-block" id="fill_jet"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.fill_jet">[docs]</a><span class="k">def</span> <span class="nf">fill_jet</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">new_entry</span><span class="p">,</span> <span class="n">start_index</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Fills an object with values for a given entry</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                zeros</span>
+<span class="sd">            leaves_by_object -- A dictionary keyed by object type, containing dictionaries of tuples </span>
+<span class="sd">                                like (leaf, branch) keyed by observable type. Only valid ROOT </span>
+<span class="sd">                                observables are used as keys. Each (leaf,branch) pair corresponds</span>
+<span class="sd">                                to the leaf and branch of a ROOT observable.</span>
+<span class="sd">            entry -- The entry to in the ROOT file to read from</span>
+<span class="sd">            new_entry -- The new entry number for the sample (Does not correspond to entry if samples are removed)</span>
+<span class="sd">            start_index -- Where to start filling each array in the dictionary dicts_by_object[obj].</span>
+<span class="sd">                            They should all have the same length since each array is a column in a table.</span>
+<span class="sd">        #Returns </span>
+<span class="sd">            The number of values filled in for each column of our table</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s1">&#39;Jet&#39;</span><span class="p">]</span>
+    <span class="n">fill_dict</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="s1">&#39;Jet&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">n_values</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+
+    <span class="n">lv</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TLorentzVector</span><span class="p">()</span>
+    <span class="n">l_PT</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Eta</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_Phi</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">l_mass</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Mass&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+   
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_values</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">start_index</span> <span class="o">+</span> <span class="n">i</span>
+        <span class="n">PT</span> <span class="o">=</span> <span class="n">l_PT</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">Eta</span> <span class="o">=</span> <span class="n">l_Eta</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">Phi</span> <span class="o">=</span> <span class="n">l_Phi</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">Mass</span> <span class="o">=</span> <span class="n">l_mass</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">lv</span><span class="o">.</span><span class="n">SetPtEtaPhiM</span><span class="p">(</span><span class="n">PT</span><span class="p">,</span> <span class="n">Eta</span><span class="p">,</span> <span class="n">Phi</span><span class="p">,</span> <span class="n">Mass</span><span class="p">)</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Entry&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_entry</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;E/c&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">E</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Px&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Px</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Py&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Py</span><span class="p">()</span>
+        <span class="n">fill_dict</span><span class="p">[</span><span class="s2">&quot;Pz&quot;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">lv</span><span class="o">.</span><span class="n">Pz</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span><span class="n">branch</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># print(leaf)</span>
+            <span class="n">fill_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">n_values</span></div>
+
+<div class="viewcode-block" id="fillTrackMatch"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.fillTrackMatch">[docs]</a><span class="k">def</span> <span class="nf">fillTrackMatch</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">trackIndicies</span><span class="p">,</span> <span class="n">prtStart</span><span class="p">,</span> <span class="n">trackStart</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Fills an object with values for a given entry</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                zeros</span>
+<span class="sd">            obj -- The type of object we are matching with a track</span>
+<span class="sd">            trackIndicies -- The result of trackMatch(). A numpy array of indicies corresponding to</span>
+<span class="sd">                            tracks being matched to particles</span>
+<span class="sd">            prtStart -- Where to start filling in X,Y,Z, and Dxy values for paricles matched to tracks</span>
+<span class="sd">            trackStart -- Where to start reading track values from.</span>
+<span class="sd">                #Note: We need to know where to start because we may not be filling or reading from</span>
+<span class="sd">                        the beginning of each of our table columns.</span>
+<span class="sd">                                             </span>
+<span class="sd">        #Returns(void)</span>
+<span class="sd">            </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span>
+    <span class="n">lX</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span>
+    <span class="n">lY</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span>
+    <span class="n">lZ</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="s2">&quot;Z&quot;</span><span class="p">]</span>
+    <span class="n">lDxy</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="s2">&quot;Dxy&quot;</span><span class="p">]</span>
+    <span class="n">tX</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span>
+    <span class="n">tY</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span>
+    <span class="n">tZ</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s2">&quot;Z&quot;</span><span class="p">]</span>
+    <span class="n">tDxy</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="s2">&quot;Dxy&quot;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">lepI</span><span class="p">,</span> <span class="n">trkI</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trackIndicies</span><span class="p">):</span>
+        <span class="n">lepIndex</span> <span class="o">=</span> <span class="n">lepI</span> <span class="o">+</span> <span class="n">prtStart</span>
+        <span class="n">trkIndex</span> <span class="o">=</span> <span class="n">trkI</span> <span class="o">+</span> <span class="n">trackStart</span>
+        <span class="c1"># print(obj, lepIndex, trkIndex, tX[trkIndex], tY[trkIndex], tZ[trkIndex])</span>
+        <span class="n">lX</span><span class="p">[</span><span class="n">lepIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">tX</span><span class="p">[</span><span class="n">trkIndex</span><span class="p">]</span>
+        <span class="n">lY</span><span class="p">[</span><span class="n">lepIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">tY</span><span class="p">[</span><span class="n">trkIndex</span><span class="p">]</span>
+        <span class="n">lZ</span><span class="p">[</span><span class="n">lepIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">tZ</span><span class="p">[</span><span class="n">trkIndex</span><span class="p">]</span>
+        <span class="n">lDxy</span><span class="p">[</span><span class="n">lepIndex</span><span class="p">]</span> <span class="o">=</span> <span class="n">tDxy</span><span class="p">[</span><span class="n">trkIndex</span><span class="p">]</span></div>
+
+    
+<div class="viewcode-block" id="fillIso"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.fillIso">[docs]</a><span class="k">def</span> <span class="nf">fillIso</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">isoType</span><span class="p">,</span>  <span class="n">obj_start</span><span class="p">,</span><span class="n">iso</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Fills an object with values for a given entry</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                zeros</span>
+<span class="sd">            obj -- The type of object are running isolation on</span>
+<span class="sd">            isoType -- The object type corresponding to the type of isolation we are running</span>
+<span class="sd">            obj_start -- Where to start filling in isolation values</span>
+<span class="sd">                 #Note: We need to know where to start because we may not be filling or reading from</span>
+<span class="sd">                        the beginning of each of our table columns.</span>
+<span class="sd">            iso -- The result of Iso(). A list of isolation values.</span>
+<span class="sd">        #Returns(void)     </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">isoArr</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="n">isoType</span><span class="p">]</span>
+    <span class="c1"># print(type(iso), iso)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">iso</span><span class="p">)):</span>
+        <span class="n">isoArr</span><span class="p">[</span><span class="n">obj_start</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">iso</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+        
+<div class="viewcode-block" id="fillEventChars"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.fillEventChars">[docs]</a><span class="k">def</span> <span class="nf">fillEventChars</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">new_entry</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">,</span><span class="n">dicts_by_object</span><span class="p">,</span> <span class="n">METPT_Eta_Phi</span><span class="p">,</span><span class="n">maxLepPT_Eta_Phi</span><span class="p">,</span><span class="n">maxJetPT_Eta_Phi</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;EventChars&quot;</span><span class="p">]</span>
+    <span class="n">jetPT_l</span><span class="p">,</span><span class="n">jetPT_b</span><span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;Jet&quot;</span><span class="p">][</span><span class="s2">&quot;PT&quot;</span><span class="p">]</span>
+    <span class="n">muonPhi_l</span><span class="p">,</span><span class="n">muonPhi_b</span><span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;MuonTight&quot;</span><span class="p">][</span><span class="s2">&quot;Phi&quot;</span><span class="p">]</span>
+    <span class="n">elecPhi_l</span><span class="p">,</span><span class="n">elecPhi_b</span><span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="s2">&quot;Electron&quot;</span><span class="p">][</span><span class="s2">&quot;Phi&quot;</span><span class="p">]</span>
+    <span class="n">jetPT_b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">muonPhi_b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">elecPhi_b</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    
+    <span class="n">num_jets</span> <span class="o">=</span> <span class="n">jetPT_l</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    <span class="n">num_muon</span> <span class="o">=</span> <span class="n">muonPhi_l</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    <span class="n">num_elec</span> <span class="o">=</span> <span class="n">elecPhi_l</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+    
+    <span class="n">HT</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_jets</span><span class="p">):</span>
+        <span class="c1"># print(jetPT_l.GetValue(i))</span>
+        <span class="n">HT</span> <span class="o">+=</span> <span class="n">jetPT_l</span><span class="o">.</span><span class="n">GetValue</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_entry</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;HT&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">HT</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;JetMul&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_jets</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;ElectronMul&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_elec</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;MuonMul&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_muon</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;MET&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">METPT_Eta_Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;MaxLepPT&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxLepPT_Eta_Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;MaxJetPT&#39;</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxJetPT_Eta_Phi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+    
+
+
+<div class="viewcode-block" id="getEtaPhiPTasNumpy"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.getEtaPhiPTasNumpy">[docs]</a><span class="k">def</span> <span class="nf">getEtaPhiPTasNumpy</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">n_vals</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets numpy arrays corresponding to all of the Eta, Phi, and Pt values for a given object type</span>
+<span class="sd">            in a given sample. Here start and n_vals specifiy where the sample starts and how long it is. </span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            dicts_by_object -- A dictionary keyed by object type containing dictionaries of arrays</span>
+<span class="sd">                                keyed by observable type. Arrays are expected to be prefilled with</span>
+<span class="sd">                                zeros</span>
+<span class="sd">            obj -- The type of object we are reading from to create our numpy arrays</span>
+<span class="sd">            start -- where to start reading in that object</span>
+<span class="sd">                #Note: We need to know where to start because we may not be filling or reading from</span>
+<span class="sd">                        the beginning of each of our table columns.</span>
+<span class="sd">            n_vals -- How many values to read.</span>
+<span class="sd">        #Returns</span>
+<span class="sd">            Eta, Phi, Pt -- numpy arrays    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="n">PT_ET</span> <span class="o">=</span> <span class="s2">&quot;PT_ET&quot;</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="s2">&quot;Jet&quot;</span> <span class="k">else</span> <span class="s2">&quot;PT&quot;</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+    <span class="n">Eta</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">n_vals</span><span class="p">]</span> <span class="p">)</span>
+    <span class="n">Phi</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">n_vals</span><span class="p">]</span> <span class="p">)</span>
+    <span class="n">Pt</span> <span class="o">=</span>  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="n">d</span><span class="p">[</span><span class="n">PT_ET</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">start</span><span class="o">+</span><span class="n">n_vals</span><span class="p">]</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">Eta</span><span class="p">,</span> <span class="n">Phi</span><span class="p">,</span> <span class="n">Pt</span> </div>
+
+
+<span class="c1">#Masses for electrons and muons</span>
+<span class="n">mass_of_electron</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mf">0.0005109989461</span><span class="p">)</span> <span class="c1">#eV/c</span>
+<span class="n">mass_of_muon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="mf">0.1056583715</span><span class="p">)</span> 
+
+<span class="n">OBJECT_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Electron&#39;</span><span class="p">,</span> <span class="s1">&#39;MuonTight&#39;</span><span class="p">,</span> <span class="s1">&#39;Photon&#39;</span><span class="p">,</span> <span class="s1">&#39;MissingET&#39;</span><span class="p">,</span> <span class="s1">&#39;EFlowPhoton&#39;</span><span class="p">,</span> <span class="s1">&#39;EFlowNeutralHadron&#39;</span><span class="p">,</span> <span class="s1">&#39;EFlowTrack&#39;</span><span class="p">,</span>              <span class="s2">&quot;Jet&quot;</span><span class="p">]</span>
+<span class="n">PT_ET_TYPES</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">,</span>          <span class="s1">&#39;PT&#39;</span><span class="p">,</span>       <span class="s1">&#39;PT&#39;</span><span class="p">,</span>      <span class="s1">&#39;MET&#39;</span><span class="p">,</span>        <span class="s1">&#39;ET&#39;</span><span class="p">,</span>           <span class="s1">&#39;ET&#39;</span><span class="p">,</span>               <span class="s1">&#39;PT&#39;</span><span class="p">,</span>                   <span class="s1">&#39;PT&#39;</span><span class="p">]</span>
+<span class="n">EXTRA_FILLS</span>  <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;Charge&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;Charge&#39;</span><span class="p">],</span>     <span class="p">[],</span>        <span class="p">[],</span>     <span class="p">[</span><span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">],</span>  <span class="p">[</span><span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;Charge&#39;</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Dxy&#39;</span><span class="p">],[]]</span>
+<span class="n">MASSES</span> <span class="o">=</span>    <span class="p">[</span><span class="n">mass_of_electron</span><span class="p">,</span> <span class="n">mass_of_muon</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>        <span class="mi">0</span><span class="p">,</span>           <span class="mi">0</span><span class="p">,</span>                <span class="mi">0</span><span class="p">,</span>                 <span class="mi">0</span><span class="p">,</span>                        <span class="mi">0</span><span class="p">]</span>
+<span class="n">TRACK_MATCH</span> <span class="o">=</span>   <span class="p">[</span><span class="kc">True</span><span class="p">,</span>        <span class="kc">True</span><span class="p">,</span>        <span class="kc">False</span><span class="p">,</span>    <span class="kc">False</span><span class="p">,</span>        <span class="kc">False</span><span class="p">,</span>           <span class="kc">False</span><span class="p">,</span>              <span class="kc">False</span><span class="p">,</span>                  <span class="kc">False</span><span class="p">]</span>
+<span class="n">COMPUTE_ISO</span> <span class="o">=</span>   <span class="p">[</span><span class="kc">True</span><span class="p">,</span>        <span class="kc">True</span><span class="p">,</span>        <span class="kc">True</span><span class="p">,</span>     <span class="kc">False</span><span class="p">,</span>        <span class="kc">True</span><span class="p">,</span>           <span class="kc">True</span><span class="p">,</span>              <span class="kc">False</span><span class="p">,</span>                    <span class="kc">False</span><span class="p">]</span>
+<span class="n">LEPTON_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Electron&#39;</span><span class="p">,</span> <span class="s1">&#39;MuonTight&#39;</span><span class="p">]</span>
+
+
+<span class="n">ROOT_OBSERVS</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">,</span> <span class="s1">&#39;ET&#39;</span><span class="p">,</span> <span class="s1">&#39;MET&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Dxy&#39;</span><span class="p">,</span> <span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">]</span>
+<span class="n">OUTPUT_OBSERVS</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">,</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;PT_ET&#39;</span><span class="p">,</span><span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span>
+                    <span class="s2">&quot;MaxLepDeltaEta&quot;</span><span class="p">,</span> <span class="s2">&quot;MaxLepDeltaPhi&quot;</span><span class="p">,</span><span class="s1">&#39;MaxLepDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepKt&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepAntiKt&#39;</span><span class="p">,</span> <span class="s2">&quot;METDeltaEta&quot;</span><span class="p">,</span><span class="s2">&quot;METDeltaPhi&quot;</span><span class="p">,</span><span class="s1">&#39;METDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;METKt&#39;</span><span class="p">,</span> <span class="s1">&#39;METAntiKt&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span> <span class="s1">&#39;Dxy&#39;</span><span class="p">,</span> <span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">,</span> <span class="s1">&#39;MuIso&#39;</span><span class="p">,</span> <span class="s1">&#39;EleIso&#39;</span><span class="p">,</span><span class="s1">&#39;ChHadIso&#39;</span><span class="p">,</span><span class="s1">&#39;NeuHadIso&#39;</span><span class="p">,</span><span class="s1">&#39;GammaIso&#39;</span><span class="p">]</span>
+<span class="n">JET_OBSERVS</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">,</span><span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span><span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Flavor&#39;</span><span class="p">,</span> <span class="s1">&#39;FlavorAlgo&#39;</span><span class="p">,</span> <span class="s1">&#39;FlavorPhys&#39;</span><span class="p">,</span> <span class="s1">&#39;BTag&#39;</span><span class="p">,</span> <span class="s1">&#39;BTagAlgo&#39;</span><span class="p">,</span> <span class="s1">&#39;BTagPhys&#39;</span><span class="p">,</span><span class="s1">&#39;TauTag&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;EhadOverEem&#39;</span><span class="p">,</span> <span class="s1">&#39;NCharged&#39;</span><span class="p">,</span> <span class="s1">&#39;NNeutrals&#39;</span><span class="p">,</span> <span class="s1">&#39;Beta&#39;</span><span class="p">,</span> <span class="s1">&#39;BetaStar&#39;</span><span class="p">,</span> <span class="s1">&#39;MeanSqDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;PTD&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NSubJetsTrimmed&#39;</span><span class="p">,</span> <span class="s1">&#39;NSubJetsPruned&#39;</span><span class="p">,</span> <span class="s1">&#39;NSubJetsSoftDropped&#39;</span><span class="p">]</span>
+
+
+<span class="n">EVENT_CHARS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">,</span><span class="s1">&#39;MET&#39;</span><span class="p">,</span><span class="s1">&#39;HT&#39;</span><span class="p">,</span><span class="s1">&#39;MuonMul&#39;</span><span class="p">,</span><span class="s1">&#39;ElectronMul&#39;</span><span class="p">,</span><span class="s1">&#39;JetMul&#39;</span><span class="p">,</span><span class="s1">&#39;MaxJetPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepPT&#39;</span><span class="p">]</span>
+
+<span class="n">JET_OUTPUT_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Entry&#39;</span><span class="p">,</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">JET_OBSERVS</span>
+<span class="n">ISO_TYPES</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;MuIso&#39;</span><span class="p">,</span> <span class="s1">&#39;MuonTight&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;EleIso&#39;</span><span class="p">,</span><span class="s1">&#39;Electron&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ChHadIso&#39;</span><span class="p">,</span><span class="s1">&#39;EFlowTrack&#39;</span><span class="p">)</span> <span class="p">,(</span><span class="s1">&#39;NeuHadIso&#39;</span><span class="p">,</span><span class="s1">&#39;EFlowNeutralHadron&#39;</span><span class="p">),(</span><span class="s1">&#39;GammaIso&#39;</span><span class="p">,</span><span class="s1">&#39;EFlowPhoton&#39;</span><span class="p">)]</span>
+
+<div class="viewcode-block" id="delphes_to_pandas"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.delphes_to_pandas">[docs]</a><span class="k">def</span> <span class="nf">delphes_to_pandas</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fixedNum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">requireLepton</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+    <span class="n">fileIN</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TFile</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">fileIN</span><span class="o">.</span><span class="n">Get</span><span class="p">(</span><span class="s2">&quot;Delphes&quot;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">fixedNum</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">n_entries</span><span class="o">=</span><span class="n">tree</span><span class="o">.</span><span class="n">GetEntries</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n_entries</span> <span class="o">=</span> <span class="n">fixedNum</span>
+    <span class="c1"># print(fileIN.summary())</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">SetCacheSize</span><span class="p">(</span><span class="mi">30</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="p">)</span>
+
+    <span class="c1">#Get all the leaves that we need to read and their associated branches</span>
+    <span class="n">leaves_by_object</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">OBJECT_TYPES</span><span class="p">:</span>
+        <span class="n">leaves_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">OBSERVS</span> <span class="o">=</span> <span class="n">ROOT_OBSERVS</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="s2">&quot;Jet&quot;</span> <span class="k">else</span> <span class="n">JET_OBSERVS</span>
+        <span class="k">for</span> <span class="n">observ</span> <span class="ow">in</span> <span class="n">OBSERVS</span><span class="p">:</span>
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">GetLeaf</span><span class="p">(</span><span class="n">obj</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">observ</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span><span class="n">ROOT</span><span class="o">.</span><span class="n">TLeafElement</span><span class="p">)):</span>
+                <span class="n">leaves_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="n">observ</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">GetBranch</span><span class="p">())</span>
+    <span class="c1"># leaf = tree.GetLeaf(&#39;HepMCEvent.ProcessID&#39;)</span>
+    <span class="c1"># leaves_by_object[&quot;HepMCEvent.ProcessID&quot;] = (leaf, leaf.GetBranch())</span>
+
+    <span class="c1">#Allocate the data for the tables by filling arrays with zeros</span>
+    <span class="n">dicts_by_object</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;EventChars&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">OBJECT_TYPES</span><span class="p">:</span>
+        <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">branch</span><span class="p">)</span> <span class="o">=</span> <span class="n">leaves_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="s1">&#39;Phi&#39;</span><span class="p">]</span>
+        <span class="n">total_values</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1">#Loop over all the Phi values (since everything has Phi) and accumilate</span>
+        <span class="c1">#   the total number of values for each object type</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_entries</span><span class="p">):</span>
+            <span class="n">branch</span><span class="o">.</span><span class="n">GetEntry</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+            <span class="n">total_values</span> <span class="o">+=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">GetLen</span><span class="p">()</span>
+
+        <span class="c1">#Fill arrays with zeros to avoid reallocating data later</span>
+        <span class="n">O_OBSERVS</span> <span class="o">=</span> <span class="n">OUTPUT_OBSERVS</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="s2">&quot;Jet&quot;</span> <span class="k">else</span> <span class="n">JET_OUTPUT_OBSERVS</span>
+        <span class="c1"># print(obj, len(OBSERVS), )</span>
+        <span class="k">for</span> <span class="n">observ</span> <span class="ow">in</span> <span class="n">O_OBSERVS</span><span class="p">:</span>
+            <span class="n">dicts_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">][</span><span class="n">observ</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">total_values</span>
+        <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">][</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_entries</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">EVENT_CHARS</span><span class="p">:</span>
+        <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;EventChars&quot;</span><span class="p">][</span><span class="n">char</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span> <span class="n">n_entries</span>
+        
+
+
+    <span class="n">index_by_objects</span> <span class="o">=</span> <span class="p">{</span><span class="n">o</span><span class="p">:</span><span class="mi">0</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">OBJECT_TYPES</span><span class="p">}</span>
+    <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+    <span class="n">prev_entry</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">to_ommit</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cut_sample_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">new_entry</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_entries</span><span class="p">):</span>
+
+        <span class="c1">#Make a pretty progress bar in the terminal</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> 
+            <span class="k">if</span><span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">last_time</span> <span class="o">+</span> <span class="o">.</span><span class="mi">25</span><span class="p">):</span>
+                <span class="n">percent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">n_entries</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%-20s</span><span class="s2">] </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2">  </span><span class="si">%r</span><span class="s2">(Entry/sec)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="mi">20</span><span class="o">*</span><span class="n">percent</span><span class="p">),</span> <span class="n">entry</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_entries</span><span class="p">),</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">entry</span><span class="o">-</span><span class="n">prev_entry</span><span class="p">)))</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">last_time</span> <span class="o">=</span> <span class="n">c</span>
+                <span class="n">prev_entry</span> <span class="o">=</span> <span class="n">entry</span>
+
+        <span class="c1">#Initialize some temporary helper variables</span>
+        <span class="n">number_by_object</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">Eta_Phi_PT_by_object</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span><span class="p">((</span><span class="n">passLeptonCuts</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span><span class="n">leaves_by_object</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">requireLepton</span><span class="p">)</span> <span class="ow">and</span> <span class="n">passJetCuts</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">)):</span>
+            <span class="c1"># Find the PT,Eta, and Phi for the leption with the highest PT, and for the MET</span>
+            <span class="n">maxLepPT_Eta_Phi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">getMaxPt_Eta_Phi</span><span class="p">(</span><span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">LEPTON_TYPES</span><span class="p">],</span> \
+                                   <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">METPT_Eta_Phi</span> <span class="o">=</span> <span class="n">getMaxPt_Eta_Phi</span><span class="p">(</span><span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span><span class="s2">&quot;MissingET&quot;</span><span class="p">,</span> <span class="s2">&quot;MET&quot;</span><span class="p">)</span>
+            <span class="n">maxJetPT_Eta_Phi</span> <span class="o">=</span> <span class="n">getMaxPt_Eta_Phi</span><span class="p">(</span><span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span><span class="s2">&quot;Jet&quot;</span><span class="p">,</span> <span class="s2">&quot;PT&quot;</span><span class="p">)</span>
+            
+            <span class="n">fillEventChars</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">new_entry</span><span class="p">,</span> <span class="n">leaves_by_object</span><span class="p">,</span> <span class="n">dicts_by_object</span><span class="p">,</span> <span class="n">METPT_Eta_Phi</span><span class="p">,</span><span class="n">maxLepPT_Eta_Phi</span><span class="p">,</span><span class="n">maxJetPT_Eta_Phi</span><span class="p">)</span>
+
+            <span class="c1">#Fill each type of object with everything that is observable in the ROOT file for that object</span>
+            <span class="c1">#   in addition to Energy and the three components of momentum</span>
+            <span class="k">for</span> <span class="n">obj</span><span class="p">,</span> <span class="n">PT_ET_type</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">extra_fills</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">OBJECT_TYPES</span><span class="p">,</span> <span class="n">PT_ET_TYPES</span><span class="p">,</span> <span class="n">MASSES</span><span class="p">,</span> <span class="n">EXTRA_FILLS</span><span class="p">):</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">index_by_objects</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="s2">&quot;Jet&quot;</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="n">fill_object</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">leaves_by_object</span><span class="p">,</span><span class="n">entry</span><span class="p">,</span><span class="n">new_entry</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">PT_ET_type</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">extra_fills</span><span class="p">,</span> <span class="n">maxLepPT_Eta_Phi</span><span class="p">,</span> <span class="n">METPT_Eta_Phi</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="n">fill_jet</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">leaves_by_object</span><span class="p">,</span><span class="n">entry</span><span class="p">,</span><span class="n">new_entry</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+                <span class="n">dicts_by_object</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">][</span><span class="n">obj</span><span class="p">][</span><span class="n">new_entry</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+                <span class="n">number_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+                <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">getEtaPhiPTasNumpy</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+
+            <span class="c1">#Do Track matching for objects with TRACK_MATCH = True</span>
+            <span class="n">trkEta</span><span class="p">,</span> <span class="n">trkPhi</span><span class="p">,</span> <span class="n">dummy</span> <span class="o">=</span> <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span>
+            <span class="n">start_tracks</span> <span class="o">=</span> <span class="n">index_by_objects</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">obj</span><span class="p">,</span> <span class="n">ok</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">OBJECT_TYPES</span><span class="p">,</span> <span class="n">TRACK_MATCH</span><span class="p">):</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">ok</span><span class="p">):</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">index_by_objects</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                    <span class="n">Phi</span><span class="p">,</span> <span class="n">Eta</span><span class="p">,</span> <span class="n">PT</span> <span class="o">=</span> <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                    <span class="n">matches</span> <span class="o">=</span> <span class="n">trackMatch</span><span class="p">(</span><span class="n">Phi</span><span class="p">,</span> <span class="n">Eta</span><span class="p">,</span> <span class="n">trkEta</span><span class="p">,</span> <span class="n">trkPhi</span><span class="p">)</span>
+                    <span class="n">track_ommitions</span> <span class="o">=</span> <span class="n">matches</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                    <span class="n">to_ommit</span> <span class="o">+=</span> <span class="p">[</span><span class="n">start_tracks</span> <span class="o">+</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">track_ommitions</span><span class="p">]</span>
+                    <span class="n">isoEta</span><span class="p">,</span> <span class="n">isoPhi</span><span class="p">,</span> <span class="n">isoPt</span> <span class="o">=</span> <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span>
+
+                    <span class="c1">#Omit info for repeat tracks, for Isolation calculation</span>
+                    <span class="n">sel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">isoEta</span><span class="p">))</span>
+                    <span class="n">sel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">sel</span><span class="p">,</span> <span class="n">track_ommitions</span><span class="p">)</span>
+                    <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">isoEta</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="n">isoPhi</span><span class="p">[</span><span class="n">sel</span><span class="p">],</span> <span class="n">isoPt</span><span class="p">[</span><span class="n">sel</span><span class="p">]</span>
+                    <span class="n">fillTrackMatch</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">matches</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">start_tracks</span><span class="p">)</span>
+
+            <span class="c1">#Compute isolation</span>
+            <span class="k">for</span> <span class="n">obj</span><span class="p">,</span> <span class="n">ok</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">OBJECT_TYPES</span><span class="p">,</span> <span class="n">COMPUTE_ISO</span><span class="p">):</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">index_by_objects</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">ok</span><span class="p">):</span>
+                    <span class="n">objEta</span><span class="p">,</span> <span class="n">objPhi</span><span class="p">,</span> <span class="n">objPt</span> <span class="o">=</span> <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">iso_type</span><span class="p">,</span> <span class="n">iso_obj</span> <span class="ow">in</span> <span class="n">ISO_TYPES</span><span class="p">:</span>
+                        <span class="n">isoEta</span><span class="p">,</span> <span class="n">isoPhi</span><span class="p">,</span> <span class="n">isoPt</span> <span class="o">=</span> <span class="n">Eta_Phi_PT_by_object</span><span class="p">[</span><span class="n">iso_obj</span><span class="p">]</span>
+                        <span class="n">iso_val</span> <span class="o">=</span> <span class="n">Iso</span><span class="p">(</span><span class="n">objEta</span><span class="p">,</span> <span class="n">objPhi</span><span class="p">,</span> <span class="n">objPt</span><span class="p">,</span> <span class="n">isoEta</span><span class="p">,</span> <span class="n">isoPhi</span><span class="p">)</span>
+                        <span class="n">iso_val</span> <span class="o">=</span> <span class="n">iso_val</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">==</span> <span class="n">iso_obj</span> <span class="k">else</span> <span class="n">iso_val</span>
+                        <span class="n">fillIso</span><span class="p">(</span><span class="n">dicts_by_object</span><span class="p">,</span><span class="n">obj</span><span class="p">,</span> <span class="n">iso_type</span><span class="p">,</span>  <span class="n">start</span><span class="p">,</span> <span class="n">iso_val</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">OBJECT_TYPES</span><span class="p">:</span>
+                <span class="n">index_by_objects</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">+=</span> <span class="n">number_by_object</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+            <span class="n">new_entry</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cut_sample_count</span> <span class="o">+=</span><span class="mi">1</span>
+    <span class="n">pandas_out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">obj</span><span class="p">,</span><span class="n">d</span> <span class="ow">in</span> <span class="n">dicts_by_object</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">obj</span> <span class="o">==</span> <span class="s2">&quot;NumValues&quot;</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">OBJECT_TYPES</span><span class="p">)</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">obj</span> <span class="o">==</span> <span class="s2">&quot;EventChars&quot;</span><span class="p">):</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">EVENT_CHARS</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">O_OBSERVS</span> <span class="o">=</span> <span class="n">OUTPUT_OBSERVS</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">!=</span> <span class="s2">&quot;Jet&quot;</span> <span class="k">else</span> <span class="n">JET_OUTPUT_OBSERVS</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">O_OBSERVS</span><span class="p">)</span>
+        <span class="n">pandas_out</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df</span><span class="o">!=</span><span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+    
+    <span class="c1">#Remove Tracks that correspond to Electrons and Muons</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pandas_out</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span>
+    <span class="n">to_drop</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">to_ommit</span><span class="p">]</span>
+    <span class="n">to_subtract</span> <span class="o">=</span> <span class="n">to_drop</span><span class="p">[[</span><span class="s1">&#39;Entry&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;Entry&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&#39;Entry&#39;</span><span class="p">:</span><span class="s1">&#39;count&#39;</span><span class="p">})</span>
+    <span class="n">to_subtract</span> <span class="o">=</span> <span class="n">to_subtract</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Entry&#39;</span><span class="p">:</span><span class="s1">&#39;EFlowTrack&#39;</span><span class="p">})</span>
+   
+    <span class="c1">#Update the numValues so that they are correct</span>
+    <span class="n">pandas_out</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pandas_out</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">to_subtract</span><span class="p">,</span><span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1">#assert pandas_out[&quot;NumValues&quot;][&#39;EFlowTrack&#39;].dtype == int, &quot;NumValues is wrong dtype, %r&quot; %  pandas_out[&quot;EFlowTrack&quot;][&#39;Entry&#39;].dtype</span>
+    
+    <span class="n">cleaned</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">to_ommit</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">pandas_out</span><span class="p">[</span><span class="s2">&quot;EFlowTrack&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cleaned</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ElapseTime: </span><span class="si">%.2f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">verbosity</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Converted: </span><span class="si">%r</span><span class="s2"> of </span><span class="si">%r</span><span class="s2"> Entries </span><span class="si">%r%%</span><span class="s2"> ommited </span><span class="si">%r%%</span><span class="s2"> retained&quot;</span> \
+                              <span class="o">%</span> <span class="p">(</span><span class="n">n_entries</span><span class="o">-</span><span class="n">cut_sample_count</span><span class="p">,</span> <span class="n">n_entries</span><span class="p">,</span> <span class="mi">100</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">cut_sample_count</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">n_entries</span><span class="p">),</span><span class="mi">100</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">n_entries</span><span class="o">-</span><span class="n">cut_sample_count</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">n_entries</span><span class="p">)</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">pandas_out</span></div>
+
+
+<span class="c1">#http://stackoverflow.com/questions/3678869/pythonic-way-to-combine-two-lists-in-an-alternating-fashion</span>
+<div class="viewcode-block" id="roundrobin"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.roundrobin">[docs]</a><span class="k">def</span> <span class="nf">roundrobin</span><span class="p">(</span><span class="o">*</span><span class="n">iterables</span><span class="p">):</span>
+   <span class="s2">&quot;roundrobin(&#39;ABC&#39;, &#39;D&#39;, &#39;EF&#39;) --&gt; A D E B F C&quot;</span>
+   <span class="c1"># Recipe credited to George Sakkis</span>
+   <span class="n">pending</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">iterables</span><span class="p">)</span>
+   <span class="n">nexts</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">it</span><span class="p">)</span><span class="o">.</span><span class="n">next</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">iterables</span><span class="p">)</span>
+   <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+         <span class="k">for</span> <span class="nb">next</span> <span class="ow">in</span> <span class="n">nexts</span><span class="p">:</span>
+             <span class="k">yield</span> <span class="nb">next</span><span class="p">()</span>
+      <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+         <span class="n">pending</span> <span class="o">-=</span> <span class="mi">1</span>
+         <span class="n">nexts</span> <span class="o">=</span> <span class="n">cycle</span><span class="p">(</span><span class="n">islice</span><span class="p">(</span><span class="n">nexts</span><span class="p">,</span> <span class="n">pending</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="makeJobs"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.makeJobs">[docs]</a><span class="k">def</span> <span class="nf">makeJobs</span><span class="p">(</span><span class="n">data_folder</span><span class="p">,</span>
+                <span class="n">storeType</span><span class="p">,</span>
+                <span class="n">pandas_folder</span> <span class="o">=</span><span class="s2">&quot;/pandas/&quot;</span><span class="p">):</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">data_folder</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span> <span class="n">data_folder</span> <span class="o">=</span> <span class="n">data_folder</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">data_folder</span> <span class="o">+</span> <span class="s2">&quot;/*.root&quot;</span><span class="p">)</span>
+    <span class="n">store_dir</span> <span class="o">=</span> <span class="n">data_folder</span> <span class="o">+</span> <span class="n">pandas_folder</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">store_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">store_dir</span><span class="p">):</span> <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">store_dir</span><span class="p">)</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="p">[</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span>  <span class="n">store_dir</span><span class="p">,</span> <span class="n">storeType</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">jobs</span></div>
+
+<div class="viewcode-block" id="doJob"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.doJob">[docs]</a><span class="k">def</span> <span class="nf">doJob</span><span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">redo</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">f</span><span class="p">,</span> <span class="n">store_dir</span><span class="p">,</span> <span class="n">storeType</span> <span class="o">=</span> <span class="n">job</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">store</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">store_dir</span><span class="p">,</span><span class="n">rerun</span><span class="o">=</span><span class="n">redo</span><span class="p">,</span><span class="n">storeType</span><span class="o">=</span><span class="n">storeType</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Something weird happened when parsing </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+
+<div class="viewcode-block" id="store"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.store">[docs]</a><span class="k">def</span> <span class="nf">store</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">outputdir</span><span class="p">,</span> <span class="n">rerun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">storeType</span><span class="o">=</span><span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filepath</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">outputdir</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.h5&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="c1">#print(&quot;KEYS:&quot;, set(keys))</span>
+        <span class="c1">#print(&quot;KEYS:&quot;, set([&quot;/&quot;+key for key in OBJECT_TYPES+[&quot;NumValues&quot;]]))</span>
+        <span class="c1">#print(&quot;KEYS:&quot;, set(keys)==set([&quot;/&quot;+key for key in OBJECT_TYPES+[&quot;NumValues&quot;]]))</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">OBJECT_TYPES</span><span class="o">+</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]])</span> <span class="ow">or</span> <span class="n">rerun</span><span class="p">):</span>
+            <span class="c1">#print(&quot;OUT&quot;,out_file)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">frames</span> <span class="o">=</span> <span class="n">delphes_to_pandas</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to parse file </span><span class="si">%r</span><span class="s2">. File may be corrupted.&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+                <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">frame</span> <span class="ow">in</span> <span class="n">frames</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;table&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write to HDFStore </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
+                <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;NumValues&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">):</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">outputdir</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span> <span class="s2">&quot;.msg&quot;</span>
+        <span class="c1"># meta_out_file = outputdir + filename + &quot;.meta&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span> <span class="ow">or</span> <span class="n">rerun</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">frames</span> <span class="o">=</span> <span class="n">delphes_to_pandas</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to parse file </span><span class="si">%r</span><span class="s2">. File may be corrupted.&quot;</span> <span class="o">%</span> <span class="n">filepath</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">to_msgpack</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="n">frames</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to write msgpack </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">out_file</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="c1"># pd.to_msgpack(meta_out_file, meta_frames)</span>
+            <span class="n">meta_frames</span> <span class="o">=</span> <span class="n">msgpack_assertMeta</span><span class="p">(</span><span class="n">out_file</span><span class="p">,</span> <span class="n">frames</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">meta_frames</span> <span class="o">=</span> <span class="n">msgpack_assertMeta</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+
+        <span class="n">num</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meta_frames</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="c1"># elif(not os.path.exists(meta_out_file)):</span>
+        <span class="c1">#     print(&quot;.meta file missing creating %r&quot; % meta_out_file)</span>
+        <span class="c1">#     frames = pd.read_msgpack(out_file)</span>
+        <span class="c1">#     meta_frames = {&quot;NumValues&quot; : frames[&quot;NumValues&quot;]}</span>
+        <span class="c1">#     pd.to_msgpack(meta_out_file, meta_frames)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;storeType </span><span class="si">%r</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">storeType</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">num</span><span class="p">,</span> <span class="n">out_file</span></div>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.delphes_parser.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">argv</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+    <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+    <span class="c1"># print(data_dir)</span>
+    <span class="n">storeType</span> <span class="o">=</span> <span class="s2">&quot;hdf5&quot;</span>
+    <span class="n">redo</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">num_samples</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">num_processes</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">screwup_error</span> <span class="o">=</span> <span class="s2">&quot;python delphes_parser.py &lt;input_dir&gt;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">opts</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">getopt</span><span class="o">.</span><span class="n">getopt</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span><span class="s1">&#39;n:p:mrh&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">getopt</span><span class="o">.</span><span class="n">GetoptError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+        <span class="c1"># print(args)</span>
+        <span class="nb">print</span> <span class="n">screwup_error</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+  
+    <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+      <span class="c1"># print(opt, arg)</span>
+        <span class="k">if</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--msg&quot;</span><span class="p">,</span> <span class="s2">&quot;--msgpack&quot;</span><span class="p">):</span>
+            <span class="n">storeType</span> <span class="o">=</span> <span class="s2">&quot;msgpack&quot;</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;-h5&#39;</span><span class="p">,</span> <span class="s2">&quot;--hdf&quot;</span><span class="p">,</span> <span class="s2">&quot;--hdf5&quot;</span><span class="p">):</span>
+            <span class="n">storeType</span> <span class="o">=</span> <span class="s2">&quot;hdf5&quot;</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="s2">&quot;--redo&quot;</span><span class="p">):</span>
+            <span class="n">redo</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s2">&quot;--num_samples&quot;</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">arg</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">):</span> <span class="n">arg</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s2">&quot;--num_processes&quot;</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">arg</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">):</span> <span class="n">arg</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">num_processes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">num_samples</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">storeType</span><span class="p">)</span>
+    <span class="n">pandas_folder</span> <span class="o">=</span> <span class="s2">&quot;/pandas_h5/&quot;</span> <span class="k">if</span> <span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span> <span class="k">else</span> <span class="s2">&quot;/pandas_msg/&quot;</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="n">makeJobs</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span><span class="n">storeType</span><span class="p">,</span> <span class="n">pandas_folder</span><span class="o">=</span><span class="n">pandas_folder</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jobs</span> <span class="p">,</span><span class="n">samples_per_process</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span> <span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="n">samples_read</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parse process </span><span class="si">%r</span><span class="s2"> started.&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+            <span class="c1"># ok = True</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">doJob</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">out</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Something wrong with root file. Skipping...&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+                <span class="c1"># ok = False</span>
+            <span class="c1"># else:</span>
+
+            <span class="n">samples_from_job</span><span class="p">,</span> <span class="n">out_file</span> <span class="o">=</span> <span class="n">out</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">out_file</span><span class="p">)</span>
+                <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/NumValues&#39;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># ok = False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Corrupted HDFStore. Skipping...&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># if(ok):</span>
+            <span class="n">samples_read</span> <span class="o">+=</span> <span class="n">samples_from_job</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parsed </span><span class="si">%r</span><span class="s2"> of </span><span class="si">%r</span><span class="s2"> samples dedicated to process </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">samples_read</span><span class="p">,</span> <span class="n">samples_per_process</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">samples_read</span> <span class="o">&gt;=</span> <span class="n">samples_per_process</span><span class="p">):</span>
+                <span class="k">break</span>
+
+
+    <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># if (verbose &gt;= 1): print(&quot;Starting  stating with %r/%r DataProcedures&quot; % (len(dps) - len(unarchived), len(dps)))</span>
+    <span class="n">splits</span> <span class="o">=</span> <span class="p">[</span> <span class="n">jobs</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">num_processes</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)]</span>
+    <span class="n">samples_per_process</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_samples</span> <span class="o">/</span> <span class="n">num_processes</span><span class="p">)</span>
+        <span class="c1"># np.array_split(jobs, num_processes)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread </span><span class="si">%r</span><span class="s2"> Started&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">sublist</span><span class="p">,</span><span class="n">samples_per_process</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">001</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">samples_per_process</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+    <span class="c1"># for job in jobs:</span>
+    <span class="c1">#     pandas_file = job[0]</span>
+    <span class="c1">#     store = pd.HDFStore(pandas_file)</span>
+
+    <span class="c1"># if False in [u.is_archived() for u in unarchived]:</span>
+    <span class="c1">#     print(&quot;Batch Assert Failed&quot;)</span>
+    <span class="c1">#     pass  # batchAssertArchived(dps, num_processes=num_processes)</span>
+
+
+    <span class="c1"># samples_read = 0</span>
+    <span class="c1"># for job in jobs:</span>
+    <span class="c1">#     # print(job)</span>
+    <span class="c1">#     samples_read += doJob(job, redo=redo)</span>
+    <span class="c1">#     if(num_samples != None):</span>
+    <span class="c1">#         print(&quot;Parsed %r of %r samples&quot; %(samples_read, num_samples))</span>
+    <span class="c1">#         if(samples_read &gt;= num_samples):</span>
+    <span class="c1">#             break</span>
+            
+
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+   <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+
+
+
+
+<span class="c1"># if __name__ == &quot;__main__&quot;:</span>
+<span class="c1">#     delphes_to_pandas(&quot;../data/ttbar_lepFilter_13TeV_147.root&quot;)</span>
+
+
+        
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

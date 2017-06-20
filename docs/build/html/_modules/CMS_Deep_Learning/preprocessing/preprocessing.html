@@ -1,0 +1,1111 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.preprocessing.preprocessing &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.preprocessing.preprocessing</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span><span class="n">read_json_obj</span><span class="p">,</span><span class="n">write_json_obj</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.meta</span> <span class="k">import</span> <span class="n">msgpack_assertMeta</span>
+
+
+
+<span class="n">DEFAULT_PROFILE</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;max_size&quot;</span> <span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+                        <span class="s2">&quot;pre_sort_columns&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;pre_sort_ascending&quot;</span> <span class="p">:</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;sort_columns&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;sort_ascending&quot;</span> <span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;query&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                        <span class="s2">&quot;shuffle&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;addColumns&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+<div class="viewcode-block" id="ObjectProfile"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.ObjectProfile">[docs]</a><span class="k">class</span> <span class="nc">ObjectProfile</span><span class="p">():</span>
+    
+
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; An object containing processing instructions for each observable object type</span>
+<span class="sd">            #unkeyed Arguements:</span>
+<span class="sd">                name       -- The name of the data type (i.e. Electron, Photon, EFlowTrack, etc.)</span>
+<span class="sd">                max_size   -- The maximum number of objects to use in training</span>
+<span class="sd">            #keyed Arguements</span>
+<span class="sd">                pre_sort_columns -- What columns to sort before cutting on max_size (See pandas.DataFrame.sort)</span>
+<span class="sd">                pre_sort_ascending -- Whether each column will be sorted ascending or decending before cutting on max_size (See pandas.DataFrame.sort)</span>
+<span class="sd">                sort_columns -- What columns to sort on after processing (See pandas.DataFrame.sort)</span>
+<span class="sd">                sort_ascending -- Whether each column will be sorted ascending or decending after processing (See pandas.DataFrame.sort)</span>
+<span class="sd">                query        -- A selection query string to use before truncating the data (See pands.DataFrame.query)</span>
+<span class="sd">                shuffle     -- Whether or not to shuffle the data</span>
+<span class="sd">                addColumns -- A dictionary with single constant floats or integers to fill an additional column in the table.</span>
+<span class="sd">                             This column should be in observ_types if it is used with preprocessFromPandas_label_dir_pairs</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">elif</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="n">d</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="n">d</span><span class="p">[</span><span class="s2">&quot;max_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Please explicitly name arguements with values </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">DEFAULT_PROFILE</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># print(kargs.get(key, &quot;Nope&quot;),d.get(key, &quot;Nope&quot;), value)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_columns</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_columns</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">]</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;max_size cannot be less than -1. Got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addColumns</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addColumns</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;arguement addColumns must be a dictionary, but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">addColumns</span><span class="p">))</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+
+
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">main_clause</span> <span class="o">=</span> <span class="s1">&#39;name:</span><span class="si">%r</span><span class="s1"> max_size=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">)</span>
+        <span class="n">sort_clause</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">query_clause</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">sort_clause</span> <span class="o">=</span> <span class="s1">&#39;pre_sort_columns=</span><span class="si">%r</span><span class="s1"> pre_sort_ascending=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_sort_ascending</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">sort_clause</span> <span class="o">=</span> <span class="s1">&#39;sort_columns=</span><span class="si">%r</span><span class="s1"> sort_ascending=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_ascending</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">query_clause</span> <span class="o">=</span> <span class="s1">&#39;query=</span><span class="si">%r</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">shuffle_clause</span> <span class="o">=</span> <span class="s1">&#39;shuffle=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span>
+
+        <span class="k">return</span> <span class="n">main_clause</span> <span class="o">+</span> <span class="n">sort_clause</span> <span class="o">+</span> <span class="n">query_clause</span> <span class="o">+</span> <span class="n">shuffle_clause</span>
+    
+    <span class="fm">__repr__</span> <span class="o">=</span> <span class="fm">__str__</span></div>
+
+<span class="n">MAX_NUM_JETS</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">JET_PROFILE</span> <span class="o">=</span> <span class="n">ObjectProfile</span><span class="p">(</span><span class="s2">&quot;Jet&quot;</span><span class="p">,</span> <span class="n">MAX_NUM_JETS</span><span class="p">,</span> <span class="n">pre_sort_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;PT&quot;</span><span class="p">],</span> <span class="n">pre_sort_ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">EVENT_CHARS_PROFILE</span> <span class="o">=</span> <span class="n">ObjectProfile</span><span class="p">(</span><span class="s2">&quot;EventChars&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">JET_OBSERVS</span> <span class="o">=</span>  <span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">,</span><span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span><span class="s1">&#39;Mass&#39;</span><span class="p">,</span> <span class="s1">&#39;Flavor&#39;</span><span class="p">,</span> <span class="s1">&#39;FlavorAlgo&#39;</span><span class="p">,</span> <span class="s1">&#39;FlavorPhys&#39;</span><span class="p">,</span> <span class="s1">&#39;BTag&#39;</span><span class="p">,</span> <span class="s1">&#39;BTagAlgo&#39;</span><span class="p">,</span> <span class="s1">&#39;BTagPhys&#39;</span><span class="p">,</span><span class="s1">&#39;TauTag&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;EhadOverEem&#39;</span><span class="p">,</span> <span class="s1">&#39;NCharged&#39;</span><span class="p">,</span> <span class="s1">&#39;NNeutrals&#39;</span><span class="p">,</span> <span class="s1">&#39;Beta&#39;</span><span class="p">,</span> <span class="s1">&#39;BetaStar&#39;</span><span class="p">,</span> <span class="s1">&#39;MeanSqDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;PTD&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NSubJetsTrimmed&#39;</span><span class="p">,</span> <span class="s1">&#39;NSubJetsPruned&#39;</span><span class="p">,</span> <span class="s1">&#39;NSubJetsSoftDropped&#39;</span><span class="p">]</span>
+
+
+<span class="n">EVENT_CHARS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MET&#39;</span><span class="p">,</span><span class="s1">&#39;HT&#39;</span><span class="p">,</span><span class="s1">&#39;MuonMul&#39;</span><span class="p">,</span><span class="s1">&#39;ElectronMul&#39;</span><span class="p">,</span><span class="s1">&#39;JetMul&#39;</span><span class="p">,</span><span class="s1">&#39;MaxJetPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepPT&#39;</span><span class="p">]</span>
+
+<span class="n">JET_OUTPUT_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">JET_OBSERVS</span>
+
+<div class="viewcode-block" id="resolveProfileMaxes"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.resolveProfileMaxes">[docs]</a><span class="k">def</span> <span class="nf">resolveProfileMaxes</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span> <span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">padding_multiplier</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Resolves the maximum number of objects for each ObjectProfile. Only runs if ObjectProfile.max_size</span>
+<span class="sd">        is equal to -1 or None indicating that the value is unresolved. By resolving our max_size(s) we</span>
+<span class="sd">        can make our preprocessing data sets as small as possible without truncating any data.</span>
+<span class="sd">        #Arguments:</span>
+<span class="sd">            object_profiles -- The list of ObjectProfile(s) to resolve</span>
+<span class="sd">            label_dir_pairs -- A list of tuples of the form (label, data_directory) that contain</span>
+<span class="sd">                                the directories to look through to find the global maximum for each</span>
+<span class="sd">                                Object type.</span>
+<span class="sd">            padding_ratio   -- A muliplier to either shrink or increase the size of the maxes</span>
+<span class="sd">                                in case you are worried about previously unseen realworld data </span>
+<span class="sd">                                being larger than what is availiable at preprocessing.</span>
+<span class="sd">        #Returns (void)</span>
+<span class="sd">                &#39;&#39;&#39;</span>
+    <span class="n">unresolved</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">maxes</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">:</span>
+         <span class="k">if</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">unresolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
+                <span class="n">maxes</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unresolved</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="k">return</span>
+    
+    <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="n">data_dir</span><span class="p">)</span> <span class="ow">in</span> <span class="n">label_dir_pairs</span><span class="p">:</span>
+        <span class="n">files</span><span class="p">,</span> <span class="n">storeType</span> <span class="o">=</span> <span class="n">getFiles_StoreType</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="c1"># files = glob.glob(data_dir+&quot;*.h5&quot;)</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        
+         <span class="c1">#Loop the files associated with the current label</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+          
+            <span class="c1"># #Get the HDF Store for the file</span>
+            <span class="c1"># store = pd.HDFStore(f)</span>
+
+            <span class="c1"># #Get the NumValues frame which lists the number of values for each entry</span>
+            <span class="c1"># try:</span>
+            <span class="c1">#     num_val_frame = store.get(&#39;/NumValues&#39;)</span>
+            <span class="c1"># except KeyError as e:</span>
+            <span class="c1">#     raise KeyError(str(e) + &quot; &quot; + f)</span>
+            <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">getNumValFrame</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">storeType</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">unresolved</span><span class="p">:</span>
+                <span class="n">maxes</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">num_val_frame</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">maxes</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+    
+    <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">unresolved</span><span class="p">:</span>
+        <span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">maxes</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="n">padding_multiplier</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="label_dir_pairs_args_decoder"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.label_dir_pairs_args_decoder">[docs]</a><span class="k">def</span> <span class="nf">label_dir_pairs_args_decoder</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are </span>
+<span class="sd">        properly reconstituted&#39;&#39;&#39;</span>
+    <span class="c1">#print(args)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;class_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ObjectProfile&quot;</span><span class="p">):</span>
+            <span class="n">profiles</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">decoded</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">:</span>
+                <span class="c1"># print(profile)</span>
+                <span class="n">decoded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ObjectProfile</span><span class="p">(</span><span class="n">profile</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">],</span>
+                                            <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_size&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+                                            <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort_columns&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                            <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sort_ascending&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+                                            <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;query&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                            <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shuffle&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decoded</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="c1"># args = list(args)</span>
+    <span class="c1"># args[3] = out</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="getFiles_StoreType"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.getFiles_StoreType">[docs]</a><span class="k">def</span> <span class="nf">getFiles_StoreType</span><span class="p">(</span><span class="n">data_dir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets a list of files from a directory in the filesystem and the type of data stored in it. Asserts that the directory is not empty.&#39;&#39;&#39;</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expandvars</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Directory </span><span class="si">%r</span><span class="s2"> does not exist.&quot;</span> <span class="o">%</span> <span class="n">data_dir</span><span class="p">)</span>
+    <span class="n">msgFiles</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">data_dir</span><span class="o">+</span><span class="s2">&quot;*.msg&quot;</span><span class="p">)</span>
+    <span class="n">hdfFiles</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">data_dir</span><span class="o">+</span><span class="s2">&quot;*.h5&quot;</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">msgFiles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">hdfFiles</span>
+        <span class="n">storeType</span> <span class="o">=</span> <span class="s2">&quot;hdf5&quot;</span>
+    <span class="k">elif</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hdfFiles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">msgFiles</span>
+        <span class="n">storeType</span> <span class="o">=</span> <span class="s2">&quot;msgpack&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Directory </span><span class="si">%r</span><span class="s2"> contains both .msg files and .h5 files, please use only one </span><span class="se">\</span>
+<span class="s2">                        filetype when generating pandas files, to avoid data repetition issues</span><span class="se">\</span>
+<span class="s2">                        &quot;</span> <span class="o">%</span> <span class="n">data_dir</span><span class="p">)</span>
+
+    <span class="c1">#files = glob.glob(data_dir+&quot;*.h5&quot;)</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Cannot read from empty directory </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">storeType</span><span class="p">)</span></div>
+     
+    
+<div class="viewcode-block" id="getSizeMetaData"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.getSizeMetaData">[docs]</a><span class="k">def</span> <span class="nf">getSizeMetaData</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">sizesDict</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">modtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="c1"># print(sizesDict[filename][1],modtime)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sizesDict</span> <span class="ow">or</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modtime</span><span class="p">):</span>
+        <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">getNumValFrame</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">storeType</span><span class="p">)</span>
+        <span class="n">file_total_entries</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_val_frame</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="c1"># print(file_total_entries)</span>
+        <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">file_total_entries</span><span class="p">,</span><span class="n">modtime</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">filename</span><span class="p">)):</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">write_json_obj</span><span class="p">(</span><span class="n">sizesDict</span><span class="p">,</span><span class="n">directory</span><span class="p">,</span><span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+        
+<div class="viewcode-block" id="getSizesDict"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.getSizesDict">[docs]</a><span class="k">def</span> <span class="nf">getSizesDict</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)):</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">read_json_obj</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sizesDict</span></div>
+    
+    
+    
+
+<div class="viewcode-block" id="getNumValFrame"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.getNumValFrame">[docs]</a><span class="k">def</span> <span class="nf">getNumValFrame</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">storeType</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Finds the num_val_frame frame in a pandas file in either msg or h5 format&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+        <span class="c1">#Get the HDF Store for the file</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="c1">#Get the NumValues frame which lists the number of values for each entry</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;NumValues&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">filename</span> <span class="o">+</span><span class="s2">&quot;Please check to see if the files is corrupted. </span><span class="se">\</span>
+<span class="s2">             Run &#39;ll&#39; in the folder where the file is, if it is much smaller than the others then it is corrupted. </span><span class="se">\</span>
+<span class="s2">             If it is corrupted then delete it.&quot;</span><span class="p">)</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">num_val_frame</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">):</span>
+        <span class="n">meta_frames</span> <span class="o">=</span>  <span class="n">msgpack_assertMeta</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">meta_frames</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span>
+        <span class="c1"># frames = pd.read_msgpack(f)</span>
+        <span class="c1"># num_val_frame = frames[&quot;NumValues&quot;]</span>
+    <span class="k">return</span> <span class="n">num_val_frame</span></div>
+
+<span class="k">def</span> <span class="nf">_getStore</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Gets the HDFStore or frames for the file and storeType&#39;&#39;&#39;</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bulk reading .msg. Be patient, reading in slices not supported.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="c1">#Need to check for latin encodings due to weird pandas default</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_msgpack</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_msgpack</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">store</span><span class="p">,</span><span class="n">frames</span>
+<span class="k">def</span> <span class="nf">_getFrame</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">select_start</span><span class="p">,</span> <span class="n">select_stop</span><span class="p">,</span>
+              <span class="n">samples_to_read</span><span class="p">,</span> <span class="n">file_total_entries</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - gets frame from its store/msgpack&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+        <span class="c1">#If we are reading all the samples use get since it might be faster</span>
+        <span class="c1">#TODO: check if it is actually faster</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">samples_to_read</span> <span class="o">==</span> <span class="n">file_total_entries</span><span class="p">):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">select_start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">select_stop</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="n">select_start</span><span class="p">:</span><span class="n">select_stop</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">frame</span>
+
+
+<div class="viewcode-block" id="entryGen"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.entryGen">[docs]</a><span class="k">def</span> <span class="nf">entryGen</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">entryIndex</span><span class="p">):</span>
+    <span class="n">currEntry</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="c1"># print(x,x[entryIndex])</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">entryIndex</span><span class="p">]</span>
+        <span class="c1"># print(entry)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">entry</span> <span class="o">!=</span> <span class="n">currEntry</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">entry</span> <span class="o">&lt;</span> <span class="n">currEntry</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Dataframe &#39;Entry&#39; column not sorted&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">start</span> <span class="o">!=</span> <span class="n">i</span><span class="p">):</span> <span class="k">yield</span> <span class="nb">int</span><span class="p">(</span><span class="n">currEntry</span><span class="p">),</span> <span class="n">X</span><span class="p">[</span><span class="n">start</span><span class="p">:</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">currEntry</span> <span class="o">=</span> <span class="n">entry</span>
+    <span class="k">yield</span> <span class="nb">int</span><span class="p">(</span><span class="n">currEntry</span><span class="p">),</span> <span class="n">X</span><span class="p">[</span><span class="n">start</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)]</span></div>
+    
+
+
+<span class="k">def</span> <span class="nf">_groupsByEntry</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">samples_to_read</span><span class="p">,</span> <span class="n">file_total_entries</span><span class="p">,</span> <span class="n">num_val_frame</span><span class="p">,</span><span class="n">file_start_read</span><span class="p">,</span><span class="n">object_profiles</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - produces dict keyed by object type and filled with groupBy objects w.r.t Entry&#39;&#39;&#39;</span>
+    <span class="n">store</span><span class="p">,</span> <span class="n">frames</span> <span class="o">=</span> <span class="n">_getStore</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">)</span>
+
+    <span class="c1">#Get information about how many rows there are for each entry for the rows we want to skip and read</span>
+    <span class="n">skip_val_frame</span> <span class="o">=</span> <span class="n">num_val_frame</span><span class="p">[:</span><span class="n">file_start_read</span><span class="p">]</span>
+    <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">num_val_frame</span><span class="p">[</span><span class="n">file_start_read</span> <span class="p">:</span> <span class="n">file_start_read</span><span class="o">+</span><span class="n">samples_to_read</span><span class="p">]</span>
+
+
+    <span class="n">groupBys</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">colDict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1">#Loop over every profile and read the corresponding tables in the pandas file</span>
+    <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">profile</span><span class="o">.</span><span class="n">name</span>                
+        <span class="c1">#Where to start reading the table based on the sum of the selection start </span>
+        <span class="n">select_start</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">skip_val_frame</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="n">select_stop</span> <span class="o">=</span> <span class="n">select_start</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_val_frame</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">_getFrame</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">select_start</span><span class="p">,</span> <span class="n">select_stop</span><span class="p">,</span>
+                          <span class="n">samples_to_read</span><span class="p">,</span> <span class="n">file_total_entries</span><span class="p">,</span><span class="n">frames</span><span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+        <span class="n">entryIndex</span> <span class="o">=</span> <span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;Entry&quot;</span><span class="p">)</span>
+        
+        <span class="c1">#Convert to numpy array</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">colDict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">columns</span>
+        
+        <span class="c1">#Group by Entry</span>
+        <span class="c1"># groupBys[key] = frame.groupby([&quot;Entry&quot;], group_keys=True)</span>
+        <span class="n">groupBys</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">:</span><span class="n">x</span> <span class="k">for</span> <span class="n">entry</span><span class="p">,</span><span class="n">x</span>  <span class="ow">in</span> <span class="n">entryGen</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">entryIndex</span><span class="p">)}</span><span class="c1">#frame.groupby([&quot;Entry&quot;], group_keys=True)</span>
+        <span class="c1"># print(key,groupBys[key].keys())</span>
+    <span class="k">return</span> <span class="n">groupBys</span><span class="p">,</span><span class="n">colDict</span><span class="p">,</span> <span class="n">store</span>
+
+<span class="k">def</span> <span class="nf">_applyParticleCuts</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">vecsize</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - presorts, applies queries, adds columns, and makes cuts&#39;&#39;&#39;</span>
+    <span class="c1"># if (profile.query != None):</span>
+    <span class="c1">#     df = df.query(profile.query)</span>
+    <span class="c1"># x = df.values</span>
+    <span class="c1"># print(type(x))</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Find sort_locs</span>
+        <span class="n">sort_locs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;profile.pre_sort_columns improperly stored&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">c</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;shuffle&quot;</span><span class="p">,</span> <span class="s2">&quot;random&quot;</span><span class="p">]]):</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">],</span> \
+                <span class="s2">&quot;Type should be string got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">]))</span>
+            <span class="n">sort_locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_columns</span><span class="p">]</span>
+            <span class="c1"># print(df.columns, sort_locs, )</span>
+        <span class="c1"># Sort</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_sortByLocs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sort_locs</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">pre_sort_ascending</span><span class="p">)</span><span class="c1">#, observ_types)</span>
+        <span class="c1"># x = _sortByColumns(x, profile.pre_sort_columns, profile.pre_sort_ascending, observ_types)</span>
+        <span class="c1"># df = df.sort(profile.pre_sort_columns, ascending=profile.pre_sort_ascending)</span>
+    
+    <span class="c1"># x = df.values</span>
+    <span class="c1"># Make cut, preserving only profile.max_size of top of table</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span><span class="p">]</span>
+    <span class="c1"># Only use observable columns</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">observ_types</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">x</span><span class="p">,[</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">observ_types</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># print(x.shape)</span>
+    <span class="k">return</span> <span class="n">x</span>
+    
+<span class="k">def</span> <span class="nf">_addColumns</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">profile</span><span class="p">,</span><span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helpher Function - adds columns of constants to the data&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">observ_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">addColumns</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">addColumns</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">addColumns</span><span class="p">[</span><span class="n">o</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span>
+    
+<span class="k">def</span> <span class="nf">_sortByLocs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">sort_locs</span><span class="p">,</span><span class="n">sort_ascending</span><span class="p">):</span><span class="c1">#, observ_types,):</span>
+    <span class="c1"># print(sort_locs)</span>
+    <span class="c1"># print sort_locs, type(x)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sort_locs</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">sort_locs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sort_ascending</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="p">[:,</span> <span class="n">loc</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="p">[:,</span> <span class="n">loc</span><span class="p">]</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">def</span> <span class="nf">_padAndSort</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span><span class="n">vecsize</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - pads the data and sorts it&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))):</span>
+        <span class="c1">#If a DataFrame does not exist for this entry then just inject zeros </span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span><span class="p">,</span> <span class="n">vecsize</span><span class="p">)))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1">#Find sort_locs</span>
+        <span class="n">sort_locs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;profile.sort_columns improperly stored&quot;</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">c</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;shuffle&quot;</span><span class="p">,</span> <span class="s2">&quot;random&quot;</span><span class="p">]]):</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">],</span> \
+                    <span class="s2">&quot;Type should be string got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">]))</span>
+                <span class="n">sort_locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">observ_types</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_columns</span><span class="p">]</span>
+        <span class="c1">#Sort</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">_sortByLocs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sort_locs</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">sort_ascending</span><span class="p">)</span><span class="c1">#, observ_types)</span>
+        <span class="c1">#pad the array</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span> <span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">vecsize</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span>    
+
+<span class="k">def</span> <span class="nf">_gen_label_vecs</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">):</span>
+    <span class="n">label_vecs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">data_dir</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_labels</span><span class="p">,))</span>
+        <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">label_vecs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span>
+    <span class="k">return</span> <span class="n">label_vecs</span>
+
+<span class="k">def</span> <span class="nf">_initializeArrays</span><span class="p">(</span><span class="n">single_list</span><span class="p">,</span> <span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">num_object_profiles</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">,</span> <span class="n">maxJets</span><span class="o">=</span><span class="n">MAX_NUM_JETS</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Generates the initial data structures for the X (data) and Y (target)&#39;&#39;&#39;</span>
+    
+        
+    <span class="k">if</span><span class="p">(</span><span class="n">single_list</span><span class="p">):</span>
+        <span class="n">X_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_label</span> <span class="o">*</span> <span class="n">num_labels</span><span class="p">)</span>
+        <span class="c1">#global_profile = ObjectProfile(&quot;list&quot;, max_size=&quot;&quot;)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">X_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_object_profiles</span><span class="p">)</span>
+        <span class="c1">#Prefill the arrays so that we don&#39;t waste time resizing lists</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_object_profiles</span><span class="p">):</span>
+            <span class="n">X_train</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_label</span> <span class="o">*</span> <span class="n">num_labels</span><span class="p">)</span>
+            
+    <span class="n">y_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_label</span> <span class="o">*</span> <span class="n">num_labels</span><span class="p">)</span>
+    <span class="n">jets</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_label</span> <span class="o">*</span> <span class="n">num_labels</span><span class="p">)</span>
+    <span class="n">eventChars</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_label</span> <span class="o">*</span> <span class="n">num_labels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">jets</span><span class="p">,</span> <span class="n">eventChars</span>
+   
+<span class="k">def</span> <span class="nf">_check_Object_Profiles</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Makes sure that all ObjectProfiles are correctly formatted,</span>
+<span class="sd">        makes formatting corrections if necessary&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">profile</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">profile</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">profile</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;class_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ObjectProfile&quot;</span><span class="p">):</span>
+            <span class="n">profile</span> <span class="o">=</span> <span class="n">ObjectProfile</span><span class="p">(</span><span class="n">profile</span><span class="p">)</span>
+            <span class="n">object_profiles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ObjectProfile max_sizes must be resolved before preprocessing. </span><span class="se">\</span>
+<span class="s2">                         Please first use: utils.preprocessing.resolveProfileMaxes(object_profiles, label_dir_pairs)&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">addColumns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">profile</span><span class="o">.</span><span class="n">addColumns</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">observ_types</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;addColumn Key </span><span class="si">%r</span><span class="s2"> must be in observ_types&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">object_profiles</span>
+
+<span class="k">def</span> <span class="nf">_check_inputs</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Makes sure that label_dir_pairs, and observ_types are correctly formatted&#39;&#39;&#39;</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">label_dir_pairs</span><span class="p">]</span>
+    <span class="n">duplicates</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">labels</span> <span class="k">if</span> <span class="n">labels</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]))</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">duplicates</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have duplicate labels </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">duplicates</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="s2">&quot;Entry&quot;</span> <span class="ow">in</span> <span class="n">observ_types</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Using Entry in observ_types can result in skewed training results. Just don&#39;t.&quot;</span><span class="p">)</span>
+    
+
+        
+<div class="viewcode-block" id="preprocessFromPandas_label_dir_pairs"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.preprocessFromPandas_label_dir_pairs">[docs]</a><span class="k">def</span> <span class="nf">preprocessFromPandas_label_dir_pairs</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span><span class="n">start</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">object_profiles</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span>
+                                         <span class="n">single_list</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets training data from folders of pandas tables</span>
+<span class="sd">        #Arguements:</span>
+<span class="sd">            label_dir_pairs -- a list of tuples of the form (label, directory) where the directory contains</span>
+<span class="sd">                                tables containing data of all the same event types.</span>
+<span class="sd">            start             --    Where to start reading (as if all of the files are part of one long list)</span>
+<span class="sd">            samples_per_label -- The number of samples to read for each label</span>
+<span class="sd">            object_profiles -- A list of ObjectProfile(s) corresponding to each type of observable object and</span>
+<span class="sd">                                its preprocessing steps. </span>
+<span class="sd">            observ_types    -- The column headers for the data to be read from the panadas table</span>
+<span class="sd">            single_list -- If True all object types are joined into a single list.</span>
+<span class="sd">            sort_columns -- If single_list the columns to sort by.</span>
+<span class="sd">            sort_ascending -- If True sort in ascending order, false decending  </span>
+<span class="sd">        #Returns:</span>
+<span class="sd">            Training data with its correspoinding labels</span>
+<span class="sd">            (X_train, Y_train)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="n">_check_inputs</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">)</span>
+    <span class="c1">#Make sure that all the profile are proper objects and have resolved max_sizes</span>
+    <span class="n">object_profiles</span> <span class="o">=</span> <span class="n">_check_Object_Profiles</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span><span class="n">observ_types</span><span class="p">)</span>
+
+    <span class="n">non_add_observtypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">observ_types</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">set</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">addColumns</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">])]</span>
+    
+    <span class="n">vecsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">observ_types</span><span class="p">)</span>
+    <span class="n">num_labels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">)</span>
+    
+    <span class="c1">#Build vectors in the form [1,0,0], [0,1,0], [0, 0, 1] corresponding to each label</span>
+    <span class="n">label_vecs</span> <span class="o">=</span> <span class="n">_gen_label_vecs</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span><span class="n">num_labels</span><span class="p">)</span>
+    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">jets</span><span class="p">,</span> <span class="n">eventChars</span> <span class="o">=</span> <span class="n">_initializeArrays</span><span class="p">(</span><span class="n">single_list</span><span class="p">,</span> <span class="n">label_dir_pairs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">),</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">)</span>
+    <span class="n">X_train_index</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="c1">#Loop over label dir pairs and get the file list for each directory</span>
+    <span class="n">y_train_start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="n">data_dir</span><span class="p">)</span> <span class="ow">in</span> <span class="n">label_dir_pairs</span><span class="p">:</span>
+        <span class="n">files</span><span class="p">,</span> <span class="n">storeType</span> <span class="o">=</span> <span class="n">getFiles_StoreType</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">samples_read</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+         <span class="c1">#Loop the files associated with the current label</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">file_total_entries</span> <span class="o">=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">storeType</span><span class="p">,</span><span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span><span class="c1">#len(num_val_frame.index)</span>
+
+            <span class="k">assert</span> <span class="n">file_total_entries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_val_frame has zero values&quot;</span>
+            
+            <span class="k">if</span><span class="p">(</span><span class="n">location</span> <span class="o">+</span> <span class="n">file_total_entries</span> <span class="o">&lt;=</span> <span class="n">start</span><span class="p">):</span>
+                <span class="n">location</span> <span class="o">+=</span> <span class="n">file_total_entries</span>
+                <span class="k">continue</span>
+
+            <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">getNumValFrame</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">file_total_entries</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_val_frame</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="c1">#Determine what row to start reading the num_val table which contains</span>
+            <span class="c1">#information about how many rows there are for each entry</span>
+            <span class="n">file_start_read</span> <span class="o">=</span> <span class="n">start</span><span class="o">-</span><span class="n">location</span> <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">location</span> <span class="k">else</span> <span class="mi">0</span>
+            
+            <span class="c1">#How many rows we will read from this table each corresponds to one entry</span>
+            <span class="n">samples_to_read</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">samples_per_label</span><span class="o">-</span><span class="n">samples_read</span><span class="p">,</span> <span class="n">file_total_entries</span><span class="o">-</span><span class="n">file_start_read</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">samples_to_read</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+            
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Reading </span><span class="si">%r</span><span class="s2"> samples from </span><span class="si">%r</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">samples_to_read</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+            
+            <span class="c1">#Grab data from tables and group by &#39;Entry #&#39;</span>
+            <span class="n">groupBys</span><span class="p">,</span><span class="n">colDict</span><span class="p">,</span><span class="n">store</span> <span class="o">=</span> <span class="n">_groupsByEntry</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">samples_to_read</span><span class="p">,</span> <span class="n">file_total_entries</span><span class="p">,</span>
+                                                    <span class="n">num_val_frame</span><span class="p">,</span> <span class="n">file_start_read</span><span class="p">,</span> <span class="n">object_profiles</span> <span class="o">+</span> <span class="p">[</span><span class="n">JET_PROFILE</span><span class="p">,</span> <span class="n">EVENT_CHARS_PROFILE</span><span class="p">])</span>
+                
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Values/Sample from: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">max_size</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">})</span>
+            
+            <span class="n">cut_tables</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">)</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span><span class="o">-</span><span class="mf">1.0</span>
+            <span class="n">prev_entry</span> <span class="o">=</span> <span class="n">file_start_read</span>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">file_start_read</span><span class="p">,</span> <span class="n">file_start_read</span><span class="o">+</span><span class="n">samples_to_read</span><span class="p">):</span>
+                <span class="c1">#Make a pretty progress bar in the terminal</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>      
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> 
+                    <span class="k">if</span><span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">last_time</span> <span class="o">+</span> <span class="o">.</span><span class="mi">25</span><span class="p">):</span>
+                        <span class="n">percent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">entry</span><span class="o">-</span><span class="n">file_start_read</span><span class="p">)</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">samples_to_read</span><span class="p">)</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%-20s</span><span class="s2">] </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2">  </span><span class="si">%r</span><span class="s2">(Entry/sec)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="mi">20</span><span class="o">*</span><span class="n">percent</span><span class="p">),</span> <span class="n">entry</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">samples_to_read</span><span class="p">),</span> <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">entry</span><span class="o">-</span><span class="n">prev_entry</span><span class="p">)))</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                        <span class="n">last_time</span> <span class="o">=</span> <span class="n">c</span>
+                        <span class="n">prev_entry</span> <span class="o">=</span> <span class="n">entry</span>
+                
+                <span class="n">jet_indx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">)</span>
+                <span class="n">chars_indx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span> 
+                <span class="c1">#Apply Cuts for particles</span>
+                <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">profile</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">object_profiles</span> <span class="o">+</span> <span class="p">[</span><span class="n">JET_PROFILE</span><span class="p">,</span> <span class="n">EVENT_CHARS_PROFILE</span><span class="p">])</span> <span class="p">:</span>
+                        <span class="c1">#print(groupBys.keys())</span>
+                        <span class="n">groups</span> <span class="o">=</span> <span class="n">groupBys</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                        <span class="n">columns</span> <span class="o">=</span> <span class="n">colDict</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                        <span class="n">obtypes</span> <span class="o">=</span> <span class="n">non_add_observtypes</span> <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">jet_indx</span> <span class="k">else</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">colDict</span><span class="p">[</span><span class="n">profile</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">&quot;Entry&quot;</span><span class="p">]</span>
+                        <span class="c1"># print(entry,entry in groups)</span>
+                        <span class="k">if</span><span class="p">(</span><span class="n">entry</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">):</span>
+                            <span class="n">x</span> <span class="o">=</span> <span class="n">_applyParticleCuts</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="n">entry</span><span class="p">],</span> <span class="n">columns</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">vecsize</span><span class="p">,</span> <span class="n">obtypes</span><span class="p">)</span>
+                            <span class="c1"># x = _applyCuts(groups.get_group(entry), profile, vecsize, non_add_observtypes)</span>
+                            <span class="n">cut_tables</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">_addColumns</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">profile</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">cut_tables</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                
+                <span class="k">if</span><span class="p">(</span><span class="n">single_list</span><span class="p">):</span>
+                    <span class="c1">#joint the data, but ommit the jet and event char collections</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cut_tables</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">list_profile</span> <span class="o">=</span> <span class="n">ObjectProfile</span><span class="p">(</span><span class="s2">&quot;single_list&quot;</span><span class="p">,</span>
+                                                <span class="nb">sum</span><span class="p">([</span><span class="n">profile</span><span class="o">.</span><span class="n">max_size</span> <span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">]),</span>
+                                                <span class="n">sort_columns</span><span class="o">=</span><span class="n">sort_columns</span><span class="p">,</span>
+                                                <span class="n">sort_ascending</span><span class="o">=</span><span class="n">sort_ascending</span><span class="p">)</span>    
+                                                    
+                    <span class="n">x</span>  <span class="o">=</span> <span class="n">_padAndSort</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">list_profile</span><span class="p">,</span><span class="n">vecsize</span><span class="p">,</span><span class="n">observ_types</span><span class="p">)</span>
+                    <span class="n">X_train</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">entry</span> <span class="o">-</span> <span class="n">file_start_read</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">profile</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">):</span>
+                        <span class="n">arr</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                        <span class="n">c</span> <span class="o">=</span> <span class="n">cut_tables</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+                        <span class="n">x</span>  <span class="o">=</span> <span class="n">_padAndSort</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">profile</span><span class="p">,</span> <span class="n">vecsize</span><span class="p">,</span><span class="n">observ_types</span><span class="p">)</span>
+                        <span class="n">arr</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">entry</span> <span class="o">-</span> <span class="n">file_start_read</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+                        
+                <span class="n">jet_df</span> <span class="o">=</span> <span class="n">cut_tables</span><span class="p">[</span><span class="n">jet_indx</span><span class="p">]</span>
+                <span class="n">jet_obervs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">colDict</span><span class="p">[</span><span class="s1">&#39;Jet&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">&quot;Entry&quot;</span><span class="p">]</span>
+                <span class="c1"># print(_padAndSort(jet_df,JETS_PROFILE,len(JET_OUTPUT_OBSERVS),JET_OUTPUT_OBSERVS))</span>
+                <span class="c1"># print(&quot;JET_DF&quot;,jet_df)</span>
+                <span class="n">jets</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">entry</span> <span class="o">-</span> <span class="n">file_start_read</span><span class="p">]</span> <span class="o">=</span> <span class="n">_padAndSort</span><span class="p">(</span><span class="n">jet_df</span><span class="p">,</span> <span class="n">JET_PROFILE</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">jet_obervs</span><span class="p">),</span> <span class="n">jet_obervs</span><span class="p">)</span>
+
+                <span class="n">chars_obervs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">colDict</span><span class="p">[</span><span class="s1">&#39;EventChars&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s2">&quot;Entry&quot;</span><span class="p">]</span>
+                <span class="n">chars_df</span> <span class="o">=</span> <span class="n">cut_tables</span><span class="p">[</span><span class="n">chars_indx</span><span class="p">]</span>
+                <span class="n">eventChars</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">entry</span> <span class="o">-</span> <span class="n">file_start_read</span><span class="p">]</span> <span class="o">=</span> <span class="n">_padAndSort</span><span class="p">(</span><span class="n">chars_df</span><span class="p">,</span> <span class="n">EVENT_CHARS_PROFILE</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">chars_obervs</span><span class="p">),</span> <span class="n">chars_obervs</span><span class="p">)</span>
+
+                
+                        
+                
+                
+            
+            <span class="n">X_train_index</span> <span class="o">+=</span> <span class="n">samples_to_read</span>
+            
+            <span class="c1">#Free this (probably not necessary)</span>
+            <span class="n">num_val_frame</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+                <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">location</span>     <span class="o">+=</span> <span class="n">file_total_entries</span>
+            <span class="n">samples_read</span> <span class="o">+=</span> <span class="n">samples_to_read</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;*Read </span><span class="si">%r</span><span class="s2"> Samples of </span><span class="si">%r</span><span class="s2"> in range(</span><span class="si">%r</span><span class="s2">, </span><span class="si">%r</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">samples_read</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="o">+</span><span class="n">start</span><span class="p">))</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">samples_read</span> <span class="o">&gt;=</span> <span class="n">samples_per_label</span><span class="p">):</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-&#39;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">samples_read</span> <span class="o">==</span> <span class="n">samples_per_label</span>
+                <span class="k">break</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">samples_read</span> <span class="o">!=</span> <span class="n">samples_per_label</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Not enough data in </span><span class="si">%r</span><span class="s2"> to read in range(</span><span class="si">%r</span><span class="s2">, </span><span class="si">%r</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="o">+</span><span class="n">start</span><span class="p">))</span>
+        
+        <span class="c1">#Generate the target data as vectors like [1,0,0], [0,1,0], [0,0,1]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">samples_per_label</span><span class="p">):</span>
+            <span class="n">y_train</span><span class="p">[</span><span class="n">y_train_start</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_vecs</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+        <span class="n">y_train_start</span> <span class="o">+=</span> <span class="n">samples_per_label</span>
+    
+    <span class="c1">#Turn everything into numpy arrays and shuffle them just in case.</span>
+    <span class="c1">#Although, we probably don&#39;t need to shuffle since keras shuffles by default.</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+    
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_train</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">single_list</span><span class="p">):</span>
+        <span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X_train</span><span class="p">)[</span><span class="n">indices</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">)):</span>
+            <span class="n">X_train</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="n">index</span><span class="p">])[</span><span class="n">indices</span><span class="p">]</span>
+
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">jets</span><span class="p">,</span> <span class="n">eventChars</span></div>
+    
+
+<div class="viewcode-block" id="getGensDefaultFormat"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat">[docs]</a><span class="k">def</span> <span class="nf">getGensDefaultFormat</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">splits</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">object_profiles</span><span class="p">,</span> <span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">single_list</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">,</span><span class="s2">&quot;Y&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Creates a set of DataProcedures that return generators and their corresponding lengths. Each generator consists of a list DataProcedures that preprocess data</span>
+<span class="sd">        from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by &#39;megabytes&#39; so that each one is not too big. Each generator</span>
+<span class="sd">        reads a number of samples per label type set by &#39;splits&#39; and &#39;length&#39;, and feeds data in batches of &#39;batch_size&#39; into training.</span>
+<span class="sd">        #Arguments:</span>
+<span class="sd">            archive_dir -- The archive directory that the DataProcedures of each generator will archive their information in.</span>
+<span class="sd">            splits -- a list of either integers or floats between 0 and 1 (or both). Each entry in &#39;splits&#39; designates a generator. If an Integer is given then a generator</span>
+<span class="sd">                      is built with the number of samples per label designated by that integer (static). If a float is given then the number of samples per label is computed as a </span>
+<span class="sd">                      fraction of the argument &#39;length&#39; minus the sum of the integer entries (ratio). Float (ratio) entries in splits must add up to 1.0.</span>
+<span class="sd">            length -- The total number of samples per label to be split among the float (ratio) values of &#39;splits&#39; plus the Integer (static) values. In other words the total number</span>
+<span class="sd">                        of samples per value to be used by all of the generators built by this function. Does not matter if all splits are Integers (static).</span>
+<span class="sd">            object_profiles -- A list of ObjectProfiles (see CMS_Deep_Learning.utils.preprocessing.ObjectProfile). These determine how the final preprocessed inputs will be</span>
+<span class="sd">                            preprocessed. In the collections will appear in the order the object_profiles are given.</span>
+<span class="sd">            label_dir_pairs -- A list of tuples where the first entry is a label and the second is the name of a directory containing pandas files (either msg or h5 format) corresponding </span>
+<span class="sd">                            to that label.</span>
+<span class="sd">            observ_types -- A list of the types of observables to be used in the final preprocessed files.</span>
+<span class="sd">            batch_size -- How many samples to feed into training at a time. </span>
+<span class="sd">            megabytes -- Determines how large in MB a DataProcedure archive should be. A smaller number means less data in memory at a time as each generator is used, but shorter more frequent</span>
+<span class="sd">                        disk reads. </span>
+<span class="sd">            verbose -- Determines whether or not information is printed out as the generators are formed and as they are used. (TODO: the implementation of this might need some work, the specifics</span>
+<span class="sd">                        of how this information is passed along the the DPs and their dependant functions might not be implemented correctly at the moment, leading to printouts even if verbose=0)</span>
+<span class="sd">        #Returns (all_dps, all_datasets)</span>
+<span class="sd">            all_dps -- A list of DataProcedures, this can be passed to CMS_Deep_Learning.utils.batch.batchAssertArchived to make sure that all the DPs are archived before proceeding to training</span>
+<span class="sd">            all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that</span>
+<span class="sd">                            each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">observ_types</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+    <span class="n">stride</span> <span class="o">=</span> <span class="n">strideFromTargetSize</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span> <span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="n">megabytes</span><span class="p">)</span>
+    <span class="n">SNs</span> <span class="o">=</span> <span class="n">start_num_fromSplits</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+    <span class="n">all_dps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_datasets</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">SNs</span><span class="p">:</span>
+        <span class="n">dps</span> <span class="o">=</span> <span class="n">procsFrom_label_dir_pairs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                        <span class="n">stride</span><span class="p">,</span>
+                                        <span class="n">archive_dir</span><span class="p">,</span>
+                                        <span class="n">label_dir_pairs</span><span class="p">,</span>
+                                        <span class="n">object_profiles</span><span class="p">,</span>
+                                        <span class="n">observ_types</span><span class="p">,</span>
+                                        <span class="n">single_list</span><span class="o">=</span><span class="n">single_list</span><span class="p">,</span>
+                                        <span class="n">sort_columns</span><span class="o">=</span><span class="n">sort_columns</span><span class="p">,</span>
+                                        <span class="n">sort_ascending</span><span class="o">=</span><span class="n">sort_ascending</span><span class="p">,</span>
+                                        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="n">gen_DP</span> <span class="o">=</span> <span class="n">DataProcedure</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span><span class="n">genFromDPs</span><span class="p">,[</span><span class="n">dps</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">],</span> <span class="p">{</span><span class="s1">&#39;threading&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;verbose&#39;</span><span class="p">:</span><span class="n">verbose</span><span class="p">},</span><span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">)</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">)</span><span class="o">*</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">all_datasets</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">gen_DP</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">)]</span>
+        <span class="n">all_dps</span> <span class="o">+=</span> <span class="n">dps</span>
+    <span class="c1">#Calculate a good max_q_size and add it to the all_datasets list</span>
+    <span class="n">all_datasets</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">stride</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">batch_size</span><span class="p">)),</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">all_dps</span><span class="p">,</span><span class="n">all_datasets</span><span class="p">)</span></div>
+
+
+
+       
+            
+
+<div class="viewcode-block" id="strideFromTargetSize"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.strideFromTargetSize">[docs]</a><span class="k">def</span> <span class="nf">strideFromTargetSize</span><span class="p">(</span><span class="n">object_profiles</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes how large a stride is required to get DPs with archives of size megabytes&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">num_labels</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">num_labels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_labels</span><span class="p">)</span>
+    <span class="n">megabytes_per_sample</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">o</span><span class="o">.</span><span class="n">max_size</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">observ_types</span><span class="p">)</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="mf">1000.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">megabytes</span><span class="o">/</span><span class="n">megabytes_per_sample</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="maxMutualLength"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.maxMutualLength">[docs]</a><span class="k">def</span> <span class="nf">maxMutualLength</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">object_profiles</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets the mamximum number of samples that can mutually be read in the directories listed by</span>
+<span class="sd">        label_dir_pairs. Must also input object_profiles so that it knows what keys to check &#39;&#39;&#39;</span>
+    <span class="n">label_totals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span><span class="n">data_dir</span><span class="p">)</span> <span class="ow">in</span> <span class="n">label_dir_pairs</span><span class="p">:</span>
+
+        <span class="n">files</span><span class="p">,</span> <span class="n">storeType</span> <span class="o">=</span> <span class="n">getFiles_StoreType</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+
+        <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        
+        <span class="n">keys</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">object_profiles</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">o</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">object_profiles</span><span class="p">]</span>
+        
+        <span class="n">label_totals</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+         <span class="c1">#Loop the files associated with the current label</span>
+        
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="c1">#Get the HDF Store for the file</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">):</span>
+                <span class="c1">#Get the HDF Store for the file</span>
+                <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="c1">#Get the NumValues frame which lists the number of values for each entry</span>
+
+                <span class="k">if</span><span class="p">(</span><span class="n">keys</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;File: &#39;</span> <span class="o">+</span> <span class="n">f</span> <span class="o">+</span> <span class="s1">&#39; may be corrupted:&#39;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span> <span class="o">+</span> 
+                                    <span class="s1">&#39;Requested keys: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span> <span class="o">+</span> 
+                                    <span class="s1">&#39;But found keys: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="p">)</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/NumValues&#39;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">elif</span><span class="p">(</span><span class="n">storeType</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bulk reading .msg. Be patient, reading in slices not supported.&quot;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+                <span class="c1">#Need to check for latin encodings due to weird pandas default</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">frames</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_msgpack</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">UnicodeDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">frames</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_msgpack</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin-1&#39;</span><span class="p">)</span>
+                <span class="n">num_val_frame</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="s2">&quot;NumValues&quot;</span><span class="p">]</span>
+                    <span class="c1"># store = pd.HDFStore(f)</span>
+                    <span class="c1"># #print(keys)</span>
+                    <span class="c1"># #print(store.keys())</span>
+                    <span class="c1"># #print(set(keys).issubset(set(store.keys())))</span>
+                    <span class="c1"># if(keys != None and set(keys).issubset(set(store.keys())) == False):</span>
+                    <span class="c1">#     raise KeyError(&#39;File: &#39; + f + &#39; may be corrupted:&#39; + os.linesep + </span>
+                    <span class="c1">#                     &#39;Requested keys: &#39; + str(keys) + os.linesep + </span>
+                    <span class="c1">#                     &#39;But found keys: &#39; + str(store.keys()) )</span>
+                    
+                    <span class="c1"># #Get file_total_entries</span>
+                    <span class="c1"># try:</span>
+                    <span class="c1">#     num_val_frame = store.get(&#39;/NumValues&#39;)</span>
+                    <span class="c1"># except KeyError as e:</span>
+                    <span class="c1">#     raise KeyError(str(e) + &quot; &quot; + f)</span>
+            <span class="n">file_total_entries</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">num_val_frame</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">label_totals</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">+=</span> <span class="n">file_total_entries</span>
+    <span class="c1">#print(label_totals)</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">label_totals</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="start_num_fromSplits"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.start_num_fromSplits">[docs]</a><span class="k">def</span> <span class="nf">start_num_fromSplits</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of</span>
+<span class="sd">        samples for each split&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Splits cannot be negative </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">splits</span><span class="p">))</span> 
+    <span class="n">are_static_vals</span> <span class="o">=</span> <span class="p">[(</span><span class="kc">True</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">]</span>
+    <span class="k">if</span><span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="n">are_static_vals</span><span class="p">):</span>
+        <span class="n">ratios</span> <span class="o">=</span>  <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)</span> <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">a</span><span class="p">)]</span>
+        <span class="n">static_vals</span> <span class="o">=</span>  <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)</span> <span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">)]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">static_vals</span><span class="p">)</span> 
+        <span class="k">if</span><span class="p">(</span><span class="n">s</span> <span class="o">&gt;</span> <span class="n">length</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Static values have sum </span><span class="si">%r</span><span class="s2"> exceeding given length </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">length</span><span class="p">))</span> 
+        <span class="n">length</span> <span class="o">-=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ratios</span> <span class="o">=</span> <span class="n">splits</span>
+    
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">),</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sum of splits </span><span class="si">%r</span><span class="s2"> must equal 1.0&quot;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">))</span>
+    
+
+    <span class="n">nums</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">if</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">start</span> <span class="o">+=</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="procsFrom_label_dir_pairs"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.procsFrom_label_dir_pairs">[docs]</a><span class="k">def</span> <span class="nf">procsFrom_label_dir_pairs</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">archive_dir</span><span class="p">,</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">object_profiles</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">single_list</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets a list of DataProcedures that use preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            start -- Where to start reading in the filesystem (if we treat it as one long list for each directory)</span>
+<span class="sd">            samples_per_label -- How many samples to read from the filesystem per event type</span>
+<span class="sd">            stride -- How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid </span>
+<span class="sd">                    excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably</span>
+<span class="sd">                    in memory.</span>
+<span class="sd">            archive_dir -- the archive directory to store the preprocessed data.</span>
+<span class="sd">            label_dir_pairs -- A list of tuples like (label_name, pandas_data_directory) telling us what to call the data</span>
+<span class="sd">                                and where to find it.</span>
+<span class="sd">            object_profiles -- A list of ObjectProfiles, used to determine what preprocessing steps need to be taken</span>
+<span class="sd">            observ_types -- A list of the observable quantities in our pandas tables i.e [&#39;E/c&#39;, &quot;Px&quot; ,,,etc.]</span>
+<span class="sd">            verbose -- Whether or not to print</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">procs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">start</span><span class="o">+</span><span class="n">samples_per_label</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating DataProcedure in range(</span><span class="si">%r</span><span class="s2">,</span><span class="si">%r</span><span class="s2">):&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">proc_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">stride</span><span class="p">):</span>
+        <span class="n">proc_num</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span><span class="o">-</span><span class="n">proc_start</span><span class="p">)</span>
+        <span class="n">dp</span> <span class="o">=</span> <span class="n">DataProcedure</span><span class="p">(</span>
+                <span class="n">archive_dir</span><span class="p">,</span>
+                <span class="kc">True</span><span class="p">,</span>
+                <span class="n">preprocessFromPandas_label_dir_pairs</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">label_dir_pairs</span><span class="p">,</span>
+                <span class="n">proc_start</span><span class="p">,</span>
+                <span class="n">proc_num</span><span class="p">,</span>
+                <span class="n">object_profiles</span><span class="p">,</span>
+                <span class="n">observ_types</span><span class="p">],</span>
+                <span class="p">{</span>
+                <span class="s1">&#39;single_list&#39;</span><span class="p">:</span><span class="n">single_list</span><span class="p">,</span>
+                <span class="s1">&#39;sort_columns&#39;</span><span class="p">:</span><span class="n">sort_columns</span><span class="p">,</span>
+                <span class="s1">&#39;sort_ascending&#39;</span><span class="p">:</span><span class="n">sort_ascending</span><span class="p">,</span>
+                <span class="s1">&#39;verbose&#39;</span><span class="p">:</span><span class="n">verbose</span>
+                <span class="p">},</span>
+                <span class="n">data_keys</span> <span class="o">=</span> <span class="n">data_keys</span>
+            <span class="p">)</span>
+        <span class="n">procs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span>
+        <span class="c1">#print(proc_start, samples_per_label, stride)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">num_labels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_dir_pairs</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   From </span><span class="si">%r</span><span class="s2"> labels in range(</span><span class="si">%r</span><span class="s2">,</span><span class="si">%r</span><span class="s2">) for </span><span class="si">%r</span><span class="s2">x</span><span class="si">%r</span><span class="s2"> = </span><span class="si">%r</span><span class="s2"> Samples&quot;</span>
+                     <span class="o">%</span> <span class="p">(</span><span class="n">num_labels</span><span class="p">,</span><span class="n">proc_start</span><span class="p">,</span> <span class="n">proc_start</span><span class="o">+</span><span class="n">proc_num</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">,</span><span class="n">proc_num</span><span class="p">,</span><span class="n">num_labels</span><span class="o">*</span><span class="n">proc_num</span><span class="p">))</span>
+    <span class="c1">#print([p.hash() for p in procs])</span>
+    <span class="k">return</span> <span class="n">procs</span></div>
+
+<div class="viewcode-block" id="dataFetchThread"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread">[docs]</a><span class="k">class</span> <span class="nc">dataFetchThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                                  <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proc</span> <span class="o">=</span> <span class="n">proc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span>
+
+<div class="viewcode-block" id="dataFetchThread.run"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
+        <span class="k">return</span></div></div>
+
+<div class="viewcode-block" id="genFromDPs"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.genFromDPs">[docs]</a><span class="k">def</span> <span class="nf">genFromDPs</span><span class="p">(</span><span class="n">dps</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">threading</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets a generator that generates data of batch_size from a list of DataProcedures.</span>
+<span class="sd">        Optionally uses threading to apply getData in parellel, although this may be obsolete</span>
+<span class="sd">        with the proper fit_generator settings&#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">dps</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">dp</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Only takes DataProcedure got&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">dp</span><span class="p">))</span>
+            
+    
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">threading</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THREADING ENABLED&quot;</span><span class="p">)</span>
+            <span class="n">datafetch</span> <span class="o">=</span> <span class="n">dataFetchThread</span><span class="p">(</span><span class="n">dps</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">datafetch</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">dps</span><span class="p">)):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">threading</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="c1">#Wait for the data to come in</span>
+                <span class="k">while</span><span class="p">(</span><span class="n">datafetch</span><span class="o">.</span><span class="n">isAlive</span><span class="p">()):</span>
+                    <span class="k">pass</span>
+                <span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">datafetch</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">datafetch</span><span class="o">.</span><span class="n">Y</span>
+
+                <span class="c1">#Start the next dataFetch</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dps</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="n">datafetch</span> <span class="o">=</span> <span class="n">dataFetchThread</span><span class="p">(</span><span class="n">dps</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">datafetch</span> <span class="o">=</span> <span class="n">dataFetchThread</span><span class="p">(</span><span class="n">dps</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">datafetch</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">dps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                                   
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span> <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span><span class="nb">list</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span> <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+            <span class="n">tot</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="n">tot</span> <span class="o">==</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tot</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">start</span><span class="o">+</span><span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">tot</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">],</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">Y</span><span class="p">]</span></div>
+                
+
+<div class="viewcode-block" id="genFrom_label_dir_pairs"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.genFrom_label_dir_pairs">[docs]</a><span class="k">def</span> <span class="nf">genFrom_label_dir_pairs</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">samples_per_label</span><span class="p">,</span> <span class="n">stride</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">archive_dir</span><span class="p">,</span><span class="n">label_dir_pairs</span><span class="p">,</span> <span class="n">object_profiles</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files</span>
+<span class="sd">        and archive the results.</span>
+<span class="sd">        #Arguments</span>
+<span class="sd">            start -- Where to start reading in the filesystem (if we treat it as one long list for each directory)</span>
+<span class="sd">            samples_per_label -- How many samples to read from the filesystem per event type</span>
+<span class="sd">            stride -- How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid </span>
+<span class="sd">                    excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably</span>
+<span class="sd">                    in memory.</span>
+<span class="sd">            batch_size -- The batch size of the generator. How many samples it grabs in each batch.</span>
+<span class="sd">            archive_dir -- the archive directory to store the preprocessed data.</span>
+<span class="sd">            label_dir_pairs -- A list of tuples like (label_name, pandas_data_directory) telling us what to call the data</span>
+<span class="sd">                                and where to find it.</span>
+<span class="sd">            object_profiles -- A list of ObjectProfiles, used to determine what preprocessing steps need to be taken</span>
+<span class="sd">            observ_types -- A list of the observable quantities in our pandas tables i.e [&#39;E/c&#39;, &quot;Px&quot; ,,,etc.]</span>
+<span class="sd">            verbose -- Whether or not to print</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">dps</span> <span class="o">=</span> <span class="n">procsFrom_label_dir_pairs</span><span class="p">(</span><span class="n">start</span><span class="p">,</span>
+                                    <span class="n">samples_per_label</span><span class="p">,</span>
+                                    <span class="n">stride</span><span class="p">,</span>
+                                    <span class="n">archive_dir</span><span class="p">,</span>
+                                    <span class="n">label_dir_pairs</span><span class="p">,</span>
+                                    <span class="n">object_profiles</span><span class="p">,</span>
+                                    <span class="n">observ_types</span><span class="p">,</span>
+                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">gen</span> <span class="o">=</span> <span class="n">genFromDPs</span><span class="p">(</span><span class="n">dps</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">threading</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">gen</span></div>
+
+<div class="viewcode-block" id="XY_to_CSV"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.XY_to_CSV">[docs]</a><span class="k">def</span> <span class="nf">XY_to_CSV</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span> <span class="n">csvdir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Writes a pair of data X and Y to a directory csvdir as .csv files&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">csvdir</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">csvdir</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">csvdir</span> <span class="o">=</span> <span class="n">csvdir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">csvdir</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">csvdir</span><span class="p">)</span>
+    <span class="n">X_path</span> <span class="o">=</span> <span class="n">csvdir</span><span class="o">+</span><span class="s2">&quot;X/&quot;</span>
+    <span class="n">Y_path</span> <span class="o">=</span> <span class="n">csvdir</span><span class="o">+</span><span class="s2">&quot;Y/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">X_path</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">X_path</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">writeit</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">strbeginning</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">path</span><span class="o">+</span><span class="n">strbeginning</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#Shape: &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">reshaped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])))</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">reshaped</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">writeit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">X_path</span><span class="p">,</span> <span class="s2">&quot;X_&quot;</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+        <span class="n">writeit</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">Y_path</span><span class="p">,</span> <span class="s2">&quot;Y_&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="XY_from_CSV"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.XY_from_CSV">[docs]</a><span class="k">def</span> <span class="nf">XY_from_CSV</span><span class="p">(</span><span class="n">csvdir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Reads a pair of data X and Y from a directory csvdir that contains .csv files with the data&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">csvdir</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">csvdir</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">csvdir</span> <span class="o">=</span> <span class="n">csvdir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="k">def</span> <span class="nf">readit</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+        <span class="n">shape_str</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;\D&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shape_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)])</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+    <span class="n">X_path</span> <span class="o">=</span> <span class="n">csvdir</span><span class="o">+</span><span class="s2">&quot;X/&quot;</span>
+    <span class="n">Y_path</span> <span class="o">=</span> <span class="n">csvdir</span><span class="o">+</span><span class="s2">&quot;Y/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">X_path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;csv directory does not contain X/, Y/&quot;</span><span class="p">)</span>
+   
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">X_path</span><span class="o">+</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readit</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">Y_path</span><span class="o">+</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readit</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">Y</span></div>
+
+
+<div class="viewcode-block" id="XY_to_pickle"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.XY_to_pickle">[docs]</a><span class="k">def</span> <span class="nf">XY_to_pickle</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span> <span class="n">pickledir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Writes a pair of data X and Y to a directory pickledir as pickled files&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">pickledir</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">pickledir</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">pickledir</span> <span class="o">=</span> <span class="n">pickledir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">pickledir</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">pickledir</span><span class="p">)</span>
+    <span class="n">X_path</span> <span class="o">=</span> <span class="n">pickledir</span><span class="o">+</span><span class="s2">&quot;X/&quot;</span>
+    <span class="n">Y_path</span> <span class="o">=</span> <span class="n">pickledir</span><span class="o">+</span><span class="s2">&quot;Y/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">X_path</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">X_path</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">X</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">]</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Y</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">writeit</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">strbeginning</span><span class="p">):</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">path</span><span class="o">+</span><span class="n">strbeginning</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> 
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+        <span class="n">writeit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">X_path</span><span class="p">,</span> <span class="s2">&quot;X_&quot;</span><span class="p">)</span>
+        
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Y</span><span class="p">):</span>
+        <span class="n">writeit</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">Y_path</span><span class="p">,</span> <span class="s2">&quot;Y_&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XY_from_pickle"><a class="viewcode-back" href="../../../CMS_Deep_Learning.preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.XY_from_pickle">[docs]</a><span class="k">def</span> <span class="nf">XY_from_pickle</span><span class="p">(</span><span class="n">pickledir</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Reads a pair of data X and Y from a directory pickledir that contains pickle files with the data&#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">pickledir</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">pickledir</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span>
+        <span class="n">pickledir</span> <span class="o">=</span> <span class="n">pickledir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="k">def</span> <span class="nf">readit</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+    <span class="n">X_path</span> <span class="o">=</span> <span class="n">pickledir</span><span class="o">+</span><span class="s2">&quot;X/&quot;</span>
+    <span class="n">Y_path</span> <span class="o">=</span> <span class="n">pickledir</span><span class="o">+</span><span class="s2">&quot;Y/&quot;</span>
+    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">X_path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">Y_path</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Pickle directory does not contain X/, Y/&quot;</span><span class="p">)</span>
+   
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">X_path</span><span class="o">+</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">X</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readit</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">Y_path</span><span class="o">+</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">readit</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+        
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">Y</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

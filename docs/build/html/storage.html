@@ -1,0 +1,668 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.storage &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CMS_Deep_Learning.utils package" href="utils.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="preprocessing.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="preprocessing.html" title="&lt;no title&gt;"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CMS_Deep_Learning.storage</a><ul>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.MPIArchiving">MPIArchiving</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.archiving">archiving</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.batch">batch</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.forwardComp">forwardComp</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.gitutils">gitutils</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.iterators">iterators</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.meta">meta</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.rsyncUtils">rsyncUtils</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="preprocessing.html"
+                        title="previous chapter">&lt;no title&gt;</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="next chapter">CMS_Deep_Learning.utils package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/storage.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cms-deep-learning-storage">
+<h1>CMS_Deep_Learning.storage<a class="headerlink" href="#cms-deep-learning-storage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-CMS_Deep_Learning.storage.MPIArchiving">
+<span id="mpiarchiving"></span><h2>MPIArchiving<a class="headerlink" href="#module-CMS_Deep_Learning.storage.MPIArchiving" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.MPIArchiving.</code><code class="descname">MPI_KerasTrial</code><span class="sig-paren">(</span><em>*args</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/MPIArchiving.html#MPI_KerasTrial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.archiving.KerasTrial</span></code></a></p>
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>archiveTraining=True</em>, <em>archiveValidation=True</em>, <em>verbosity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/MPIArchiving.html#MPI_KerasTrial.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.kill">
+<code class="descname">kill</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/MPIArchiving.html#MPI_KerasTrial.kill"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.kill" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.setCustomObjects">
+<code class="descname">setCustomObjects</code><span class="sig-paren">(</span><em>custom_objects</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/MPIArchiving.html#MPI_KerasTrial.setCustomObjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.MPIArchiving.MPI_KerasTrial.setCustomObjects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.archiving">
+<span id="archiving"></span><h2>archiving<a class="headerlink" href="#module-CMS_Deep_Learning.storage.archiving" title="Permalink to this headline">¶</a></h2>
+<p>archive.py
+A system for archiving keras trials and input data
+Author: Danny Weitekamp
+e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">DataProcedure</code><span class="sig-paren">(</span><em>archive_dir, archive_on_getData, func, args=[], kargs={}, data_keys=[‘X’, ‘Y’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.Storable" title="CMS_Deep_Learning.storage.archiving.Storable"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.archiving.Storable</span></code></a></p>
+<p>A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
+data and Y contains the labels/targets for each entry</p>
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.archive">
+<code class="descname">archive</code><span class="sig-paren">(</span><em>data, data_keys=[‘X’, ‘Y’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.archive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store the DataProcedure in a directory computed by its hashcode</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.from_json">
+<em class="property">classmethod </em><code class="descname">from_json</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>json_str</em>, <em>arg_decode_func=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a DataProcedure object from its json string</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.get_all_paths">
+<em class="property">static </em><code class="descname">get_all_paths</code><span class="sig-paren">(</span><em>archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.get_all_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.get_all_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the blob paths of all of the DataProcedures in the archive_dir</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.get_data">
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>archive=True, redo=False, data_keys=[‘X’, ‘Y’], verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the DataProcedure returning X,Y from the archive or generating them from func</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.get_func">
+<em class="property">static </em><code class="descname">get_func</code><span class="sig-paren">(</span><em>name</em>, <em>module</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.get_func"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.get_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a function from its name and module path</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.get_summary">
+<code class="descname">get_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.get_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.get_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the summary for the DataProcedure as a string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived">
+<code class="descname">is_archived</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.is_archived"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if this procedure is already archived</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.set_encoder">
+<code class="descname">set_encoder</code><span class="sig-paren">(</span><em>encoder</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.set_encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.set_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the json encoder for the procedure in case its arguements are not json encodable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a summary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.to_hashable">
+<code class="descname">to_hashable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.to_hashable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.to_hashable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a string that uniquely defines an object as far as its model, complilation, and training parameters are concerned</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the json string for the Procedure with only its essential characteristics</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the json string for the procedure to its directory</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">KerasTrial</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>name=’trial’</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.Storable" title="CMS_Deep_Learning.storage.archiving.Storable"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.archiving.Storable</span></code></a></p>
+<p>An archivable object representing a machine learning trial in keras</p>
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><em>loadweights=False</em>, <em>redo=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compiles the model set for this trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><em>archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, data_keys=[‘X’, ‘Y’], verbosity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the trial, fitting the traing data in each DataProcedure in series</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>model, x_train, y_train, record_store=[‘val_acc’], initial_epoch=0, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs model.fit(x_train, y_train) for the trial using the arguments passed to trial.setFit(…)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.fit_generator">
+<code class="descname">fit_generator</code><span class="sig-paren">(</span><em>model, generator, validation_data=None, record_store=[‘val_acc’], initial_epoch=0, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.fit_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.fit_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs model.fit_generator(gen, samples) for the trial using the arguments passed to trial.setFit_Generator(…)</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.from_json">
+<em class="property">classmethod </em><code class="descname">from_json</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>json_str</em>, <em>name=’trial’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.from_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconsitute a KerasTrial object from its json string</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_all_paths">
+<em class="property">static </em><code class="descname">get_all_paths</code><span class="sig-paren">(</span><em>archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_all_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_all_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of all the blob paths of the KerasTrials in the given archive_dir</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_from_record">
+<code class="descname">get_from_record</code><span class="sig-paren">(</span><em>keys</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_from_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_from_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a value from the record</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_history">
+<code class="descname">get_history</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_history"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_history" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the training history for this trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_model">
+<code class="descname">get_model</code><span class="sig-paren">(</span><em>loadweights=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the model, optionally with the best set of weights</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_train">
+<code class="descname">get_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.get_val">
+<code class="descname">get_val</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.get_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.get_val" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.is_complete">
+<code class="descname">is_complete</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.is_complete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.is_complete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the trial has completed</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_compilation">
+<code class="descname">set_compilation</code><span class="sig-paren">(</span><em>optimizer</em>, <em>loss</em>, <em>metrics=[]</em>, <em>sample_weight_mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_compilation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_compilation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the compilation arguments for the trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_fit">
+<code class="descname">set_fit</code><span class="sig-paren">(</span><em>batch_size=32</em>, <em>nb_epoch=10</em>, <em>callbacks=[]</em>, <em>shuffle=True</em>, <em>class_weight=None</em>, <em>sample_weight=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the fit arguments for the trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_fit_generator">
+<code class="descname">set_fit_generator</code><span class="sig-paren">(</span><em>nb_epoch=10</em>, <em>callbacks=[]</em>, <em>class_weight={}</em>, <em>max_q_size=10</em>, <em>nb_worker=1</em>, <em>pickle_safe=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_fit_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_fit_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the fit arguments for the trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_model">
+<code class="descname">set_model</code><span class="sig-paren">(</span><em>model</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the model used by the trial (either the object or derived json string)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_train">
+<code class="descname">set_train</code><span class="sig-paren">(</span><em>train_procedure=None</em>, <em>samples_per_epoch=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the training data for the trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.set_validation">
+<code class="descname">set_validation</code><span class="sig-paren">(</span><em>val_procedure=None</em>, <em>validation_split=0.0</em>, <em>nb_val_samples=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.set_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.set_validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the training data for the trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.summary">
+<code class="descname">summary</code><span class="sig-paren">(</span><em>showName=False</em>, <em>showDirectory=False</em>, <em>showRecord=True</em>, <em>showTraining=False</em>, <em>showValidation=False</em>, <em>showCompilation=False</em>, <em>showFit=False</em>, <em>showModelPic=False</em>, <em>showNoneType=False</em>, <em>squat=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a summary of the trial
+#Arguments:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>showName=False,showDirectory=False, showRecord=True, showTraining=True, showCompilation=True, showFit=True,</dt>
+<dd>showModelPic=False, showNoneType=False – Control what data is printed</dd>
+</dl>
+<p>squat=True – If False shows data on separate lines</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.test">
+<code class="descname">test</code><span class="sig-paren">(</span><em>test_proc</em>, <em>test_samples=None</em>, <em>redo=False</em>, <em>archiveTraining=True</em>, <em>custom_objects={}</em>, <em>max_q_size=None</em>, <em>nb_worker=1</em>, <em>pickle_safe=False</em>, <em>arg_decode_func=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.test" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.to_hashable">
+<code class="descname">to_hashable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.to_hashable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.to_hashable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the trial to a hashable string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the trial to a json string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.to_record">
+<code class="descname">to_record</code><span class="sig-paren">(</span><em>dct</em>, <em>append=False</em>, <em>replace=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.to_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.to_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pushes a dictionary of values to the archive record for this trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.KerasTrial.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#KerasTrial.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.KerasTrial.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the model’s json string to its archive location</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">Storable</code><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>An object that we can hash, archive as a json String, and reconstitute</p>
+<dl class="classmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.find">
+<em class="property">classmethod </em><code class="descname">find</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>hashcode</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the archived DataProcedure with the given hashcode or None if one is not found</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.gen_hash">
+<code class="descname">gen_hash</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.gen_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.gen_hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.get_all_paths">
+<em class="property">static </em><code class="descname">get_all_paths</code><span class="sig-paren">(</span><em>archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.get_all_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.get_all_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of all the blob paths of the Storables in the given archive_dir</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.get_all_records">
+<em class="property">classmethod </em><code class="descname">get_all_records</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.get_all_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.get_all_records" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a dicionary of all the records in the archive_dir keyed by their hashcodes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.get_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the archive (blob) path from its hash</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.hash">
+<code class="descname">hash</code><span class="sig-paren">(</span><em>rehash=False</em>, <em>with_seed=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the hashcode for the Storable from its json string</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.output_as_dir">
+<code class="descname">output_as_dir</code><span class="sig-paren">(</span><em>directory</em>, <em>output_model=True</em>, <em>output_train=True</em>, <em>output_val=True</em>, <em>symlink=False</em>, <em>check=True</em>, <em>raiseError=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.output_as_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.output_as_dir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.read_record">
+<code class="descname">read_record</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.read_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.read_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the dictionary containing all the record values for this trial</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.remove_from_archive">
+<code class="descname">remove_from_archive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.remove_from_archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.remove_from_archive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all the data that the Storable has archived in its archive path</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.remove_from_record">
+<code class="descname">remove_from_record</code><span class="sig-paren">(</span><em>key</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.remove_from_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.remove_from_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a key from the record. Returns 1 if sucessfully removed 0 if does not exist</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.to_hashable">
+<code class="descname">to_hashable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.to_hashable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.to_hashable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must implement a function that returns a hashable string corresponding to the Storable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.to_json">
+<code class="descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must implement a function that returns the json string corresponding to the Storable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.write">
+<code class="descname">write</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Must implement a function that write the Storable’s json sring to its archive (blob) path</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.Storable.write_record">
+<code class="descname">write_record</code><span class="sig-paren">(</span><em>obj</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.write_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.write_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the dictionary containing all the record values for this trial</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.compute_hash">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">compute_hash</code><span class="sig-paren">(</span><em>inp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#compute_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.compute_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a SHA1 hash string from a json string or Storable</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.decode_callback">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">decode_callback</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#decode_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.decode_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes callbacks into usable objects</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.encode_callback">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">encode_callback</code><span class="sig-paren">(</span><em>c</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#encode_callback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.encode_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes callbacks so that they can be decoded later</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.get_all_data">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_all_data</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_all_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_all_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all the DataProcedure in the data_archive</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.get_all_trials">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_all_trials</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_all_trials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_all_trials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the trials listed in the trial_record</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.get_blob_path">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_blob_path</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_blob_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_blob_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Blob path (archive location) from either (storable,archive_dir), (hashcode, archive_dir), or
+(json_str=?, archive_dir=?)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.get_data_by_function">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_data_by_function</code><span class="sig-paren">(</span><em>func</em>, <em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_data_by_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_data_by_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of DataProcedure that use a certain function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.get_trials_by_name">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_trials_by_name</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>name</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_trials_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_trials_by_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the trials with a particluar name or that match a given regular expression</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.read_data_archive">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">read_data_archive</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#read_data_archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.read_data_archive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data archive read from the trial directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.read_json_obj">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">read_json_obj</code><span class="sig-paren">(</span><em>directory</em>, <em>filename</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#read_json_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.read_json_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a json object read from the given directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.split_hash">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">split_hash</code><span class="sig-paren">(</span><em>hashcode</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#split_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.split_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits a SHA1 hash string into two strings. One with the first 2 characters and another with the rest</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.write_data_archive">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">write_data_archive</code><span class="sig-paren">(</span><em>data_archive</em>, <em>archive_dir</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#write_data_archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.write_data_archive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the data archive to the trial directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.write_json_obj">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">write_json_obj</code><span class="sig-paren">(</span><em>obj</em>, <em>directory</em>, <em>filename</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#write_json_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.write_json_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a json object to the given directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.archiving.write_object">
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">write_object</code><span class="sig-paren">(</span><em>directory</em>, <em>filename</em>, <em>data</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#write_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.write_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes an object from the given data with the given filename in the given directory</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.batch">
+<span id="batch"></span><h2>batch<a class="headerlink" href="#module-CMS_Deep_Learning.storage.batch" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.batch.batchAssertArchived">
+<code class="descclassname">CMS_Deep_Learning.storage.batch.</code><code class="descname">batchAssertArchived</code><span class="sig-paren">(</span><em>dps</em>, <em>num_processes=1</em>, <em>time_str=‘01:00:00’</em>, <em>repo=’/scratch/snx3000/dweiteka/CMS_Deep_Learning/’</em>, <em>dp_out_dir=’/scratch/snx3000/dweiteka/dp_out/’</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/batch.html#batchAssertArchived"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.batch.batchAssertArchived" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs
+a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the
+DPs have completed their preprocessing and archived the result.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.batch.batchExecuteAndTestTrials">
+<code class="descclassname">CMS_Deep_Learning.storage.batch.</code><code class="descname">batchExecuteAndTestTrials</code><span class="sig-paren">(</span><em>tups</em>, <em>time_str=‘24:00:00’</em>, <em>repo=’/scratch/snx3000/dweiteka/CMS_Deep_Learning/’</em>, <em>trial_out_dir=’/scratch/snx3000/dweiteka/trial_out/’</em>, <em>use_mpi=False</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/batch.html#batchExecuteAndTestTrials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.batch.batchExecuteAndTestTrials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in a list of tuples ‘tups’ of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
+each trial, either in in order or in separate batches in the case of CSCS.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.forwardComp">
+<span id="forwardcomp"></span><h2>forwardComp<a class="headerlink" href="#module-CMS_Deep_Learning.storage.forwardComp" title="Permalink to this headline">¶</a></h2>
+<p>DEPRICATED
+just a quick script to translate from an old archiving format</p>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.forwardComp.forwardComp">
+<code class="descclassname">CMS_Deep_Learning.storage.forwardComp.</code><code class="descname">forwardComp</code><span class="sig-paren">(</span><em>archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/forwardComp.html#forwardComp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.forwardComp.forwardComp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.gitutils">
+<span id="gitutils"></span><h2>gitutils<a class="headerlink" href="#module-CMS_Deep_Learning.storage.gitutils" title="Permalink to this headline">¶</a></h2>
+<p>Automates pushing archive information to a remote git repo</p>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.gitutils.addCommitPushDir">
+<code class="descclassname">CMS_Deep_Learning.storage.gitutils.</code><code class="descname">addCommitPushDir</code><span class="sig-paren">(</span><em>folder</em>, <em>remote=’origin’</em>, <em>branch=’master’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/gitutils.html#addCommitPushDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.gitutils.addCommitPushDir" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.gitutils.commitAllTrials">
+<code class="descclassname">CMS_Deep_Learning.storage.gitutils.</code><code class="descname">commitAllTrials</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>remote=’origin’</em>, <em>branch=’master’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/gitutils.html#commitAllTrials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.gitutils.commitAllTrials" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.iterators">
+<span id="iterators"></span><h2>iterators<a class="headerlink" href="#module-CMS_Deep_Learning.storage.iterators" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>proc</em>, <em>num_samples=None</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.asList">
+<code class="descname">asList</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.asList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.asList" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.getLength">
+<code class="descname">getLength</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.getLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.getLength" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CMS_Deep_Learning.storage.iterators.TrialIterator">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>accumilate=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.TrialIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="CMS_Deep_Learning.storage.iterators.DataIterator"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.iterators.DataIterator</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.iterators.getNumParams">
+<code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">getNumParams</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.getNumParams" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.meta">
+<span id="meta"></span><h2>meta<a class="headerlink" href="#module-CMS_Deep_Learning.storage.meta" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.meta.msgpack_assertMeta">
+<code class="descclassname">CMS_Deep_Learning.storage.meta.</code><code class="descname">msgpack_assertMeta</code><span class="sig-paren">(</span><em>filename</em>, <em>frames=None</em>, <em>redo=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/meta.html#msgpack_assertMeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.meta.msgpack_assertMeta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asserts that the .meta file for a given .msg file exists and returns the data in the .meta file once it exists</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.rsyncUtils">
+<span id="rsyncutils"></span><h2>rsyncUtils<a class="headerlink" href="#module-CMS_Deep_Learning.storage.rsyncUtils" title="Permalink to this headline">¶</a></h2>
+<p>Automates rsyncing archive information between machines</p>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.rsyncUtils.rsyncStorable">
+<code class="descclassname">CMS_Deep_Learning.storage.rsyncUtils.</code><code class="descname">rsyncStorable</code><span class="sig-paren">(</span><em>hashcode</em>, <em>src_archive_dir</em>, <em>dest_archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/rsyncUtils.html#rsyncStorable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.rsyncUtils.rsyncStorable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="preprocessing.html" title="&lt;no title&gt;"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

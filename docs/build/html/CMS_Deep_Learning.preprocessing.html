@@ -1,0 +1,667 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.preprocessing &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CMS_Deep_Learning.storage" href="CMS_Deep_Learning.storage.html" />
+    <link rel="prev" title="CMS_Deep_Learning package" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.storage.html" title="CMS_Deep_Learning.storage"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CMS_Deep_Learning.preprocessing</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.preprocessing.delphes_parser">delphes_parser</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.preprocessing.preprocessing">preprocessing</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.preprocessing">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">CMS_Deep_Learning package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="CMS_Deep_Learning.storage.html"
+                        title="next chapter">CMS_Deep_Learning.storage</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/CMS_Deep_Learning.preprocessing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cms-deep-learning-preprocessing">
+<h1>CMS_Deep_Learning.preprocessing<a class="headerlink" href="#cms-deep-learning-preprocessing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-CMS_Deep_Learning.preprocessing.delphes_parser">
+<span id="delphes-parser"></span><h2>delphes_parser<a class="headerlink" href="#module-CMS_Deep_Learning.preprocessing.delphes_parser" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.DeltaRsq">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">DeltaRsq</code><span class="sig-paren">(</span><em>A_Eta</em>, <em>A_Phi</em>, <em>B_Eta</em>, <em>B_Phi</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#DeltaRsq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.DeltaRsq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the 
+#Arguments</p>
+<blockquote>
+<div><p>#consider N = # of A, M = # of B
+A_Eta – A numpy array of shape (N,) of all the Eta values of a certain</p>
+<blockquote>
+<div>type of object in a given sample</div></blockquote>
+<dl class="docutils">
+<dt>A_Phi – A numpy array of shape (N,) of all the Phi values of a certain</dt>
+<dd>type of object in a given sample</dd>
+<dt>B_Eta – A numpy array of shape (M,) of all the Eta values of a certain</dt>
+<dd>type of object in a given sample</dd>
+<dt>B_Phi – A numpy array of shape (M,) of all the Phi values of a certain</dt>
+<dd>type of object in a given sample</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns</dt>
+<dd>A numpy ndarray of shape (N,M) containing the pairwise squared angular distances  
+between two sets of objects of types A and B</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.Iso">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">Iso</code><span class="sig-paren">(</span><em>A_Eta</em>, <em>A_Phi</em>, <em>A_Pt</em>, <em>B_Eta</em>, <em>B_Phi</em>, <em>to_ommit=None</em>, <em>maxdist=0.3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#Iso"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.Iso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the isolation between two object types
+#Arguments</p>
+<blockquote>
+<div><p>#consider N = # of particles in group A, M = # of particles in group B
+(A or B)_Eta –  numpy array with shape (N or M,)</p>
+<blockquote>
+<div>corresponding to the Eta values of the particles</div></blockquote>
+<dl class="docutils">
+<dt>(A or B)_Phi –  numpy array with shape (N or M,) </dt>
+<dd>corresponding to the Phi values of the particles</dd>
+<dt>(A or B)_Pt –  numpy array with shape (N or M,) </dt>
+<dd>corresponding to the transverse momentum values of the particles</dd>
+</dl>
+<p>maxdist – The maximum cartesian distance between Eta and Phi to be included in the isolation</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns</dt>
+<dd>The isolations of each particle in A w.r.t the particles in B</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.delphes_to_pandas">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">delphes_to_pandas</code><span class="sig-paren">(</span><em>filepath</em>, <em>verbosity=1</em>, <em>fixedNum=None</em>, <em>requireLepton=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#delphes_to_pandas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.delphes_to_pandas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.doJob">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">doJob</code><span class="sig-paren">(</span><em>job</em>, <em>redo=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#doJob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.doJob" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.fillEventChars">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">fillEventChars</code><span class="sig-paren">(</span><em>entry</em>, <em>new_entry</em>, <em>leaves_by_object</em>, <em>dicts_by_object</em>, <em>METPT_Eta_Phi</em>, <em>maxLepPT_Eta_Phi</em>, <em>maxJetPT_Eta_Phi</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#fillEventChars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.fillEventChars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.fillIso">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">fillIso</code><span class="sig-paren">(</span><em>dicts_by_object</em>, <em>obj</em>, <em>isoType</em>, <em>obj_start</em>, <em>iso</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#fillIso"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.fillIso" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills an object with values for a given entry
+#Arguments</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+</dl>
+<p>obj – The type of object are running isolation on
+isoType – The object type corresponding to the type of isolation we are running
+obj_start – Where to start filling in isolation values</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>#Note: We need to know where to start because we may not be filling or reading from</dt>
+<dd>the beginning of each of our table columns.</dd>
+</dl>
+</div></blockquote>
+<p>iso – The result of Iso(). A list of isolation values.</p>
+</div></blockquote>
+<p>#Returns(void)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.fillTrackMatch">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">fillTrackMatch</code><span class="sig-paren">(</span><em>dicts_by_object</em>, <em>obj</em>, <em>trackIndicies</em>, <em>prtStart</em>, <em>trackStart</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#fillTrackMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.fillTrackMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills an object with values for a given entry
+#Arguments</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+</dl>
+<p>obj – The type of object we are matching with a track
+trackIndicies – The result of trackMatch(). A numpy array of indicies corresponding to</p>
+<blockquote>
+<div>tracks being matched to particles</div></blockquote>
+<p>prtStart – Where to start filling in X,Y,Z, and Dxy values for paricles matched to tracks
+trackStart – Where to start reading track values from.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>#Note: We need to know where to start because we may not be filling or reading from</dt>
+<dd>the beginning of each of our table columns.</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<p>#Returns(void)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.fill_jet">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">fill_jet</code><span class="sig-paren">(</span><em>dicts_by_object</em>, <em>leaves_by_object</em>, <em>entry</em>, <em>new_entry</em>, <em>start_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#fill_jet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.fill_jet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills an object with values for a given entry
+#Arguments</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+<dt>leaves_by_object – A dictionary keyed by object type, containing dictionaries of tuples </dt>
+<dd>like (leaf, branch) keyed by observable type. Only valid ROOT 
+observables are used as keys. Each (leaf,branch) pair corresponds
+to the leaf and branch of a ROOT observable.</dd>
+</dl>
+<p>entry – The entry to in the ROOT file to read from
+new_entry – The new entry number for the sample (Does not correspond to entry if samples are removed)
+start_index – Where to start filling each array in the dictionary dicts_by_object[obj].</p>
+<blockquote>
+<div>They should all have the same length since each array is a column in a table.</div></blockquote>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns </dt>
+<dd>The number of values filled in for each column of our table</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.fill_object">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">fill_object</code><span class="sig-paren">(</span><em>dicts_by_object</em>, <em>leaves_by_object</em>, <em>entry</em>, <em>new_entry</em>, <em>start_index</em>, <em>obj</em>, <em>PT_ET_MET</em>, <em>M</em>, <em>others</em>, <em>maxLepPT_Eta_Phi</em>, <em>METPT_Eta_Phi</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#fill_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.fill_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills an object with values for a given entry
+#Arguments</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+<dt>leaves_by_object – A dictionary keyed by object type, containing dictionaries of tuples </dt>
+<dd>like (leaf, branch) keyed by observable type. Only valid ROOT 
+observables are used as keys. Each (leaf,branch) pair corresponds
+to the leaf and branch of a ROOT observable.</dd>
+</dl>
+<p>entry – The entry to in the ROOT file to read from
+new_entry – The new entry number for the sample (Does not correspond to entry if samples are removed)
+start_index – Where to start filling each array in the dictionary dicts_by_object[obj].</p>
+<blockquote>
+<div>They should all have the same length since each array is a column in a table.</div></blockquote>
+<p>obj – The type of object we are filling
+PT_ET_MET – The particluar flavor of transverse energy for this kind of object either</p>
+<blockquote>
+<div>(‘PT’,  ‘ET’, ‘MET’)</div></blockquote>
+<p>M – The mass of this kind of object
+others – Any ROOT observables unique to this kind of object that we should read</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns </dt>
+<dd>The number of values filled in for each column of our table</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.getEtaPhiPTasNumpy">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">getEtaPhiPTasNumpy</code><span class="sig-paren">(</span><em>dicts_by_object</em>, <em>obj</em>, <em>start</em>, <em>n_vals</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#getEtaPhiPTasNumpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.getEtaPhiPTasNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Gets numpy arrays corresponding to all of the Eta, Phi, and Pt values for a given object type</dt>
+<dd>in a given sample. Here start and n_vals specifiy where the sample starts and how long it is.</dd>
+<dt>#Arguments</dt>
+<dd><dl class="first docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+</dl>
+<p>obj – The type of object we are reading from to create our numpy arrays
+start – where to start reading in that object</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>#Note: We need to know where to start because we may not be filling or reading from</dt>
+<dd>the beginning of each of our table columns.</dd>
+</dl>
+</div></blockquote>
+<p class="last">n_vals – How many values to read.</p>
+</dd>
+<dt>#Returns</dt>
+<dd>Eta, Phi, Pt – numpy arrays</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.getMaxPt_Eta_Phi">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">getMaxPt_Eta_Phi</code><span class="sig-paren">(</span><em>leaves_by_object</em>, <em>entry</em>, <em>obj</em>, <em>PT_ET_MET=’PT’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#getMaxPt_Eta_Phi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.getMaxPt_Eta_Phi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the PT, Eta and Phi corresponding to the particle of the highest PT in the object collection
+#Arguments</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>dicts_by_object – A dictionary keyed by object type containing dictionaries of arrays</dt>
+<dd>keyed by observable type. Arrays are expected to be prefilled with
+zeros</dd>
+<dt>leaves_by_object – A dictionary keyed by object type, containing dictionaries of tuples</dt>
+<dd>like (leaf, branch) keyed by observable type. Only valid ROOT
+observables are used as keys. Each (leaf,branch) pair corresponds
+to the leaf and branch of a ROOT observable.</dd>
+</dl>
+<p>entry – The entry to in the ROOT file to read from</p>
+</div></blockquote>
+<p>#Returns PT, Eta, Phi or if empty 0,0,0</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.main">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">main</code><span class="sig-paren">(</span><em>data_dir</em>, <em>argv</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.makeJobs">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">makeJobs</code><span class="sig-paren">(</span><em>data_folder</em>, <em>storeType</em>, <em>pandas_folder=’/pandas/’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#makeJobs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.makeJobs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.passJetCuts">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">passJetCuts</code><span class="sig-paren">(</span><em>entry</em>, <em>leaves_by_object</em>, <em>num_jets=2</em>, <em>PT_threshold=40.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#passJetCuts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.passJetCuts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.passLeptonCuts">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">passLeptonCuts</code><span class="sig-paren">(</span><em>entry</em>, <em>leaves_by_object</em>, <em>num_leptons=1</em>, <em>PT_threshold=20.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#passLeptonCuts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.passLeptonCuts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.roundrobin">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">roundrobin</code><span class="sig-paren">(</span><em>*iterables</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#roundrobin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.roundrobin" title="Permalink to this definition">¶</a></dt>
+<dd><p>roundrobin(‘ABC’, ‘D’, ‘EF’) –&gt; A D E B F C</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.store">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">store</code><span class="sig-paren">(</span><em>filepath</em>, <em>outputdir</em>, <em>rerun=False</em>, <em>storeType=’hdf5’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.store" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.delphes_parser.trackMatch">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.delphes_parser.</code><code class="descname">trackMatch</code><span class="sig-paren">(</span><em>prtEta</em>, <em>prtPhi</em>, <em>trkEta</em>, <em>trkPhi</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/delphes_parser.html#trackMatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.delphes_parser.trackMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matches a reconstructed particle with its track
+#Arguments</p>
+<blockquote>
+<div><p>#consider N = # of particles, M = # of tracks
+prtEta – A numpy array of shape (N,) of all the Eta values of a certain</p>
+<blockquote>
+<div>type of reconstructed particle in a given sample</div></blockquote>
+<dl class="docutils">
+<dt>prtPhi – A numpy array of shape (N,) of all the Phi values of a certain</dt>
+<dd>type of reconstructed particle in a given sample</dd>
+<dt>trkEta – A numpy array of shape (M,) of all the Eta values of a track in </dt>
+<dd>a given sample</dd>
+<dt>trkPhi – A numpy array of shape (M,) of all the trkPhi values of a track in </dt>
+<dd>a given sample</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns</dt>
+<dd>A numpy array of shape (N,) containing the index of each track corresponding to each
+reconstruced particle.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.preprocessing.preprocessing">
+<span id="preprocessing"></span><h2>preprocessing<a class="headerlink" href="#module-CMS_Deep_Learning.preprocessing.preprocessing" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.ObjectProfile">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">ObjectProfile</code><span class="sig-paren">(</span><em>*args</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#ObjectProfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.ObjectProfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.XY_from_CSV">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">XY_from_CSV</code><span class="sig-paren">(</span><em>csvdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#XY_from_CSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.XY_from_CSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a pair of data X and Y from a directory csvdir that contains .csv files with the data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.XY_from_pickle">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">XY_from_pickle</code><span class="sig-paren">(</span><em>pickledir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#XY_from_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.XY_from_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads a pair of data X and Y from a directory pickledir that contains pickle files with the data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.XY_to_CSV">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">XY_to_CSV</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em>, <em>csvdir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#XY_to_CSV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.XY_to_CSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a pair of data X and Y to a directory csvdir as .csv files</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.XY_to_pickle">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">XY_to_pickle</code><span class="sig-paren">(</span><em>X</em>, <em>Y</em>, <em>pickledir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#XY_to_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.XY_to_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a pair of data X and Y to a directory pickledir as pickled files</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">dataFetchThread</code><span class="sig-paren">(</span><em>proc</em>, <em>group=None</em>, <em>target=None</em>, <em>name=None</em>, <em>args=()</em>, <em>kwargs=None</em>, <em>verbose=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#dataFetchThread"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">threading.Thread</span></code></p>
+<dl class="method">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#dataFetchThread.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.dataFetchThread.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.entryGen">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">entryGen</code><span class="sig-paren">(</span><em>X</em>, <em>entryIndex</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#entryGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.entryGen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.genFromDPs">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">genFromDPs</code><span class="sig-paren">(</span><em>dps</em>, <em>batch_size</em>, <em>threading=False</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#genFromDPs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.genFromDPs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a generator that generates data of batch_size from a list of DataProcedures.
+Optionally uses threading to apply getData in parellel, although this may be obsolete
+with the proper fit_generator settings</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.genFrom_label_dir_pairs">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">genFrom_label_dir_pairs</code><span class="sig-paren">(</span><em>start</em>, <em>samples_per_label</em>, <em>stride</em>, <em>batch_size</em>, <em>archive_dir</em>, <em>label_dir_pairs</em>, <em>object_profiles</em>, <em>observ_types</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#genFrom_label_dir_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.genFrom_label_dir_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
+and archive the results.
+#Arguments</p>
+<blockquote>
+<div><p>start – Where to start reading in the filesystem (if we treat it as one long list for each directory)
+samples_per_label – How many samples to read from the filesystem per event type
+stride – How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid</p>
+<blockquote>
+<div>excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably
+in memory.</div></blockquote>
+<p>batch_size – The batch size of the generator. How many samples it grabs in each batch.
+archive_dir – the archive directory to store the preprocessed data.
+label_dir_pairs – A list of tuples like (label_name, pandas_data_directory) telling us what to call the data</p>
+<blockquote>
+<div>and where to find it.</div></blockquote>
+<p>object_profiles – A list of ObjectProfiles, used to determine what preprocessing steps need to be taken
+observ_types – A list of the observable quantities in our pandas tables i.e [‘E/c’, “Px” ,,,etc.]
+verbose – Whether or not to print</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.getFiles_StoreType">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getFiles_StoreType</code><span class="sig-paren">(</span><em>data_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getFiles_StoreType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getFiles_StoreType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of files from a directory in the filesystem and the type of data stored in it. Asserts that the directory is not empty.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getGensDefaultFormat</code><span class="sig-paren">(</span><em>archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, data_keys=[‘X’, ‘Y’], verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getGensDefaultFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a set of DataProcedures that return generators and their corresponding lengths. Each generator consists of a list DataProcedures that preprocess data
+from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by ‘megabytes’ so that each one is not too big. Each generator
+reads a number of samples per label type set by ‘splits’ and ‘length’, and feeds data in batches of ‘batch_size’ into training.
+#Arguments:</p>
+<blockquote>
+<div><p>archive_dir – The archive directory that the DataProcedures of each generator will archive their information in.
+splits – a list of either integers or floats between 0 and 1 (or both). Each entry in ‘splits’ designates a generator. If an Integer is given then a generator</p>
+<blockquote>
+<div>is built with the number of samples per label designated by that integer (static). If a float is given then the number of samples per label is computed as a 
+fraction of the argument ‘length’ minus the sum of the integer entries (ratio). Float (ratio) entries in splits must add up to 1.0.</div></blockquote>
+<dl class="docutils">
+<dt>length – The total number of samples per label to be split among the float (ratio) values of ‘splits’ plus the Integer (static) values. In other words the total number</dt>
+<dd>of samples per value to be used by all of the generators built by this function. Does not matter if all splits are Integers (static).</dd>
+<dt>object_profiles – A list of ObjectProfiles (see CMS_Deep_Learning.utils.preprocessing.ObjectProfile). These determine how the final preprocessed inputs will be</dt>
+<dd>preprocessed. In the collections will appear in the order the object_profiles are given.</dd>
+<dt>label_dir_pairs – A list of tuples where the first entry is a label and the second is the name of a directory containing pandas files (either msg or h5 format) corresponding </dt>
+<dd>to that label.</dd>
+</dl>
+<p>observ_types – A list of the types of observables to be used in the final preprocessed files.
+batch_size – How many samples to feed into training at a time. 
+megabytes – Determines how large in MB a DataProcedure archive should be. A smaller number means less data in memory at a time as each generator is used, but shorter more frequent</p>
+<blockquote>
+<div>disk reads.</div></blockquote>
+<dl class="docutils">
+<dt>verbose – Determines whether or not information is printed out as the generators are formed and as they are used. (TODO: the implementation of this might need some work, the specifics</dt>
+<dd>of how this information is passed along the the DPs and their dependant functions might not be implemented correctly at the moment, leading to printouts even if verbose=0)</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns (all_dps, all_datasets)</dt>
+<dd><p class="first">all_dps – A list of DataProcedures, this can be passed to CMS_Deep_Learning.utils.batch.batchAssertArchived to make sure that all the DPs are archived before proceeding to training
+all_datasets – A list like [(generator1,num_samples1), (generator2, num_samples2), … , max_q_size], where max_q_size designates how large the keras generator queue should be so that</p>
+<blockquote class="last">
+<div>each generator starts reading the next DP in the archive as it starts outputing data from the previous one.</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.getNumValFrame">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getNumValFrame</code><span class="sig-paren">(</span><em>filename</em>, <em>storeType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getNumValFrame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getNumValFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the num_val_frame frame in a pandas file in either msg or h5 format</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.getSizeMetaData">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getSizeMetaData</code><span class="sig-paren">(</span><em>filename</em>, <em>storeType</em>, <em>sizesDict=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getSizeMetaData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getSizeMetaData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.getSizesDict">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getSizesDict</code><span class="sig-paren">(</span><em>directory</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getSizesDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getSizesDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.label_dir_pairs_args_decoder">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">label_dir_pairs_args_decoder</code><span class="sig-paren">(</span><em>*args</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#label_dir_pairs_args_decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.label_dir_pairs_args_decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes the arguments to preprocessFromPandas_label_dir_pairs so that the ObjectProfile(s) are 
+properly reconstituted</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.maxMutualLength">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">maxMutualLength</code><span class="sig-paren">(</span><em>label_dir_pairs</em>, <em>object_profiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#maxMutualLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.maxMutualLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the mamximum number of samples that can mutually be read in the directories listed by
+label_dir_pairs. Must also input object_profiles so that it knows what keys to check</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.preprocessFromPandas_label_dir_pairs">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">preprocessFromPandas_label_dir_pairs</code><span class="sig-paren">(</span><em>label_dir_pairs</em>, <em>start</em>, <em>samples_per_label</em>, <em>object_profiles</em>, <em>observ_types</em>, <em>single_list=False</em>, <em>sort_columns=None</em>, <em>sort_ascending=True</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#preprocessFromPandas_label_dir_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.preprocessFromPandas_label_dir_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets training data from folders of pandas tables
+#Arguements:</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>label_dir_pairs – a list of tuples of the form (label, directory) where the directory contains</dt>
+<dd>tables containing data of all the same event types.</dd>
+</dl>
+<p>start             –    Where to start reading (as if all of the files are part of one long list)
+samples_per_label – The number of samples to read for each label
+object_profiles – A list of ObjectProfile(s) corresponding to each type of observable object and</p>
+<blockquote>
+<div>its preprocessing steps.</div></blockquote>
+<p>observ_types    – The column headers for the data to be read from the panadas table
+single_list – If True all object types are joined into a single list.
+sort_columns – If single_list the columns to sort by.
+sort_ascending – If True sort in ascending order, false decending</p>
+</div></blockquote>
+<dl class="docutils">
+<dt>#Returns:</dt>
+<dd>Training data with its correspoinding labels
+(X_train, Y_train)</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.procsFrom_label_dir_pairs">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">procsFrom_label_dir_pairs</code><span class="sig-paren">(</span><em>start, samples_per_label, stride, archive_dir, label_dir_pairs, object_profiles, observ_types, single_list=False, sort_columns=None, sort_ascending=True, data_keys=[‘X’, ‘Y’], verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#procsFrom_label_dir_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.procsFrom_label_dir_pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a list of DataProcedures that use preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
+#Arguments</p>
+<blockquote>
+<div><p>start – Where to start reading in the filesystem (if we treat it as one long list for each directory)
+samples_per_label – How many samples to read from the filesystem per event type
+stride – How many samples_per_label to grab in each DataProcedure. This should be big enough to avoid</p>
+<blockquote>
+<div>excessive reads but small enough so that samples_per_label*labels total samples can fit reasonably
+in memory.</div></blockquote>
+<p>archive_dir – the archive directory to store the preprocessed data.
+label_dir_pairs – A list of tuples like (label_name, pandas_data_directory) telling us what to call the data</p>
+<blockquote>
+<div>and where to find it.</div></blockquote>
+<p>object_profiles – A list of ObjectProfiles, used to determine what preprocessing steps need to be taken
+observ_types – A list of the observable quantities in our pandas tables i.e [‘E/c’, “Px” ,,,etc.]
+verbose – Whether or not to print</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.resolveProfileMaxes">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">resolveProfileMaxes</code><span class="sig-paren">(</span><em>object_profiles</em>, <em>label_dir_pairs</em>, <em>padding_multiplier=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#resolveProfileMaxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.resolveProfileMaxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resolves the maximum number of objects for each ObjectProfile. Only runs if ObjectProfile.max_size
+is equal to -1 or None indicating that the value is unresolved. By resolving our max_size(s) we
+can make our preprocessing data sets as small as possible without truncating any data.
+#Arguments:</p>
+<blockquote>
+<div><p>object_profiles – The list of ObjectProfile(s) to resolve
+label_dir_pairs – A list of tuples of the form (label, data_directory) that contain</p>
+<blockquote>
+<div>the directories to look through to find the global maximum for each
+Object type.</div></blockquote>
+<dl class="docutils">
+<dt>padding_ratio   – A muliplier to either shrink or increase the size of the maxes</dt>
+<dd>in case you are worried about previously unseen realworld data 
+being larger than what is availiable at preprocessing.</dd>
+</dl>
+</div></blockquote>
+<p>#Returns (void)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.start_num_fromSplits">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">start_num_fromSplits</code><span class="sig-paren">(</span><em>splits</em>, <em>length</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#start_num_fromSplits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.start_num_fromSplits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of
+samples for each split</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.preprocessing.preprocessing.strideFromTargetSize">
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">strideFromTargetSize</code><span class="sig-paren">(</span><em>object_profiles</em>, <em>num_labels</em>, <em>observ_types</em>, <em>megabytes=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#strideFromTargetSize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.strideFromTargetSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes how large a stride is required to get DPs with archives of size megabytes</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.preprocessing">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-CMS_Deep_Learning.preprocessing" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.storage.html" title="CMS_Deep_Learning.storage"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>
