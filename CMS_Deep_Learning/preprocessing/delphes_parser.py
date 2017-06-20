@@ -568,7 +568,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
     pandas_out["EFlowTrack"] = cleaned
 
     if (verbosity > 0): print("ElapseTime: %.2f" % float(time.clock()-start_time))
-    if (verbosity > 0): print("Converted: %r of %r Entries %r%% ommited %r%% retained" \
+    if (verbosity > 0): print("Converted: %r of %r Entries %0.3f%% ommited %0.2f%% retained" \
                               % (n_entries-cut_sample_count, n_entries, 100*float(cut_sample_count)/float(n_entries),100*float(n_entries-cut_sample_count)/float(n_entries) ))
     return pandas_out
 
@@ -619,9 +619,10 @@ def store(filepath, outputdir, rerun=False, storeType="hdf5"):
         store = pd.HDFStore(out_file)
         keys = store.keys()
         #print("KEYS:", set(keys))
-        #print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
+        # print("KEYS:", set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
         #print("KEYS:", set(keys)==set(["/"+key for key in OBJECT_TYPES+["NumValues"]]))
-        if(set(keys) != set(["/"+key for key in OBJECT_TYPES+["NumValues"]]) or rerun):
+        existing,required  = set(keys),set(["/"+key for key in OBJECT_TYPES+["EventChars","NumValues"]])
+        if(not existing.issuperset(required) or rerun):
             #print("OUT",out_file)
             try:
                 frames = delphes_to_pandas(filepath)
