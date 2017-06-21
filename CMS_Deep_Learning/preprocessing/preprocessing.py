@@ -627,7 +627,7 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
     return X_train, y_train, jets, eventChars
     
 
-def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, data_keys=["X","Y"], verbose=1):
+def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, data_keys=["X","Y"],dp_data_keys=None, verbose=1):
     '''Creates a set of DataProcedures that return generators and their corresponding lengths. Each generator consists of a list DataProcedures that preprocess data
         from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by 'megabytes' so that each one is not too big. Each generator
         reads a number of samples per label type set by 'splits' and 'length', and feeds data in batches of 'batch_size' into training.
@@ -653,6 +653,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
             all_datasets -- A list like [(generator1,num_samples1), (generator2, num_samples2), ... , max_q_size], where max_q_size designates how large the keras generator queue should be so that
                             each generator starts reading the next DP in the archive as it starts outputing data from the previous one.  
         '''
+    if(isinstance(dp_data_keys, type(None))): dp_data_keys = data_keys
     assert isinstance(object_profiles, list)
     assert isinstance(label_dir_pairs, list)
     assert isinstance(observ_types, list)
@@ -672,7 +673,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         sort_columns=sort_columns,
                                         sort_ascending=sort_ascending,
                                         verbose=verbose,
-                                        data_keys=data_keys)
+                                        data_keys=dp_data_keys)
         gen_DP = DataProcedure(archive_dir, False,genFromDPs,[dps, batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]

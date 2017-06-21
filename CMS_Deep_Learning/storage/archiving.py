@@ -254,7 +254,7 @@ class DataProcedure(Storable):
 
     def archive(self, data):#,data_keys=["X", "Y"]):
         '''Store the DataProcedure in a directory computed by its hashcode'''
-        if None in data:
+        if type(None) in [type(d) for d in data]:
             raise ValueError("Cannot archive DataProcedure that includes NoneType")
         if len(data) != len(self.data_keys):
             raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys; %r" % (len(data), self.data_keys, len(self.data_keys), self.hash()))
