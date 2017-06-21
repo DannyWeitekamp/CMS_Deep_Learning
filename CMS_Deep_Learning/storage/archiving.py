@@ -252,12 +252,12 @@ class DataProcedure(Storable):
         else:
             return False
 
-    def archive(self, data,data_keys=["X", "Y"]):
+    def archive(self, data):#,data_keys=["X", "Y"]):
         '''Store the DataProcedure in a directory computed by its hashcode'''
         if None in data:
             raise ValueError("Cannot archive DataProcedure that includes NoneType")
-        if not len(data) == len(data_keys):
-            raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys" % (len(data), data_keys, len(data_keys)))
+        if not len(data) == len(self.data_keys):
+            raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys" % (len(data), self.data_keys, len(self.data_keys)))
         
         # if((not X is None) and (not Y is None)):
         blob_path = self.get_path()
@@ -273,7 +273,7 @@ class DataProcedure(Storable):
         data_path = "/".join([blob_path, "archive.h5"])
         h5f = h5py.File(data_path, 'w')
         
-        for D,key in zip(data,data_keys):
+        for D,key in zip(data,self.data_keys):
             h5f.create_group(key)
             for i, d in enumerate(D):
                 h5f.create_dataset(key + '/'+str(i), data=d)
