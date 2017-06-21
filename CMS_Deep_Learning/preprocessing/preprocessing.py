@@ -305,7 +305,7 @@ def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_
     for profile in object_profiles:
         key = profile.name         
         #TODO: KLUDGE
-        _key = key if(key == "EventChars") else "MissingET" 
+        _key = key if(not key == "EventChars") else "MissingET" 
         #Where to start reading the table based on the sum of the selection start 
         select_start = int(skip_val_frame[_key].sum())
         select_stop = select_start + int(num_val_frame[_key].sum())
