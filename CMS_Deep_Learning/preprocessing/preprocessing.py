@@ -137,7 +137,7 @@ def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1
             # except KeyError as e:
             #     raise KeyError(str(e) + " " + f)
             num_val_frame = getNumValFrame(f,storeType)
-            if(isinstance(num_val_frame, type(None)):
+            if(isinstance(num_val_frame, type(None))):
                 print("Skipping %r" % f)
                 continue
 
@@ -672,7 +672,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         sort_columns=sort_columns,
                                         sort_ascending=sort_ascending,
                                         verbose=verbose,
-                                        data_keys=data_keys),
+                                        data_keys=data_keys)
         gen_DP = DataProcedure(archive_dir, False,genFromDPs,[dps, batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
