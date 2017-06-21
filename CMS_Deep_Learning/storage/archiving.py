@@ -302,7 +302,17 @@ class DataProcedure(Storable):
         for i,d in enumerate(data):
             if(not isinstance(d, list) and not isinstance(d, np.ndarray)):
                 raise ValueError("data type expected list but got %r in key %r" % (type(d), sorted(data_keys.keys())[i]))
-            
+
+    def load_hdf5_data(self, data):
+        """ https://github.com/duanders/mpi_learn -- train/data.py
+            Returns a numpy array or (possibly nested) list of numpy arrays 
+            corresponding to the group structure of the input HDF5 data.
+            If a group has more than one key, we give its datasets alphabetically by key"""
+        if hasattr(data, 'keys'):
+            out = [self.load_hdf5_data(data[key]) for key in sorted(data.keys())]
+        else:
+            out = data[:]
+        return out
         
     def get_data(self, archive=True, redo=False,data_keys=["X","Y"], verbose=1):
         '''Apply the DataProcedure returning X,Y from the archive or generating them from func'''
@@ -314,10 +324,7 @@ class DataProcedure(Storable):
                 out = []
                 for data_key in data_keys:
                     data = h5_file[data_key]
-                    if hasattr(data, 'keys'):
-                        o = [self.load_hdf5_data(data[key]) for key in sorted(data.keys())]
-                    else:
-                        o = data[:]
+                    o = load_hdf5_data(data)
                     out.append(o)
                 out = tuple(out)
                 if(verbose >= 1): print("DataProcedure results %r read from archive" % self.hash())
