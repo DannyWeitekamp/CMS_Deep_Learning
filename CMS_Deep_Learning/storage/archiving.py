@@ -324,11 +324,11 @@ class DataProcedure(Storable):
                 out = []
                 for data_key in data_keys:
                     data = h5_file[data_key]
-                    o = load_hdf5_data(data)
+                    o = self.load_hdf5_data(data)
                     out.append(o)
                 out = tuple(out)
                 if(verbose >= 1): print("DataProcedure results %r read from archive" % self.hash())
-            except Exception as e:
+            except IOError as e:
                 print(e)
                 if(h5_file != None): h5_file.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
