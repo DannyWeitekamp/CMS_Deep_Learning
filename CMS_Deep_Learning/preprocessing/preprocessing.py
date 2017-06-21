@@ -303,10 +303,12 @@ def _groupsByEntry(f, storeType, samples_per_label, samples_to_read, file_total_
     colDict = {}
     #Loop over every profile and read the corresponding tables in the pandas file
     for profile in object_profiles:
-        key = profile.name                
+        key = profile.name         
+        #TODO: KLUDGE
+        _key = key if(key == "EventChars") else "MET" 
         #Where to start reading the table based on the sum of the selection start 
-        select_start = int(skip_val_frame[key].sum())
-        select_stop = select_start + int(num_val_frame[key].sum())
+        select_start = int(skip_val_frame[_key].sum())
+        select_stop = select_start + int(num_val_frame[_key].sum())
 
         frame = _getFrame(store, storeType, key, select_start, select_stop,
                           samples_to_read, file_total_entries,frames)
@@ -651,17 +653,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
     all_dps = []
     all_datasets = []
     for s in SNs:
-        dps = procsFrom_label_dir_pairs(s[0],
-                                        s[1],
-                                        stride,
-                                        archive_dir,
-                                        label_dir_pairs,
-                                        object_profiles,
-                                        observ_types,
-                                        single_list=single_list,
-                                        sort_columns=sort_columns,
-                                        sort_ascending=sort_ascending,
-                                        verbose=verbose)
+        procsFrom_label_dir_pairs
         gen_DP = DataProcedure(archive_dir, False,genFromDPs,[dps, batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]

@@ -568,7 +568,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
     pandas_out["EFlowTrack"] = cleaned
 
     if (verbosity > 0): print("ElapseTime: %.2f" % float(time.clock()-start_time))
-    if (verbosity > 0): print("Converted: %r of %r Entries %0.3f%% ommited %0.2f%% retained" \
+    if (verbosity > 0): print("Converted: %r of %r Entries %0.3f%% ommited %0.3f%% retained" \
                               % (n_entries-cut_sample_count, n_entries, 100*float(cut_sample_count)/float(n_entries),100*float(n_entries-cut_sample_count)/float(n_entries) ))
     return pandas_out
 
