@@ -137,6 +137,9 @@ def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1
             # except KeyError as e:
             #     raise KeyError(str(e) + " " + f)
             num_val_frame = getNumValFrame(f,storeType)
+            if(num_val_frame == None):
+                print("Skipping %r" % f)
+                continue
 
             for profile in unresolved:
                 maxes[profile.name] = max(num_val_frame[profile.name].max(), maxes[profile.name])
@@ -201,6 +204,7 @@ def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     # print(sizesDict[filename][1],modtime)
     if(not filename in sizesDict or sizesDict[filename][1] != modtime):
         num_val_frame = getNumValFrame(filename, storeType)
+        if(num_val_frame == None): return None
         file_total_entries = len(num_val_frame.index)
         # print(file_total_entries)
         sizesDict[filename] = (file_total_entries,modtime)
@@ -231,9 +235,10 @@ def getNumValFrame(filename, storeType):
         try:
             num_val_frame = store.get('NumValues')
         except Exception as e:
-            raise IOError(str(e) + " " + filename +"Please check to see if the files is corrupted. \
+            print(str(e) + " " + filename +"Please check to see if the files is corrupted. \
              Run 'll' in the folder where the file is, if it is much smaller than the others then it is corrupted. \
              If it is corrupted then delete it.")
+            return None
         store.close()
         return num_val_frame
     elif(storeType == "msgpack"):
@@ -494,7 +499,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
          #Loop the files associated with the current label
         for f in files:
             file_total_entries = getSizeMetaData(f,storeType,sizesDict=sizesDict)#len(num_val_frame.index)
-
+            if (file_total_entries == None):
+                print("Skipping %r" % f)
+                continue
+            
             assert file_total_entries > 0, "num_val_frame has zero values"
             
             if(location + file_total_entries <= start):
@@ -710,9 +718,11 @@ def maxMutualLength(label_dir_pairs, object_profiles):
                 #Get the NumValues frame which lists the number of values for each entry
 
                 if(keys != None and set(keys).issubset(set(store.keys())) == False):
-                    raise KeyError('File: ' + f + ' may be corrupted:' + os.linesep + 
+                    print('File: ' + f + ' may be corrupted:' + os.linesep + 
                                     'Requested keys: ' + str(keys) + os.linesep + 
                                     'But found keys: ' + str(store.keys()) )
+                    print('Skipping %r' % f)
+                    continue
                 
                 try:
                     num_val_frame = store.get('/NumValues')
