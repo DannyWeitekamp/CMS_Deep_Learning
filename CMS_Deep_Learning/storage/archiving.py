@@ -202,7 +202,7 @@ class DataProcedure(Storable):
         self.args = args
         self.kargs = kargs
         self.archive_getData = archive_on_getData
-        self.data_keys=data_keys
+        self.data_keys = data_keys
 
 
     def set_encoder(self, encoder):
@@ -256,8 +256,8 @@ class DataProcedure(Storable):
         '''Store the DataProcedure in a directory computed by its hashcode'''
         if None in data:
             raise ValueError("Cannot archive DataProcedure that includes NoneType")
-        if not len(data) == len(self.data_keys):
-            raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys" % (len(data), self.data_keys, len(self.data_keys)))
+        if len(data) != len(self.data_keys):
+            raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys; %r" % (len(data), self.data_keys, len(self.data_keys), self.hash()))
         
         # if((not X is None) and (not Y is None)):
         blob_path = self.get_path()
@@ -378,7 +378,7 @@ class DataProcedure(Storable):
             func = cls.get_func(d['func'], d['func_module'])
         except ValueError:
             func = temp
-        args, kargs = d['args'], d['kargs']
+        args, kargs,data_keys = d['args'], d['kargs'], d['data_keys']
         for i,arg in enumerate(args):
             islist = True
             if(isinstance(arg, list) == False):
@@ -402,7 +402,7 @@ class DataProcedure(Storable):
             args, kargs = arg_decode_func(*args, **kargs)
 
         archive_getData = d['archive_getData']
-        dp = cls(archive_dir, archive_getData, func, args, kargs)
+        dp = cls(archive_dir, archive_getData, func, args, kargs,data_keys=data_keys)
         if(func == temp):
             dp.func = d['func']
             dp.func_module = d['func_module']
