@@ -137,7 +137,7 @@ def resolveProfileMaxes(object_profiles, label_dir_pairs, padding_multiplier = 1
             # except KeyError as e:
             #     raise KeyError(str(e) + " " + f)
             num_val_frame = getNumValFrame(f,storeType)
-            if(num_val_frame == None):
+            if(isinstance(num_val_frame, type(None)):
                 print("Skipping %r" % f)
                 continue
 
@@ -204,7 +204,7 @@ def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     # print(sizesDict[filename][1],modtime)
     if(not filename in sizesDict or sizesDict[filename][1] != modtime):
         num_val_frame = getNumValFrame(filename, storeType)
-        if(num_val_frame == None): return None
+        if(isinstance(num_val_frame,type(None))): return None
         file_total_entries = len(num_val_frame.index)
         # print(file_total_entries)
         sizesDict[filename] = (file_total_entries,modtime)
