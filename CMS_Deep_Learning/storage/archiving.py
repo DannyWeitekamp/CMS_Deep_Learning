@@ -93,7 +93,7 @@ class Storable( object ):
             return 1
         return 0
 
-    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False, check=True, raiseError=False):
+    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False, check=True,isGenerator=False, raiseError=False):
         import shutil
         def _assertPath(p):
             if (not os.path.exists(p)):
@@ -133,10 +133,12 @@ class Storable( object ):
             # write_json_obj(self.model, directory, "model.json")
         if (output_train):
             train_dir = "/".join([directory, "trian"])
-            _dirFromData(train_dir, self.get_train(), symlink=symlink, check=check, raiseError=raiseError)
+            train = self.get_train() if not isGenerator else self.get_train()[0].args[0]
+            _dirFromData(train_dir, train, symlink=symlink, check=check, raiseError=raiseError)
         if (output_val):
             val_dir = "/".join([directory, "val"])
-            _dirFromData(val_dir, self.get_val(), symlink=symlink, check=check, raiseError=raiseError)
+            val = self.get_train() if not isGenerator else self.get_train()[0].args[0]
+            _dirFromData(val_dir, val, symlink=symlink, check=check, raiseError=raiseError)
 
     @staticmethod
     def get_all_paths(archive_dir):
