@@ -93,7 +93,7 @@ class Storable( object ):
             return 1
         return 0
 
-    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False, check=True,isGenerator=False, raiseError=False):
+    def output_as_dir(self, directory, output_model=True, output_weights=False,output_train=True, output_val=True, symlink=False, check=True,isGenerator=False, raiseError=False):
         import shutil
         def _assertPath(p):
             if (not os.path.exists(p)):
@@ -131,6 +131,11 @@ class Storable( object ):
                     warnings.warn("MODEL JSON DOESN'T LOAD %r" % self.hash())
                     if(raiseError): raise IOError()
             # write_json_obj(self.model, directory, "model.json")
+        if(output_weights):
+            cop = os.symlink if symlink else shutil.copyfile
+            cop("/".join([self.get_path(),"weights.h5"]),
+                "/".join([directory, "weights.h5"]))
+            
         if (output_train):
             train_dir = "/".join([directory, "trian"])
             train = self.get_train() if not isGenerator else self.get_train()[0].args[0]
