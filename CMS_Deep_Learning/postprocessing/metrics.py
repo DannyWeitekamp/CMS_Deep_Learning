@@ -63,7 +63,7 @@ def accVsEventChar(model,
         dItr = DataIterator(data, num_samples=num_samples, prediction_model=model, accumilate=accum)
     # tup =
     # print(len(tup), tup)
-    y_vals, predictions, characteristics = dItr.asList()
+    y_vals, predictions, characteristics = dItr.as_list()
     if (len(y_vals) == 1):
         y_vals = y_vals[0]
     else:
@@ -108,7 +108,9 @@ def accVsEventChar(model,
             b["max_bin_x"] = prevmax = characteristics[split_at[i]]
         out_bins.append(b)
 
-    if (plot): plot_bins(out_bins)
+    if (plot):
+        from CMS_Deep_Learning.postprocessing.plot import plot_bins
+        plot_bins(out_bins)
     return out_bins
 
 def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
@@ -264,7 +266,7 @@ def get_roc_data(**kargs):
 #         dItr = DataIterator(data, return_X=False, return_Y=False,
 #                             num_samples=num_samples, accumilate=accum)
 # 
-#     batch_metrics = dItr.asList()
+#     batch_metrics = dItr.as_list()
 # 
 #     batch_metrics = np.array(batch_metrics)
 #     avg = np.mean(batch_metrics, axis=0, dtype='float64')

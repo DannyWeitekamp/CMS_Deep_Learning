@@ -94,14 +94,14 @@ def inputHandler(req_info):
                                      data_keys=data_keys,
                                      return_prediction=return_prediction,
                                      accumilate=accumilate)
-                out = dItr.asList(verbose=0)
+                out = dItr.as_list(verbose=0)
             else:
                 dItr = DataIterator(data_dict.get('data', None),
                                     data_keys=data_keys,
                                     num_samples=data_dict.get('num_samples', None),
                                     prediction_model=data_dict.get('model', None),
                                     accumilate=accumilate)
-                out = dItr.asList(verbose=0)
+                out = dItr.as_list(verbose=0)
         return tuple(list(out) + [data_dict[r] for r in req_info if not r in ITERATOR_REQS])
 
     return f
