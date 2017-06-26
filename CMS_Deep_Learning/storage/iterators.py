@@ -1,5 +1,5 @@
 import types
-import sys
+import sys, os
 import numpy as np
 import h5py
 from CMS_Deep_Learning.storage.archiving import DataProcedure
