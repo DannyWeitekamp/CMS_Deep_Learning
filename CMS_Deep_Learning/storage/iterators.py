@@ -2,6 +2,8 @@ import types
 import sys, os
 import numpy as np
 import h5py
+import glob
+import itertools
 from CMS_Deep_Learning.storage.archiving import DataProcedure
 
 if (sys.version_info[0] > 2):

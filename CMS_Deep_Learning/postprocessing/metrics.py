@@ -1,3 +1,4 @@
+from CMS_Deep_Learning.postprocessing.plot import plot_bins
 from CMS_Deep_Learning.storage.input_handler import inputHandler
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
@@ -107,7 +108,7 @@ def accVsEventChar(model,
             b["max_bin_x"] = prevmax = characteristics[split_at[i]]
         out_bins.append(b)
 
-    if (plot): plotBins(out_bins)
+    if (plot): plot_bins(out_bins)
     return out_bins
 
 def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
@@ -190,88 +191,87 @@ def get_roc_data(**kargs):
 
 
 
-def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
-    '''
-    Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.
-    #Arguements:
-            model -- The model being evaluated, or a KerasTrial containing a valid model.
-            data  -- A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure
-                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
-                     set will be found from the archive (or computed) and used in place of data.
-            num_samples -- The number of samples to evaluate the error on.
-            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
-            ignoreAssert -- If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.
-                            If this is not the case then an error will be raised.
-    #Returns:
-        The standard error of the validation accuracy
-    '''
-    # trial = None
-    # if(isinstance(model, KerasTrial)):
-    #     trial = model
-    #     model = trial.compile(loadweights=True,custom_objects=custom_objects)
-    #     if(data == None):
-    #         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-    #         if(num_samples == None): num_samples = trial.nb_val_samples
-    #         p = DataProcedure.from_json(trial.archive_dir,val_proc)
-    #         data = p.getData()
-    # if(trial != None and trial.get_from_record("val_acc_error") == None):
-    #     #model = trial.compile(loadweights=True,custom_objects=custom_objects)
-    #     # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
-    #     # if(num_samples == None): num_samples = trial.nb_val_samples
-    #     # p = DataProcedure.from_json(trial.archive_dir,val_proc)
-    #     # gen = p.getData()
-    #
-    #     num_read = 0
-    #     correct = 0
-    #     batch_metrics = None
-    #     num_batches = None
-    #     global_batch_size = None
-    #     i = 0
-    #
-    #     if(isinstance(data, DataProcedure)):
-    #         data = data.getData()
-    #     for X,Y in data:
-    #         batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]
-    #         if(batch_metrics == None):
-    #             global_batch_size = batch_size
-    #             num_batches =  np.ceil(num_samples/float(global_batch_size))
-    #             batch_metrics = [None] * num_batches
-    #         #if(batch_size != global_batch_size): continue
-    #         m = model.test_on_batch(X,Y)
-    #         if(i >= num_batches):
-    #             batch_metrics.append(m)
-    #         else:
-    #             #print(i)
-    #             batch_metrics[i] = m
-    #         num_read += batch_size
-    #         i += 1
-    #         if(num_read >= num_samples):
-    #             break
-
-    isTrial = False
-    if(isinstance(model, KerasTrial)):
-        trial = model
-        model = trial.compile(loadweights=True,custom_objects=custom_objects)
-        isTrial = True
-
-    def accum(X,Y):
-        return model.test_on_batch(X,Y)
-
-    if (isTrial):
-        dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
-    else:
-        dItr = DataIterator(data, return_X=False, return_Y=False,
-                            num_samples=num_samples, accumilate=accum)
-
-    batch_metrics = dItr.asList()
-
-    batch_metrics = np.array(batch_metrics)
-    avg = np.mean(batch_metrics, axis=0, dtype='float64')
-    sem = np.std(batch_metrics, axis=0, dtype='float64')/np.sqrt(i)
-    if(not ignoreAssert and trial.get_from_record("val_acc") != None):
-        np.testing.assert_almost_equal(trial.get_from_record("val_acc"), avg[1], decimal=3)
-    else:
-        trial.to_record({"val_acc_" : avg[1]})
-    trial.to_record({"val_acc_error" : sem[1]})
-    return trial.get_from_record("val_acc_error")
-
+# def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
+#     '''
+#     Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.
+#     #Arguements:
+#             model -- The model being evaluated, or a KerasTrial containing a valid model.
+#             data  -- A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure
+#                      containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
+#                      set will be found from the archive (or computed) and used in place of data.
+#             num_samples -- The number of samples to evaluate the error on.
+#             custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
+#             ignoreAssert -- If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.
+#                             If this is not the case then an error will be raised.
+#     #Returns:
+#         The standard error of the validation accuracy
+#     '''
+#     # trial = None
+#     # if(isinstance(model, KerasTrial)):
+#     #     trial = model
+#     #     model = trial.compile(loadweights=True,custom_objects=custom_objects)
+#     #     if(data == None):
+#     #         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+#     #         if(num_samples == None): num_samples = trial.nb_val_samples
+#     #         p = DataProcedure.from_json(trial.archive_dir,val_proc)
+#     #         data = p.getData()
+#     # if(trial != None and trial.get_from_record("val_acc_error") == None):
+#     #     #model = trial.compile(loadweights=True,custom_objects=custom_objects)
+#     #     # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]
+#     #     # if(num_samples == None): num_samples = trial.nb_val_samples
+#     #     # p = DataProcedure.from_json(trial.archive_dir,val_proc)
+#     #     # gen = p.getData()
+#     #
+#     #     num_read = 0
+#     #     correct = 0
+#     #     batch_metrics = None
+#     #     num_batches = None
+#     #     global_batch_size = None
+#     #     i = 0
+#     #
+#     #     if(isinstance(data, DataProcedure)):
+#     #         data = data.getData()
+#     #     for X,Y in data:
+#     #         batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]
+#     #         if(batch_metrics == None):
+#     #             global_batch_size = batch_size
+#     #             num_batches =  np.ceil(num_samples/float(global_batch_size))
+#     #             batch_metrics = [None] * num_batches
+#     #         #if(batch_size != global_batch_size): continue
+#     #         m = model.test_on_batch(X,Y)
+#     #         if(i >= num_batches):
+#     #             batch_metrics.append(m)
+#     #         else:
+#     #             #print(i)
+#     #             batch_metrics[i] = m
+#     #         num_read += batch_size
+#     #         i += 1
+#     #         if(num_read >= num_samples):
+#     #             break
+# 
+#     isTrial = False
+#     if(isinstance(model, KerasTrial)):
+#         trial = model
+#         model = trial.compile(loadweights=True,custom_objects=custom_objects)
+#         isTrial = True
+# 
+#     def accum(X,Y):
+#         return model.test_on_batch(X,Y)
+# 
+#     if (isTrial):
+#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
+#     else:
+#         dItr = DataIterator(data, return_X=False, return_Y=False,
+#                             num_samples=num_samples, accumilate=accum)
+# 
+#     batch_metrics = dItr.asList()
+# 
+#     batch_metrics = np.array(batch_metrics)
+#     avg = np.mean(batch_metrics, axis=0, dtype='float64')
+#     sem = np.std(batch_metrics, axis=0, dtype='float64')/np.sqrt(i)
+#     if(not ignoreAssert and trial.get_from_record("val_acc") != None):
+#         np.testing.assert_almost_equal(trial.get_from_record("val_acc"), avg[1], decimal=3)
+#     else:
+#         trial.to_record({"val_acc_" : avg[1]})
+#     trial.to_record({"val_acc_error" : sem[1]})
+#     return trial.get_from_record("val_acc_error")
