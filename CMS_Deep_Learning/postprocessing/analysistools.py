@@ -170,5 +170,5 @@ def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=T
                     # Remove the tail trials from the big trial list
                     for t in lst[1:]: trials.remove(t)
                 else:
-                    raise ImplementationError("need to write this")
+                    raise NotImplementedError("need to write this")
     return trials

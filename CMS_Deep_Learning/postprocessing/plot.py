@@ -216,7 +216,8 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
     fig=plt.figure()
     ax1=fig.add_subplot(111)
     if(colors == None):
-        colors = colors_contrasting
+        from .colors import colors_contrasting1
+        colors = colors_contrasting1
     if(shapes == None):
         shapes = ['o','s','v', 'D', '^','*', '<', '>']
     trials_by_group = {}
@@ -365,7 +366,7 @@ def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set=
     colors = resolveColors(color_set)
 
     roc_dicts = []
-    for inp in inputs:
+    for i,inp in enumerate(inputs):
         name = inp.get('name', None)
         inp["true_class_index"] = true_class_index
         fpr, tpr, thres, roc_auc = get_roc_data(**inp)
@@ -461,3 +462,127 @@ def plot_dual_roc(args=[], flipped=False, invertCont=False, title="",
     fig.suptitle(title, fontsize=18)
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 10})
     return plt, roc_dicts
+
+
+def plot_bins(bins,
+              y_val="acc",
+              min_samples=10,
+              mode="bar",
+              title='',
+              xlabel='',
+              ylabel='',
+              binLabels=None,
+              legendTitle=None,
+              legendBelow=False,
+              alpha=.8,
+              colors=['b', 'g', 'r'],
+              shapes=None,
+              xlim=None,
+              ylim=(0, 1.025),
+              useGrid=True,
+              log=False,
+              stack=False,
+              normalize=False,
+              show=True):
+    ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
+
+        :param bins: A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
+        :param min_samples: The minumum number of samples that must be in a bin for it to be plotted.
+        :param mode: "bar" or "scatter"
+        :param title: The title of the plot
+        :param xlabel: The xlabel of the plot
+        :param ylabel: the ylabel of the plot
+        :param binLabels: A list of labels to be shown in the legend. One for each set of bins.
+        :param legendTitle: The title of the legend.
+        :param legendBelow: Whether or not to put the legend below the graph
+        :param alpha: The opacity of the plot.
+        :param colors: the colors for each set of bins (see how matplotlib handles colors)
+        :param shapes: the shapes of the markers for the graph
+        :param xlim: a tuple (minX, maxX) that determines he x range of the view of the graph
+        :param ylim: a tuple (minY, maxY) that determines he y range of the view of the graph 
+        :param useGrid: if True then display a grid in the background of the graph'''
+    from matplotlib import pyplot as plt
+    if (not isinstance(bins, dict)):
+        bins = {"": bins}
+    elif (binLabels == None):
+        binLabels = bins.keys()
+    if (shapes == None):
+        shapes = ['o', 's', 'v', 'D', '^', '*', '<', '>']
+    if (not isinstance(colors, list)):
+        colors = [colors]
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111)
+    if (useGrid):
+        if (mode == "bar"):
+            ax.yaxis.grid(True, which='major')
+        else:
+            ax.grid(True)
+        ax.set_axisbelow(True)
+
+        # if(mode == "stacked"):
+        #    lables, binsets = bins.items()
+        #    xs = [binsets[0]["min_bin_x"] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
+        #    widths = [binsets[0]["max_bin_x"]-binsets[0]["min_bin_x"] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
+        #    ys = [[b[y_val] for b in binset] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
+        #    ax.stackplot(xs, *ys)
+        # color = colors[i%len(colors)]
+        # label = binlabel#binLabels[i] if binLabels != None and len(binLabels) > i else None
+
+        # ys = [b[y_val] for b in bs if(b["num_samples"] >= min_samples)]
+
+    # else:
+    #    
+    # print(bins.keys())
+    for i, (binlabel, binset) in enumerate(bins.items()):
+        bs = binset
+
+        color = colors[i % len(colors)]
+        label = binlabel  # binLabels[i] if binLabels != None and len(binLabels) > i else None
+        xs = [b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+        ys = [b[y_val] for b in bs if (b["num_samples"] >= min_samples)]
+        widths = [b["max_bin_x"] - b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+        errors = None if not (y_val + "_error") in bs[0] \
+            else [b[y_val + "_error"] for b in bs if (b["num_samples"] >= min_samples)]
+        if (mode == "bar"):
+
+            ax.bar(xs, ys, width=widths, yerr=errors, color=color, label=label, ecolor='k', alpha=alpha, log=log)
+        elif (mode == "histo"):
+            # print(ys,sorted(ys[0].keys()))
+            ys = [[y[key] for key in sorted(y.keys())] for y in ys]
+            if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
+            ys = zip(*ys)
+            bot = np.array([0.0] * len(xs))
+            for j, y in enumerate(ys):
+                if (binLabels != None): label = binLabels[j]
+                # print(label,j,colors[j%len(colors)])
+                if (stack):
+                    ax.bar(xs, y, width=widths, yerr=errors, bottom=bot, color=colors[j % len(colors)], label=label,
+                           ecolor='k', alpha=alpha, log=log)
+                else:
+                    # Append point to beginning 
+                    xs, y = [xs[0] - bs[0]["bin_width"]] + xs, y[:1] + y
+                    ax.plot(xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
+                # print(bot)
+                if (stack): bot += y
+        else:
+            s = shapes[i % len(colors)]
+            ax.plot(xs, ys, color=color, label=label, marker=s, linestyle='None')
+            ax.errorbar(xs, ys, yerr=errors, color=color, ecolor=color, alpha=alpha, fmt='', linestyle='None', )
+            if (log): ax.set_yscale("log")
+
+    ax.set_title(title, size=16)
+    ax.set_xlabel(xlabel, size=14)
+    ax.set_ylabel(ylabel, size=14)
+    if (legendBelow):
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),
+                           fancybox=True, ncol=2)
+    else:
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    if (legendTitle != None): plt.setp(legend.get_title(), fontsize=14)
+
+    plt.ylim(ylim)
+    plt.xlim(xlim)
+
+    if (show): plt.show()
+    return plt
