@@ -8,8 +8,9 @@ e-mail: dannyweitekamp@gmail.com
 import matplotlib.pyplot as plt
 import numpy as np
 from .analysistools import *
-from .colors import *
 from IPython.display import Image, display
+from .metrics import get_roc_data
+from .colors import resolveColors
 
 def plot_history( histories, plotLoss=True, plotAccuracy=True, plotBest=True, title=None, acclims=None, useGrid=True, show=True):
     """ Plots an array of training histories against each other
@@ -215,7 +216,8 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
     fig=plt.figure()
     ax1=fig.add_subplot(111)
     if(colors == None):
-        colors = colors_contrasting
+        from .colors import colors_contrasting1
+        colors = colors_contrasting1
     if(shapes == None):
         shapes = ['o','s','v', 'D', '^','*', '<', '>']
     trials_by_group = {}
@@ -328,36 +330,53 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
     return plt
 
 
-def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, title="ROC Curve", show=True):
-    from CMS_Deep_Learning.storage.iterators import TrialIterator
-    from sklearn.metrics import roc_curve, auc
-    if (trial != None):
-        tr = TrialIterator(trial, return_X=False, return_Y=True, return_prediction=True)
-        labels, predictions = tr.asList()
-        labels = labels[0]
+def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set="colors_contrasting1", show=True,
+                   **kargs):
+    '''Computes the ROC curve parameterization of the validation set and plots it. (or not if show=False). 
+       Requires (trial), or (Y,predictions) or (model,data), or (model,X,Y)
+        .. note:: mutliple plots can be made by passing in a list of dictionaries containing the relevent kargs
 
-    labels = np.array(labels)
-    predictions = np.array(predictions)
-    # Draw the ROC curve
-    labels = np.array(labels)
-    predictions = np.array(predictions)
+        :param args: an alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+                    each curve
+        :param true_class_index: The index of the element of the predictions/labels that refers to the positive class
+        :param title: The title of the plot
+        :param color_set: a list of colors to use for each ROC.
+        :param show: whether or not to show the plot, can be useful if one only wants the parameterization data
 
-    assert labels.shape == predictions.shape, "labels and predictions should have \
-        the same shape, %r != %r" % (labels.shape == predictions.shape)
-    n = labels.shape[0]
-    if (len(labels.shape) > 1 and labels.shape[1] > 1):
-        if (true_index != None):
-            labels = labels[:, true_index].ravel()
-            predictions = predictions[:, true_index].ravel()
-        else:
-            raise ValueError("must designate index of true class for data of shape %r" % list(labels.shape))
+        :param name: a name for labeling roc_curves
+        :param true_class_index: the index in the output vector corresponding to the 'true class' element
+        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
+        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
+        :param Y: The data labels numpy.ndarray
+        :param predictions: the predictions numpy.ndarray
+        :param model: a compiled model, uncompiled model or path to model json. For the latter options
+                      weights=? must be given.
+        :param weights: the model weights, or a path to the weights
+        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
 
-    fpr, tpr, _ = roc_curve(labels, predictions)
-    roc_auc = auc(fpr, tpr)
-    plt.figure()
-    lw = 2
-    plt.plot(fpr, tpr, color='darkorange', \
-             lw=lw, label='Area under curve: %0.4f' % roc_auc)
+
+        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)
+
+        '''
+    from matplotlib import pyplot as plt
+    inputs = args
+    if (len(args) == 0):
+        inputs = [kargs]
+
+    colors = resolveColors(color_set)
+
+    roc_dicts = []
+    for i,inp in enumerate(inputs):
+        name = inp.get('name', None)
+        inp["true_class_index"] = true_class_index
+        fpr, tpr, thres, roc_auc = get_roc_data(**inp)
+
+        plt.figure()
+        lw = 2
+        plt.plot(fpr, tpr, color=colors[i], \
+                 lw=lw, label='%r (AUC): %0.4f' % (name, roc_auc))
+        roc_dicts.append({"name": name, "ROC_data": (fpr, tpr, thres, roc_auc)})
+
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
     plt.xlim([-0.05, 1.0])
     plt.ylim([0.0, 1.05])
@@ -365,5 +384,191 @@ def plot_roc_curve(trial=None, labels=None, predictions=None, true_index=None, t
     plt.ylabel('True Positive Rate')
     plt.title(title)
     plt.legend(loc="lower right")
+    if (show): plt.show()
+    return plt, roc_dicts
+
+
+def plot_dual_roc(args=[], flipped=False, invertCont=False, title="",
+                  true_class_index=None, color_set="colors_contrasting1", **kargs):
+    '''Input d: a dictionary of the roc outputs
+
+        :param name: a name for labeling roc_curves
+        :param true_class_index: the index in the output vector corresponding to the 'true class' element
+        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
+        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
+        :param Y: The data labels numpy.ndarray
+        :param predictions: the predictions numpy.ndarray
+        :param model: a compiled model, uncompiled model or path to model json. For the latter options
+                      weights=? must be given.
+        :param weights: the model weights, or a path to the weights
+        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
+
+
+        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)'''
+    from matplotlib import pyplot as plt
+    from matplotlib import rc
+    inputs = args
+    if (len(args) == 0):
+        inputs = [kargs]
+
+    colors = resolveColors(color_set)
+
+    rc('font', **{'family': 'sans-serif', 'sans-serif': ['Helvetica']})
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    roc_dicts = []
+    for inp in inputs:
+        inp["true_class_index"] = true_class_index
+        inp["ROC_data"] = get_roc_data(**inp)
+        roc_dicts.append({"name": inp.get('name', None), "ROC_data": inp["ROC_data"]})
+
+    for k, (use_log, ax) in enumerate(zip([False, True], [ax1, ax2])):
+        for i, inp in enumerate(sorted(inputs, key=lambda x: -x["ROC_data"][3])):
+            name = inp.get('name', None)
+            fpr, tpr, thres, roc_auc = inp["ROC_data"]
+
+            if (invertCont):
+                fpr = [min(1.0 / x, 40000.0) for x in fpr]
+
+            if (flipped):
+                ax.plot(tpr, fpr, color=colors[i],
+                        lw=.7, label='%s (AUC): %0.4f' % (name, roc_auc))
+            else:
+                ax.plot(fpr, tpr, color=colors[i],
+                        lw=.7, label='%s (AUC): %0.4f' % (name, roc_auc))
+
+        ax.plot(np.linspace(0, 1, num=50), np.linspace(0, 1, num=50),
+                color='navy', lw=.4, linestyle='--')
+
+        if (flipped):
+            if (use_log): ax.set_yscale("log")
+            ax.set_xlim([0.0, 1.05])
+            if (not invertCont): ax.set_ylim([-0.05, 1.05])
+            ax.set_xlabel('signal efficiency (TPR)')
+            if (invertCont):
+                if (k == 0): ax.set_ylabel('1/(signal contamination) %s' % ("log-scale" if use_log else ""))
+            else:
+                if (k == 0): ax.set_ylabel('signal contamination %s (FPR)' % ("log-scale" if use_log else ""))
+        else:
+            if (use_log): ax.set_xscale("log")
+            if (not invertCont): ax.set_xlim([-0.05, 1])
+            ax.set_ylim([0.0, 1.05])
+            if (k == 0): ax.set_ylabel('signal efficiency (TPR)')
+            if (invertCont):
+                ax.set_xlabel('1/(signal contamination) %s' % ("log-scale" if use_log else ""))
+            else:
+                ax.set_xlabel('signal contamination %s (FPR)' % ("log-scale" if use_log else ""))
+
+    fig.suptitle(title, fontsize=18)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5), prop={'size': 10})
+    return plt, roc_dicts
+
+
+def plot_bins(bins,
+              y_val="acc",
+              min_samples=10,
+              mode="bar",
+              title='',
+              xlabel='',
+              ylabel='',
+              binLabels=None,
+              legendTitle=None,
+              legendBelow=False,
+              alpha=.8,
+              colors=['b', 'g', 'r'],
+              shapes=None,
+              xlim=None,
+              ylim=(0, 1.025),
+              useGrid=True,
+              log=False,
+              stack=False,
+              normalize=False,
+              show=True):
+    ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
+
+        :param bins: A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
+        :param min_samples: The minumum number of samples that must be in a bin for it to be plotted.
+        :param mode: "bar" or "scatter"
+        :param title: The title of the plot
+        :param xlabel: The xlabel of the plot
+        :param ylabel: the ylabel of the plot
+        :param binLabels: A list of labels to be shown in the legend. One for each set of bins.
+        :param legendTitle: The title of the legend.
+        :param legendBelow: Whether or not to put the legend below the graph
+        :param alpha: The opacity of the plot.
+        :param colors: the colors for each set of bins (see how matplotlib handles colors)
+        :param shapes: the shapes of the markers for the graph
+        :param xlim: a tuple (minX, maxX) that determines he x range of the view of the graph
+        :param ylim: a tuple (minY, maxY) that determines he y range of the view of the graph 
+        :param useGrid: if True then display a grid in the background of the graph'''
+    from matplotlib import pyplot as plt
+    if (not isinstance(bins, dict)):
+        bins = {"": bins}
+    elif (binLabels == None):
+        binLabels = bins.keys()
+    if (shapes == None):
+        shapes = ['o', 's', 'v', 'D', '^', '*', '<', '>']
+    if (not isinstance(colors, list)):
+        colors = [colors]
+    fig = plt.figure(figsize=(8, 8))
+    ax = fig.add_subplot(111)
+    if (useGrid):
+        if (mode == "bar"):
+            ax.yaxis.grid(True, which='major')
+        else:
+            ax.grid(True)
+        ax.set_axisbelow(True)
+
+    for i, (binlabel, binset) in enumerate(bins.items()):
+        bs = binset
+
+        color = colors[i % len(colors)]
+        label = binlabel  # binLabels[i] if binLabels != None and len(binLabels) > i else None
+        xs = [b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+        ys = [b[y_val] for b in bs if (b["num_samples"] >= min_samples)]
+        widths = [b["max_bin_x"] - b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+        errors = None if not (y_val + "_error") in bs[0] \
+            else [b[y_val + "_error"] for b in bs if (b["num_samples"] >= min_samples)]
+        if (mode == "bar"):
+
+            ax.bar(xs, ys, width=widths, yerr=errors, color=color, label=label, ecolor='k', alpha=alpha, log=log)
+        elif (mode == "histo"):
+            ys = [[y[key] for key in sorted(y.keys())] for y in ys]
+            if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
+            ys = zip(*ys)
+            bot = np.array([0.0] * len(xs))
+
+            for j, y in enumerate(ys):
+                if (binLabels != None): label = binLabels[j]
+                if (stack):
+                    ax.bar(xs, y, width=widths, yerr=errors, bottom=bot, color=colors[j % len(colors)], label=label,
+                           ecolor='k', alpha=alpha, log=log, edgecolor="none", lw=0)
+                else:
+                    # Append points to beginning and end
+                    xs = [b["max_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+                    xs = [bs[0]['min_bin_x']] + xs + [xs[-1]]
+                    y = [0] + list(y) + [0]
+                    ax.plot(xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
+                if (stack): bot += y
+        else:
+            s = shapes[i % len(colors)]
+            ax.plot(xs, ys, color=color, label=label, marker=s, linestyle='None')
+            ax.errorbar(xs, ys, yerr=errors, color=color, ecolor=color, alpha=alpha, fmt='', linestyle='None')
+            if (log): ax.set_yscale("log")
+
+    ax.set_title(title, size=16)
+    ax.set_xlabel(xlabel, size=14)
+    ax.set_ylabel(ylabel, size=14)
+    if (legendBelow):
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),
+                           fancybox=True, ncol=2)
+    else:
+        legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    if (legendTitle != None): plt.setp(legend.get_title(), fontsize=14)
+
+    plt.ylim(ylim)
+    plt.xlim(xlim)
+
     if (show): plt.show()
     return plt

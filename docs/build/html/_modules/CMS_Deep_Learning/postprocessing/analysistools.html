@@ -1,0 +1,270 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.postprocessing.analysistools &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.postprocessing.analysistools</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+
+<div class="viewcode-block" id="findsubsets"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.findsubsets">[docs]</a><span class="k">def</span> <span class="nf">findsubsets</span><span class="p">(</span><span class="n">S</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Finds all subsets of a set S&#39;&#39;&#39;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">m</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="get_trial_dps"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.get_trial_dps">[docs]</a><span class="k">def</span> <span class="nf">get_trial_dps</span><span class="p">(</span><span class="n">trial</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span><span class="p">):</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">trial</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trial</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">]</span>
+        <span class="c1"># num_samples = trial.nb_val_samples</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">):</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">trial</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trial</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">]</span>
+        <span class="c1"># num_samples = trial.samples_per_epoch</span>
+    <span class="k">return</span> <span class="n">proc</span></div>
+
+<div class="viewcode-block" id="group_by_labels"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.group_by_labels">[docs]</a><span class="k">def</span> <span class="nf">group_by_labels</span><span class="p">(</span><span class="n">trials</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding</span>
+<span class="sd">    trials as values. &#39;&#39;&#39;</span>
+    <span class="c1"># sets = findsubsets(labels)</span>
+    <span class="n">trials_by_set</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># labels = set()</span>
+    <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">trials</span><span class="p">:</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="s1">&#39;labels&#39;</span><span class="p">)</span>
+        <span class="c1"># Accidentally mispelled labels so this is just to make sure the mispelling can be found</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="s1">&#39;lables&#39;</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">])</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="n">trials_by_set</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">trials_by_set</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">trials_by_set</span></div>
+
+
+<div class="viewcode-block" id="sortOnMetric"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.sortOnMetric">[docs]</a><span class="k">def</span> <span class="nf">sortOnMetric</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">sortMetric</span><span class="o">=</span><span class="s1">&#39;val_acc&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Sort a list of trials on a record metric&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">getKey</span><span class="p">(</span><span class="n">trial</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="n">sortMetric</span><span class="p">)</span>
+
+    <span class="n">trials</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">getKey</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="print_by_labels"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.print_by_labels">[docs]</a><span class="k">def</span> <span class="nf">print_by_labels</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">num_print</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sortMetric</span><span class="o">=</span><span class="s1">&#39;val_acc&#39;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Prints trials ordered and grouped by their labeles</span>
+<span class="sd">        #Arguments:</span>
+<span class="sd">            trials -- A list of KerasTrials</span>
+<span class="sd">            num_print -- How many to print, Defaults is all of them.</span>
+<span class="sd">            sortMetric -- What metric to sort the trials on</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">trials_by_set</span> <span class="o">=</span> <span class="n">group_by_labels</span><span class="p">(</span><span class="n">trials</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">classification</span> <span class="ow">in</span> <span class="n">trials_by_set</span><span class="p">:</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="n">trials_by_set</span><span class="p">[</span><span class="n">classification</span><span class="p">]</span>
+        <span class="n">head_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2"> Classification: </span><span class="si">%r</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">classification</span><span class="p">,</span>
+                                                   <span class="s2">&quot;Top </span><span class="si">%r</span><span class="s2"> trials&quot;</span> <span class="o">%</span> <span class="n">num_print</span> <span class="k">if</span> <span class="n">num_print</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">head_str</span><span class="p">)</span>
+        <span class="n">sortOnMetric</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">sortMetric</span><span class="o">=</span><span class="n">sortMetric</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">num_print</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">num_print</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">num_print</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">))):</span>
+            <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">showTraining</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showValidation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showFit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showCompilation</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="findWithMetrics"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.findWithMetrics">[docs]</a><span class="k">def</span> <span class="nf">findWithMetrics</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Culls a list of trials, selecting only those trials that satisfy the given metrics</span>
+<span class="sd">        #Arguments:</span>
+<span class="sd">            trials -- a list of KerasTrials</span>
+<span class="sd">            metrics -- a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted </span>
+<span class="sd">                    (i.e. {&#39;depth&#39; : 1, ...})</span>
+<span class="sd">        #Returns:</span>
+<span class="sd">            A culled list of KerasTrials&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">trials</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">))):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;trials must be iterable, but got </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">trials</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;metrics expecting type dict, but got %&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">metrics</span><span class="p">))</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">trials</span><span class="p">:</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">read_record</span><span class="p">()</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">metric</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">metric</span> <span class="ow">in</span> <span class="n">record</span><span class="p">):</span>
+                <span class="c1"># print(record[metric], value)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">metric</span> <span class="o">==</span> <span class="s1">&#39;name&#39;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span> <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">record</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+                        <span class="n">ok</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">record_value</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="n">metric</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">record_value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">record_value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">record_value</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="c1"># print(record_value, value)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">record_value</span> <span class="o">!=</span> <span class="n">value</span><span class="p">):</span>
+                        <span class="n">ok</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">value</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">ok</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ok</span><span class="p">):</span> <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="getMetricValues"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.getMetricValues">[docs]</a><span class="k">def</span> <span class="nf">getMetricValues</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets a list of record values from a list of trials</span>
+<span class="sd">        #Aruments:</span>
+<span class="sd">            trials -- a list of KerasTrials</span>
+<span class="sd">            metric -- a single record key or list of record keys. </span>
+<span class="sd">        #Returns:</span>
+<span class="sd">            A list of record values or if metric is a list a list a tuples containing record values&#39;&#39;&#39;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">trials</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">m</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">m</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="assertOneToOne"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.assertOneToOne">[docs]</a><span class="k">def</span> <span class="nf">assertOneToOne</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metricX</span><span class="p">,</span> <span class="n">metricY</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">ignoreIncomplete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose_errors</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in &#39;trials&#39; can</span>
+<span class="sd">        be uniquely identified by the value in their record keyed by &#39;metricX&#39;. So if metricX=&#39;depth&#39; this function asserts that</span>
+<span class="sd">        no two trials in the input &#39;trials&#39; list have the same depth value in their record. In the event of a conflict, the argument</span>
+<span class="sd">        &#39;mode&#39; determines how to proceed.</span>
+<span class="sd">        #Aruments:</span>
+<span class="sd">            trials -- a list of trials to be checked for a one-to-one relationship</span>
+<span class="sd">            metricX -- the metric (record key) whose value must uniquely idetify each trial</span>
+<span class="sd">            metricY -- In the event of a conflict when mode = &quot;max&quot; or &quot;min&quot;, which metric to use to pick among the conflicting trials.</span>
+<span class="sd">            mode -- How to assert a one-to-one relationship between the trials. Either &quot;max&quot; or &quot;min&quot; which simply take the trial</span>
+<span class="sd">                    with the maximum or minimum &#39;metricY&#39; value among conflicting trials. Alternately &quot;error&quot; throws an error if a one-to-one</span>
+<span class="sd">                    relationship cannot be resolved, showing the user the set of conflicting trials.</span>
+<span class="sd">            ignoreIncomplete -- Whether or not to ignore trials which did not finish training.</span>
+<span class="sd">            verbose_errors -- Whether or not to output long trial summaries if a conflict is found and mode = &#39;error&#39;</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">trials</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trials</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">trials</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">))):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;trials must be iterable, but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">trials</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">metricY</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;metricY must be defined if mode = </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode </span><span class="si">%r</span><span class="s2"> not recognized. Please choose &#39;error&#39;, &#39;max&#39; or &#39;min&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ignoreIncomplete</span><span class="p">):</span> <span class="n">trials</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trials</span> <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">is_complete</span><span class="p">()]</span>
+    <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">trials</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="n">metricX</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">x</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">lst</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span>
+        <span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">lst</span>
+    <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">lst</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;error&quot;</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; </span><span class="se">\n\n</span><span class="s2"> ONE-TO-ONE ERROR! </span><span class="se">\n</span><span class="s2"> </span><span class="si">%r</span><span class="s2"> Trials with </span><span class="si">%r</span><span class="s2"> = </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">),</span> <span class="n">metricX</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">verbose_errors</span><span class="p">):</span>
+                        <span class="n">trial</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">showTraining</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showValidation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showFit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">showCompilation</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">trial</span><span class="o">.</span><span class="n">summary</span><span class="p">(</span><span class="n">showTraining</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">showValidation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">showFit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">showCompilation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                    <span class="s2">&quot;Supplied trials cannot have one-to-one relationship on metricX = </span><span class="si">%r</span><span class="s2">. See the printout above for more information. &quot;</span> <span class="o">%</span> <span class="n">metricX</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">):</span>
+                    <span class="n">reverse</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">):</span> <span class="n">reverse</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">lst</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="n">metricY</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="n">reverse</span><span class="p">)</span>
+                    <span class="c1"># Remove the tail trials from the big trial list</span>
+                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span> <span class="n">trials</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">ImplementationError</span><span class="p">(</span><span class="s2">&quot;need to write this&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">trials</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

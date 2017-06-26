@@ -1,0 +1,296 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.layers.lorentz &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.layers.lorentz</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; </span>
+<span class="sd">lorentz.py</span>
+<span class="sd">Contains the LorentzLayer</span>
+<span class="sd">Author: Danny Weitekamp</span>
+<span class="sd">e-mail: dannyweitekamp@gmail.com</span>
+<span class="sd">&#39;&#39;&#39;</span> 
+
+<span class="kn">from</span> <span class="nn">keras</span> <span class="k">import</span> <span class="n">backend</span> <span class="k">as</span> <span class="n">K</span>
+<span class="kn">from</span> <span class="nn">keras.backend.common</span> <span class="k">import</span> <span class="n">_EPSILON</span>
+<span class="kn">from</span> <span class="nn">keras.constraints</span> <span class="k">import</span> <span class="n">maxnorm</span>
+<span class="kn">from</span> <span class="nn">keras.engine.topology</span> <span class="k">import</span> <span class="n">Layer</span>
+<span class="kn">import</span> <span class="nn">theano</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">theano.compile.nanguardmode</span> <span class="k">import</span> <span class="n">NanGuardMode</span>
+
+<span class="c1">#Build K matricies</span>
+<span class="n">np_K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">):</span>
+    <span class="n">np_K</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">np_K</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    
+<span class="n">_K</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">np_K</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_lorentz</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">boosts</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">sum_input</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39; Outputs a backend variable that Calculates the vectorial sum of 4-vectors</span>
+<span class="sd">        boosted individually into different reference frames</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">sum_input</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_shape</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">x_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span> <span class="p">,</span><span class="n">x_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="c1"># K.clip(boosts, 0.0, .33-_EPSILON)</span>
+    <span class="c1">#Initialize Helpful variables</span>
+    <span class="n">x_shape</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># f = function([x], printed_x)</span>
+
+
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">x_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">vector_cluster_size</span> <span class="o">=</span> <span class="n">x_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">_bI</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">repeat_elements</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)),</span> <span class="n">vector_cluster_size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">_b1</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">repeat_elements</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">vector_cluster_size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    
+    <span class="c1">#Get _mag and _n from boost which can be formatted in either</span>
+    <span class="c1"># Cartesian or Spherical coordinates</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">sphereCoords</span><span class="p">):</span>
+        <span class="c1">#split up the boost by components. dtype=&#39;int64&#39; is to cast to a theano.tensor.lvector</span>
+        <span class="n">_splits</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="c1">#theano.tensor.lvector([1,1,1])</span>
+        <span class="n">_theta</span><span class="p">,</span> <span class="n">_phi</span><span class="p">,</span><span class="n">_mag</span> <span class="o">=</span> <span class="n">theano</span><span class="o">.</span><span class="n">tensor</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boosts</span><span class="p">,</span><span class="n">_splits</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">_mag</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">_mag</span><span class="p">,</span> <span class="n">_EPSILON</span><span class="p">,</span> <span class="mf">1.0</span><span class="o">-</span><span class="n">_EPSILON</span><span class="p">)</span>
+        <span class="n">_theta</span> <span class="o">=</span> <span class="n">_theta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">_phi</span> <span class="o">=</span> <span class="n">_phi</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+        <span class="n">_nx</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">_theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">K</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">_phi</span><span class="p">)</span> 
+        <span class="n">_ny</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">_theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">K</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">_phi</span><span class="p">)</span>
+        <span class="n">_nz</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">_theta</span><span class="p">)</span>
+        <span class="n">_n</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">_nx</span><span class="p">,</span> <span class="n">_ny</span><span class="p">,</span> <span class="n">_nz</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_mag</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">boosts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+        <span class="n">_mag</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">_mag</span><span class="p">,</span> <span class="n">_EPSILON</span><span class="p">,</span> <span class="mf">1.0</span><span class="o">-</span><span class="n">_EPSILON</span><span class="p">)</span>
+        <span class="n">_inv_mag</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">_mag</span>
+        <span class="n">_n</span> <span class="o">=</span> <span class="n">boosts</span> <span class="o">*</span>  <span class="n">_inv_mag</span>
+    
+    <span class="c1">#Calculate the Lorentz factor of the boost</span>
+    <span class="n">_sqrMag</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">_mag</span><span class="p">)</span>
+    <span class="n">_g</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">K</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mf">1.</span><span class="o">-</span><span class="n">_sqrMag</span><span class="p">))</span>
+    
+    <span class="c1">#Repeat the K tensor b=vector_cluster_size times </span>
+    <span class="n">_bK</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">_K</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">_bK</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">repeat_elements</span><span class="p">(</span><span class="n">_bK</span><span class="p">,</span> <span class="n">vector_cluster_size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#Dot K with n for each cluster vector to get _nk = Bxnx + Byny + Bznz</span>
+    <span class="n">_nK</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">_n</span><span class="p">,</span> <span class="n">_bK</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="c1">#Reshape _nk so that we can batch dot it along the [1] axis</span>
+    <span class="n">_nK</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">_nK</span><span class="p">,</span> <span class="p">(</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="c1">#Square _nK and reshape it correctly for each cluster vector</span>
+    <span class="n">_nK2</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">_nK</span><span class="p">,</span><span class="n">_nK</span><span class="p">),</span> <span class="p">(</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="c1">#Calculate the boost matrix</span>
+    <span class="n">_B</span> <span class="o">=</span> <span class="n">_bI</span> <span class="o">-</span> <span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">_g</span><span class="o">*</span><span class="n">_mag</span><span class="p">,</span> <span class="n">_nK</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span> <span class="o">+</span><span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">_g</span><span class="o">-</span><span class="n">_b1</span><span class="p">,</span><span class="n">_nK2</span><span class="p">,</span><span class="n">axes</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span>
+    
+    <span class="c1">#Apply trained weights to each Boost in the cluster</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">weights</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">_B</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">_B</span><span class="p">,</span> <span class="p">(</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">(</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">_B</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">_B</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span>
+    
+    <span class="c1"># print(&quot;Total size:&quot;, batch_size* vector_cluster_size)</span>
+    <span class="c1">#Reshape x and _B so we can dot them along the cluster axis</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="o">*</span> <span class="n">vector_cluster_size</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="n">_B</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">_B</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="n">_mB</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">repeat_elements</span><span class="p">(</span><span class="n">_B</span><span class="p">,</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">_mB</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">_mB</span><span class="p">,(</span><span class="n">batch_size</span><span class="o">*</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+    <span class="c1">#Dot x and _B along the cluster axis to give the summed result of the boosted vectors</span>
+    <span class="n">dot</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">batch_dot</span><span class="p">(</span><span class="n">_mB</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">],[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">dot</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dot</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span><span class="n">vector_cluster_size</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+   
+    <span class="c1"># #Reshape x and _B so we can dot them along the cluster axis</span>
+    <span class="c1"># x = K.reshape(x, (batch_size, vector_cluster_size, 1, 4))</span>
+    <span class="c1"># _B = K.reshape(_B, (1,vector_cluster_size,4,4))</span>
+    <span class="c1"># _mB = K.repeat_elements(_B,batch_size, axis=0)</span>
+    
+    <span class="c1"># #Dot x and _B along the cluster axis to give the summed result of the boosted vectors</span>
+    <span class="c1"># out = K.reshape(K.batch_dot(_mB, x, axes=[[1,3],[1,3]]), (batch_size, 1,4))</span>
+    <span class="k">return</span> <span class="n">dot</span>
+
+
+    <span class="c1"># #Reshape x and _B so we can dot them along the cluster axis</span>
+    <span class="c1"># x = K.reshape(x, (batch_size, vector_cluster_size, 1, 4))</span>
+    <span class="c1"># _B = K.reshape(_B, (1,vector_cluster_size,4,4))</span>
+    <span class="c1"># _mB = K.repeat_elements(_B,batch_size, axis=0)</span>
+    
+    <span class="c1"># #Dot x and _B along the cluster axis to give the summed result of the boosted vectors</span>
+    <span class="c1"># out = K.reshape(K.batch_dot(_mB, x, axes=[[1,3],[1,3]]), (batch_size, 1,4))</span>
+    
+
+<div class="viewcode-block" id="Lorentz"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz">[docs]</a><span class="k">class</span> <span class="nc">Lorentz</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A layer that uses the lorentz transformation to analyze input 4-vectors</span>
+<span class="sd">        in different relativistic frames.</span>
+<span class="sd">        Trains on a set of weights:</span>
+<span class="sd">            Bo (boost: which boosts each of any number of input 4-vectors)</span>
+<span class="sd">            W  (weight: applies a mulitplier to the boosted 4-vectors)</span>
+<span class="sd">            DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</span>
+<span class="sd">            </span>
+<span class="sd">            :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.</span>
+<span class="sd">            :parma vec_start: determines where to start reading the 4-vector along the last axis of the input.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sphereCoords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vec_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sum_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">weight_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sphereCoords</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;sphereCoords should be bool type, but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">sphereCoords</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dim</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span> <span class="o">=</span> <span class="n">sphereCoords</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span> <span class="o">=</span> <span class="n">vec_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_output</span> <span class="o">=</span> <span class="n">weight_output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sum_input</span> <span class="o">=</span> <span class="n">sum_input</span>
+        <span class="c1"># kwargs[&#39;input_shape&#39;] = (cluster_size, 4)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Lorentz</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
+<div class="viewcode-block" id="Lorentz.build"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz.build">[docs]</a>    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+        <span class="c1">#The cluster size</span>
+        <span class="n">input_dim</span> <span class="o">=</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sum_input</span><span class="p">):</span> <span class="n">input_dim</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c1"># self.vec_start</span>
+
+        <span class="c1">#Boosts for each vector in the cluster</span>
+        <span class="n">initial_boosts_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">input_dim</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+        <span class="c1">#Bias Boost for the vector sum</span>
+        <span class="c1">#initial_bias_value = np.random.random((1,3))</span>
+        <span class="c1">#Weight values for each vector in the cluster</span>
+        <span class="n">initial_weights_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="n">input_dim</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        
+        <span class="c1">#If in Cartesian Coordinates scale so maxNorm = 1</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">):</span>
+            <span class="n">initial_boosts_value</span> <span class="o">*=</span> <span class="o">.</span><span class="mi">33</span>
+            <span class="c1"># initial_bias_value *= .33</span>
+        
+        <span class="c1">#store weights</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">initial_boosts_value</span><span class="p">)</span>
+        <span class="c1">#self.Bi = K.variable(initial_bias_value)</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_output</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="n">initial_weights_value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1">#If in Cartesian Coordinates apply maxnorm constraint so that we can</span>
+        <span class="c1">#only boost our vectors into real reference frames</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxnorm</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1">#self.constraints[self.Bi] = maxnorm(axis=1)</span>
+        
+        <span class="c1">#Let keras know about our weights</span>
+        <span class="c1"># self.trainable_weights = [self.W, self.Bi, self.Bo]</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_output</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trainable_weights</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trainable_weights</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Lorentz.call"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz.call">[docs]</a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1">#T dimensions are (batch_size, cluster_size, 4)</span>
+        <span class="c1">#lorentzboost of the vectorial sum of each lorentzboosted 4 vector in the cluster</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">K</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="c1"># T_slice = T[:,:,0:4]</span>
+        <span class="n">T_slice</span> <span class="o">=</span> <span class="n">T</span><span class="p">[:,:,</span><span class="n">v</span><span class="p">:</span><span class="n">v</span><span class="o">+</span><span class="mi">4</span><span class="p">]</span>
+        <span class="c1"># summed_boosted = _lorentz( T_slice, self.Bo, weights=self.W, sphereCoords=self.sphereCoords)</span>
+        <span class="n">boosted</span> <span class="o">=</span> <span class="n">_lorentz</span><span class="p">(</span> <span class="n">T_slice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bo</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">sphereCoords</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">)</span>
+        <span class="c1"># out = _lorentz(summed_boosted, self.Bi, sphereCoords=self.sphereCoords)</span>
+        <span class="k">return</span> <span class="n">boosted</span></div>
+
+<div class="viewcode-block" id="Lorentz.get_output_shape_for"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz.get_output_shape_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_output_shape_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">):</span>
+        <span class="c1"># return (input_shape[0], self.output_dim)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">input_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sum_input</span> <span class="k">else</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Lorentz.get_config"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.lorentz.Lorentz.get_config">[docs]</a>    <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">base_config</span> <span class="o">=</span> <span class="n">Layer</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sphereCoords&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sphereCoords</span><span class="p">,</span>
+                  <span class="s1">&#39;vec_start&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec_start</span><span class="p">,</span>
+                  <span class="s1">&#39;weight_output&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_output</span><span class="p">}</span>
+        
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">base_config</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

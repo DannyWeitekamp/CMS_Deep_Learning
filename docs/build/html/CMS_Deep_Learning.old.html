@@ -1,0 +1,283 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.old package &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CMS_Deep_Learning.postprocessing package" href="CMS_Deep_Learning.postprocessing.html" />
+    <link rel="prev" title="CMS_Deep_Learning.layers package" href="CMS_Deep_Learning.layers.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.postprocessing.html" title="CMS_Deep_Learning.postprocessing package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.layers.html" title="CMS_Deep_Learning.layers package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CMS_Deep_Learning.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="CMS_Deep_Learning.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CMS_Deep_Learning.old package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.old.data_parse">CMS_Deep_Learning.old.data_parse module</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.old">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="CMS_Deep_Learning.layers.html"
+                        title="previous chapter">CMS_Deep_Learning.layers package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="CMS_Deep_Learning.postprocessing.html"
+                        title="next chapter">CMS_Deep_Learning.postprocessing package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/CMS_Deep_Learning.old.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cms-deep-learning-old-package">
+<h1>CMS_Deep_Learning.old package<a class="headerlink" href="#cms-deep-learning-old-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-CMS_Deep_Learning.old.data_parse">
+<span id="cms-deep-learning-old-data-parse-module"></span><h2>CMS_Deep_Learning.old.data_parse module<a class="headerlink" href="#module-CMS_Deep_Learning.old.data_parse" title="Permalink to this headline">¶</a></h2>
+<p>data_parse.py
+Contains tools for parsing High Energy Physics data
+Author: Danny Weitekamp
+e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="class">
+<dt id="CMS_Deep_Learning.old.data_parse.DataProcessingProcedure">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">DataProcessingProcedure</code><span class="sig-paren">(</span><em>func</em>, <em>input_leaves</em>, <em>output_names</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#DataProcessingProcedure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.DataProcessingProcedure" title="Permalink to this definition">¶</a></dt>
+<dd><p>An object that can be passed as a leaf in ROOT_to_pandas. Instead of simply grabbing a
+leaf, it takes in data and applies a function to it. The outputs of that function are
+written instead of the leaf to the pandas frame.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.ROOT_NumValues_to_pandas">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">ROOT_NumValues_to_pandas</code><span class="sig-paren">(</span><em>inputfilepath</em>, <em>leaves</em>, <em>columns=None</em>, <em>tree_name=’Delphes’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#ROOT_NumValues_to_pandas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.ROOT_NumValues_to_pandas" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.ROOT_to_pandas">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">ROOT_to_pandas</code><span class="sig-paren">(</span><em>inputfilepath</em>, <em>leaves</em>, <em>trees=None</em>, <em>columns=None</em>, <em>addEntry=True</em>, <em>entrylabel=’Entry’</em>, <em>verbosity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#ROOT_to_pandas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.ROOT_to_pandas" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Extracts values from a .root file and writes them to a pandas frame.</dt>
+<dd>Essentially takes root data out of its tree format and puts it in a table.</dd>
+<dt># Arguments</dt>
+<dd><p class="first">inputfilepath: The path to the .root file held locally or in a distributed system
+leaves: A list of the names of the leaves that need to be extracted 
+trees: A list of the trees in the .root file that need to be parsed.</p>
+<blockquote>
+<div>Reads all trees in the file if not set.</div></blockquote>
+<dl class="docutils">
+<dt>columns: A list of the column names for the table. Uses the leaf names</dt>
+<dd>if not seet</dd>
+</dl>
+<p class="last">verbosity: 0:No print output, 1:Some, 2:A lot of the table is printed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.four_vec_from_PT">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">four_vec_from_PT</code><span class="sig-paren">(</span><em>inputs</em>, <em>M</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#four_vec_from_PT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.four_vec_from_PT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that converts (PT, Eta, Phi) -&gt; (E/c, Px, Py, Pz)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasAll">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasAll</code><span class="sig-paren">(</span><em>filename</em>, <em>cull=False</em>, <em>includePuppi=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasAll"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from several observable objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasEFlowParticle">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasEFlowParticle</code><span class="sig-paren">(</span><em>filename</em>, <em>name=’EFlowPhoton’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasEFlowParticle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasEFlowParticle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the EFlowPhoton objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasEFlowTrack">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasEFlowTrack</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasEFlowTrack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasEFlowTrack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the EFlowTrack objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasElectrons">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasElectrons</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasElectrons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasElectrons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the Electron objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasJets">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasJets</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasJets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasJets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the Jet objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasMissingET">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasMissingET</code><span class="sig-paren">(</span><em>filename</em>, <em>name=’MissingET’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasMissingET"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasMissingET" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the MissingET objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasNumValues">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasNumValues</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasNumValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasNumValues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasParticles">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasParticles</code><span class="sig-paren">(</span><em>filename</em>, <em>cull=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasParticles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasParticles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasPhotons">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasPhotons</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasPhotons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasPhotons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the Photon objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasSpecificObject">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasSpecificObject</code><span class="sig-paren">(</span><em>filename</em>, <em>name</em>, <em>mass=None</em>, <em>pid=None</em>, <em>chrg_def=-1</em>, <em>charge=None</em>, <em>XT=’PT’</em>, <em>Dxy_Ehad_Eem=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasSpecificObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasSpecificObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a particular type of ROOT object to table format
+Arguements:
+filaname      – Path to the .root filen
+name          – The name of the object being converted
+mass=None     – The mass of the object being converted, by default reads the mass from the object
+pid=None      – The pid of the object, by default reads the pid from the object
+chrg_def=-1   – The default charge of a particle, (e.g. an electron would be -1) as opposed to its anti-particle
+charge=None   – The charge, by default reads it from object
+XT=”PT”       – The transverse measurement. Can be PT, ET, or MET. Used to compute the 4-momentum
+Dxy_Ehad_Eem=None – A string indicating if the Dxy,Ehad, or Eem properties should be read. They occupy one column since</p>
+<blockquote>
+<div>they are never mutually non-zero.</div></blockquote>
+<p>Returns:
+A pandas frame of the format: [E/c, Px, Py, Pz, PID, Charge, PT_ET, Eta, Phi, Dxy_Ehad_Eem]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.getPandasTightMuons">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">getPandasTightMuons</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#getPandasTightMuons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.getPandasTightMuons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a pandas frame derived from the MuonTight objects in the given ROOT file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.old.data_parse.leaves_from_obj">
+<code class="descclassname">CMS_Deep_Learning.old.data_parse.</code><code class="descname">leaves_from_obj</code><span class="sig-paren">(</span><em>objname</em>, <em>columns</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/old/data_parse.html#leaves_from_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.old.data_parse.leaves_from_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes the name of an object and a list of properties (Columns). Expands like So 
+leaves_from_obj(“ObjectName”, [“Prop1, “Prop2”, “Prop3”]) -&gt;</p>
+<blockquote>
+<div>[“ObjectName.Prop1, “ObjectName.Prop2”, “ObjectName.Prop3”] , [“Prop1, “Prop2”, “Prop3”]</div></blockquote>
+<p>Can also take in DataProcessingProcedures which it will properly expand in the column output
+# Arguments</p>
+<blockquote>
+<div>objname: The name of the object
+input_leaves: The name of its properties</div></blockquote>
+<dl class="docutils">
+<dt># Returns</dt>
+<dd>leaves, columns
+leaves: The a list of fully qualified leaf names
+columns: The a list of column names. Expanded if a DataProcessingProcedure was given.</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.old">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-CMS_Deep_Learning.old" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.postprocessing.html" title="CMS_Deep_Learning.postprocessing package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="CMS_Deep_Learning.layers.html" title="CMS_Deep_Learning.layers package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="CMS_Deep_Learning.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

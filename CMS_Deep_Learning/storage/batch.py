@@ -8,8 +8,8 @@ from time import sleep
 import numpy as np
 
 
-from CMS_Deep_Learning.layers.lorentz import Lorentz
-from CMS_Deep_Learning.layers.slice import Slice
+#from CMS_Deep_Learning.layers.lorentz import Lorentz
+#from CMS_Deep_Learning.layers.slice import Slice
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 
 
@@ -23,6 +23,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
     unarchived = []
     dependencies = []
     for dp in dps:
+        # print(dps)
         if(not dp.is_archived()):
             unarchived.append(dp)
 
@@ -63,6 +64,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
         def f(hashes,archive_dir, verbose=0,i=0):
             from CMS_Deep_Learning.storage.archiving import DataProcedure
             if (verbose >= 1): print("Batch process %r started." % i)
+            print("HASHES:", hashes)
             for h in hashes:
                 u = DataProcedure.find(archive_dir=archive_dir, hashcode=h)
                 u.get_data(archive=True, verbose=verbose)
@@ -77,13 +79,15 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
             processes.append(p)
             p.start()
             sleep(.001)
-        try:
-            f(splits[0],archive_dir,verbose=verbose)
-        except:
-            for p in processes:
-                p.terminate()
+        #try:
+        f(splits[0],archive_dir,verbose=verbose)
+        #except Exception as e:
+        #    print("THERE WAS AN EXCEPTION:\n", e)
+        #    for p in processes:
+        #        p.terminate()
         for p in processes:
             p.join()
+        #print(
         if False in [u.is_archived() for u in unarchived]:
             print("Batch Assert Failed")
             pass#batchAssertArchived(dps, num_processes=num_processes)

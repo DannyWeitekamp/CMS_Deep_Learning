@@ -1,0 +1,260 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.callbacks &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.callbacks</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39; </span>
+<span class="sd">callbacks.py</span>
+<span class="sd">Contains custom callback objects.</span>
+<span class="sd">Author: Danny Weitekamp</span>
+<span class="sd">e-mail: dannyweitekamp@gmail.com</span>
+<span class="sd">&#39;&#39;&#39;</span> 
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">History</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">ModelCheckpoint</span>
+<span class="kn">from</span> <span class="nn">keras.callbacks</span> <span class="k">import</span> <span class="n">EarlyStopping</span>
+<div class="viewcode-block" id="SmartCheckpoint"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.SmartCheckpoint">[docs]</a><span class="k">class</span> <span class="nc">SmartCheckpoint</span><span class="p">(</span><span class="n">ModelCheckpoint</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; A smart checkpoint callback that automatically saves and loads training history, and weights</span>
+<span class="sd">        based on the name given at instantiation. Creates a SmartCheckpoint directory that stores</span>
+<span class="sd">        the data&#39;&#39;&#39;</span> 
+
+    <span class="c1"># def __checkMaxEpoch(self, epoch):</span>
+    <span class="c1">#     if(epoch &gt; self.max_epoch):</span>
+    <span class="c1">#         self.model.stop_training = True</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">associated_trial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;val_loss&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">save_best_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">normpath</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">associated_trial</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span> <span class="o">=</span> <span class="n">associated_trial</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">,</span> <span class="s2">&quot;weights.h5&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">,</span> <span class="s2">&quot;history.json&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">directory</span><span class="p">,</span> <span class="s1">&#39;SmartCheckpoint&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_weights.h5&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_history.json&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span> <span class="o">=</span> <span class="mi">0</span>  
+        <span class="c1"># self.max_epoch = max_epoch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">histobj</span> <span class="o">=</span> <span class="n">History</span><span class="p">()</span>
+
+        <span class="n">histDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">histDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span> <span class="p">))</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SC: Sucessfully loaded history at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;SC: Failed to load history at </span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">histobj</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">histDict</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">elapse_time</span> <span class="o">=</span> <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;elapse_time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ModelCheckpoint</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span><span class="p">,</span>
+                <span class="n">monitor</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">save_best_only</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+        <span class="n">metric_history</span> <span class="o">=</span> <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">monitor</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">metric_history</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">best</span> <span class="o">=</span> <span class="n">metric_history</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metric_history</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor_op</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">best</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="n">metric</span>
+
+    
+
+<div class="viewcode-block" id="SmartCheckpoint.on_train_begin"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.SmartCheckpoint.on_train_begin">[docs]</a>    <span class="k">def</span> <span class="nf">on_train_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+        <span class="n">histDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">histobj</span><span class="o">.</span><span class="n">history</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smartDir</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%m-</span><span class="si">%d</span><span class="s2">-%Y %H:%M:%S&quot;</span><span class="p">),</span> <span class="s2">&quot;-&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">tzname</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochOffset</span> <span class="o">=</span> <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;last_epoch&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="c1"># self.__checkMaxEpoch(self.max_epoch + self.epochOffset)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Sucessfully loaded weights at &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">IOError</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Failed to load weights at &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkpointFilename</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SmartCheckpoint.on_epoch_end"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.SmartCheckpoint.on_epoch_end">[docs]</a>    <span class="k">def</span> <span class="nf">on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">histDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">histobj</span><span class="o">.</span><span class="n">history</span>
+
+        <span class="n">epoch</span> <span class="o">=</span> <span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="c1">#self.epochOffset + 1</span>
+        <span class="n">ModelCheckpoint</span><span class="o">.</span><span class="n">on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="p">)</span>
+        <span class="n">histDict</span><span class="p">[</span><span class="s2">&quot;last_epoch&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">epoch</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="s2">&quot;start_time&quot;</span> <span class="ow">in</span> <span class="n">histDict</span><span class="p">):</span>
+            <span class="n">histDict</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">logs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">histDict</span><span class="p">:</span>
+                <span class="n">histDict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">histDict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="c1"># print(&quot;DFDMFD:&quot;, self.historyFilename, histDict)</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">histDict</span><span class="p">,</span>  <span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">))</span></div>
+        <span class="c1"># sys.exit()</span>
+
+<div class="viewcode-block" id="SmartCheckpoint.on_train_end"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.SmartCheckpoint.on_train_end">[docs]</a>    <span class="k">def</span> <span class="nf">on_train_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">histDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">histobj</span><span class="o">.</span><span class="n">history</span>
+        <span class="n">elapse</span> <span class="o">=</span> <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;elapse_time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1">#Elapse Time</span>
+        <span class="n">histDict</span><span class="p">[</span><span class="s2">&quot;elapse_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elapse</span> <span class="o">+</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">startTime</span> 
+
+        <span class="c1">#Stops</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">stop_training</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="s2">&quot;callback&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="s2">&quot;finished&quot;</span>
+        <span class="n">stops</span> <span class="o">=</span> <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stops&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">stops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">stop</span><span class="p">,</span>  <span class="n">histDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;last_epoch&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="p">)</span>
+        <span class="n">histDict</span><span class="p">[</span><span class="s1">&#39;stops&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stops</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BODOSDFDS:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">,</span> <span class="n">histDict</span><span class="p">)</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">histDict</span><span class="p">,</span>  <span class="nb">open</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">historyFilename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span> <span class="p">))</span></div></div>
+        <span class="c1"># print(&quot;DONE!&quot;)</span>
+        <span class="c1"># print(logs)</span>
+        <span class="c1"># print(histDict)</span>
+        <span class="c1"># self.__checkMaxEpoch(epoch + self.epochOffset)</span>
+
+
+<div class="viewcode-block" id="OverfitStopping"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.OverfitStopping">[docs]</a><span class="k">class</span> <span class="nc">OverfitStopping</span><span class="p">(</span><span class="n">EarlyStopping</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Stop training when a monitored quantity has stopped improving.</span>
+<span class="sd">    # Arguments</span>
+<span class="sd">        monitor: quantity to be monitored.</span>
+<span class="sd">        patience: number of epochs with no improvement</span>
+<span class="sd">            after which training will be stopped.</span>
+<span class="sd">        verbose: verbosity mode.</span>
+<span class="sd">        mode: one of {auto, min, max}. In &#39;min&#39; mode,</span>
+<span class="sd">            training will stop when the quantity</span>
+<span class="sd">            monitored has stopped decreasing; in &#39;max&#39;</span>
+<span class="sd">            mode it will stop when the quantity</span>
+<span class="sd">            monitored has stopped increasing.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;val_loss&#39;</span><span class="p">,</span> <span class="n">comparison_monitor</span><span class="o">=</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="n">max_percent_diff</span><span class="o">=.</span><span class="mi">1</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comparison_monitor</span> <span class="o">=</span> <span class="n">comparison_monitor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_percent_diff</span> <span class="o">=</span> <span class="n">max_percent_diff</span>
+        <span class="n">EarlyStopping</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">monitor</span><span class="p">,</span> <span class="n">patience</span><span class="o">=</span><span class="n">patience</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OverfitStopping.on_train_begin"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.OverfitStopping.on_train_begin">[docs]</a>    <span class="k">def</span> <span class="nf">on_train_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Allow instances to be re-used</span></div>
+       <span class="c1"># self.best = np.Inf if self.monitor_op == np.less else -np.Inf</span>
+
+<div class="viewcode-block" id="OverfitStopping.on_epoch_end"><a class="viewcode-back" href="../../CMS_Deep_Learning.html#CMS_Deep_Learning.callbacks.OverfitStopping.on_epoch_end">[docs]</a>    <span class="k">def</span> <span class="nf">on_epoch_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">logs</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">logs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">)</span>
+        <span class="n">current_comp</span> <span class="o">=</span> <span class="n">logs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comparison_monitor</span><span class="p">)</span>
+        <span class="n">signed_percent_difference</span> <span class="o">=</span> <span class="p">(</span><span class="n">current</span> <span class="o">-</span> <span class="n">current_comp</span><span class="p">)</span><span class="o">/</span><span class="p">((</span><span class="n">current</span> <span class="o">+</span> <span class="n">current_comp</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Overfit stopping requires </span><span class="si">%s</span><span class="s1"> available!&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">monitor</span><span class="p">),</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_comp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Overfit stopping requires </span><span class="si">%s</span><span class="s1"> available!&#39;</span> <span class="o">%</span>
+                          <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">comparison_monitor</span><span class="p">),</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">monitor_op</span><span class="p">(</span><span class="n">signed_percent_difference</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_percent_diff</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">best</span> <span class="o">=</span> <span class="n">current</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">patience</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Epoch </span><span class="si">%05d</span><span class="s1">: overfit stopping&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">epoch</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">stop_training</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wait</span> <span class="o">+=</span> <span class="mi">1</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

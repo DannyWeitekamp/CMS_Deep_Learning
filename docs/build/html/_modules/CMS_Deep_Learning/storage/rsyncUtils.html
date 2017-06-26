@@ -1,0 +1,116 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.storage.rsyncUtils &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.storage.rsyncUtils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;Automates rsyncing archive information between machines&#39;&#39;&#39;</span>
+<span class="kn">from</span>  <span class="nn">.archiving</span> <span class="k">import</span> <span class="n">KerasTrial</span><span class="p">,</span> <span class="n">split_hash</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+<div class="viewcode-block" id="rsyncStorable"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.rsyncUtils.rsyncStorable">[docs]</a><span class="k">def</span> <span class="nf">rsyncStorable</span><span class="p">(</span><span class="n">hashcode</span><span class="p">,</span> <span class="n">src_archive_dir</span><span class="p">,</span> <span class="n">dest_archive_dir</span><span class="p">):</span>
+	<span class="k">if</span><span class="p">(</span><span class="n">src_archive_dir</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span> <span class="n">src_archive_dir</span> <span class="o">=</span> <span class="n">src_archive_dir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+	<span class="k">if</span><span class="p">(</span><span class="n">dest_archive_dir</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">):</span> <span class="n">dest_archive_dir</span> <span class="o">=</span> <span class="n">dest_archive_dir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+
+	<span class="n">rel_path</span> <span class="o">=</span> <span class="s2">&quot;blobs/&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split_hash</span><span class="p">(</span><span class="n">hashcode</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+	<span class="nb">print</span><span class="p">(</span><span class="n">rel_path</span><span class="p">)</span>
+
+	<span class="n">out1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s2">&quot;cd </span><span class="si">%s</span><span class="s2"> &amp;&amp; rsync -a --relative </span><span class="si">%r</span><span class="s2"> </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">src_archive_dir</span><span class="p">,</span><span class="n">rel_path</span><span class="p">,</span> <span class="n">dest_archive_dir</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()</span></div>
+	
+
+<span class="c1"># def commitAllTrials(archive_dir,remote=&quot;origin&quot;, branch=&quot;master&quot;):</span>
+<span class="c1"># 	paths = KerasTrial.get_all_paths(archive_dir)</span>
+<span class="c1"># 	for path in paths:</span>
+<span class="c1"># 		addCommitPushDir(path,remote=&quot;origin&quot;, branch=&quot;master&quot;)</span>
+
+<span class="c1"># rsyncStorable(&#39;f3b48f37e401891083aac927f86375f2e96015ac&#39;, &quot;MyArchiveDir/&quot;, &quot;dweitekamp@titans.hep.caltech.edu:~/fake_archive_dir/&quot;)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

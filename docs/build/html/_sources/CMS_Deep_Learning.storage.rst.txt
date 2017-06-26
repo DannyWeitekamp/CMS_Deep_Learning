@@ -1,0 +1,78 @@
+CMS\_Deep\_Learning\.storage
+====================================
+
+Submodules
+----------
+
+MPIArchiving
+-------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.MPIArchiving
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+archiving
+----------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.archiving
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+batch
+------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.batch
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+forwardComp
+------------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.forwardComp
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+gitutils
+---------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.gitutils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+iterators
+----------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.iterators
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+meta
+-----------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.meta
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+rsyncUtils
+-----------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.rsyncUtils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: CMS_Deep_Learning.storage
+    :members:
+    :undoc-members:
+    :show-inheritance:
