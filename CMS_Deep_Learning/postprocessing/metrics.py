@@ -1,4 +1,3 @@
-from CMS_Deep_Learning.postprocessing.plot import plot_bins
 from CMS_Deep_Learning.storage.input_handler import inputHandler
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
