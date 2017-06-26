@@ -16,33 +16,31 @@ else:
     getNumParams = lambda f: len(getargspec(f)[0])
 
 
-def load_hdf5_data(data):
-    """ https://github.com/duanders/mpi_learn -- train/data.py
-        Returns a numpy array or (possibly nested) list of numpy arrays 
-        corresponding to the group structure of the input HDF5 data.
-        If a group has more than one key, we give its datasets alphabetically by key"""
-    if hasattr(data, 'keys'):
-        out = [load_hdf5_data(data[key]) for key in sorted(data.keys())]
-    else:
-        out = data[:]
-    return out
+def load_hdf5_dataset(data):
+    """ based off - https://github.com/duanders/mpi_learn -- train/data.py
+        Converts an HDF5 structure to nested lists of databases which can be
+        copied to get numpy arrays or lists of numpy arrays."""
+    if isinstance(data, h5py.Group):
+        sorted_keys = sorted(data.keys())
+        data = [data[key] for key in sorted_keys]
+    return data
 
 
-def retrieveData(data, data_keys, verbose=0):
+def retrieveData(data, data_keys, just_length=False, verbose=0):
     if (isinstance(data, DataProcedure)):
         return data.get_data(data_keys=data_keys, verbose=verbose)
     elif (isinstance(data, str)):
-        if (os.path.exists(data)):
-            h5_file = h5py.File(os.path.abspath(data), 'r')
-            # print(h5_file.keys(), data)
-            out = []
-            for data_key in data_keys:
-                data = h5_file[data_key]
-                o = load_hdf5_data(data)
-                out.append(o)
-            return tuple(out)
-        else:
-            raise IOError("No such path %r" % data)
+        h5_file = h5py.File(os.path.abspath(data), 'r')
+        out = []
+        for data_key in data_keys:
+            data = h5_file[data_key]
+            if (just_length):
+                out.append(load_hdf5_dataset(data)[0].len())
+            else:
+                out.append(load_hdf5_dataset(data)[:])
+        return tuple(out)
+    else:
+        return data
 
 
 class DataIterator:
@@ -105,38 +103,38 @@ class DataIterator:
             raise ValueError("source_data_keys %r do not match data size of %r" %
                              (source_data_keys, len(first_data)))
 
-    def _assertRawData(self, d, verbose=0):
+    def length(self, verbose=0):
+        if (self.num_samples == None):
+            num_samples = 0
+            for d in self.data:
+                l = retrieveData(d, self.union_keys, just_length=True, verbose=verbose)[0]
+                num_samples += l
+            self.num_samples = num_samples
+        return self.num_samples
+
+    def _assert_raw(self, d, verbose=0):
+        '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, str)):
             d = retrieveData(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
         else:
             d = tuple([d[x] for x in self.subset_ind])
         return d
 
-    def getLength(self, verbose=0):
-        if (self.num_samples == None):
-            num_samples = 0
-            for d in self.data:
-                d = self._assertRawData(d, verbose=verbose)
-                Z = d[0]
-                if (not isinstance(Z, list)): Z = [Z]
-                num_samples += Z[0].shape[0]
-            self.num_samples = num_samples
-        return self.num_samples
-
-    def asList(self, verbose=0):
+    def as_list(self, verbose=0):
+        '''Return the data as a list of lists/numpy arrays'''
         samples_outs = [None] * len(self.union_keys)
         pred_out = None
         acc_out = None
         pos = 0
 
         # Just make sure that self.num_samples is resolved
-        self.getLength()
+        self.length()
 
         # Loop through the data, compute predictions and accum and put it in a list
         for d in self.data:
             if (pos >= self.num_samples):
                 break
-            out = self._assertRawData(d, verbose=verbose)
+            out = self._assert_raw(d, verbose=verbose)
 
             for i, Z in enumerate(out):
                 if (not isinstance(Z, list)): Z = [Z]
@@ -147,20 +145,20 @@ class DataIterator:
                     Y = Z
 
                 L = Z[0].shape[0]
-                if (samples_outs[i] == None): samples_outs[i] = [[None] * self.getLength(verbose=verbose) for _ in
+                if (samples_outs[i] == None): samples_outs[i] = [[None] * self.length(verbose=verbose) for _ in
                                                                  range(len(Z))]
                 for j, z in enumerate(Z):
                     Zj_out = samples_outs[i][j]
                     for k in range(L):
                         Zj_out[pos + k] = z[k]
             if (self.prediction_model != None):
-                if (pred_out == None): pred_out = [None] * self.getLength(verbose=verbose)
+                if (pred_out == None): pred_out = [None] * self.length(verbose=verbose)
                 pred = self.prediction_model.predict_on_batch(X)
                 for j in range(L):
                     pred_out[pos + j] = pred[j]
 
             if (self.accumilate != None):
-                if (acc_out == None): acc_out = [None] * self.getLength(verbose=verbose)
+                if (acc_out == None): acc_out = [None] * self.length(verbose=verbose)
                 if (self.num_params == 1):
                     acc = self.accumilate(X)
                 else:

@@ -87,18 +87,15 @@ def inputHandler(req_info):
             if ('X' in to_get): data_keys.append("X")
             if ('Y' in to_get): data_keys.append("Y")
             # TODO: if('accumilation' in to_get): accumilate = data_dict['']
-            print("TO_GET", to_get)
             accumilate = data_dict.get('accumilate', None)  # if('accumilate' in to_get) else None
             return_prediction = True if ('predictions' in to_get) else False
             if (sat_dict[to_get[0]][0] == 'trial'):
-                print("ACCUM_TR", accumilate)
                 dItr = TrialIterator(data_dict['trial'],
                                      data_keys=data_keys,
                                      return_prediction=return_prediction,
                                      accumilate=accumilate)
                 out = dItr.asList(verbose=0)
             else:
-                print("ACCUM_NTR", accumilate)
                 dItr = DataIterator(data_dict.get('data', None),
                                     data_keys=data_keys,
                                     num_samples=data_dict.get('num_samples', None),
