@@ -1,4 +1,6 @@
 from CMS_Deep_Learning.storage.iterators import DataIterator,TrialIterator
+from CMS_Deep_Learning.storage.archiving import KerasTrial
+import numpy as np
 
 REQ_DICT = {"predictions": [['trial'], ['model', 'data'], ['model', 'X']],
             "characteristics": [['trial', 'accumilate'], ['model', 'data', 'accumilate'], ['model', 'X', 'accumilate']],
