@@ -108,7 +108,9 @@ def accVsEventChar(model,
             b["max_bin_x"] = prevmax = characteristics[split_at[i]]
         out_bins.append(b)
 
-    if (plot): plot_bins(out_bins)
+    if (plot):
+        from CMS_Deep_Learning.postprocessing.plot import plot_bins
+        plot_bins(out_bins)
     return out_bins
 
 def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
