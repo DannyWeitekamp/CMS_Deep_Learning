@@ -51,7 +51,8 @@ def inputHandler(req_info):
 
        :returns: an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data'''
 
-    def f(data_dict):
+    def f(data_dict={},**kargs):
+        if(len(kargs) != 0): data_dict = kargs
         data_to_check = set([])
         sat_dict = {}
         for req in req_info:
