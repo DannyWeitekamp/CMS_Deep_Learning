@@ -519,20 +519,6 @@ def plot_bins(bins,
             ax.grid(True)
         ax.set_axisbelow(True)
 
-        # if(mode == "stacked"):
-        #    lables, binsets = bins.items()
-        #    xs = [binsets[0]["min_bin_x"] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
-        #    widths = [binsets[0]["max_bin_x"]-binsets[0]["min_bin_x"] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
-        #    ys = [[b[y_val] for b in binset] for binset in binsets if(sum[b["num_samples"] for b in binset] >= min_samples)]
-        #    ax.stackplot(xs, *ys)
-        # color = colors[i%len(colors)]
-        # label = binlabel#binLabels[i] if binLabels != None and len(binLabels) > i else None
-
-        # ys = [b[y_val] for b in bs if(b["num_samples"] >= min_samples)]
-
-    # else:
-    #    
-    # print(bins.keys())
     for i, (binlabel, binset) in enumerate(bins.items()):
         bs = binset
 
@@ -547,27 +533,27 @@ def plot_bins(bins,
 
             ax.bar(xs, ys, width=widths, yerr=errors, color=color, label=label, ecolor='k', alpha=alpha, log=log)
         elif (mode == "histo"):
-            # print(ys,sorted(ys[0].keys()))
             ys = [[y[key] for key in sorted(y.keys())] for y in ys]
             if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
             ys = zip(*ys)
             bot = np.array([0.0] * len(xs))
+
             for j, y in enumerate(ys):
                 if (binLabels != None): label = binLabels[j]
-                # print(label,j,colors[j%len(colors)])
                 if (stack):
                     ax.bar(xs, y, width=widths, yerr=errors, bottom=bot, color=colors[j % len(colors)], label=label,
-                           ecolor='k', alpha=alpha, log=log)
+                           ecolor='k', alpha=alpha, log=log, edgecolor="none", lw=0)
                 else:
-                    # Append point to beginning 
-                    xs, y = [xs[0] - bs[0]["bin_width"]] + xs, y[:1] + y
+                    # Append points to beginning and end
+                    xs = [b["max_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+                    xs = [bs[0]['min_bin_x']] + xs + [xs[-1]]
+                    y = [0] + list(y) + [0]
                     ax.plot(xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
-                # print(bot)
                 if (stack): bot += y
         else:
             s = shapes[i % len(colors)]
             ax.plot(xs, ys, color=color, label=label, marker=s, linestyle='None')
-            ax.errorbar(xs, ys, yerr=errors, color=color, ecolor=color, alpha=alpha, fmt='', linestyle='None', )
+            ax.errorbar(xs, ys, yerr=errors, color=color, ecolor=color, alpha=alpha, fmt='', linestyle='None')
             if (log): ax.set_yscale("log")
 
     ax.set_title(title, size=16)
