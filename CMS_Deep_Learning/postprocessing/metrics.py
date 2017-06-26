@@ -2,7 +2,6 @@ from CMS_Deep_Learning.storage.input_handler import inputHandler
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 from CMS_Deep_Learning.storage.iterators import TrialIterator, DataIterator
-from .plot import plotBins
 import numpy as np
 
 
