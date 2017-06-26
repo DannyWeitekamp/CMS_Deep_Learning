@@ -5,71 +5,119 @@ from CMS_Deep_Learning.storage.iterators import TrialIterator, DataIterator
 import numpy as np
 
 
-def accVsEventChar(model,
-                   data,
-                   char,
-                   observ,
-                   objects,
-                   num_samples=None,
-                   char2=None,
-                   bins=20,
-                   observable_ordering=['E/c', 'Px', 'Py', 'Pz', 'PT_ET', 'Eta', 'Phi', 'Charge', 'X', 'Y', 'Z',
-                                        'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso', 'NeuHadIso', 'GammaIso'],
-                   object_ordering=["Electron", "MuonTight", "Photon", "MissingET", "EFlowPhoton", "EFlowNeutralHadron",
-                                    "EFlowTrack"],
-                   equalBins=False,
-                   custom_objects={},
-                   plot=False):
-    '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
-        #Arguements:
-            model -- The model being tested, or a KerasTrial containing a valid model.
-            data  -- A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure
-                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
-                     set will be found from the archive (or computed) and used in place of data.
-            char  -- Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
-                     reducing the data within each object type of a sample.
-            observ -- The observable to be reduced (i.e PT_ET, E/c, Phi).
-            objects -- What objects should be included in the characteristic computation.
-            num_samples -- The number of samples to be read from a generator dat input.
-            char2 -- Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.
-            bins -- The number of bins to use in the analysis.
-            observable_ordering -- A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
-                                    in the sample, otherwise the "observ" argument will not select the intended column in the data.
-            object_ordering -- A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
-                                when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
-            equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
-                            will be very unusual, varying significantly in their domain.
-            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
-            plot -- If True plot the bins automatically.
-        #Returns:
-            A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
-            '''
+def build_accumilator(char,
+                      observ,
+                      objects,
+                      char2=None,
+                      observable_ordering=['E/c', 'Px', 'Py', 'Pz', 'PT_ET', 'Eta', 'Phi',
+                                           "MaxLepDeltaEta", "MaxLepDeltaPhi", 'MaxLepDeltaR', 'MaxLepKt',
+                                           'MaxLepAntiKt',
+                                           "METDeltaEta", "METDeltaPhi", 'METDeltaR', 'METKt', 'METAntiKt',
+                                           'Charge', 'X', 'Y', 'Z',
+                                           'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso', 'NeuHadIso', 'GammaIso',
+                                           "ObjFt1", "ObjFt2", "ObjFt3"],
+                      object_ordering=["EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack", "Electron", "MuonTight",
+                                       "MissingET"]):
+    ''' Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute
+        data characteristics.
+
+        :param char: Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
+                 reducing the data within each object type of a sample.
+        :param observ: The observable to be reduced (i.e PT_ET, E/c, Phi).
+        :param objects: What objects should be included in the characteristic computation.
+        :param char2: Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.
+        :param observable_ordering: A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
+                                in the sample, otherwise the "observ" argument will not select the intended column in the data.
+        :param object_ordering: A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
+                            when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
+        :returns: the accumilator function
+        '''
     if (not isinstance(objects, list)): objects = [objects]
-    objects = [o if isinstance(o, int) else object_ordering.index(o) for o in objects]
+    objects = [o if isinstance(o, int) or isinstance(o, dict) else object_ordering.index(o) for o in objects]
     observ = observ if isinstance(observ, int) else observable_ordering.index(observ)
     if (char2 == None): char2 = char
 
     def accum(X):
-        obj_chars = np.array([char(X[o][:, :, observ], axis=1) for o in objects])
+        assert X[0].shape[2] == len(observable_ordering), \
+            "X and observable_ordering have different last dimension %r != %r" % (
+            X[0].shape[2], len(observable_ordering))
+        if (len(X) == 1):
+            obj_chars = []
+            for o in objects:
+                if (isinstance(o, dict)):
+                    indxs, vals = zip(*sorted([(observable_ordering.index(key), val) for key, val in o.items()],
+                                              key=lambda x: x[0]))
+                    vals = np.array(vals)
+                    satisfied_mask = (X[0][:, :, indxs] == vals).all(axis=2).reshape((X[0].shape[0], X[0].shape[1], 1))
+                    x_subs = (X[0] * satisfied_mask)[:, :, observ]
+
+                    obj_chars.append(char(x_subs, axis=1))
+                else:
+                    raise ValueError("IDK? Try using dict vals instead.")
+            obj_chars = np.array(obj_chars)
+        else:
+            obj_chars = np.array([char(X[o][:, :, observ], axis=1) for o in objects])
         assert obj_chars.shape[0] == len(obj_chars)
-        # assert obj_chars.shape[1] >= batch_size
         batch_chars = char2(obj_chars, axis=0)
         return batch_chars
 
-    if (isinstance(model, KerasTrial)):
-        dItr = TrialIterator(model, return_prediction=True, accumilate=accum)
+    return accum
+
+
+def bin_metric_vs_char(args=[],
+                       char_name=None,
+                       char_collection=None,
+                       accumilate=None,
+                       num_samples=None,
+                       bins=20,
+                       true_class_index=-1,
+                       threshold=-1,
+                       equalBins=False,
+                       custom_objects={},
+                       plot=False,
+                       **kargs):
+    '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
+
+        :param model: The model being tested, or a KerasTrial containing a valid model.
+        :param data: A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure
+                 containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
+                 set will be found from the archive (or computed) and used in place of data.
+
+        :param num_samples: The number of samples to be read from a generator dat input.
+
+        :param bins: The number of bins to use in the analysis.
+
+        :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
+                        will be very unusual, varying significantly in their domain.
+        :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
+        :param plot: If True plot the bins automatically.
+
+        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
+            '''
+    inputs = args
+    if (len(args) == 0):
+        inputs = [kargs]
     else:
-        dItr = DataIterator(data, num_samples=num_samples, prediction_model=model, accumilate=accum)
-    # tup =
-    # print(len(tup), tup)
-    y_vals, predictions, characteristics = dItr.as_list()
+        raise NotImplementedError("Have not written to take multiple inputs")
+
+    inp = inputs[0]
+
+    if (accumilate != None):
+        h = inputHandler(['Y', 'predictions', 'characteristics'])
+        inp["accumilate"] = accumilate
+        y_vals, predictions, characteristics = h(inp)
+    else:
+        raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
+
     if (len(y_vals) == 1):
         y_vals = y_vals[0]
     else:
-        raise ValueError("Error multiple outputs is ambiguous, got %r outputs", len(y_vals))
-    # characteristics = np.random.rand(400)
-    # predictions = np.random.rand(400,2)
-    # y_vals = np.random.rand(400,2)
+        raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
+
+    if (len(y_vals.shape) == 1 or y_vals.shape[-1] == 1):
+        true_class_index = 0
+    elif (true_class_index == -1):
+        raise ValueError("Must provide a true_class_index.")
 
     sorted_indicies = np.argsort(characteristics)
 
@@ -89,16 +137,61 @@ def accVsEventChar(model,
 
     predict_bins = np.split(predictions, split_at)
     y_bins = np.split(y_vals, split_at)
+
+    def non_gen(n):
+        for i in range(n):
+            yield
+
+    n = len(predict_bins)
+    tp_bins, fp_bins, tn_bins, fn_bins, cont_bins = non_gen(n), non_gen(n), non_gen(n), non_gen(n), non_gen(n)
+
+    if (threshold == -1): threshold = 1.0 / max(y_vals.shape[-1], 2)
+
+    PosClassPop_indicies = [[i for i, v in enumerate(np.argmax(y, axis=-1) == true_class_index) if v] \
+                            for (p, y) in zip(predict_bins, y_bins)]
+    NegClassPop_indicies = [[i for i, v in enumerate(np.argmax(y, axis=-1) != true_class_index) if v] \
+                            for (p, y) in zip(predict_bins, y_bins)]
+
+    tp_bins = [(p[:, true_class_index] >= threshold)[PosClassPop_indicies[i]].astype("int") \
+               for i, p in enumerate(predict_bins)]
+    fp_bins = [(p[:, true_class_index] >= threshold)[NegClassPop_indicies[i]].astype("int") \
+               for i, p in enumerate(predict_bins)]
+    tn_bins = [(p[:, true_class_index] < threshold)[NegClassPop_indicies[i]].astype("int") \
+               for i, p in enumerate(predict_bins)]
+    fn_bins = [(p[:, true_class_index] < threshold)[PosClassPop_indicies[i]].astype("int") \
+               for i, p in enumerate(predict_bins)]
+
+    cont_bins = [(np.argmax(y, axis=-1))[np.where(p[:, true_class_index] >= threshold)] for i, (p, y) in
+                 enumerate(zip(predict_bins, y_bins))]
+    labelArgMax_bins = [{x: np.sum(np.argmax(y, axis=-1) == x) for x in range(y_vals.shape[-1])} for y in y_bins]
+
     true_false_bins = [np.equal(np.argmax(p, axis=-1), np.argmax(y, axis=-1)).astype("float64") for (p, y) in
                        zip(predict_bins, y_bins)]
-
     out_bins = []
     prevmax = min_char
-    for i, tf in enumerate(true_false_bins):
+    for i, (tf, tp, fp, tn, fn, agm, cb) in enumerate(
+            zip(true_false_bins, tp_bins, fp_bins, tn_bins, fn_bins, labelArgMax_bins, cont_bins)):
         b = {}
         num = tf.shape[0]
-        b["y"] = np.mean(tf)
-        b["error"] = np.std(tf) / np.sqrt(num)
+        _tp, _fp, _tn, _fn = np.sum(tp), np.sum(fp), np.sum(tn), np.sum(fn)
+        pos_pop = max(_tp + _fn, 1)
+        neg_pop = max(_tn + _fp, 1)
+        b["tpr"] = float(_tp) / pos_pop
+        b["fpr"] = float(_fp) / neg_pop
+        b["ppv"] = float(_tp) / max(_fp + _tp, 1)
+        b["acc"] = np.mean(tf)
+        b["acc_std"] = np.std(tf)
+        b["tpr_std"] = np.std(tp)
+        b["fpr_std"] = np.std(fp)
+        b["acc_error"] = b["acc_std"] / np.sqrt(num)
+        b["tpr_error"] = b["tpr_std"] / np.sqrt(pos_pop)
+        b["fpr_error"] = b["fpr_std"] / np.sqrt(neg_pop)
+        unique, counts = np.unique(cb, return_counts=True)
+        cont_classes_d = dict(zip(unique, counts))
+        b["cont_classes"] = {key: float(val) / neg_pop for key, val in cont_classes_d.items() if
+                             key != true_class_index}
+        # print(b["cont_classes"])
+        b["arg_max"] = agm
         b["num_samples"] = num
         b["min_bin_x"] = prevmax
         if (i == len(true_false_bins) - 1):
