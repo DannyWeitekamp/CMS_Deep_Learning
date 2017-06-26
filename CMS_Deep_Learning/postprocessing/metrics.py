@@ -1,6 +1,4 @@
-import types
-
-# from keras.metrics import
+from CMS_Deep_Learning.storage.input_handler import inputHandler
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 from CMS_Deep_Learning.storage.iterators import TrialIterator, DataIterator
@@ -112,6 +110,86 @@ def accVsEventChar(model,
 
     if (plot): plotBins(out_bins)
     return out_bins
+
+def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
+    if(len(args) == 0): args = [kargs]
+    out = []
+    for inp in args:
+        roc_data = get_roc_data(**inp)
+        #print(roc_dict)
+        _fpr, _tpr, _thresh,auc = roc_data
+        indicies = []
+        for y in fpr:
+            index, elmt = min(enumerate(_fpr), key=lambda x:abs(x[1]-y))
+            indicies.append(index)
+        for y in tpr:
+            index, elmt = min(enumerate(_tpr), key=lambda x:abs(x[1]-y))
+            indicies.append(index)
+        for y in thresh:
+            index, elmt = min(enumerate(_thresh), key=lambda x:abs(x[1]-y))
+            indicies.append(index)
+        fpr,tpr,thresh = [None]*len(indicies),[None]*len(indicies),[None]*len(indicies)
+        for i,indx in enumerate(indicies):
+            fpr[i],tpr[i],thresh[i] = _fpr[indx], _tpr[indx], _thresh[indx]
+        out.append({"tpr": tpr, "fpr":fpr, "thresh": thresh})
+    return out
+
+
+def get_roc_data(**kargs):
+    '''get ROC curve points,thresholds, and auc from labels and predictions
+
+        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
+        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
+        :param Y: The data labels numpy.ndarray
+        :param predictions: the predictions numpy.ndarray
+        :param model: a compiled model, uncompiled model or path to model json. For the latter options
+                      weights=? must be given.
+        :param weights: the model weights, or a path to the weights
+        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
+        '''
+    inp = kargs
+    if ("ROC_data" in inp):
+        fpr, tpr, thres, roc_auc = inp["ROC_data"]
+    else:
+        from sklearn.metrics import roc_curve, auc
+        h = inputHandler(['Y', 'predictions'])
+        labels, predictions = h(inp)
+        labels = labels[0]
+        true_class_index = kargs.get("true_class_index", None)
+
+        assert labels.shape == predictions.shape, "labels and predictions should have \
+            the same shape, %r != %r" % (labels.shape, predictions.shape)
+        n = labels.shape[0]
+        if (len(labels.shape) > 1 and labels.shape[1] > 1):
+            if (true_class_index != None):
+                labels = labels[:, true_class_index].ravel()
+                predictions = predictions[:, true_class_index].ravel()
+            else:
+                raise ValueError("must designate index of true class for data of shape %r" % list(labels.shape))
+
+        fpr, tpr, thres = roc_curve(labels, predictions)
+        roc_auc = auc(fpr, tpr)
+    return fpr, tpr, thres, roc_auc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):
     '''
