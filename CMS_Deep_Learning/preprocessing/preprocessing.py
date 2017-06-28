@@ -674,7 +674,7 @@ def getGensDefaultFormat(archive_dir, splits, length, object_profiles, label_dir
                                         sort_ascending=sort_ascending,
                                         verbose=verbose,
                                         data_keys=dp_data_keys)
-        gen_DP = DataProcedure(archive_dir, False,genFromDPs,[dps, batch_size], {'threading':False, 'verbose':verbose},data_keys=data_keys)
+        gen_DP = DataProcedure(archive_dir, False, gen_from_data, [dps, batch_size], {'threading':False, 'verbose':verbose}, data_keys=data_keys)
         num_samples = len(label_dir_pairs)*s[1]
         all_datasets += [(gen_DP, num_samples)]
         all_dps += dps
@@ -851,43 +851,28 @@ class dataFetchThread(threading.Thread):
         self.X, self.Y = self.proc.get_data()
         return
 
-def genFromDPs(dps, batch_size, threading=False, verbose=1):
+def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
     '''Gets a generator that generates data of batch_size from a list of DataProcedures.
         Optionally uses threading to apply getData in parellel, although this may be obsolete
         with the proper fit_generator settings'''
-    for dp in dps:
-        if(isinstance(dp, DataProcedure) == False):
-            raise TypeError("Only takes DataProcedure got" % type(dp))
+    from CMS_Deep_Learning.storage.iterators import retrieveData
+    if(isinstance(lst,str) and os.path.isdir(lst)):
+        lst = glob.glob(os.path.abspath(lst) +"/*.h5")
+    if (isinstance(lst, DataProcedure) or isinstance(lst,str)): lst = [lst]
+    for d in lst:
+        if(not isinstance(d, DataProcedure) and not (isinstance(d,str) and os.path.exists(d))):
+            raise TypeError("list element expected path or DataProcedure but got %r" % type(d))
             
-    
     while True:
-        if(threading == True):
-            print("THREADING ENABLED")
-            datafetch = dataFetchThread(dps[0])
-            datafetch.start()
-        for i in range(0,len(dps)):
-            if(threading == True):
-                #Wait for the data to come in
-                while(datafetch.isAlive()):
-                    pass
-                X,Y = datafetch.X, datafetch.Y
-
-                #Start the next dataFetch
-                if(i != len(dps)-1):
-                    datafetch = dataFetchThread(dps[i+1])
-                else:
-                    datafetch = dataFetchThread(dps[0])
-                datafetch.start()
-            else:
-                X,Y = dps[i].get_data(verbose=verbose)
-                                   
-            if(isinstance(X,list) == False): X = [X]
-            if(isinstance(Y,list) == False): Y = [Y]
-            tot = Y[0].shape[0]
-            assert tot == X[0].shape[0]
+        for i,elmt in enumerate(lst):
+            out = retrieveData(elmt, data_keys=data_keys, verbose=verbose)
+            out = [x if isinstance(x,list) else [x] for x in out]       
+            tot_set = set([x[0].shape[0] for x in out])
+            tot = list(tot_set)[0]
+            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
             for start in range(0, tot, batch_size):
                 end = start+min(batch_size, tot-start)
-                yield [x[start:end] for x in X], [y[start:end] for y in Y]
+                yield tuple([[x[start:end] for x in X] for X in out])
                 
 
 def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
@@ -915,7 +900,7 @@ def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archiv
                                     object_profiles,
                                     observ_types,
                                     verbose=verbose)
-    gen = genFromDPs(dps, batch_size, threading = False, verbose=verbose)
+    gen = gen_from_data(dps, batch_size, threading = False, verbose=verbose)
     return gen
 
 def XY_to_CSV(X,Y, csvdir):
