@@ -193,10 +193,10 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             locs = {t: s for s, t in enumerate(observ_types)}
             sorts = [locs[s] if s in observ_types else resolveMetric(s, locs, sort_ascending)
                      for s in sort_columns]
-    # KLUGE FIX
-    x[x[:, locs["Energy"]] == 0] = 0.0
-    # Sort
-    x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
+        # KLUGE FIX
+        x[x[:, locs["Energy"]] == 0] = 0.0
+        # Sort
+        x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
 
     return x
 
@@ -461,14 +461,19 @@ def main(argv):
     # np.array_split(jobs, num_processes)
     for i, sublist in enumerate(splits[1:]):
         print("Thread %r Started" % i)
-        p = Process(target=f, args=(sublist, samples_per_process, 1, i + 1))
+        p = Process(target=f, args=sublist)
         processes.append(p)
         p.start()
         sleep(.001)
     try:
+<<<<<<< HEAD
         print("SPLIT", splits[0])
         f(splits[0])
     except Exception as e:
+=======
+        f(splits[0])
+    except:
+>>>>>>> d4026b4711dc0ac853811d6391d1db941079cf0c
         for p in processes:
             p.terminate()
         raise e
