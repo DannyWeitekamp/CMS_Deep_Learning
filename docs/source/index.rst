@@ -11,10 +11,16 @@ Subpackages
 .. toctree::
     layers
     postprocessing
-    postprocessing_example
     preprocessing
     storage
     utils
+
+Examples
+-----------
+.. toctree::
+	:maxdepth: 1
+
+	postprocessing_example
 
 
 Indices and tables

@@ -395,6 +395,16 @@ def _checkDir(dir):
 def runAndStore():
     pass
 
+def check_enough_data(sources, num_samples):
+    for s in sources:
+        files = glob.glob(os.path.abspath(s) + "/*.h5")
+        tot = 0
+        sizesDict = getSizesDict(s)
+        for f in files:
+            tot += getSizeMetaData(f,sizesDict=sizesDict)
+        if(tot < num_samples):
+            raise IOError("Only %r samples in %r but requested %r" % (tot,s,num_samples))
+    
 
 def make_datasets(sources, output_dir, num_samples, size=1000,
                   num_processes=1, sort_on=None, sort_ascending=False,
@@ -425,6 +435,8 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
         
         '''
     sources = [_checkDir(s) for s in sources]
+
+    check_enough_data(sources,num_samples)
 
     if ("MB" in size):
         megabytes = int(re.search(r'\d+', size).group())
