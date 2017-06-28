@@ -120,8 +120,8 @@ class Lorentz(Layer):
             W  (weight: applies a mulitplier to the boosted 4-vectors)
             DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)
             
-            :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.
-            :parma vec_start: determines where to start reading the 4-vector along the last axis of the input.
+        :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.
+        :param vec_start: determines where to start reading the 4-vector along the last axis of the input.
     '''
     def __init__(self,sphereCoords=False, vec_start=0, sum_input=False, weight_output=False, **kwargs):
         if(isinstance(sphereCoords, bool) == False):

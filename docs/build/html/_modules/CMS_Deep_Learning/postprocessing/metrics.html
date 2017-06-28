@@ -68,81 +68,132 @@
           <div class="body" role="main">
             
   <h1>Source code for CMS_Deep_Learning.postprocessing.metrics</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">types</span>
-
-<span class="c1"># from keras.metrics import</span>
+<span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.input_handler</span> <span class="k">import</span> <span class="n">inputHandler</span>
 
 <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span> <span class="n">KerasTrial</span>
 <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.iterators</span> <span class="k">import</span> <span class="n">TrialIterator</span><span class="p">,</span> <span class="n">DataIterator</span>
-<span class="kn">from</span> <span class="nn">.plot</span> <span class="k">import</span> <span class="n">plotBins</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="accVsEventChar"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.accVsEventChar">[docs]</a><span class="k">def</span> <span class="nf">accVsEventChar</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
-                   <span class="n">data</span><span class="p">,</span>
-                   <span class="n">char</span><span class="p">,</span>
-                   <span class="n">observ</span><span class="p">,</span>
-                   <span class="n">objects</span><span class="p">,</span>
-                   <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">char2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                   <span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
-                   <span class="n">observable_ordering</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;PT_ET&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span>
-                                        <span class="s1">&#39;Dxy&#39;</span><span class="p">,</span> <span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">,</span> <span class="s1">&#39;MuIso&#39;</span><span class="p">,</span> <span class="s1">&#39;EleIso&#39;</span><span class="p">,</span> <span class="s1">&#39;ChHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaIso&#39;</span><span class="p">],</span>
-                   <span class="n">object_ordering</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span> <span class="s2">&quot;Photon&quot;</span><span class="p">,</span> <span class="s2">&quot;MissingET&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">,</span>
-                                    <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">],</span>
-                   <span class="n">equalBins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                   <span class="n">custom_objects</span><span class="o">=</span><span class="p">{},</span>
-                   <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.</span>
-<span class="sd">        #Arguements:</span>
-<span class="sd">            model -- The model being tested, or a KerasTrial containing a valid model.</span>
-<span class="sd">            data  -- A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure</span>
-<span class="sd">                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation</span>
-<span class="sd">                     set will be found from the archive (or computed) and used in place of data.</span>
-<span class="sd">            char  -- Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics</span>
-<span class="sd">                     reducing the data within each object type of a sample.</span>
-<span class="sd">            observ -- The observable to be reduced (i.e PT_ET, E/c, Phi).</span>
-<span class="sd">            objects -- What objects should be included in the characteristic computation.</span>
-<span class="sd">            num_samples -- The number of samples to be read from a generator dat input.</span>
-<span class="sd">            char2 -- Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.</span>
-<span class="sd">            bins -- The number of bins to use in the analysis.</span>
-<span class="sd">            observable_ordering -- A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables</span>
-<span class="sd">                                    in the sample, otherwise the &quot;observ&quot; argument will not select the intended column in the data.</span>
-<span class="sd">            object_ordering -- A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles</span>
-<span class="sd">                                when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</span>
-<span class="sd">            equalBins -- True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins</span>
-<span class="sd">                            will be very unusual, varying significantly in their domain.</span>
-<span class="sd">            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</span>
-<span class="sd">            plot -- If True plot the bins automatically.</span>
-<span class="sd">        #Returns:</span>
-<span class="sd">            A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</span>
-<span class="sd">            &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="build_accumilator"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.build_accumilator">[docs]</a><span class="k">def</span> <span class="nf">build_accumilator</span><span class="p">(</span><span class="n">char</span><span class="p">,</span>
+                      <span class="n">observ</span><span class="p">,</span>
+                      <span class="n">objects</span><span class="p">,</span>
+                      <span class="n">char2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">observable_ordering</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;PT_ET&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span>
+                                           <span class="s2">&quot;MaxLepDeltaEta&quot;</span><span class="p">,</span> <span class="s2">&quot;MaxLepDeltaPhi&quot;</span><span class="p">,</span> <span class="s1">&#39;MaxLepDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepKt&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;MaxLepAntiKt&#39;</span><span class="p">,</span>
+                                           <span class="s2">&quot;METDeltaEta&quot;</span><span class="p">,</span> <span class="s2">&quot;METDeltaPhi&quot;</span><span class="p">,</span> <span class="s1">&#39;METDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;METKt&#39;</span><span class="p">,</span> <span class="s1">&#39;METAntiKt&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;Dxy&#39;</span><span class="p">,</span> <span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">,</span> <span class="s1">&#39;MuIso&#39;</span><span class="p">,</span> <span class="s1">&#39;EleIso&#39;</span><span class="p">,</span> <span class="s1">&#39;ChHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaIso&#39;</span><span class="p">,</span>
+                                           <span class="s2">&quot;ObjFt1&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt2&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt3&quot;</span><span class="p">],</span>
+                      <span class="n">object_ordering</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span>
+                                       <span class="s2">&quot;MissingET&quot;</span><span class="p">]):</span>
+    <span class="sd">&#39;&#39;&#39; Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute</span>
+<span class="sd">        data characteristics.</span>
+
+<span class="sd">        :param char: Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics</span>
+<span class="sd">                 reducing the data within each object type of a sample.</span>
+<span class="sd">        :param observ: The observable to be reduced (i.e PT_ET, E/c, Phi).</span>
+<span class="sd">        :param objects: What objects should be included in the characteristic computation.</span>
+<span class="sd">        :param char2: Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.</span>
+<span class="sd">        :param observable_ordering: A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables</span>
+<span class="sd">                                in the sample, otherwise the &quot;observ&quot; argument will not select the intended column in the data.</span>
+<span class="sd">        :param object_ordering: A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles</span>
+<span class="sd">                            when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</span>
+<span class="sd">        :returns: the accumilator function</span>
+<span class="sd">        &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">objects</span><span class="p">]</span>
-    <span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">object_ordering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">]</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">object_ordering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">]</span>
     <span class="n">observ</span> <span class="o">=</span> <span class="n">observ</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">observ</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="n">observable_ordering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">observ</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">char2</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">char2</span> <span class="o">=</span> <span class="n">char</span>
 
     <span class="k">def</span> <span class="nf">accum</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
-        <span class="n">obj_chars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">char</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">o</span><span class="p">][:,</span> <span class="p">:,</span> <span class="n">observ</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">])</span>
+        <span class="k">assert</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">observable_ordering</span><span class="p">),</span> \
+            <span class="s2">&quot;X and observable_ordering have different last dimension </span><span class="si">%r</span><span class="s2"> != </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">observable_ordering</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">obj_chars</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+                    <span class="n">indxs</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">sorted</span><span class="p">([(</span><span class="n">observable_ordering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">o</span><span class="o">.</span><span class="n">items</span><span class="p">()],</span>
+                                              <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                    <span class="n">satisfied_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">][:,</span> <span class="p">:,</span> <span class="n">indxs</span><span class="p">]</span> <span class="o">==</span> <span class="n">vals</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">x_subs</span> <span class="o">=</span> <span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">satisfied_mask</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="n">observ</span><span class="p">]</span>
+
+                    <span class="n">obj_chars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="p">(</span><span class="n">x_subs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;IDK? Try using dict vals instead.&quot;</span><span class="p">)</span>
+            <span class="n">obj_chars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obj_chars</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj_chars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">char</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">o</span><span class="p">][:,</span> <span class="p">:,</span> <span class="n">observ</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">])</span>
         <span class="k">assert</span> <span class="n">obj_chars</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj_chars</span><span class="p">)</span>
-        <span class="c1"># assert obj_chars.shape[1] &gt;= batch_size</span>
         <span class="n">batch_chars</span> <span class="o">=</span> <span class="n">char2</span><span class="p">(</span><span class="n">obj_chars</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">batch_chars</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">KerasTrial</span><span class="p">)):</span>
-        <span class="n">dItr</span> <span class="o">=</span> <span class="n">TrialIterator</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">accum</span></div>
+
+
+<div class="viewcode-block" id="bin_metric_vs_char"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">[docs]</a><span class="k">def</span> <span class="nf">bin_metric_vs_char</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[],</span>
+                       <span class="n">char_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">char_collection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                       <span class="n">equalBins</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">custom_objects</span><span class="o">=</span><span class="p">{},</span>
+                       <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.</span>
+
+<span class="sd">        :param accumilate: an accumilator function build by build_accumilator</span>
+<span class="sd">        :param num_samples: The number of samples to be read from a generator dat input.</span>
+<span class="sd">        :param bins: The number of bins to use in the analysis.</span>
+<span class="sd">        :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins</span>
+<span class="sd">                        will be very unusual, varying significantly in their domain.</span>
+<span class="sd">        :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</span>
+<span class="sd">        :param plot: If True plot the bins automatically.</span>
+<span class="sd">        </span>
+<span class="sd">        :Keyword Arguments:</span>
+<span class="sd">        - **bins** (``list``) -- A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</span>
+<span class="sd">        - **threshold** -- The threshold for the classifier for the &#39;true_class&#39;</span>
+<span class="sd">        - **true_class_index** (``int``) -- The index in the output vector corresponding to the &#39;true class&#39; element        </span>
+<span class="sd">        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
+<span class="sd">        - **Y** (``numpy.ndarray``) -- The groundtruth labels</span>
+<span class="sd">        - **predictions** (``numpy.ndarray``) -- the model predictions</span>
+<span class="sd">        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options</span>
+<span class="sd">                  weights=? must be given.</span>
+<span class="sd">        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights</span>
+<span class="sd">        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user</span>
+
+
+<span class="sd">        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">kargs</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dItr</span> <span class="o">=</span> <span class="n">DataIterator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">)</span>
-    <span class="c1"># tup =</span>
-    <span class="c1"># print(len(tup), tup)</span>
-    <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">dItr</span><span class="o">.</span><span class="n">asList</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Have not written to take multiple inputs&quot;</span><span class="p">)</span>
+
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">inputHandler</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">])</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;accumilate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">accumilate</span>
+        <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to write code for getting characteristics strait from EventChars collection&quot;</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
         <span class="n">y_vals</span> <span class="o">=</span> <span class="n">y_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error multiple outputs is ambiguous, got </span><span class="si">%r</span><span class="s2"> outputs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="p">))</span>
-    <span class="c1"># characteristics = np.random.rand(400)</span>
-    <span class="c1"># predictions = np.random.rand(400,2)</span>
-    <span class="c1"># y_vals = np.random.rand(400,2)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error multiple outputs is ambiguous, got </span><span class="si">%r</span><span class="s2"> outputs&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="p">))</span>
+    
+    <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;true_class_index&#39;</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">y_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">true_class_index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">true_class_index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must provide a true_class_index.&quot;</span><span class="p">)</span>
 
     <span class="n">sorted_indicies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">characteristics</span><span class="p">)</span>
 
@@ -162,16 +213,62 @@
 
     <span class="n">predict_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">split_at</span><span class="p">)</span>
     <span class="n">y_bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">y_vals</span><span class="p">,</span> <span class="n">split_at</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">yield</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">)</span>
+    <span class="n">tp_bins</span><span class="p">,</span> <span class="n">fp_bins</span><span class="p">,</span> <span class="n">tn_bins</span><span class="p">,</span> <span class="n">fn_bins</span><span class="p">,</span> <span class="n">cont_bins</span> <span class="o">=</span> <span class="n">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">non_gen</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    
+    <span class="n">threshold</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;threshold&#39;</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">threshold</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span> <span class="n">threshold</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">y_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">PosClassPop_indicies</span> <span class="o">=</span> <span class="p">[[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">true_class_index</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span> \
+                            <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">)]</span>
+    <span class="n">NegClassPop_indicies</span> <span class="o">=</span> <span class="p">[[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">!=</span> <span class="n">true_class_index</span><span class="p">)</span> <span class="k">if</span> <span class="n">v</span><span class="p">]</span> \
+                            <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">)]</span>
+
+    <span class="n">tp_bins</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="n">PosClassPop_indicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span> \
+               <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">)]</span>
+    <span class="n">fp_bins</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">)[</span><span class="n">NegClassPop_indicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span> \
+               <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">)]</span>
+    <span class="n">tn_bins</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">)[</span><span class="n">NegClassPop_indicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span> \
+               <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">)]</span>
+    <span class="n">fn_bins</span> <span class="o">=</span> <span class="p">[(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">)[</span><span class="n">PosClassPop_indicies</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int&quot;</span><span class="p">)</span> \
+               <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">)]</span>
+
+    <span class="n">cont_bins</span> <span class="o">=</span> <span class="p">[(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">p</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span>
+                 <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">))]</span>
+    <span class="n">labelArgMax_bins</span> <span class="o">=</span> <span class="p">[{</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">y_vals</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])}</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">y_bins</span><span class="p">]</span>
+
     <span class="n">true_false_bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span>
                        <span class="nb">zip</span><span class="p">(</span><span class="n">predict_bins</span><span class="p">,</span> <span class="n">y_bins</span><span class="p">)]</span>
-
     <span class="n">out_bins</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">prevmax</span> <span class="o">=</span> <span class="n">min_char</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">true_false_bins</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">tf</span><span class="p">,</span> <span class="n">tp</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">tn</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">agm</span><span class="p">,</span> <span class="n">cb</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="n">true_false_bins</span><span class="p">,</span> <span class="n">tp_bins</span><span class="p">,</span> <span class="n">fp_bins</span><span class="p">,</span> <span class="n">tn_bins</span><span class="p">,</span> <span class="n">fn_bins</span><span class="p">,</span> <span class="n">labelArgMax_bins</span><span class="p">,</span> <span class="n">cont_bins</span><span class="p">)):</span>
         <span class="n">b</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">num</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
-        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">_tp</span><span class="p">,</span> <span class="n">_fp</span><span class="p">,</span> <span class="n">_tn</span><span class="p">,</span> <span class="n">_fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tp</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fp</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">tn</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="n">pos_pop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_tp</span> <span class="o">+</span> <span class="n">_fn</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">neg_pop</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_tn</span> <span class="o">+</span> <span class="n">_fp</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;tpr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_tp</span><span class="p">)</span> <span class="o">/</span> <span class="n">pos_pop</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;fpr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_fp</span><span class="p">)</span> <span class="o">/</span> <span class="n">neg_pop</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;ppv&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">_tp</span><span class="p">)</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">_fp</span> <span class="o">+</span> <span class="n">_tp</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;acc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;acc_std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;tpr_std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;fpr_std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;acc_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;acc_std&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;tpr_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;tpr_std&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">pos_pop</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;fpr_error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;fpr_std&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">neg_pop</span><span class="p">)</span>
+        <span class="n">unique</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">cb</span><span class="p">,</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">cont_classes_d</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">unique</span><span class="p">,</span> <span class="n">counts</span><span class="p">))</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;cont_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">/</span> <span class="n">neg_pop</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cont_classes_d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span>
+                             <span class="n">key</span> <span class="o">!=</span> <span class="n">true_class_index</span><span class="p">}</span>
+        <span class="c1"># print(b[&quot;cont_classes&quot;])</span>
+        <span class="n">b</span><span class="p">[</span><span class="s2">&quot;arg_max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agm</span>
         <span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span>
         <span class="n">b</span><span class="p">[</span><span class="s2">&quot;min_bin_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevmax</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_false_bins</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
@@ -180,94 +277,183 @@
             <span class="n">b</span><span class="p">[</span><span class="s2">&quot;max_bin_x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevmax</span> <span class="o">=</span> <span class="n">characteristics</span><span class="p">[</span><span class="n">split_at</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
         <span class="n">out_bins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">plot</span><span class="p">):</span> <span class="n">plotBins</span><span class="p">(</span><span class="n">out_bins</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">plot</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.postprocessing.plot</span> <span class="k">import</span> <span class="n">plot_bins</span>
+        <span class="n">plot_bins</span><span class="p">(</span><span class="n">out_bins</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out_bins</span></div>
 
-<div class="viewcode-block" id="getError"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.getError">[docs]</a><span class="k">def</span> <span class="nf">getError</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">custom_objects</span><span class="o">=</span><span class="p">{},</span> <span class="n">ignoreAssert</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.</span>
-<span class="sd">    #Arguements:</span>
-<span class="sd">            model -- The model being evaluated, or a KerasTrial containing a valid model.</span>
-<span class="sd">            data  -- A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure</span>
-<span class="sd">                     containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation</span>
-<span class="sd">                     set will be found from the archive (or computed) and used in place of data.</span>
-<span class="sd">            num_samples -- The number of samples to evaluate the error on.</span>
-<span class="sd">            custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</span>
-<span class="sd">            ignoreAssert -- If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.</span>
-<span class="sd">                            If this is not the case then an error will be raised.</span>
-<span class="sd">    #Returns:</span>
-<span class="sd">        The standard error of the validation accuracy</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="c1"># trial = None</span>
-    <span class="c1"># if(isinstance(model, KerasTrial)):</span>
-    <span class="c1">#     trial = model</span>
-    <span class="c1">#     model = trial.compile(loadweights=True,custom_objects=custom_objects)</span>
-    <span class="c1">#     if(data == None):</span>
-    <span class="c1">#         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]</span>
-    <span class="c1">#         if(num_samples == None): num_samples = trial.nb_val_samples</span>
-    <span class="c1">#         p = DataProcedure.from_json(trial.archive_dir,val_proc)</span>
-    <span class="c1">#         data = p.getData()</span>
-    <span class="c1"># if(trial != None and trial.get_from_record(&quot;val_acc_error&quot;) == None):</span>
-    <span class="c1">#     #model = trial.compile(loadweights=True,custom_objects=custom_objects)</span>
-    <span class="c1">#     # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]</span>
-    <span class="c1">#     # if(num_samples == None): num_samples = trial.nb_val_samples</span>
-    <span class="c1">#     # p = DataProcedure.from_json(trial.archive_dir,val_proc)</span>
-    <span class="c1">#     # gen = p.getData()</span>
-    <span class="c1">#</span>
-    <span class="c1">#     num_read = 0</span>
-    <span class="c1">#     correct = 0</span>
-    <span class="c1">#     batch_metrics = None</span>
-    <span class="c1">#     num_batches = None</span>
-    <span class="c1">#     global_batch_size = None</span>
-    <span class="c1">#     i = 0</span>
-    <span class="c1">#</span>
-    <span class="c1">#     if(isinstance(data, DataProcedure)):</span>
-    <span class="c1">#         data = data.getData()</span>
-    <span class="c1">#     for X,Y in data:</span>
-    <span class="c1">#         batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]</span>
-    <span class="c1">#         if(batch_metrics == None):</span>
-    <span class="c1">#             global_batch_size = batch_size</span>
-    <span class="c1">#             num_batches =  np.ceil(num_samples/float(global_batch_size))</span>
-    <span class="c1">#             batch_metrics = [None] * num_batches</span>
-    <span class="c1">#         #if(batch_size != global_batch_size): continue</span>
-    <span class="c1">#         m = model.test_on_batch(X,Y)</span>
-    <span class="c1">#         if(i &gt;= num_batches):</span>
-    <span class="c1">#             batch_metrics.append(m)</span>
-    <span class="c1">#         else:</span>
-    <span class="c1">#             #print(i)</span>
-    <span class="c1">#             batch_metrics[i] = m</span>
-    <span class="c1">#         num_read += batch_size</span>
-    <span class="c1">#         i += 1</span>
-    <span class="c1">#         if(num_read &gt;= num_samples):</span>
-    <span class="c1">#             break</span>
+<div class="viewcode-block" id="get_roc_points"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.get_roc_points">[docs]</a><span class="k">def</span> <span class="nf">get_roc_points</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[],</span><span class="n">tpr</span><span class="o">=</span><span class="p">[],</span><span class="n">fpr</span><span class="o">=</span><span class="p">[],</span><span class="n">thresh</span><span class="o">=</span><span class="p">[],</span><span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Finds the tpr,fpr, and threshold holding one of them constant.</span>
+<span class="sd">    </span>
+<span class="sd">        :param args: a list of kargs dictionaries for trials to evaluate</span>
+<span class="sd">        :param tpr: a list of true positive rates to hold constant</span>
+<span class="sd">        :param fpr: a list of false positive rates to hold constant</span>
+<span class="sd">        :param thresh: a list of thesholds to hold constant</span>
+<span class="sd">        :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">kargs</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="n">roc_data</span> <span class="o">=</span> <span class="n">get_roc_data</span><span class="p">(</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
+        <span class="c1">#print(roc_dict)</span>
+        <span class="n">_fpr</span><span class="p">,</span> <span class="n">_tpr</span><span class="p">,</span> <span class="n">_thresh</span><span class="p">,</span><span class="n">auc</span> <span class="o">=</span> <span class="n">roc_data</span>
+        <span class="n">indicies</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">fpr</span><span class="p">:</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">elmt</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">_fpr</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">))</span>
+            <span class="n">indicies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">tpr</span><span class="p">:</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">elmt</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">_tpr</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">))</span>
+            <span class="n">indicies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">thresh</span><span class="p">:</span>
+            <span class="n">index</span><span class="p">,</span> <span class="n">elmt</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">_thresh</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">y</span><span class="p">))</span>
+            <span class="n">indicies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">fpr</span><span class="p">,</span><span class="n">tpr</span><span class="p">,</span><span class="n">thresh</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">indicies</span><span class="p">),[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">indicies</span><span class="p">),[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">indicies</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">indx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indicies</span><span class="p">):</span>
+            <span class="n">fpr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">tpr</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">thresh</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fpr</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">_tpr</span><span class="p">[</span><span class="n">indx</span><span class="p">],</span> <span class="n">_thresh</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;tpr&quot;</span><span class="p">:</span> <span class="n">tpr</span><span class="p">,</span> <span class="s2">&quot;fpr&quot;</span><span class="p">:</span><span class="n">fpr</span><span class="p">,</span> <span class="s2">&quot;thresh&quot;</span><span class="p">:</span> <span class="n">thresh</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
-    <span class="n">isTrial</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">KerasTrial</span><span class="p">)):</span>
-        <span class="n">trial</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loadweights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
-        <span class="n">isTrial</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">accum</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">test_on_batch</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">)</span>
+<div class="viewcode-block" id="get_roc_data"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.get_roc_data">[docs]</a><span class="k">def</span> <span class="nf">get_roc_data</span><span class="p">(</span><span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;get ROC curve points,thresholds, and auc from labels and predictions</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">isTrial</span><span class="p">):</span>
-        <span class="n">dItr</span> <span class="o">=</span> <span class="n">TrialIterator</span><span class="p">(</span><span class="n">trial</span><span class="p">,</span> <span class="n">return_X</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_Y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">)</span>
+<span class="sd">        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc</span>
+<span class="sd">        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
+<span class="sd">        :param Y: The data labels numpy.ndarray</span>
+<span class="sd">        :param predictions: the predictions numpy.ndarray</span>
+<span class="sd">        :param model: a compiled model, uncompiled model or path to model json. For the latter options</span>
+<span class="sd">                      weights=? must be given.</span>
+<span class="sd">        :param weights: the model weights, or a path to the weights</span>
+<span class="sd">        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">kargs</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;ROC_data&quot;</span> <span class="ow">in</span> <span class="n">inp</span><span class="p">):</span>
+        <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">dItr</span> <span class="o">=</span> <span class="n">DataIterator</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">return_X</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_Y</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">inputHandler</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">])</span>
+        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="n">batch_metrics</span> <span class="o">=</span> <span class="n">dItr</span><span class="o">.</span><span class="n">asList</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;labels and predictions should have </span><span class="se">\</span>
+<span class="s2">            the same shape, </span><span class="si">%r</span><span class="s2"> != </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">true_class_index</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+                <span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[:,</span> <span class="n">true_class_index</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must designate index of true class for data of shape </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">list</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
-    <span class="n">batch_metrics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">batch_metrics</span><span class="p">)</span>
-    <span class="n">avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">batch_metrics</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
-    <span class="n">sem</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">batch_metrics</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">ignoreAssert</span> <span class="ow">and</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="s2">&quot;val_acc&quot;</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="s2">&quot;val_acc&quot;</span><span class="p">),</span> <span class="n">avg</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">decimal</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">trial</span><span class="o">.</span><span class="n">to_record</span><span class="p">({</span><span class="s2">&quot;val_acc_&quot;</span> <span class="p">:</span> <span class="n">avg</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
-    <span class="n">trial</span><span class="o">.</span><span class="n">to_record</span><span class="p">({</span><span class="s2">&quot;val_acc_error&quot;</span> <span class="p">:</span> <span class="n">sem</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
-    <span class="k">return</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="s2">&quot;val_acc_error&quot;</span><span class="p">)</span></div>
+        <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span> <span class="o">=</span> <span class="n">roc_curve</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+        <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">auc</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span></div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<span class="c1"># def getError(model, data=None, num_samples=None,custom_objects={}, ignoreAssert=False):</span>
+<span class="c1">#     &#39;&#39;&#39;</span>
+<span class="c1">#     Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.</span>
+<span class="c1">#     #Arguements:</span>
+<span class="c1">#             model -- The model being evaluated, or a KerasTrial containing a valid model.</span>
+<span class="c1">#             data  -- A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure</span>
+<span class="c1">#                      containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation</span>
+<span class="c1">#                      set will be found from the archive (or computed) and used in place of data.</span>
+<span class="c1">#             num_samples -- The number of samples to evaluate the error on.</span>
+<span class="c1">#             custom_objects -- A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</span>
+<span class="c1">#             ignoreAssert -- If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.</span>
+<span class="c1">#                             If this is not the case then an error will be raised.</span>
+<span class="c1">#     #Returns:</span>
+<span class="c1">#         The standard error of the validation accuracy</span>
+<span class="c1">#     &#39;&#39;&#39;</span>
+<span class="c1">#     # trial = None</span>
+<span class="c1">#     # if(isinstance(model, KerasTrial)):</span>
+<span class="c1">#     #     trial = model</span>
+<span class="c1">#     #     model = trial.compile(loadweights=True,custom_objects=custom_objects)</span>
+<span class="c1">#     #     if(data == None):</span>
+<span class="c1">#     #         val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]</span>
+<span class="c1">#     #         if(num_samples == None): num_samples = trial.nb_val_samples</span>
+<span class="c1">#     #         p = DataProcedure.from_json(trial.archive_dir,val_proc)</span>
+<span class="c1">#     #         data = p.getData()</span>
+<span class="c1">#     # if(trial != None and trial.get_from_record(&quot;val_acc_error&quot;) == None):</span>
+<span class="c1">#     #     #model = trial.compile(loadweights=True,custom_objects=custom_objects)</span>
+<span class="c1">#     #     # val_proc = trial.val_procedure if isinstance(trial.val_procedure, str) else trial.val_procedure[0]</span>
+<span class="c1">#     #     # if(num_samples == None): num_samples = trial.nb_val_samples</span>
+<span class="c1">#     #     # p = DataProcedure.from_json(trial.archive_dir,val_proc)</span>
+<span class="c1">#     #     # gen = p.getData()</span>
+<span class="c1">#     #</span>
+<span class="c1">#     #     num_read = 0</span>
+<span class="c1">#     #     correct = 0</span>
+<span class="c1">#     #     batch_metrics = None</span>
+<span class="c1">#     #     num_batches = None</span>
+<span class="c1">#     #     global_batch_size = None</span>
+<span class="c1">#     #     i = 0</span>
+<span class="c1">#     #</span>
+<span class="c1">#     #     if(isinstance(data, DataProcedure)):</span>
+<span class="c1">#     #         data = data.getData()</span>
+<span class="c1">#     #     for X,Y in data:</span>
+<span class="c1">#     #         batch_size = Y[0].shape[0] if isinstance(Y, list) else Y.shape[0]</span>
+<span class="c1">#     #         if(batch_metrics == None):</span>
+<span class="c1">#     #             global_batch_size = batch_size</span>
+<span class="c1">#     #             num_batches =  np.ceil(num_samples/float(global_batch_size))</span>
+<span class="c1">#     #             batch_metrics = [None] * num_batches</span>
+<span class="c1">#     #         #if(batch_size != global_batch_size): continue</span>
+<span class="c1">#     #         m = model.test_on_batch(X,Y)</span>
+<span class="c1">#     #         if(i &gt;= num_batches):</span>
+<span class="c1">#     #             batch_metrics.append(m)</span>
+<span class="c1">#     #         else:</span>
+<span class="c1">#     #             #print(i)</span>
+<span class="c1">#     #             batch_metrics[i] = m</span>
+<span class="c1">#     #         num_read += batch_size</span>
+<span class="c1">#     #         i += 1</span>
+<span class="c1">#     #         if(num_read &gt;= num_samples):</span>
+<span class="c1">#     #             break</span>
+<span class="c1"># </span>
+<span class="c1">#     isTrial = False</span>
+<span class="c1">#     if(isinstance(model, KerasTrial)):</span>
+<span class="c1">#         trial = model</span>
+<span class="c1">#         model = trial.compile(loadweights=True,custom_objects=custom_objects)</span>
+<span class="c1">#         isTrial = True</span>
+<span class="c1"># </span>
+<span class="c1">#     def accum(X,Y):</span>
+<span class="c1">#         return model.test_on_batch(X,Y)</span>
+<span class="c1"># </span>
+<span class="c1">#     if (isTrial):</span>
+<span class="c1">#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         dItr = DataIterator(data, return_X=False, return_Y=False,</span>
+<span class="c1">#                             num_samples=num_samples, accumilate=accum)</span>
+<span class="c1"># </span>
+<span class="c1">#     batch_metrics = dItr.as_list()</span>
+<span class="c1"># </span>
+<span class="c1">#     batch_metrics = np.array(batch_metrics)</span>
+<span class="c1">#     avg = np.mean(batch_metrics, axis=0, dtype=&#39;float64&#39;)</span>
+<span class="c1">#     sem = np.std(batch_metrics, axis=0, dtype=&#39;float64&#39;)/np.sqrt(i)</span>
+<span class="c1">#     if(not ignoreAssert and trial.get_from_record(&quot;val_acc&quot;) != None):</span>
+<span class="c1">#         np.testing.assert_almost_equal(trial.get_from_record(&quot;val_acc&quot;), avg[1], decimal=3)</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         trial.to_record({&quot;val_acc_&quot; : avg[1]})</span>
+<span class="c1">#     trial.to_record({&quot;val_acc_error&quot; : sem[1]})</span>
+<span class="c1">#     return trial.get_from_record(&quot;val_acc_error&quot;)</span>
 </pre></div>
 
           </div>

@@ -72,7 +72,7 @@
 
 <div class="viewcode-block" id="Slice"><a class="viewcode-back" href="../../../layers.html#CMS_Deep_Learning.layers.slice.Slice">[docs]</a><span class="k">class</span> <span class="nc">Slice</span><span class="p">(</span><span class="n">Layer</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Applies a slice to input data and outputs the results, does not slice along the batch axis</span>
-<span class="sd">            :param split_str: a string like &quot;[A:B:C, D:E:F, ... ,]&quot; designating the splits to make on the input data where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.</span>
+<span class="sd">        :param split_str: a string like &quot;[A:B:C, D:E:F, ... ,]&quot; designating the splits to make on the input data where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.</span>
 <span class="sd">                </span>
 <span class="sd">        .. note:: Splitting on the batch axis is protected against so [:,4:5] is really [:,:,4:5]</span>
 <span class="sd">        </span>

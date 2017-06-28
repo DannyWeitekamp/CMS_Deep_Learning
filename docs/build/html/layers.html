@@ -120,22 +120,21 @@ e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;
 in different relativistic frames.
 Trains on a set of weights:</p>
 <blockquote>
-<div><p>Bo (boost: which boosts each of any number of input 4-vectors)
+<div>Bo (boost: which boosts each of any number of input 4-vectors)
 W  (weight: applies a mulitplier to the boosted 4-vectors)
-DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</p>
+DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">param sphereCoords:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body">if True uses spherical coordinates for calculating the boost instead of Cartesian.</td>
-</tr>
-<tr class="field-even field"><th class="field-name" colspan="2">parma vec_start:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body">determines where to start reading the 4-vector along the last axis of the input.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sphereCoords</strong> – if True uses spherical coordinates for calculating the boost instead of Cartesian.</li>
+<li><strong>vec_start</strong> – determines where to start reading the 4-vector along the last axis of the input.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
 <dl class="method">
 <dt id="CMS_Deep_Learning.layers.lorentz.Lorentz.build">
 <code class="descname">build</code><span class="sig-paren">(</span><em>input_shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz.build" title="Permalink to this definition">¶</a></dt>
@@ -177,19 +176,8 @@ DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</p>
 <dt id="CMS_Deep_Learning.layers.slice.Slice">
 <em class="property">class </em><code class="descclassname">CMS_Deep_Learning.layers.slice.</code><code class="descname">Slice</code><span class="sig-paren">(</span><em>split_str</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/slice.html#Slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.slice.Slice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">keras.engine.topology.Layer</span></code></p>
-<dl class="docutils">
-<dt>Applies a slice to input data and outputs the results, does not slice along the batch axis</dt>
-<dd><table class="first last docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name" colspan="2">param split_str:</th></tr>
-<tr class="field-odd field"><td>&#160;</td><td class="field-body">a string like “[A:B:C, D:E:F, … ,]” designating the splits to make on the input data where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.</td>
-</tr>
-</tbody>
-</table>
-</dd>
-</dl>
+<p>Applies a slice to input data and outputs the results, does not slice along the batch axis
+:param split_str: a string like “[A:B:C, D:E:F, … ,]” designating the splits to make on the input data where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Splitting on the batch axis is protected against so [:,4:5] is really [:,:,4:5]</p>

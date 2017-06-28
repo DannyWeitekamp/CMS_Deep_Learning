@@ -78,8 +78,9 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">.analysistools</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.colors</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="k">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span> <span class="nn">.metrics</span> <span class="k">import</span> <span class="n">get_roc_data</span>
+<span class="kn">from</span> <span class="nn">.colors</span> <span class="k">import</span> <span class="n">resolveColors</span>
 
 <div class="viewcode-block" id="plot_history"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_history">[docs]</a><span class="k">def</span> <span class="nf">plot_history</span><span class="p">(</span> <span class="n">histories</span><span class="p">,</span> <span class="n">plotLoss</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plotAccuracy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plotBest</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">acclims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">useGrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Plots an array of training histories against each other</span>
@@ -175,117 +176,38 @@
     <span class="n">print_accuracy</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">test_target</span><span class="p">)</span></div>
 
 
-
-
-<div class="viewcode-block" id="plotBins"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plotBins">[docs]</a><span class="k">def</span> <span class="nf">plotBins</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span>
-             <span class="n">min_samples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-             <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span>
-             <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-             <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-             <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-             <span class="n">binLabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-             <span class="n">legendTitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-             <span class="n">legendBelow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-             <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span>
-             <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">],</span>
-             <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-             <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-             <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.025</span><span class="p">),</span>
-             <span class="n">useGrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-             <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar</span>
-<span class="sd">        #Arguments:</span>
-<span class="sd">            bins -- A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)</span>
-<span class="sd">            min_samples -- The minumum number of samples that must be in a bin for it to be plotted.</span>
-<span class="sd">            mode -- &quot;bar&quot; or &quot;scatter&quot;</span>
-<span class="sd">            title -- The title of the plot</span>
-<span class="sd">            xlabel -- The xlabel of the plot</span>
-<span class="sd">            ylabel -- the ylabel of the plot</span>
-<span class="sd">            binLabels -- A list of labels to be shown in the legend. One for each set of bins.</span>
-<span class="sd">            legendTitle -- The title of the legend.</span>
-<span class="sd">            legendBelow -- Whether or not to put the legend below the graph</span>
-<span class="sd">            alpha -- The opacity of the plot.</span>
-<span class="sd">            colors -- the colors for each set of bins (see how matplotlib handles colors)</span>
-<span class="sd">            shapes -- the shapes of the markers for the graph</span>
-<span class="sd">            xlim -- a tuple (minX, maxX) that determines he x range of the view of the graph</span>
-<span class="sd">            ylim -- a tuple (minY, maxY) that determines he y range of the view of the graph </span>
-<span class="sd">            useGrid -- if True then display a grid in the background of the graph&#39;&#39;&#39;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">shapes</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,</span><span class="s1">&#39;s&#39;</span><span class="p">,</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">]</span>
-    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">bins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="nb">dict</span><span class="p">)):</span>
-        <span class="n">bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">bins</span><span class="p">]</span>
-    <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span><span class="nb">list</span><span class="p">)):</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">colors</span><span class="p">]</span>
-    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">useGrid</span><span class="p">):</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;bar&quot;</span><span class="p">):</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_axisbelow</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">bs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bins</span><span class="p">):</span>
-        <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="n">binLabels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">binLabels</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">binLabels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">i</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;min_bin_x&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
-        <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
-        <span class="n">widths</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;max_bin_x&quot;</span><span class="p">]</span><span class="o">-</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;min_bin_x&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;bar&quot;</span><span class="p">):</span>
-            
-            <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">widths</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">shapes</span><span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span><span class="n">ys</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span><span class="n">ys</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="n">ecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
-
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">legendBelow</span><span class="p">):</span>
-        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">legendTitle</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper center&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.15</span><span class="p">),</span><span class="n">fancybox</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">legendTitle</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
-    
-    <span class="k">if</span><span class="p">(</span><span class="n">legendTitle</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">legend</span><span class="o">.</span><span class="n">get_title</span><span class="p">(),</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-    
-    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">show</span><span class="p">):</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">plt</span></div>
-
 <div class="viewcode-block" id="plotMetricVsMetric"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plotMetricVsMetric">[docs]</a><span class="k">def</span> <span class="nf">plotMetricVsMetric</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span><span class="n">metricX</span><span class="p">,</span><span class="n">metricY</span><span class="o">=</span><span class="s2">&quot;val_acc&quot;</span><span class="p">,</span><span class="n">groupOn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">constants</span><span class="o">=</span><span class="p">{},</span> <span class="n">xlabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Trials&quot;</span><span class="p">,</span> <span class="n">legend_label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose_errors</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). </span>
+    <span class="sd">&#39;&#39;&#39; Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). </span>
 <span class="sd">        Asserts a one to one relationship incase of duplicate entries.</span>
-<span class="sd">        #Arguments:</span>
-<span class="sd">            trials -- A list of trials to be used for the plot. This list will be culled down by specifying constants={&quot;record&quot; : value, ...}.</span>
-<span class="sd">            metricX -- The record entry to be used for the x-axis of the plot</span>
-<span class="sd">            metricY -- The record entry to be used for the y-axis of the plot</span>
-<span class="sd">            groupOn -- The record entry to group the data on to add a second explanitory variable</span>
-<span class="sd">            constants -- A dictionary of record values (i.e {&quot;depth&quot; : 2, ...}) that should be kept constant in the plot. For example </span>
-<span class="sd">                        if you only wanted to plot trials with a dropout of 0.0 you would do constants = {&quot;dropout&quot; : 0.0}.</span>
-<span class="sd">                        Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.</span>
-<span class="sd">                        To be certain of this one-to-one relationship set mode=&quot;error&quot;.</span>
-<span class="sd">            xlabel -- The X label of the plot</span>
-<span class="sd">            ylabel -- The Y label of the plot</span>
-<span class="sd">            label -- How to label objects in the legend if groupOn=None</span>
-<span class="sd">            legend_label -- The title for the lengend</span>
-<span class="sd">            colors -- A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting</span>
-<span class="sd">            shapes -- list of marker shapes to use in the graph, defualts to [&#39;o&#39;,&#39;s&#39;,&#39;v&#39;, &#39;D&#39;, &#39;^&#39;,&#39;*&#39;, &#39;&lt;&#39;, &#39;&gt;&#39;]</span>
-<span class="sd">            alpha -- The alpha value (opacity) for each point in the plot</span>
-<span class="sd">            mode -- How to assert a one-to-one relationship between the trials in each group. Either &quot;max&quot; or &quot;min&quot; which simply take the trial</span>
-<span class="sd">                    with the maximum or minimum &#39;metricY&#39; value among conflicting trials. Alternately &quot;error&quot; throws an error if a one-to-one</span>
-<span class="sd">                    relationship cannot be resolved. The user can then edit the &#39;constants&#39; argument to satisfy this relationship. </span>
-<span class="sd">                    See CMS_Deep_Learning.analysistools.assertOneToOne for more information</span>
-<span class="sd">            verbose -- Whether or not to output extra information about the internals of the function for debugging.</span>
-<span class="sd">            verbose_errors -- Whether or not to print out longer summaries for conflicting trials if mode = &quot;error&quot;.</span>
+<span class="sd">        </span>
+<span class="sd">        :param trials: A list of trials to be used for the plot. This list will be culled down by specifying constants={&quot;record&quot; : value, ...}.</span>
+<span class="sd">        :param metricX: The record entry to be used for the x-axis of the plot</span>
+<span class="sd">        :param metricY: The record entry to be used for the y-axis of the plot</span>
+<span class="sd">        :param groupOn: The record entry to group the data on to add a second explanitory variable</span>
+<span class="sd">        :param constants: A dictionary of record values (i.e {&quot;depth&quot; : 2, ...}) that should be kept constant in the plot. For example </span>
+<span class="sd">                    if you only wanted to plot trials with a dropout of 0.0 you would do constants = {&quot;dropout&quot; : 0.0}.</span>
+<span class="sd">                    Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.</span>
+<span class="sd">                    To be certain of this one-to-one relationship set mode=&quot;error&quot;.</span>
+<span class="sd">        :param xlabel: The X label of the plot</span>
+<span class="sd">        :param ylabel: The Y label of the plot</span>
+<span class="sd">        :param label: How to label objects in the legend if groupOn=None</span>
+<span class="sd">        :param legend_label: The title for the lengend</span>
+<span class="sd">        :param colors: A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting</span>
+<span class="sd">        :param shapes: list of marker shapes to use in the graph, defualts to [&#39;o&#39;,&#39;s&#39;,&#39;v&#39;, &#39;D&#39;, &#39;^&#39;,&#39;*&#39;, &#39;&lt;&#39;, &#39;&gt;&#39;]</span>
+<span class="sd">        :param alpha: The alpha value (opacity) for each point in the plot</span>
+<span class="sd">        :param mode: How to assert a one-to-one relationship between the trials in each group. Either &quot;max&quot; or &quot;min&quot; which simply take the trial</span>
+<span class="sd">                with the maximum or minimum &#39;metricY&#39; value among conflicting trials. Alternately &quot;error&quot; throws an error if a one-to-one</span>
+<span class="sd">                relationship cannot be resolved. The user can then edit the &#39;constants&#39; argument to satisfy this relationship. </span>
+<span class="sd">                See CMS_Deep_Learning.analysistools.assertOneToOne for more information</span>
+<span class="sd">        :param verbose: Whether or not to output extra information about the internals of the function for debugging.</span>
+<span class="sd">        :param verbose_errors: Whether or not to print out longer summaries for conflicting trials if mode = &quot;error&quot;.</span>
 <span class="sd">            &#39;&#39;&#39;</span>
 
     <span class="n">fig</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
     <span class="n">ax1</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
     <span class="k">if</span><span class="p">(</span><span class="n">colors</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">colors</span> <span class="o">=</span> <span class="n">colors_contrasting</span>
+        <span class="kn">from</span> <span class="nn">.colors</span> <span class="k">import</span> <span class="n">colors_contrasting1</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">colors_contrasting1</span>
     <span class="k">if</span><span class="p">(</span><span class="n">shapes</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,</span><span class="s1">&#39;s&#39;</span><span class="p">,</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">]</span>
     <span class="n">trials_by_group</span> <span class="o">=</span> <span class="p">{}</span>
@@ -334,9 +256,9 @@
 
 <div class="viewcode-block" id="plotEverything"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plotEverything">[docs]</a><span class="k">def</span> <span class="nf">plotEverything</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="p">{}):</span>
     <span class="sd">&#39;&#39;&#39;Plots all the information about a list of trials. For each trial: the model summary, a picture of the model and a plot of accuracy vs Epoch</span>
-<span class="sd">        #Arguemnts</span>
-<span class="sd">            trials -- A list of trials to plot</span>
-<span class="sd">            custom_objects -- in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names</span>
+
+<span class="sd">    :param trials: A list of trials to plot</span>
+<span class="sd">    :param custom_objects: in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names</span>
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c1">#from keras.utils.visualize_util import plot</span>
@@ -362,7 +284,9 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="showColors"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.showColors">[docs]</a><span class="k">def</span> <span class="nf">showColors</span><span class="p">(</span><span class="n">colors</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Plots a list of colors with outlines taken from the same list&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;Plots a list of colors with outlines taken from the same list</span>
+<span class="sd">    </span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 
@@ -398,36 +322,53 @@
     <span class="k">return</span> <span class="n">plt</span></div>
 
 
-<div class="viewcode-block" id="plot_roc_curve"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_roc_curve</span><span class="p">(</span><span class="n">trial</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">true_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;ROC Curve&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.iterators</span> <span class="k">import</span> <span class="n">TrialIterator</span>
-    <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">trial</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">tr</span> <span class="o">=</span> <span class="n">TrialIterator</span><span class="p">(</span><span class="n">trial</span><span class="p">,</span> <span class="n">return_X</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_Y</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">tr</span><span class="o">.</span><span class="n">asList</span><span class="p">()</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="viewcode-block" id="plot_roc_curve"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve">[docs]</a><span class="k">def</span> <span class="nf">plot_roc_curve</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[],</span> <span class="n">true_class_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;ROC_Curve&quot;</span><span class="p">,</span> <span class="n">color_set</span><span class="o">=</span><span class="s2">&quot;colors_contrasting1&quot;</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes the ROC curve parameterization of the validation set and plots it. (or not if show=False). Requires (trial), or (Y,predictions) or (model,data), or (model,X,Y)</span>
+<span class="sd">    </span>
+<span class="sd">        .. note:: Mutliple plots can be made by passing in a list of dictionaries containing the relevent kargs.</span>
 
-    <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
-    <span class="n">predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
-    <span class="c1"># Draw the ROC curve</span>
-    <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
-    <span class="n">predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+<span class="sd">        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for </span>
+<span class="sd">                    each curve.</span>
+<span class="sd">        :param true_class_index: The index of the element of the predictions/labels that refers to the positive class</span>
+<span class="sd">        :param title: The title of the plot</span>
+<span class="sd">        :param color_set: A list of colors to use for each ROC.</span>
+<span class="sd">        :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data</span>
+<span class="sd">        </span>
+<span class="sd">        :Keyword Arguments:</span>
+<span class="sd">        - **name** (``str``) -- A name for use as a label in the plot</span>
+<span class="sd">        - **true_class_index** (``int``) -- The index in the output vector corresponding to the &#39;true class&#39; element</span>
+<span class="sd">        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)</span>
+<span class="sd">        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
+<span class="sd">        - **Y** (``numpy.ndarray``) -- The groundtruth labels</span>
+<span class="sd">        - **predictions** (``numpy.ndarray``) -- the model predictions</span>
+<span class="sd">        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options</span>
+<span class="sd">                  weights=? must be given.</span>
+<span class="sd">        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights</span>
+<span class="sd">        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user</span>
 
-    <span class="k">assert</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;labels and predictions should have </span><span class="se">\</span>
-<span class="s2">        the same shape, </span><span class="si">%r</span><span class="s2"> != </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">true_index</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:,</span> <span class="n">true_index</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-            <span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[:,</span> <span class="n">true_index</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must designate index of true class for data of shape </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">list</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+<span class="sd">        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</span>
 
-    <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">roc_curve</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
-    <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">auc</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">)</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-    <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;darkorange&#39;</span><span class="p">,</span> \
-             <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Area under curve: </span><span class="si">%0.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">roc_auc</span><span class="p">)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">kargs</span><span class="p">]</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">resolveColors</span><span class="p">(</span><span class="n">color_set</span><span class="p">)</span>
+
+    <span class="n">roc_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">true_class_index</span>
+        <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">get_roc_data</span><span class="p">(</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">lw</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> \
+                 <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1"> (AUC): </span><span class="si">%0.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">))</span>
+        <span class="n">roc_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;ROC_data&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">)})</span>
+
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="n">lw</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
@@ -435,6 +376,210 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;True Positive Rate&#39;</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;lower right&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">show</span><span class="p">):</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="p">,</span> <span class="n">roc_dicts</span></div>
+
+
+<div class="viewcode-block" id="plot_dual_roc"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_dual_roc">[docs]</a><span class="k">def</span> <span class="nf">plot_dual_roc</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[],</span> <span class="n">flipped</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                  <span class="n">true_class_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color_set</span><span class="o">=</span><span class="s2">&quot;colors_contrasting1&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Plots a roc curve or set of roc curves and its logscale counterpart</span>
+<span class="sd">        </span>
+<span class="sd">        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for </span>
+<span class="sd">                    each curve.</span>
+<span class="sd">        :param flipped: T/F flip the axis</span>
+<span class="sd">        :param invertCont: T/F use the inverse of contamination</span>
+<span class="sd">        :param title: The title of the plot</span>
+<span class="sd">        :param color_set: A list of colors to use for each ROC.</span>
+<span class="sd">        </span>
+<span class="sd">        :Keyword Arguments:</span>
+<span class="sd">        - **name** (``str``) -- A name for use as a label in the plot</span>
+<span class="sd">        - **true_class_index** (``int``) -- The index in the output vector corresponding to the &#39;true class&#39; element</span>
+<span class="sd">        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)</span>
+<span class="sd">        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
+<span class="sd">        - **Y** (``numpy.ndarray``) -- The groundtruth labels</span>
+<span class="sd">        - **predictions** (``numpy.ndarray``) -- the model predictions</span>
+<span class="sd">        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options</span>
+<span class="sd">                  weights=? must be given.</span>
+<span class="sd">        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights</span>
+<span class="sd">        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user</span>
+
+<span class="sd">        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc) </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">rc</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">kargs</span><span class="p">]</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="n">resolveColors</span><span class="p">(</span><span class="n">color_set</span><span class="p">)</span>
+
+    <span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s1">&#39;family&#39;</span><span class="p">:</span> <span class="s1">&#39;sans-serif&#39;</span><span class="p">,</span> <span class="s1">&#39;sans-serif&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Helvetica&#39;</span><span class="p">]})</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="n">roc_dicts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">true_class_index</span>
+        <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_roc_data</span><span class="p">(</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">roc_dicts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;ROC_data&quot;</span><span class="p">:</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]})</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">use_log</span><span class="p">,</span> <span class="n">ax</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="p">[</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">])):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">inp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">][</span><span class="mi">3</span><span class="p">])):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">invertCont</span><span class="p">):</span>
+                <span class="n">fpr</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">x</span><span class="p">,</span> <span class="mf">40000.0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fpr</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">flipped</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tpr</span><span class="p">,</span> <span class="n">fpr</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">lw</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (AUC): </span><span class="si">%0.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">lw</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> (AUC): </span><span class="si">%0.4f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">roc_auc</span><span class="p">))</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;navy&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=.</span><span class="mi">4</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">flipped</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">use_log</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">invertCont</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;signal efficiency (TPR)&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">invertCont</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;1/(signal contamination) </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;log-scale&quot;</span> <span class="k">if</span> <span class="n">use_log</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;signal contamination </span><span class="si">%s</span><span class="s1"> (FPR)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;log-scale&quot;</span> <span class="k">if</span> <span class="n">use_log</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">use_log</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">invertCont</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">])</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;signal efficiency (TPR)&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">invertCont</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;1/(signal contamination) </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;log-scale&quot;</span> <span class="k">if</span> <span class="n">use_log</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;signal contamination </span><span class="si">%s</span><span class="s1"> (FPR)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;log-scale&quot;</span> <span class="k">if</span> <span class="n">use_log</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">prop</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="p">,</span> <span class="n">roc_dicts</span></div>
+
+
+<div class="viewcode-block" id="plot_bins"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_bins">[docs]</a><span class="k">def</span> <span class="nf">plot_bins</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span>
+              <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;acc&quot;</span><span class="p">,</span>
+              <span class="n">min_samples</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+              <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span>
+              <span class="n">title</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+              <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+              <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+              <span class="n">binLabels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">legendTitle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">legendBelow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">alpha</span><span class="o">=.</span><span class="mi">8</span><span class="p">,</span>
+              <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">],</span>
+              <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">xlim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.025</span><span class="p">),</span>
+              <span class="n">useGrid</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">stack</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar</span>
+
+<span class="sd">        :param bins: A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</span>
+<span class="sd">        :param min_samples: The minumum number of samples that must be in a bin for it to be plotted.</span>
+<span class="sd">        :param mode: &quot;bar&quot;,&quot;scatter&quot; or &#39;histo&#39;</span>
+<span class="sd">        :param title: The title of the plot</span>
+<span class="sd">        :param xlabel: The xlabel of the plot</span>
+<span class="sd">        :param ylabel: the ylabel of the plot</span>
+<span class="sd">        :param binLabels: A list of labels to be shown in the legend. One for each set of bins.</span>
+<span class="sd">        :param legendTitle: The title of the legend.</span>
+<span class="sd">        :param legendBelow: Whether or not to put the legend below the graph</span>
+<span class="sd">        :param alpha: The opacity of the plot.</span>
+<span class="sd">        :param colors: the colors for each set of bins (see how matplotlib handles colors)</span>
+<span class="sd">        :param shapes: the shapes of the markers for the graph</span>
+<span class="sd">        :param xlim: a tuple (minX, maxX) that determines he x range of the view of the graph</span>
+<span class="sd">        :param ylim: a tuple (minY, maxY) that determines he y range of the view of the graph </span>
+<span class="sd">        :param useGrid: if True then display a grid in the background of the graph</span>
+<span class="sd">        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for </span>
+<span class="sd">                    each curve.</span>
+<span class="sd">        :param true_class_index: The index of the element of the predictions/labels that refers to the positive class</span>
+<span class="sd">        :param title: The title of the plot</span>
+<span class="sd">        :param color_set: A list of colors to use for each ROC.</span>
+<span class="sd">        :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="n">bins</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">binLabels</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">binLabels</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">shapes</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;^&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">colors</span><span class="p">]</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">useGrid</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;bar&quot;</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;major&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_axisbelow</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">binlabel</span><span class="p">,</span> <span class="n">binset</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">bins</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">bs</span> <span class="o">=</span> <span class="n">binset</span>
+
+        <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">binlabel</span>  <span class="c1"># binLabels[i] if binLabels != None and len(binLabels) &gt; i else None</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;min_bin_x&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
+        <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="n">y_val</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
+        <span class="n">widths</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;max_bin_x&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;min_bin_x&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">y_val</span> <span class="o">+</span> <span class="s2">&quot;_error&quot;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> \
+            <span class="k">else</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="n">y_val</span> <span class="o">+</span> <span class="s2">&quot;_error&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;bar&quot;</span><span class="p">):</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">widths</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;histo&quot;</span><span class="p">):</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="p">[[</span><span class="n">y</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ys</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">normalize</span><span class="p">):</span> <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">ys</span><span class="p">]</span>
+            <span class="n">ys</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">ys</span><span class="p">)</span>
+            <span class="n">bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ys</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">binLabels</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="n">label</span> <span class="o">=</span> <span class="n">binLabels</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">stack</span><span class="p">):</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">widths</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">bot</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                           <span class="n">ecolor</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Append points to beginning and end</span>
+                    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;max_bin_x&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bs</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">&quot;num_samples&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_samples</span><span class="p">)]</span>
+                    <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">bs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;min_bin_x&#39;</span><span class="p">]]</span> <span class="o">+</span> <span class="n">xs</span> <span class="o">+</span> <span class="p">[</span><span class="n">xs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;steps&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">j</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)],</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">stack</span><span class="p">):</span> <span class="n">bot</span> <span class="o">+=</span> <span class="n">y</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">shapes</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">log</span><span class="p">):</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">legendBelow</span><span class="p">):</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">legendTitle</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper center&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.15</span><span class="p">),</span>
+                           <span class="n">fancybox</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">legend</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="n">legendTitle</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">legendTitle</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">legend</span><span class="o">.</span><span class="n">get_title</span><span class="p">(),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">ylim</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="n">xlim</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="p">(</span><span class="n">show</span><span class="p">):</span> <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">plt</span></div>
 </pre></div>

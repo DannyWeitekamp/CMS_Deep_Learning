@@ -80,6 +80,7 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 <div class="viewcode-block" id="get_trial_dps"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.get_trial_dps">[docs]</a><span class="k">def</span> <span class="nf">get_trial_dps</span><span class="p">(</span><span class="n">trial</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Gets all the DataProcedures from a trial&#39;&#39;&#39;</span>
     <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span><span class="p">):</span>
         <span class="n">proc</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">trial</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">trial</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">]</span>
@@ -117,10 +118,10 @@
 
 <div class="viewcode-block" id="print_by_labels"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.print_by_labels">[docs]</a><span class="k">def</span> <span class="nf">print_by_labels</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">num_print</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sortMetric</span><span class="o">=</span><span class="s1">&#39;val_acc&#39;</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Prints trials ordered and grouped by their labeles</span>
-<span class="sd">        #Arguments:</span>
-<span class="sd">            trials -- A list of KerasTrials</span>
-<span class="sd">            num_print -- How many to print, Defaults is all of them.</span>
-<span class="sd">            sortMetric -- What metric to sort the trials on</span>
+
+<span class="sd">        :param trials: A list of KerasTrials.</span>
+<span class="sd">        :param num_print: How many to print, Defaults is all of them.</span>
+<span class="sd">        :param sortMetric: What metric to sort the trials on.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">trials_by_set</span> <span class="o">=</span> <span class="n">group_by_labels</span><span class="p">(</span><span class="n">trials</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">classification</span> <span class="ow">in</span> <span class="n">trials_by_set</span><span class="p">:</span>
@@ -136,12 +137,12 @@
 
 <div class="viewcode-block" id="findWithMetrics"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.findWithMetrics">[docs]</a><span class="k">def</span> <span class="nf">findWithMetrics</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metrics</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Culls a list of trials, selecting only those trials that satisfy the given metrics</span>
-<span class="sd">        #Arguments:</span>
-<span class="sd">            trials -- a list of KerasTrials</span>
-<span class="sd">            metrics -- a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted </span>
+
+<span class="sd">        :param trials: a list of KerasTrials </span>
+<span class="sd">        :param metrics: a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted </span>
 <span class="sd">                    (i.e. {&#39;depth&#39; : 1, ...})</span>
-<span class="sd">        #Returns:</span>
-<span class="sd">            A culled list of KerasTrials&#39;&#39;&#39;</span>
+<span class="sd">        :returns: A culled list of KerasTrials&#39;&#39;&#39;</span>
+            
 
     <span class="k">if</span> <span class="p">(</span><span class="n">trials</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">))):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;trials must be iterable, but got </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">trials</span><span class="p">))</span>
@@ -174,11 +175,12 @@
 
 <div class="viewcode-block" id="getMetricValues"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.getMetricValues">[docs]</a><span class="k">def</span> <span class="nf">getMetricValues</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Gets a list of record values from a list of trials</span>
-<span class="sd">        #Aruments:</span>
-<span class="sd">            trials -- a list of KerasTrials</span>
-<span class="sd">            metric -- a single record key or list of record keys. </span>
-<span class="sd">        #Returns:</span>
-<span class="sd">            A list of record values or if metric is a list a list a tuples containing record values&#39;&#39;&#39;</span>
+
+<span class="sd">        :param trials: a list of KerasTrials</span>
+<span class="sd">        :param metric: a single record key or list of record keys.</span>
+<span class="sd">        :returns: A list of record values or if metric is a list a list a tuples containing record values</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+            
     <span class="n">out</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">trial</span> <span class="ow">in</span> <span class="n">trials</span><span class="p">:</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_from_record</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span>
@@ -189,19 +191,21 @@
 
 
 <div class="viewcode-block" id="assertOneToOne"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.analysistools.assertOneToOne">[docs]</a><span class="k">def</span> <span class="nf">assertOneToOne</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">metricX</span><span class="p">,</span> <span class="n">metricY</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">ignoreIncomplete</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose_errors</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in &#39;trials&#39; can</span>
+    <span class="sd">&#39;&#39;&#39; Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in &#39;trials&#39; can</span>
 <span class="sd">        be uniquely identified by the value in their record keyed by &#39;metricX&#39;. So if metricX=&#39;depth&#39; this function asserts that</span>
 <span class="sd">        no two trials in the input &#39;trials&#39; list have the same depth value in their record. In the event of a conflict, the argument</span>
 <span class="sd">        &#39;mode&#39; determines how to proceed.</span>
-<span class="sd">        #Aruments:</span>
-<span class="sd">            trials -- a list of trials to be checked for a one-to-one relationship</span>
-<span class="sd">            metricX -- the metric (record key) whose value must uniquely idetify each trial</span>
-<span class="sd">            metricY -- In the event of a conflict when mode = &quot;max&quot; or &quot;min&quot;, which metric to use to pick among the conflicting trials.</span>
-<span class="sd">            mode -- How to assert a one-to-one relationship between the trials. Either &quot;max&quot; or &quot;min&quot; which simply take the trial</span>
+
+<span class="sd">        :param trials: a list of trials to be checked for a one-to-one relationship</span>
+<span class="sd">        :param metricX: the metric (record key) whose value must uniquely idetify each trial</span>
+<span class="sd">        :param metricY: In the event of a conflict when mode = &quot;max&quot; or &quot;min&quot;, which metric to use to pick among the conflicting trials.</span>
+<span class="sd">        :param mode: How to assert a one-to-one relationship between the trials. Either &quot;max&quot; or &quot;min&quot; which simply take the trial</span>
 <span class="sd">                    with the maximum or minimum &#39;metricY&#39; value among conflicting trials. Alternately &quot;error&quot; throws an error if a one-to-one</span>
 <span class="sd">                    relationship cannot be resolved, showing the user the set of conflicting trials.</span>
-<span class="sd">            ignoreIncomplete -- Whether or not to ignore trials which did not finish training.</span>
-<span class="sd">            verbose_errors -- Whether or not to output long trial summaries if a conflict is found and mode = &#39;error&#39;</span>
+<span class="sd">        :param ignoreIncomplete: Whether or not to ignore trials which did not finish training.</span>
+<span class="sd">        :param verbose_errors: Whether or not to output long trial summaries if a conflict is found and mode = &#39;error&#39;</span>
+
+<span class="sd">        :returns: a list of trials</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">trials</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trials</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">trials</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">))):</span>
@@ -240,7 +244,7 @@
                     <span class="c1"># Remove the tail trials from the big trial list</span>
                     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span> <span class="n">trials</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">ImplementationError</span><span class="p">(</span><span class="s2">&quot;need to write this&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;need to write this&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">trials</span></div>
 </pre></div>
 

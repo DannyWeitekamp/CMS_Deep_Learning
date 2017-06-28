@@ -69,105 +69,200 @@
             
   <h1>Source code for CMS_Deep_Learning.storage.iterators</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">types</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span>
-<span class="k">if</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
     <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+
     <span class="n">getNumParams</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">signature</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getargspec</span>
+
     <span class="n">getNumParams</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">getargspec</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
 
-<div class="viewcode-block" id="DataIterator"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator">[docs]</a><span class="k">class</span> <span class="nc">DataIterator</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">input_key</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">label_key</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
-            <span class="n">first_data</span> <span class="o">=</span> <span class="n">proc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">first_data</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">get_data</span><span class="p">()</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">first_data</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)):</span>
-            <span class="n">proc</span> <span class="o">=</span> <span class="n">first_data</span>
+<div class="viewcode-block" id="load_hdf5_dataset"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.load_hdf5_dataset">[docs]</a><span class="k">def</span> <span class="nf">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; based off - https://github.com/duanders/mpi_learn -- train/data.py</span>
+<span class="sd">        Converts an HDF5 structure to nested lists of databases which can be</span>
+<span class="sd">        copied to get numpy arrays or lists of numpy arrays.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+        <span class="n">sorted_keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">sorted_keys</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">proc</span> <span class="o">=</span> <span class="n">proc</span>
+
+<div class="viewcode-block" id="retrieveData"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.retrieveData">[docs]</a><span class="k">def</span> <span class="nf">retrieveData</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_keys</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Grabs raw data from a DataProcedure or file</span>
+<span class="sd">        </span>
+<span class="sd">        :param data: the data to get the raw verion of. If not str or DataProcedure returns itself</span>
+<span class="sd">        :type data: DataProcedure or str&lt;path&gt; or other</span>
+<span class="sd">        :param data_keys: The names of the keys in the hdf5 store to get the data from</span>
+<span class="sd">        :type data_keys: list of str</span>
+<span class="sd">        :param just_length: If True just return the length of the data instead of the data itself</span>
+<span class="sd">        :type just_length: bool</span>
+<span class="sd">        :param verbose:</span>
+<span class="sd">        :returns: The raw data as numpy.ndarray</span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+        <span class="n">h5_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">data_key</span> <span class="ow">in</span> <span class="n">data_keys</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">h5_file</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">just_length</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">len</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)[:])</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="DataIterator"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator">[docs]</a><span class="k">class</span> <span class="nc">DataIterator</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;A tool for retrieving inputs, labels,prediction values and functions of data</span>
+<span class="sd">    </span>
+<span class="sd">        :param data: A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</span>
+<span class="sd">        :type data: lst or str</span>
+<span class="sd">        :param num_samples: If using a generator, must specify now many samples to read</span>
+<span class="sd">        :type num_samples: uint</span>
+<span class="sd">        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator</span>
+<span class="sd">        :type data_keys: list of str</span>
+<span class="sd">        :param input_key: The key in the source hdf5 store that corresponds to the input data</span>
+<span class="sd">        :type input_key: str</span>
+<span class="sd">        :param label_key: The key in the source hdf5 store that corresponds to the label data</span>
+<span class="sd">        :type label_key: str</span>
+<span class="sd">        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator</span>
+<span class="sd">            the output of the accumilate function will follow any specified data_key data in the output</span>
+<span class="sd">        :type accumilate: function</span>
+<span class="sd">        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary</span>
+<span class="sd">        :type source_data_keys: list of str</span>
+<span class="sd">        :param prediction_model: A compiled model from which to get the predictions. If specified then predictions are returned</span>
+<span class="sd">        :type prediction_model: Model</span>
+<span class="sd">        :Output format: (data_keys outputs...,acummilate, predictions)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">input_key</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">label_key</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">source_data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">num_samples</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">=</span> <span class="n">accumilate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">=</span> <span class="n">prediction_model</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span><span class="o">=</span> <span class="n">data_keys</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">input_key</span><span class="o">=</span> <span class="n">input_key</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="o">=</span> <span class="n">label_key</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">proc</span><span class="p">]):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;procedure list must contain only DataProcedures&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">proc_itr</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;list&quot;</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">proc</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)):</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">num_samples</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;num_samples must be passed along with procedure generator.&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;generator&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bad input.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span> <span class="o">=</span> <span class="n">data_keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_key</span> <span class="o">=</span> <span class="n">input_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_key</span> <span class="o">=</span> <span class="n">label_key</span>
 
-<div class="viewcode-block" id="DataIterator.getLength"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator.getLength">[docs]</a>    <span class="k">def</span> <span class="nf">getLength</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="c1"># Make sure the data is some kind of list </span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">))):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">]</span>
+
+        <span class="c1"># Resolve source_data_keys</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">DataProcedure</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">source_data_keys</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">source_data_keys</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data_keys</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">source_data_keys</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">source_data_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">input_key</span><span class="p">,</span> <span class="n">label_key</span><span class="p">]</span>
+
+        <span class="c1"># Resolve the full set of data that needs to be read</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">=</span> <span class="n">getNumParams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">&gt;</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span><span class="p">[:]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_required</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_required</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">subset_ind</span> <span class="o">=</span> <span class="p">[</span><span class="n">source_data_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">]</span>
+
+        <span class="c1"># Peek at the first part of the data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="n">retrieveData</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># If it is a generator undo the peeking with chain</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">first_data</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)):</span>
+            <span class="n">peek</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">first_data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="n">peek</span><span class="p">],</span> <span class="n">first_data</span><span class="p">)</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="n">peek</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_data</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;source_data_keys </span><span class="si">%r</span><span class="s2"> do not match data size of </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span>
+                             <span class="p">(</span><span class="n">source_data_keys</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_data</span><span class="p">)))</span>
+
+<div class="viewcode-block" id="DataIterator.length"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator.length">[docs]</a>    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Finds the length of the iterator if taken as a single list&#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="p">:</span>
-                <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)):</span>
-                    <span class="n">out</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">out</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">Z</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Z</span> <span class="o">=</span> <span class="p">[</span><span class="n">Z</span><span class="p">]</span>
-                <span class="n">num_samples</span> <span class="o">+=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="n">l</span> <span class="o">=</span> <span class="n">retrieveData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">num_samples</span> <span class="o">+=</span> <span class="n">l</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">num_samples</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span></div>
 
-<div class="viewcode-block" id="DataIterator.asList"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator.asList">[docs]</a>    <span class="k">def</span> <span class="nf">asList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="n">num_params</span> <span class="o">=</span> <span class="n">getNumParams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">)</span>
-        <span class="n">x_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span>
-        <span class="n">y_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">num_params</span> <span class="o">&gt;</span> <span class="mi">1</span>
-        
-        <span class="n">union_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">x_required</span><span class="p">):</span>
-            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_key</span> <span class="ow">in</span> <span class="n">union_keys</span><span class="p">):</span>
-                <span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_key</span><span class="p">)</span>
-            <span class="n">input_index</span> <span class="o">=</span> <span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_key</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">y_required</span><span class="p">):</span>
-            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_key</span> <span class="ow">in</span> <span class="n">union_keys</span><span class="p">):</span>
-                <span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="p">)</span>
-            <span class="n">label_index</span> <span class="o">=</span> <span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_key</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_assert_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Makes sure that the data is raw and not a string or DataProcdedure&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">)):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">retrieveData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>  <span class="c1"># d.get_data(data_keys=self.union_keys,verbose=verbose)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset_ind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">d</span>
 
-        <span class="n">samples_outs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">union_keys</span><span class="p">)</span>
-        
+<div class="viewcode-block" id="DataIterator.as_list"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator.as_list">[docs]</a>    <span class="k">def</span> <span class="nf">as_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the data as a list of lists/numpy arrays&#39;&#39;&#39;</span>
+        <span class="n">samples_outs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>
         <span class="n">pred_out</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">acc_out</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">data_keys</span><span class="o">=</span><span class="n">union_keys</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-            
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">Z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Z</span> <span class="o">=</span> <span class="p">[</span><span class="n">Z</span><span class="p">]</span>
-                <span class="n">L</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-                <span class="k">if</span> <span class="p">(</span><span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLength</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Z</span><span class="p">))]</span>
+        <span class="c1"># Just make sure that self.num_samples is resolved</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">()</span>
+
+        <span class="c1"># Loop through the data, compute predictions and accum and put it in a list</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assert_raw</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">Z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Z</span> <span class="o">=</span> <span class="p">[</span><span class="n">Z</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span><span class="p">):</span>
+                    <span class="n">X</span> <span class="o">=</span> <span class="n">Z</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span><span class="p">):</span>
+                    <span class="n">Y</span> <span class="o">=</span> <span class="n">Z</span>
+
+                <span class="n">L</span> <span class="o">=</span> <span class="n">Z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span>
+                                                                 <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Z</span><span class="p">))]</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Z</span><span class="p">):</span>
                     <span class="n">Zj_out</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
                         <span class="n">Zj_out</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-
-            <span class="k">if</span><span class="p">(</span><span class="n">x_required</span><span class="p">):</span>
-                <span class="n">X</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">input_index</span><span class="p">]</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">y_required</span><span class="p">):</span>
-                <span class="n">Y</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">label_index</span><span class="p">]</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">pred_out</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">pred_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLength</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">pred_out</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">pred_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
                 <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span><span class="o">.</span><span class="n">predict_on_batch</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
                     <span class="n">pred_out</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">acc_out</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">acc_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLength</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">num_params</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">acc_out</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">acc_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
@@ -177,7 +272,8 @@
             <span class="n">pos</span> <span class="o">+=</span> <span class="n">L</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span><span class="p">:</span>
-            <span class="n">Z_out</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
+            <span class="n">Z_out</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
+
             <span class="k">if</span> <span class="p">(</span><span class="n">Z_out</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">zo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Z_out</span><span class="p">):</span>
                     <span class="n">Z_out</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zo</span><span class="p">)</span>
@@ -187,7 +283,9 @@
         <span class="k">if</span> <span class="p">(</span><span class="n">acc_out</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">acc_out</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">out</span></div>
-
+    
+<div class="viewcode-block" id="DataIterator.next"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.DataIterator.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to actually make this an iterator&quot;</span><span class="p">)</span></div>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    def _listNext():</span>
 <span class="sd">        for p in self.proc:</span>
@@ -200,25 +298,50 @@
 <span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to actually make this an iterator&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
 
-
 <div class="viewcode-block" id="TrialIterator"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.iterators.TrialIterator">[docs]</a><span class="k">class</span> <span class="nc">TrialIterator</span><span class="p">(</span><span class="n">DataIterator</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trial</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                 <span class="n">custom_objects</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&#39;&#39;&#39;A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</span>
+<span class="sd">        </span>
+<span class="sd">        :param trial: A KerasTrial from which the model, and data can be assumed</span>
+<span class="sd">        :type trial: KerasTrial</span>
+<span class="sd">        :param data_type: &#39;val&#39; or &#39;train&#39;</span>
+<span class="sd">        :type data_type: str</span>
+<span class="sd">        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator</span>
+<span class="sd">        :type data_keys: list of str</span>
+<span class="sd">        :param input_key: The key in the source hdf5 store that corresponds to the input data</span>
+<span class="sd">        :type input_key: str</span>
+<span class="sd">        :param label_key: The key in the source hdf5 store that corresponds to the label data</span>
+<span class="sd">        :type label_key: str</span>
+<span class="sd">        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator</span>
+<span class="sd">            the output of the accumilate function will follow any specified data_key data in the output</span>
+<span class="sd">        :type accumilate: function</span>
+<span class="sd">        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary</span>
+<span class="sd">        :type source_data_keys: list of str</span>
+<span class="sd">        :param return_prediction: Whether or not to return predictions</span>
+<span class="sd">        :type return_prediction: bool</span>
+<span class="sd">        :Output format: (data_keys outputs...,acummilate, predictions)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trial</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">input_key</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">label_key</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">source_data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">custom_objects</span><span class="o">=</span><span class="p">{}):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span><span class="p">):</span>
-            <span class="n">proc</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_val</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_val</span><span class="p">()</span>
             <span class="n">num_samples</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">nb_val_samples</span>
         <span class="k">elif</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">):</span>
-            <span class="n">proc</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_train</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_train</span><span class="p">()</span>
             <span class="n">num_samples</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">samples_per_epoch</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data_type must be either val or train but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data_type</span><span class="p">)</span>
+
+        <span class="c1"># print(data, trial.get_val(), trial.get_train)</span>
         <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">return_prediction</span><span class="p">):</span>
             <span class="n">model</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loadweights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
-        <span class="n">DataIterator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proc</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span>
+        <span class="n">DataIterator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span>
+                              <span class="n">input_key</span><span class="o">=</span><span class="n">input_key</span><span class="p">,</span> <span class="n">label_key</span><span class="o">=</span><span class="n">label_key</span><span class="p">,</span> <span class="n">source_data_keys</span><span class="o">=</span><span class="n">source_data_keys</span><span class="p">,</span>
                               <span class="n">accumilate</span><span class="o">=</span><span class="n">accumilate</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span></div>
 </pre></div>
 

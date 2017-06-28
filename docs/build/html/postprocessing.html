@@ -59,7 +59,6 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CMS_Deep_Learning.postprocessing</a><ul>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.analysistools">analysistools</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.colors">colors</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.metrics">metrics</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.plot">plot</a></li>
@@ -100,160 +99,139 @@
             
   <div class="section" id="cms-deep-learning-postprocessing">
 <h1>CMS_Deep_Learning.postprocessing<a class="headerlink" href="#cms-deep-learning-postprocessing" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-CMS_Deep_Learning.postprocessing.analysistools">
-<span id="analysistools"></span><h2>analysistools<a class="headerlink" href="#module-CMS_Deep_Learning.postprocessing.analysistools" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.assertOneToOne">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">assertOneToOne</code><span class="sig-paren">(</span><em>trials</em>, <em>metricX</em>, <em>metricY=None</em>, <em>mode=’max’</em>, <em>ignoreIncomplete=True</em>, <em>verbose_errors=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#assertOneToOne"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.assertOneToOne" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in ‘trials’ can
-be uniquely identified by the value in their record keyed by ‘metricX’. So if metricX=’depth’ this function asserts that
-no two trials in the input ‘trials’ list have the same depth value in their record. In the event of a conflict, the argument
-‘mode’ determines how to proceed.
-#Aruments:</p>
-<blockquote>
-<div><p>trials – a list of trials to be checked for a one-to-one relationship
-metricX – the metric (record key) whose value must uniquely idetify each trial
-metricY – In the event of a conflict when mode = “max” or “min”, which metric to use to pick among the conflicting trials.
-mode – How to assert a one-to-one relationship between the trials. Either “max” or “min” which simply take the trial</p>
-<blockquote>
-<div>with the maximum or minimum ‘metricY’ value among conflicting trials. Alternately “error” throws an error if a one-to-one
-relationship cannot be resolved, showing the user the set of conflicting trials.</div></blockquote>
-<p>ignoreIncomplete – Whether or not to ignore trials which did not finish training.
-verbose_errors – Whether or not to output long trial summaries if a conflict is found and mode = ‘error’</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.findWithMetrics">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">findWithMetrics</code><span class="sig-paren">(</span><em>trials</em>, <em>metrics</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#findWithMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.findWithMetrics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Culls a list of trials, selecting only those trials that satisfy the given metrics
-#Arguments:</p>
-<blockquote>
-<div><p>trials – a list of KerasTrials
-metrics – a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted</p>
-<blockquote>
-<div>(i.e. {‘depth’ : 1, …})</div></blockquote>
-</div></blockquote>
-<dl class="docutils">
-<dt>#Returns:</dt>
-<dd>A culled list of KerasTrials</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.findsubsets">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">findsubsets</code><span class="sig-paren">(</span><em>S</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#findsubsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.findsubsets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds all subsets of a set S</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.getMetricValues">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">getMetricValues</code><span class="sig-paren">(</span><em>trials</em>, <em>metric</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#getMetricValues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.getMetricValues" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a list of record values from a list of trials
-#Aruments:</p>
-<blockquote>
-<div>trials – a list of KerasTrials
-metric – a single record key or list of record keys.</div></blockquote>
-<dl class="docutils">
-<dt>#Returns:</dt>
-<dd>A list of record values or if metric is a list a list a tuples containing record values</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.get_trial_dps">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">get_trial_dps</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’train’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#get_trial_dps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.get_trial_dps" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.group_by_labels">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">group_by_labels</code><span class="sig-paren">(</span><em>trials</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#group_by_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.group_by_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Takes in a set of trials and returns a dictionary keyed by trial record labels with lists of corresponding
-trials as values.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.print_by_labels">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">print_by_labels</code><span class="sig-paren">(</span><em>trials</em>, <em>num_print=None</em>, <em>sortMetric=’val_acc’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#print_by_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.print_by_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints trials ordered and grouped by their labeles
-#Arguments:</p>
-<blockquote>
-<div>trials – A list of KerasTrials
-num_print – How many to print, Defaults is all of them.
-sortMetric – What metric to sort the trials on</div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.analysistools.sortOnMetric">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.analysistools.</code><code class="descname">sortOnMetric</code><span class="sig-paren">(</span><em>trials</em>, <em>sortMetric=’val_acc’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/analysistools.html#sortOnMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.analysistools.sortOnMetric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort a list of trials on a record metric</p>
-</dd></dl>
-
-</div>
 <div class="section" id="module-CMS_Deep_Learning.postprocessing.colors">
 <span id="colors"></span><h2>colors<a class="headerlink" href="#module-CMS_Deep_Learning.postprocessing.colors" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.postprocessing.colors.resolveColors">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.colors.</code><code class="descname">resolveColors</code><span class="sig-paren">(</span><em>colors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/colors.html#resolveColors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.colors.resolveColors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-CMS_Deep_Learning.postprocessing.metrics">
 <span id="metrics"></span><h2>metrics<a class="headerlink" href="#module-CMS_Deep_Learning.postprocessing.metrics" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.metrics.accVsEventChar">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">accVsEventChar</code><span class="sig-paren">(</span><em>model, data, char, observ, objects, num_samples=None, char2=None, bins=20, observable_ordering=[‘E/c’, ‘Px’, ‘Py’, ‘Pz’, ‘PT_ET’, ‘Eta’, ‘Phi’, ‘Charge’, ‘X’, ‘Y’, ‘Z’, ‘Dxy’, ‘Ehad’, ‘Eem’, ‘MuIso’, ‘EleIso’, ‘ChHadIso’, ‘NeuHadIso’, ‘GammaIso’], object_ordering=[‘Electron’, ‘MuonTight’, ‘Photon’, ‘MissingET’, ‘EFlowPhoton’, ‘EFlowNeutralHadron’, ‘EFlowTrack’], equalBins=False, custom_objects={}, plot=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#accVsEventChar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.accVsEventChar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
-#Arguements:</p>
-<blockquote>
-<div><p>model – The model being tested, or a KerasTrial containing a valid model.
-data  – A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure</p>
-<blockquote>
-<div>containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
-set will be found from the archive (or computed) and used in place of data.</div></blockquote>
-<dl class="docutils">
-<dt>char  – Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics</dt>
-<dd>reducing the data within each object type of a sample.</dd>
+<dt id="CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">bin_metric_vs_char</code><span class="sig-paren">(</span><em>args=[]</em>, <em>char_name=None</em>, <em>char_collection=None</em>, <em>accumilate=None</em>, <em>num_samples=None</em>, <em>bins=20</em>, <em>equalBins=False</em>, <em>custom_objects={}</em>, <em>plot=False</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#bin_metric_vs_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>accumilate</strong> – an accumilator function build by build_accumilator</li>
+<li><strong>num_samples</strong> – The number of samples to be read from a generator dat input.</li>
+<li><strong>bins</strong> – The number of bins to use in the analysis.</li>
+<li><strong>equalBins</strong> – True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
+will be very unusual, varying significantly in their domain.</li>
+<li><strong>custom_objects</strong> – A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</li>
+<li><strong>plot</strong> – If True plot the bins automatically.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><strong>bins</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</li>
+<li><strong>threshold</strong> – The threshold for the classifier for the ‘true_class’</li>
+<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
+<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
+<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
+<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
+<li><dl class="first docutils">
+<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
+<dd>weights=? must be given.</dd>
 </dl>
-<p>observ – The observable to be reduced (i.e PT_ET, E/c, Phi).
-objects – What objects should be included in the characteristic computation.
-num_samples – The number of samples to be read from a generator dat input.
-char2 – Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.
-bins – The number of bins to use in the analysis.
-observable_ordering – A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables</p>
-<blockquote>
-<div>in the sample, otherwise the “observ” argument will not select the intended column in the data.</div></blockquote>
-<dl class="docutils">
-<dt>object_ordering – A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles</dt>
-<dd>when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</dd>
-<dt>equalBins – True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins</dt>
-<dd>will be very unusual, varying significantly in their domain.</dd>
-</dl>
-<p>custom_objects – A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
-plot – If True plot the bins automatically.</p>
-</div></blockquote>
-<dl class="docutils">
-<dt>#Returns:</dt>
-<dd>A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</dd>
-</dl>
+</li>
+<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
+<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.metrics.getError">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">getError</code><span class="sig-paren">(</span><em>model</em>, <em>data=None</em>, <em>num_samples=None</em>, <em>custom_objects={}</em>, <em>ignoreAssert=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#getError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.getError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the standard error of the mean for the validation accuracy of a model on a dataset or a trial.
-#Arguements:</p>
-<blockquote>
-<div><p>model – The model being evaluated, or a KerasTrial containing a valid model.
-data  – A generator, or DataProcedure containing the data to be run through the model. If a generator or DataProcedure</p>
-<blockquote>
-<div>containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
-set will be found from the archive (or computed) and used in place of data.</div></blockquote>
-<p>num_samples – The number of samples to evaluate the error on.
-custom_objects – A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
-ignoreAssert – If True ignore assertion errors. This code tests to see that the validation accuracy it computes is similar to the one computed by keras.</p>
-<blockquote>
-<div>If this is not the case then an error will be raised.</div></blockquote>
-</div></blockquote>
-<dl class="docutils">
-<dt>#Returns:</dt>
-<dd>The standard error of the validation accuracy</dd>
-</dl>
+<dt id="CMS_Deep_Learning.postprocessing.metrics.build_accumilator">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">build_accumilator</code><span class="sig-paren">(</span><em>char, observ, objects, char2=None, observable_ordering=[‘E/c’, ‘Px’, ‘Py’, ‘Pz’, ‘PT_ET’, ‘Eta’, ‘Phi’, ‘MaxLepDeltaEta’, ‘MaxLepDeltaPhi’, ‘MaxLepDeltaR’, ‘MaxLepKt’, ‘MaxLepAntiKt’, ‘METDeltaEta’, ‘METDeltaPhi’, ‘METDeltaR’, ‘METKt’, ‘METAntiKt’, ‘Charge’, ‘X’, ‘Y’, ‘Z’, ‘Dxy’, ‘Ehad’, ‘Eem’, ‘MuIso’, ‘EleIso’, ‘ChHadIso’, ‘NeuHadIso’, ‘GammaIso’, ‘ObjFt1’, ‘ObjFt2’, ‘ObjFt3’], object_ordering=[‘EFlowPhoton’, ‘EFlowNeutralHadron’, ‘EFlowTrack’, ‘Electron’, ‘MuonTight’, ‘MissingET’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#build_accumilator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.build_accumilator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute
+data characteristics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>char</strong> – Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
+reducing the data within each object type of a sample.</li>
+<li><strong>observ</strong> – The observable to be reduced (i.e PT_ET, E/c, Phi).</li>
+<li><strong>objects</strong> – What objects should be included in the characteristic computation.</li>
+<li><strong>char2</strong> – Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.</li>
+<li><strong>observable_ordering</strong> – A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
+in the sample, otherwise the “observ” argument will not select the intended column in the data.</li>
+<li><strong>object_ordering</strong> – A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
+when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the accumilator function</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.postprocessing.metrics.get_roc_data">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">get_roc_data</code><span class="sig-paren">(</span><em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#get_roc_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>get ROC curve points,thresholds, and auc from labels and predictions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ROC_data</strong> – a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc</li>
+<li><strong>trial</strong> – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
+<li><strong>Y</strong> – The data labels numpy.ndarray</li>
+<li><strong>predictions</strong> – the predictions numpy.ndarray</li>
+<li><strong>model</strong> – a compiled model, uncompiled model or path to model json. For the latter options
+weights=? must be given.</li>
+<li><strong>weights</strong> – the model weights, or a path to the weights</li>
+<li><strong>custom_objects</strong> – A dictionary of classes used inside a keras model that have been made by the user</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.postprocessing.metrics.get_roc_points">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">get_roc_points</code><span class="sig-paren">(</span><em>args=[]</em>, <em>tpr=[]</em>, <em>fpr=[]</em>, <em>thresh=[]</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#get_roc_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the tpr,fpr, and threshold holding one of them constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> – a list of kargs dictionaries for trials to evaluate</li>
+<li><strong>tpr</strong> – a list of true positive rates to hold constant</li>
+<li><strong>fpr</strong> – a list of false positive rates to hold constant</li>
+<li><strong>thresh</strong> – a list of thesholds to hold constant</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list of lists of tuples correspondind to the ROC points evaluated for the different trials</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -264,75 +242,92 @@ Contains custom utilities for ploting and displaying training data.
 Author: Danny Weitekamp
 e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.plotBins">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plotBins</code><span class="sig-paren">(</span><em>bins, min_samples=10, mode=’bar’, title=”, xlabel=”, ylabel=”, binLabels=None, legendTitle=None, legendBelow=False, alpha=0.8, colors=[‘b’, ‘g’, ‘r’], shapes=None, xlim=None, ylim=(0.0, 1.025), useGrid=True, show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plotBins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plotBins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
-#Arguments:</p>
-<blockquote>
-<div>bins – A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
-min_samples – The minumum number of samples that must be in a bin for it to be plotted.
-mode – “bar” or “scatter”
-title – The title of the plot
-xlabel – The xlabel of the plot
-ylabel – the ylabel of the plot
-binLabels – A list of labels to be shown in the legend. One for each set of bins.
-legendTitle – The title of the legend.
-legendBelow – Whether or not to put the legend below the graph
-alpha – The opacity of the plot.
-colors – the colors for each set of bins (see how matplotlib handles colors)
-shapes – the shapes of the markers for the graph
-xlim – a tuple (minX, maxX) that determines he x range of the view of the graph
-ylim – a tuple (minY, maxY) that determines he y range of the view of the graph 
-useGrid – if True then display a grid in the background of the graph</div></blockquote>
+<dt id="CMS_Deep_Learning.postprocessing.plot.plot_bins">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_bins</code><span class="sig-paren">(</span><em>bins, y_val=’acc’, min_samples=10, mode=’bar’, title=”, xlabel=”, ylabel=”, binLabels=None, legendTitle=None, legendBelow=False, alpha=0.8, colors=[‘b’, ‘g’, ‘r’], shapes=None, xlim=None, ylim=(0, 1.025), useGrid=True, log=False, stack=False, normalize=False, show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_bins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_bins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>bins</strong> – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</li>
+<li><strong>min_samples</strong> – The minumum number of samples that must be in a bin for it to be plotted.</li>
+<li><strong>mode</strong> – “bar”,”scatter” or ‘histo’</li>
+<li><strong>title</strong> – The title of the plot</li>
+<li><strong>xlabel</strong> – The xlabel of the plot</li>
+<li><strong>ylabel</strong> – the ylabel of the plot</li>
+<li><strong>binLabels</strong> – A list of labels to be shown in the legend. One for each set of bins.</li>
+<li><strong>legendTitle</strong> – The title of the legend.</li>
+<li><strong>legendBelow</strong> – Whether or not to put the legend below the graph</li>
+<li><strong>alpha</strong> – The opacity of the plot.</li>
+<li><strong>colors</strong> – the colors for each set of bins (see how matplotlib handles colors)</li>
+<li><strong>shapes</strong> – the shapes of the markers for the graph</li>
+<li><strong>xlim</strong> – a tuple (minX, maxX) that determines he x range of the view of the graph</li>
+<li><strong>ylim</strong> – a tuple (minY, maxY) that determines he y range of the view of the graph</li>
+<li><strong>useGrid</strong> – if True then display a grid in the background of the graph</li>
+<li><strong>args</strong> – An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+each curve.</li>
+<li><strong>true_class_index</strong> – The index of the element of the predictions/labels that refers to the positive class</li>
+<li><strong>title</strong> – The title of the plot</li>
+<li><strong>color_set</strong> – A list of colors to use for each ROC.</li>
+<li><strong>show</strong> – Whether or not to show the plot, can be useful if one only wants the parameterization data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.plotEverything">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plotEverything</code><span class="sig-paren">(</span><em>trials</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plotEverything"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plotEverything" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots all the information about a list of trials. For each trial: the model summary, a picture of the model and a plot of accuracy vs Epoch
-#Arguemnts</p>
-<blockquote>
-<div>trials – A list of trials to plot
-custom_objects – in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names</div></blockquote>
+<dt id="CMS_Deep_Learning.postprocessing.plot.plot_dual_roc">
+<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_dual_roc</code><span class="sig-paren">(</span><em>args=[]</em>, <em>flipped=False</em>, <em>invertCont=False</em>, <em>title=”</em>, <em>true_class_index=None</em>, <em>color_set=’colors_contrasting1’</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_dual_roc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_dual_roc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a roc curve or set of roc curves and its logscale counterpart</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> – An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+each curve.</li>
+<li><strong>flipped</strong> – T/F flip the axis</li>
+<li><strong>invertCont</strong> – T/F use the inverse of contamination</li>
+<li><strong>title</strong> – The title of the plot</li>
+<li><strong>color_set</strong> – A list of colors to use for each ROC.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – A name for use as a label in the plot</li>
+<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
+<li><strong>ROC_data</strong> (<code class="docutils literal"><span class="pre">tuple</span></code>) – (fpr, tpr, thres, roc_auc)</li>
+<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
+<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
+<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
+<li><dl class="first docutils">
+<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
+<dd>weights=? must be given.</dd>
+</dl>
+</li>
+<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
+<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.plotMetricVsMetric">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plotMetricVsMetric</code><span class="sig-paren">(</span><em>trials</em>, <em>metricX</em>, <em>metricY=’val_acc’</em>, <em>groupOn=None</em>, <em>constants={}</em>, <em>xlabel=None</em>, <em>ylabel=None</em>, <em>label=’Trials’</em>, <em>legend_label=”</em>, <em>colors=None</em>, <em>shapes=None</em>, <em>alpha=0.7</em>, <em>mode=’max’</em>, <em>verbose=0</em>, <em>verbose_errors=0</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plotMetricVsMetric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plotMetricVsMetric" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
-Asserts a one to one relationship incase of duplicate entries.
-#Arguments:</p>
-<blockquote>
-<div><p>trials – A list of trials to be used for the plot. This list will be culled down by specifying constants={“record” : value, …}.
-metricX – The record entry to be used for the x-axis of the plot
-metricY – The record entry to be used for the y-axis of the plot
-groupOn – The record entry to group the data on to add a second explanitory variable
-constants – A dictionary of record values (i.e {“depth” : 2, …}) that should be kept constant in the plot. For example</p>
-<blockquote>
-<div>if you only wanted to plot trials with a dropout of 0.0 you would do constants = {“dropout” : 0.0}.
-Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.
-To be certain of this one-to-one relationship set mode=”error”.</div></blockquote>
-<p>xlabel – The X label of the plot
-ylabel – The Y label of the plot
-label – How to label objects in the legend if groupOn=None
-legend_label – The title for the lengend
-colors – A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting
-shapes – list of marker shapes to use in the graph, defualts to [‘o’,’s’,’v’, ‘D’, ‘^’,’*’, ‘&lt;’, ‘&gt;’]
-alpha – The alpha value (opacity) for each point in the plot
-mode – How to assert a one-to-one relationship between the trials in each group. Either “max” or “min” which simply take the trial</p>
-<blockquote>
-<div>with the maximum or minimum ‘metricY’ value among conflicting trials. Alternately “error” throws an error if a one-to-one
-relationship cannot be resolved. The user can then edit the ‘constants’ argument to satisfy this relationship. 
-See CMS_Deep_Learning.analysistools.assertOneToOne for more information</div></blockquote>
-<p>verbose – Whether or not to output extra information about the internals of the function for debugging.
-verbose_errors – Whether or not to print out longer summaries for conflicting trials if mode = “error”.</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.plotTable">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plotTable</code><span class="sig-paren">(</span><em>rows</em>, <em>columns</em>, <em>cellText</em>, <em>rowColors=None</em>, <em>textSize=14</em>, <em>scale=1.5</em>, <em>title=”</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plotTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plotTable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.plot.plot_history">
@@ -344,26 +339,54 @@ verbose_errors – Whether or not to print out longer summaries for conflicting 
 
 <dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.plot.plot_roc_curve">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_roc_curve</code><span class="sig-paren">(</span><em>trial=None</em>, <em>labels=None</em>, <em>predictions=None</em>, <em>true_index=None</em>, <em>title=’ROC Curve’</em>, <em>show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_roc_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.print_accuracy">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">print_accuracy</code><span class="sig-paren">(</span><em>p</em>, <em>test_target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#print_accuracy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.print_accuracy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints the accuracy of a prediction array.
--Taken from Jean-Roch Vlimant’s Kreas tutorial</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.print_accuracy_m">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">print_accuracy_m</code><span class="sig-paren">(</span><em>model</em>, <em>test_data</em>, <em>test_target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#print_accuracy_m"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.print_accuracy_m" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints the accuracy of a compiled model.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.plot.showColors">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">showColors</code><span class="sig-paren">(</span><em>colors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#showColors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.showColors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plots a list of colors with outlines taken from the same list</p>
+<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_roc_curve</code><span class="sig-paren">(</span><em>args=[]</em>, <em>true_class_index=None</em>, <em>title=’ROC_Curve’</em>, <em>color_set=’colors_contrasting1’</em>, <em>show=True</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_roc_curve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the ROC curve parameterization of the validation set and plots it. (or not if show=False). Requires (trial), or (Y,predictions) or (model,data), or (model,X,Y)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Mutliple plots can be made by passing in a list of dictionaries containing the relevent kargs.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> – An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+each curve.</li>
+<li><strong>true_class_index</strong> – The index of the element of the predictions/labels that refers to the positive class</li>
+<li><strong>title</strong> – The title of the plot</li>
+<li><strong>color_set</strong> – A list of colors to use for each ROC.</li>
+<li><strong>show</strong> – Whether or not to show the plot, can be useful if one only wants the parameterization data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – A name for use as a label in the plot</li>
+<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
+<li><strong>ROC_data</strong> (<code class="docutils literal"><span class="pre">tuple</span></code>) – (fpr, tpr, thres, roc_auc)</li>
+<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
+<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
+<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
+<li><dl class="first docutils">
+<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
+<dd>weights=? must be given.</dd>
+</dl>
+</li>
+<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
+<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

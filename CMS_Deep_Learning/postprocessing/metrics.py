@@ -70,27 +70,32 @@ def bin_metric_vs_char(args=[],
                        accumilate=None,
                        num_samples=None,
                        bins=20,
-                       true_class_index=-1,
-                       threshold=-1,
                        equalBins=False,
                        custom_objects={},
                        plot=False,
                        **kargs):
     '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
 
-        :param model: The model being tested, or a KerasTrial containing a valid model.
-        :param data: A generator, DataProcedure, or tuple pair (X,Y) containing the data to be run through the model. If a generator or DataProcedure
-                 containing a generator is given the num_samples must be set. If model is a KerasTrial this can be set to None, and the validation
-                 set will be found from the archive (or computed) and used in place of data.
-
+        :param accumilate: an accumilator function build by build_accumilator
         :param num_samples: The number of samples to be read from a generator dat input.
-
         :param bins: The number of bins to use in the analysis.
-
         :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                         will be very unusual, varying significantly in their domain.
         :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
         :param plot: If True plot the bins automatically.
+        
+        :Keyword Arguments:
+        - **bins** (``list``) -- A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
+        - **threshold** -- The threshold for the classifier for the 'true_class'
+        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element        
+        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
+        - **Y** (``numpy.ndarray``) -- The groundtruth labels
+        - **predictions** (``numpy.ndarray``) -- the model predictions
+        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
+                  weights=? must be given.
+        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
+        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
+
 
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
@@ -113,7 +118,8 @@ def bin_metric_vs_char(args=[],
         y_vals = y_vals[0]
     else:
         raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
-
+    
+    true_class_index = inp.get('true_class_index',-1)
     if (len(y_vals.shape) == 1 or y_vals.shape[-1] == 1):
         true_class_index = 0
     elif (true_class_index == -1):
@@ -144,7 +150,8 @@ def bin_metric_vs_char(args=[],
 
     n = len(predict_bins)
     tp_bins, fp_bins, tn_bins, fn_bins, cont_bins = non_gen(n), non_gen(n), non_gen(n), non_gen(n), non_gen(n)
-
+    
+    threshold = inp.get('threshold',-1)
     if (threshold == -1): threshold = 1.0 / max(y_vals.shape[-1], 2)
 
     PosClassPop_indicies = [[i for i, v in enumerate(np.argmax(y, axis=-1) == true_class_index) if v] \
@@ -206,6 +213,14 @@ def bin_metric_vs_char(args=[],
     return out_bins
 
 def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
+    '''Finds the tpr,fpr, and threshold holding one of them constant.
+    
+        :param args: a list of kargs dictionaries for trials to evaluate
+        :param tpr: a list of true positive rates to hold constant
+        :param fpr: a list of false positive rates to hold constant
+        :param thresh: a list of thesholds to hold constant
+        :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials
+        '''
     if(len(args) == 0): args = [kargs]
     out = []
     for inp in args:

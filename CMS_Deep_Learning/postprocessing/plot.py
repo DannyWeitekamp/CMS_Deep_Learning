@@ -106,111 +106,31 @@ def print_accuracy_m( model, test_data, test_target):
     print_accuracy(p, test_target)
 
 
-
-
-def plotBins(bins,
-             min_samples=10,
-             mode="bar",
-             title='',
-             xlabel='',
-             ylabel='',
-             binLabels=None,
-             legendTitle=None,
-             legendBelow=False,
-             alpha=.8,
-             colors=['b','g','r'],
-             shapes=None,
-             xlim=None,
-             ylim=(0.0,1.025),
-             useGrid=True,
-             show=True):
-    ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
-        #Arguments:
-            bins -- A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
-            min_samples -- The minumum number of samples that must be in a bin for it to be plotted.
-            mode -- "bar" or "scatter"
-            title -- The title of the plot
-            xlabel -- The xlabel of the plot
-            ylabel -- the ylabel of the plot
-            binLabels -- A list of labels to be shown in the legend. One for each set of bins.
-            legendTitle -- The title of the legend.
-            legendBelow -- Whether or not to put the legend below the graph
-            alpha -- The opacity of the plot.
-            colors -- the colors for each set of bins (see how matplotlib handles colors)
-            shapes -- the shapes of the markers for the graph
-            xlim -- a tuple (minX, maxX) that determines he x range of the view of the graph
-            ylim -- a tuple (minY, maxY) that determines he y range of the view of the graph 
-            useGrid -- if True then display a grid in the background of the graph'''
-    if(shapes == None):
-        shapes = ['o','s','v', 'D', '^','*', '<', '>']
-    if(isinstance(bins[0],dict)):
-        bins = [bins]
-    if(not isinstance(colors,list)):
-        colors = [colors]
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    if(useGrid):
-        if(mode == "bar"):
-            ax.yaxis.grid(True, which='major')
-        else:
-            ax.grid(True)
-        ax.set_axisbelow(True)
-    for i,bs in enumerate(bins):
-        color = colors[i%len(colors)]
-        label = binLabels[i] if binLabels != None and len(binLabels) > i else None
-        xs = [b["min_bin_x"] for b in bs if(b["num_samples"] >= min_samples)]
-        ys = [b["y"] for b in bs if(b["num_samples"] >= min_samples)]
-        widths = [b["max_bin_x"]-b["min_bin_x"] for b in bs if(b["num_samples"] >= min_samples)]
-        errors = [b["error"] for b in bs if(b["num_samples"] >= min_samples)]
-        if(mode == "bar"):
-            
-            ax.bar(xs, ys, width=widths, yerr=errors, color=color,label=label, ecolor='k', alpha=alpha)
-        else:
-            s = shapes[i%len(colors)]
-            ax.scatter(xs,ys,color=color,label=label, marker=s)
-            ax.errorbar(xs,ys, yerr=errors,color=color,ecolor=color, alpha=alpha)
-
-    ax.set_title(title, size=16)
-    ax.set_xlabel(xlabel, size=14)
-    ax.set_ylabel(ylabel, size=14)
-    if(legendBelow):
-        legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),fancybox=True,ncol=2)
-    else:
-        legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
-    
-    if(legendTitle != None): plt.setp(legend.get_title(),fontsize=14)
-    
-    plt.ylim(ylim)
-    plt.xlim(xlim)
-
-    if (show): plt.show()
-    return plt
-
 def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={}, xlabel=None, ylabel=None, label="Trials", legend_label="", colors=None, shapes=None, alpha=.7, mode="max", verbose=0, verbose_errors=0, show=True):
-    '''Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
+    ''' Plots one metric that can be found in the records of a set of KerasTrials vs another (i.e. val_acc vs depth). 
         Asserts a one to one relationship incase of duplicate entries.
-        #Arguments:
-            trials -- A list of trials to be used for the plot. This list will be culled down by specifying constants={"record" : value, ...}.
-            metricX -- The record entry to be used for the x-axis of the plot
-            metricY -- The record entry to be used for the y-axis of the plot
-            groupOn -- The record entry to group the data on to add a second explanitory variable
-            constants -- A dictionary of record values (i.e {"depth" : 2, ...}) that should be kept constant in the plot. For example 
-                        if you only wanted to plot trials with a dropout of 0.0 you would do constants = {"dropout" : 0.0}.
-                        Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.
-                        To be certain of this one-to-one relationship set mode="error".
-            xlabel -- The X label of the plot
-            ylabel -- The Y label of the plot
-            label -- How to label objects in the legend if groupOn=None
-            legend_label -- The title for the lengend
-            colors -- A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting
-            shapes -- list of marker shapes to use in the graph, defualts to ['o','s','v', 'D', '^','*', '<', '>']
-            alpha -- The alpha value (opacity) for each point in the plot
-            mode -- How to assert a one-to-one relationship between the trials in each group. Either "max" or "min" which simply take the trial
-                    with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
-                    relationship cannot be resolved. The user can then edit the 'constants' argument to satisfy this relationship. 
-                    See CMS_Deep_Learning.analysistools.assertOneToOne for more information
-            verbose -- Whether or not to output extra information about the internals of the function for debugging.
-            verbose_errors -- Whether or not to print out longer summaries for conflicting trials if mode = "error".
+        
+        :param trials: A list of trials to be used for the plot. This list will be culled down by specifying constants={"record" : value, ...}.
+        :param metricX: The record entry to be used for the x-axis of the plot
+        :param metricY: The record entry to be used for the y-axis of the plot
+        :param groupOn: The record entry to group the data on to add a second explanitory variable
+        :param constants: A dictionary of record values (i.e {"depth" : 2, ...}) that should be kept constant in the plot. For example 
+                    if you only wanted to plot trials with a dropout of 0.0 you would do constants = {"dropout" : 0.0}.
+                    Ideally you want to keep record values that are not being compared constant, to maintain a one-to-one relationship.
+                    To be certain of this one-to-one relationship set mode="error".
+        :param xlabel: The X label of the plot
+        :param ylabel: The Y label of the plot
+        :param label: How to label objects in the legend if groupOn=None
+        :param legend_label: The title for the lengend
+        :param colors: A list of colors to use to represent each group, defaults to CMS_Deep_Learning.utils.colors.colors_contrasting
+        :param shapes: list of marker shapes to use in the graph, defualts to ['o','s','v', 'D', '^','*', '<', '>']
+        :param alpha: The alpha value (opacity) for each point in the plot
+        :param mode: How to assert a one-to-one relationship between the trials in each group. Either "max" or "min" which simply take the trial
+                with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
+                relationship cannot be resolved. The user can then edit the 'constants' argument to satisfy this relationship. 
+                See CMS_Deep_Learning.analysistools.assertOneToOne for more information
+        :param verbose: Whether or not to output extra information about the internals of the function for debugging.
+        :param verbose_errors: Whether or not to print out longer summaries for conflicting trials if mode = "error".
             '''
 
     fig=plt.figure()
@@ -266,9 +186,9 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
 
 def plotEverything(trials, custom_objects={}):
     '''Plots all the information about a list of trials. For each trial: the model summary, a picture of the model and a plot of accuracy vs Epoch
-        #Arguemnts
-            trials -- A list of trials to plot
-            custom_objects -- in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names
+
+    :param trials: A list of trials to plot
+    :param custom_objects: in case your model includes layers that are not keras defaults, a dictionary of the layer classes keyed by their names
     '''
 
     #from keras.utils.visualize_util import plot
@@ -294,7 +214,9 @@ def plotEverything(trials, custom_objects={}):
             print(e)
 
 def showColors(colors):
-    '''Plots a list of colors with outlines taken from the same list'''
+    '''Plots a list of colors with outlines taken from the same list
+    
+    '''
     fig, ax = plt.subplots(1)
     fig.set_size_inches((10,10))
 
@@ -332,28 +254,28 @@ def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, t
 
 def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set="colors_contrasting1", show=True,
                    **kargs):
-    '''Computes the ROC curve parameterization of the validation set and plots it. (or not if show=False). 
-       Requires (trial), or (Y,predictions) or (model,data), or (model,X,Y)
-        .. note:: mutliple plots can be made by passing in a list of dictionaries containing the relevent kargs
+    '''Computes the ROC curve parameterization of the validation set and plots it. (or not if show=False). Requires (trial), or (Y,predictions) or (model,data), or (model,X,Y)
+    
+        .. note:: Mutliple plots can be made by passing in a list of dictionaries containing the relevent kargs.
 
-        :param args: an alternative input method for multiple ROC curves. List of dictionaries of arguments for 
-                    each curve
+        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+                    each curve.
         :param true_class_index: The index of the element of the predictions/labels that refers to the positive class
         :param title: The title of the plot
-        :param color_set: a list of colors to use for each ROC.
-        :param show: whether or not to show the plot, can be useful if one only wants the parameterization data
-
-        :param name: a name for labeling roc_curves
-        :param true_class_index: the index in the output vector corresponding to the 'true class' element
-        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
-        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
-        :param Y: The data labels numpy.ndarray
-        :param predictions: the predictions numpy.ndarray
-        :param model: a compiled model, uncompiled model or path to model json. For the latter options
-                      weights=? must be given.
-        :param weights: the model weights, or a path to the weights
-        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
-
+        :param color_set: A list of colors to use for each ROC.
+        :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data
+        
+        :Keyword Arguments:
+        - **name** (``str``) -- A name for use as a label in the plot
+        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element
+        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)
+        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
+        - **Y** (``numpy.ndarray``) -- The groundtruth labels
+        - **predictions** (``numpy.ndarray``) -- the model predictions
+        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
+                  weights=? must be given.
+        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
+        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
 
         :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)
 
@@ -390,21 +312,29 @@ def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set=
 
 def plot_dual_roc(args=[], flipped=False, invertCont=False, title="",
                   true_class_index=None, color_set="colors_contrasting1", **kargs):
-    '''Input d: a dictionary of the roc outputs
+    '''Plots a roc curve or set of roc curves and its logscale counterpart
+        
+        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+                    each curve.
+        :param flipped: T/F flip the axis
+        :param invertCont: T/F use the inverse of contamination
+        :param title: The title of the plot
+        :param color_set: A list of colors to use for each ROC.
+        
+        :Keyword Arguments:
+        - **name** (``str``) -- A name for use as a label in the plot
+        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element
+        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)
+        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
+        - **Y** (``numpy.ndarray``) -- The groundtruth labels
+        - **predictions** (``numpy.ndarray``) -- the model predictions
+        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
+                  weights=? must be given.
+        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
+        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
 
-        :param name: a name for labeling roc_curves
-        :param true_class_index: the index in the output vector corresponding to the 'true class' element
-        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
-        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
-        :param Y: The data labels numpy.ndarray
-        :param predictions: the predictions numpy.ndarray
-        :param model: a compiled model, uncompiled model or path to model json. For the latter options
-                      weights=? must be given.
-        :param weights: the model weights, or a path to the weights
-        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
-
-
-        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)'''
+        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc) 
+    '''
     from matplotlib import pyplot as plt
     from matplotlib import rc
     inputs = args
@@ -486,9 +416,9 @@ def plot_bins(bins,
               show=True):
     ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
 
-        :param bins: A list of lists of dictionaries with info about how the bins. (i.e the output of accVsEventChar)
+        :param bins: A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
         :param min_samples: The minumum number of samples that must be in a bin for it to be plotted.
-        :param mode: "bar" or "scatter"
+        :param mode: "bar","scatter" or 'histo'
         :param title: The title of the plot
         :param xlabel: The xlabel of the plot
         :param ylabel: the ylabel of the plot
@@ -500,7 +430,17 @@ def plot_bins(bins,
         :param shapes: the shapes of the markers for the graph
         :param xlim: a tuple (minX, maxX) that determines he x range of the view of the graph
         :param ylim: a tuple (minY, maxY) that determines he y range of the view of the graph 
-        :param useGrid: if True then display a grid in the background of the graph'''
+        :param useGrid: if True then display a grid in the background of the graph
+        :param args: An alternative input method for multiple ROC curves. List of dictionaries of arguments for 
+                    each curve.
+        :param true_class_index: The index of the element of the predictions/labels that refers to the positive class
+        :param title: The title of the plot
+        :param color_set: A list of colors to use for each ROC.
+        :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data
+        
+        
+        :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)
+        '''
     from matplotlib import pyplot as plt
     if (not isinstance(bins, dict)):
         bins = {"": bins}

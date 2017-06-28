@@ -10,6 +10,7 @@ def findsubsets(S):
     return out
 
 def get_trial_dps(trial, data_type="train"):
+    '''Gets all the DataProcedures from a trial'''
     from CMS_Deep_Learning.storage.archiving import DataProcedure
     if (data_type == "val"):
         proc = [DataProcedure.from_json(trial.archive_dir, t) for t in trial.val_procedure]
@@ -47,10 +48,10 @@ def sortOnMetric(trials, sortMetric='val_acc'):
 
 def print_by_labels(trials, num_print=None, sortMetric='val_acc'):
     '''Prints trials ordered and grouped by their labeles
-        #Arguments:
-            trials -- A list of KerasTrials
-            num_print -- How many to print, Defaults is all of them.
-            sortMetric -- What metric to sort the trials on
+
+        :param trials: A list of KerasTrials.
+        :param num_print: How many to print, Defaults is all of them.
+        :param sortMetric: What metric to sort the trials on.
     '''
     trials_by_set = group_by_labels(trials)
     for classification in trials_by_set:
@@ -66,12 +67,12 @@ def print_by_labels(trials, num_print=None, sortMetric='val_acc'):
 
 def findWithMetrics(trials, metrics):
     '''Culls a list of trials, selecting only those trials that satisfy the given metrics
-        #Arguments:
-            trials -- a list of KerasTrials
-            metrics -- a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted 
+
+        :param trials: a list of KerasTrials 
+        :param metrics: a dictionary of record values. Trials that satisfy these values will be kept, and the rest omitted 
                     (i.e. {'depth' : 1, ...})
-        #Returns:
-            A culled list of KerasTrials'''
+        :returns: A culled list of KerasTrials'''
+            
 
     if (trials == None or (not hasattr(trials, '__iter__'))):
         raise TypeError("trials must be iterable, but got %r", type(trials))
@@ -104,11 +105,12 @@ def findWithMetrics(trials, metrics):
 
 def getMetricValues(trials, metric):
     '''Gets a list of record values from a list of trials
-        #Aruments:
-            trials -- a list of KerasTrials
-            metric -- a single record key or list of record keys. 
-        #Returns:
-            A list of record values or if metric is a list a list a tuples containing record values'''
+
+        :param trials: a list of KerasTrials
+        :param metric: a single record key or list of record keys.
+        :returns: A list of record values or if metric is a list a list a tuples containing record values
+    '''
+            
     out = set()
     for trial in trials:
         m = trial.get_from_record(metric)
@@ -119,19 +121,21 @@ def getMetricValues(trials, metric):
 
 
 def assertOneToOne(trials, metricX, metricY=None, mode="max", ignoreIncomplete=True, verbose_errors=0):
-    '''Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in 'trials' can
+    ''' Asserts that a set of trials have a one-to-one relationship on metricX. In other words that the trials in 'trials' can
         be uniquely identified by the value in their record keyed by 'metricX'. So if metricX='depth' this function asserts that
         no two trials in the input 'trials' list have the same depth value in their record. In the event of a conflict, the argument
         'mode' determines how to proceed.
-        #Aruments:
-            trials -- a list of trials to be checked for a one-to-one relationship
-            metricX -- the metric (record key) whose value must uniquely idetify each trial
-            metricY -- In the event of a conflict when mode = "max" or "min", which metric to use to pick among the conflicting trials.
-            mode -- How to assert a one-to-one relationship between the trials. Either "max" or "min" which simply take the trial
+
+        :param trials: a list of trials to be checked for a one-to-one relationship
+        :param metricX: the metric (record key) whose value must uniquely idetify each trial
+        :param metricY: In the event of a conflict when mode = "max" or "min", which metric to use to pick among the conflicting trials.
+        :param mode: How to assert a one-to-one relationship between the trials. Either "max" or "min" which simply take the trial
                     with the maximum or minimum 'metricY' value among conflicting trials. Alternately "error" throws an error if a one-to-one
                     relationship cannot be resolved, showing the user the set of conflicting trials.
-            ignoreIncomplete -- Whether or not to ignore trials which did not finish training.
-            verbose_errors -- Whether or not to output long trial summaries if a conflict is found and mode = 'error'
+        :param ignoreIncomplete: Whether or not to ignore trials which did not finish training.
+        :param verbose_errors: Whether or not to output long trial summaries if a conflict is found and mode = 'error'
+
+        :returns: a list of trials
     '''
     trials = copy.copy(trials)
     if (trials == None or (not hasattr(trials, '__iter__'))):

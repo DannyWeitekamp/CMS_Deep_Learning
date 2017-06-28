@@ -27,6 +27,18 @@ def load_hdf5_dataset(data):
 
 
 def retrieveData(data, data_keys, just_length=False, verbose=0):
+    '''Grabs raw data from a DataProcedure or file
+        
+        :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
+        :type data: DataProcedure or str<path> or other
+        :param data_keys: The names of the keys in the hdf5 store to get the data from
+        :type data_keys: list of str
+        :param just_length: If True just return the length of the data instead of the data itself
+        :type just_length: bool
+        :param verbose:
+        :returns: The raw data as numpy.ndarray
+        
+        '''
     if (isinstance(data, DataProcedure)):
         return data.get_data(data_keys=data_keys, verbose=verbose)
     elif (isinstance(data, str)):
@@ -44,7 +56,27 @@ def retrieveData(data, data_keys, just_length=False, verbose=0):
 
 
 class DataIterator:
-    '''A tool for retrieving inputs, labels,prediction values and functions of data'''
+    '''A tool for retrieving inputs, labels,prediction values and functions of data
+    
+        :param data: A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data
+        :type data: lst or str
+        :param num_samples: If using a generator, must specify now many samples to read
+        :type num_samples: uint
+        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator
+        :type data_keys: list of str
+        :param input_key: The key in the source hdf5 store that corresponds to the input data
+        :type input_key: str
+        :param label_key: The key in the source hdf5 store that corresponds to the label data
+        :type label_key: str
+        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+            the output of the accumilate function will follow any specified data_key data in the output
+        :type accumilate: function
+        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary
+        :type source_data_keys: list of str
+        :param prediction_model: A compiled model from which to get the predictions. If specified then predictions are returned
+        :type prediction_model: Model
+        :Output format: (data_keys outputs...,acummilate, predictions)
+    '''
 
     def __init__(self, data, num_samples=None, data_keys=[], input_key="X", label_key="Y", accumilate=None,
                  source_data_keys=None, prediction_model=None):
@@ -104,6 +136,7 @@ class DataIterator:
                              (source_data_keys, len(first_data)))
 
     def length(self, verbose=0):
+        '''Finds the length of the iterator if taken as a single list'''
         if (self.num_samples == None):
             num_samples = 0
             for d in self.data:
@@ -180,7 +213,9 @@ class DataIterator:
         if (acc_out != None):
             out.append(np.array(acc_out))
         return out
-
+    
+    def next(self):
+        raise NotImplementedError("Need to actually make this an iterator")
     '''
     def _listNext():
         for p in self.proc:
@@ -193,14 +228,35 @@ class DataIterator:
     '''
 
     def __iter__(self):
+        raise NotImplementedError("Need to actually make this an iterator")
         return self
 
 
 class TrialIterator(DataIterator):
-    '''A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance'''
+    '''A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance
+        
+        :param trial: A KerasTrial from which the model, and data can be assumed
+        :type trial: KerasTrial
+        :param data_type: 'val' or 'train'
+        :type data_type: str
+        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator
+        :type data_keys: list of str
+        :param input_key: The key in the source hdf5 store that corresponds to the input data
+        :type input_key: str
+        :param label_key: The key in the source hdf5 store that corresponds to the label data
+        :type label_key: str
+        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+            the output of the accumilate function will follow any specified data_key data in the output
+        :type accumilate: function
+        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary
+        :type source_data_keys: list of str
+        :param return_prediction: Whether or not to return predictions
+        :type return_prediction: bool
+        :Output format: (data_keys outputs...,acummilate, predictions)
+    '''
 
-    def __init__(self, trial, data_type="val", data_keys=[], accumilate=None, return_prediction=False,
-                 custom_objects={}):
+    def __init__(self, trial, data_type="val", data_keys=[], input_key="X", label_key="Y",accumilate=None,
+                 source_data_keys=None, return_prediction=False,custom_objects={}):
         if (data_type == "val"):
             data = trial.get_val()
             num_samples = trial.nb_val_samples
@@ -215,4 +271,5 @@ class TrialIterator(DataIterator):
         if (return_prediction):
             model = trial.compile(loadweights=True, custom_objects=custom_objects)
         DataIterator.__init__(self, data, num_samples=num_samples, data_keys=data_keys,
+                              input_key=input_key, label_key=label_key, source_data_keys=source_data_keys,
                               accumilate=accumilate, prediction_model=model)

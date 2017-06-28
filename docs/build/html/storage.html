@@ -62,11 +62,7 @@
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.MPIArchiving">MPIArchiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.archiving">archiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.batch">batch</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.forwardComp">forwardComp</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.gitutils">gitutils</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.iterators">iterators</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.meta">meta</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.rsyncUtils">rsyncUtils</a></li>
 </ul>
 </li>
 </ul>
@@ -142,7 +138,7 @@ e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;
 data and Y contains the labels/targets for each entry</p>
 <dl class="method">
 <dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.archive">
-<code class="descname">archive</code><span class="sig-paren">(</span><em>data, data_keys=[‘X’, ‘Y’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.archive" title="Permalink to this definition">¶</a></dt>
+<code class="descname">archive</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.archive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.archive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store the DataProcedure in a directory computed by its hashcode</p>
 </dd></dl>
 
@@ -180,6 +176,15 @@ data and Y contains the labels/targets for each entry</p>
 <dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived">
 <code class="descname">is_archived</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.is_archived"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if this procedure is already archived</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.load_hdf5_data">
+<code class="descname">load_hdf5_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.load_hdf5_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.load_hdf5_data" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://github.com/duanders/mpi_learn">https://github.com/duanders/mpi_learn</a> – train/data.py
+Returns a numpy array or (possibly nested) list of numpy arrays 
+corresponding to the group structure of the input HDF5 data.
+If a group has more than one key, we give its datasets alphabetically by key</p>
 </dd></dl>
 
 <dl class="method">
@@ -412,7 +417,7 @@ data and Y contains the labels/targets for each entry</p>
 
 <dl class="method">
 <dt id="CMS_Deep_Learning.storage.archiving.Storable.output_as_dir">
-<code class="descname">output_as_dir</code><span class="sig-paren">(</span><em>directory</em>, <em>output_model=True</em>, <em>output_train=True</em>, <em>output_val=True</em>, <em>symlink=False</em>, <em>check=True</em>, <em>raiseError=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.output_as_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.output_as_dir" title="Permalink to this definition">¶</a></dt>
+<code class="descname">output_as_dir</code><span class="sig-paren">(</span><em>directory</em>, <em>output_model=True</em>, <em>output_weights=False</em>, <em>output_train=True</em>, <em>output_val=True</em>, <em>symlink=False</em>, <em>check=True</em>, <em>isGenerator=False</em>, <em>raiseError=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#Storable.output_as_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.Storable.output_as_dir" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -563,75 +568,104 @@ each trial, either in in order or in separate batches in the case of CSCS.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-CMS_Deep_Learning.storage.forwardComp">
-<span id="forwardcomp"></span><h2>forwardComp<a class="headerlink" href="#module-CMS_Deep_Learning.storage.forwardComp" title="Permalink to this headline">¶</a></h2>
-<p>DEPRICATED
-just a quick script to translate from an old archiving format</p>
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.forwardComp.forwardComp">
-<code class="descclassname">CMS_Deep_Learning.storage.forwardComp.</code><code class="descname">forwardComp</code><span class="sig-paren">(</span><em>archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/forwardComp.html#forwardComp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.forwardComp.forwardComp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-CMS_Deep_Learning.storage.gitutils">
-<span id="gitutils"></span><h2>gitutils<a class="headerlink" href="#module-CMS_Deep_Learning.storage.gitutils" title="Permalink to this headline">¶</a></h2>
-<p>Automates pushing archive information to a remote git repo</p>
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.gitutils.addCommitPushDir">
-<code class="descclassname">CMS_Deep_Learning.storage.gitutils.</code><code class="descname">addCommitPushDir</code><span class="sig-paren">(</span><em>folder</em>, <em>remote=’origin’</em>, <em>branch=’master’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/gitutils.html#addCommitPushDir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.gitutils.addCommitPushDir" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.gitutils.commitAllTrials">
-<code class="descclassname">CMS_Deep_Learning.storage.gitutils.</code><code class="descname">commitAllTrials</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>remote=’origin’</em>, <em>branch=’master’</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/gitutils.html#commitAllTrials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.gitutils.commitAllTrials" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
 <div class="section" id="module-CMS_Deep_Learning.storage.iterators">
 <span id="iterators"></span><h2>iterators<a class="headerlink" href="#module-CMS_Deep_Learning.storage.iterators" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="CMS_Deep_Learning.storage.iterators.DataIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>proc</em>, <em>num_samples=None</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.asList">
-<code class="descname">asList</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.asList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.asList" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data</em>, <em>num_samples=None</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tool for retrieving inputs, labels,prediction values and functions of data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>lst</em><em> or </em><em>str</em>) – A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</li>
+<li><strong>num_samples</strong> (<em>uint</em>) – If using a generator, must specify now many samples to read</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
+<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+the output of the accumilate function will follow any specified data_key data in the output</li>
+<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>prediction_model</strong> (<em>Model</em>) – A compiled model from which to get the predictions. If specified then predictions are returned</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.as_list">
+<code class="descname">as_list</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.as_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.as_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the data as a list of lists/numpy arrays</p>
+</dd></dl>
 
 <dl class="method">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.getLength">
-<code class="descname">getLength</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.getLength"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.getLength" title="Permalink to this definition">¶</a></dt>
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.length">
+<code class="descname">length</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the length of the iterator if taken as a single list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.next" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="CMS_Deep_Learning.storage.iterators.TrialIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>accumilate=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.TrialIterator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.TrialIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="CMS_Deep_Learning.storage.iterators.DataIterator"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.iterators.DataIterator</span></code></a></p>
+<p>A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>trial</strong> (<a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>KerasTrial</em></a>) – A KerasTrial from which the model, and data can be assumed</li>
+<li><strong>data_type</strong> (<em>str</em>) – ‘val’ or ‘train’</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
+<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+the output of the accumilate function will follow any specified data_key data in the output</li>
+<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>return_prediction</strong> (<em>bool</em>) – Whether or not to return predictions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
-<dt id="CMS_Deep_Learning.storage.iterators.getNumParams">
-<code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">getNumParams</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.getNumParams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</div>
-<div class="section" id="module-CMS_Deep_Learning.storage.meta">
-<span id="meta"></span><h2>meta<a class="headerlink" href="#module-CMS_Deep_Learning.storage.meta" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.meta.msgpack_assertMeta">
-<code class="descclassname">CMS_Deep_Learning.storage.meta.</code><code class="descname">msgpack_assertMeta</code><span class="sig-paren">(</span><em>filename</em>, <em>frames=None</em>, <em>redo=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/meta.html#msgpack_assertMeta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.meta.msgpack_assertMeta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asserts that the .meta file for a given .msg file exists and returns the data in the .meta file once it exists</p>
+<dt id="CMS_Deep_Learning.storage.iterators.retrieveData">
+<code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">retrieveData</code><span class="sig-paren">(</span><em>data</em>, <em>data_keys</em>, <em>just_length=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#retrieveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.retrieveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Grabs raw data from a DataProcedure or file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.DataProcedure" title="CMS_Deep_Learning.storage.archiving.DataProcedure"><em>DataProcedure</em></a><em> or </em><em>str&lt;path&gt;</em><em> or </em><em>other</em>) – the data to get the raw verion of. If not str or DataProcedure returns itself</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – The names of the keys in the hdf5 store to get the data from</li>
+<li><strong>just_length</strong> (<em>bool</em>) – If True just return the length of the data instead of the data itself</li>
+<li><strong>verbose</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The raw data as numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
-
-</div>
-<div class="section" id="module-CMS_Deep_Learning.storage.rsyncUtils">
-<span id="rsyncutils"></span><h2>rsyncUtils<a class="headerlink" href="#module-CMS_Deep_Learning.storage.rsyncUtils" title="Permalink to this headline">¶</a></h2>
-<p>Automates rsyncing archive information between machines</p>
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.rsyncUtils.rsyncStorable">
-<code class="descclassname">CMS_Deep_Learning.storage.rsyncUtils.</code><code class="descname">rsyncStorable</code><span class="sig-paren">(</span><em>hashcode</em>, <em>src_archive_dir</em>, <em>dest_archive_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/rsyncUtils.html#rsyncStorable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.rsyncUtils.rsyncStorable" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 </div>

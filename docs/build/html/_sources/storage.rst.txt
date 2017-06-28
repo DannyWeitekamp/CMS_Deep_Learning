@@ -24,43 +24,13 @@ batch
     :undoc-members:
     :show-inheritance:
 
-forwardComp
-------------------------------------------------
-
-.. automodule:: CMS_Deep_Learning.storage.forwardComp
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-gitutils
----------------------------------------------
-
-.. automodule:: CMS_Deep_Learning.storage.gitutils
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 iterators
 ----------------------------------------------
 
 .. automodule:: CMS_Deep_Learning.storage.iterators
-    :members:
+    :members: DataIterator,TrialIterator,retrieveData
     :undoc-members:
     :show-inheritance:
 
-meta
------------------------------------------
-
-.. automodule:: CMS_Deep_Learning.storage.meta
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-rsyncUtils
------------------------------------------------
-
-.. automodule:: CMS_Deep_Learning.storage.rsyncUtils
-    :members:
-    :undoc-members:
-    :show-inheritance:
 

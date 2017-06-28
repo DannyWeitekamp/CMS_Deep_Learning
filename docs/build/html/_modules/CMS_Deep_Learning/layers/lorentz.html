@@ -190,8 +190,8 @@
 <span class="sd">            W  (weight: applies a mulitplier to the boosted 4-vectors)</span>
 <span class="sd">            DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</span>
 <span class="sd">            </span>
-<span class="sd">            :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.</span>
-<span class="sd">            :parma vec_start: determines where to start reading the 4-vector along the last axis of the input.</span>
+<span class="sd">        :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.</span>
+<span class="sd">        :param vec_start: determines where to start reading the 4-vector along the last axis of the input.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sphereCoords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vec_start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sum_input</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">weight_output</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sphereCoords</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>

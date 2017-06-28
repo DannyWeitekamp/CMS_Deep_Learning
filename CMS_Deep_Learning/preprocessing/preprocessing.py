@@ -854,7 +854,18 @@ class dataFetchThread(threading.Thread):
 def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
     '''Gets a generator that generates data of batch_size from a list of DataProcedures.
         Optionally uses threading to apply getData in parellel, although this may be obsolete
-        with the proper fit_generator settings'''
+        with the proper fit_generator settings
+        
+        :param lst: a list of .h5 filepaths and/or DataProcedures or a directory path
+        :type lst: str or list
+        :param batch_size: The number of samples to grab at each call to next()
+        :type batch_size: int
+        :param data_keys: The keys to draw from in the .h5 files. (order matters)
+        :type data_keys: list of str
+        :param verbose: whether or not to print out info to the user.
+        :type verbose: int
+        :returns: a generator that runs through the given data
+    '''
     from CMS_Deep_Learning.storage.iterators import retrieveData
     if(isinstance(lst,str) and os.path.isdir(lst)):
         lst = glob.glob(os.path.abspath(lst) +"/*.h5")

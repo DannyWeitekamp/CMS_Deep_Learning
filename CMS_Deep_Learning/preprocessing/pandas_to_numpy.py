@@ -20,9 +20,24 @@ DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS }
 import pandas as pd
 import numpy as np
 
-
-def get_from_pandas(f, rows_per_event, file_start_read, samples_to_read, file_total_events, observ_types):
-    '''Helper Function - produces dict keyed by object type and filled with groupBy objects w.r.t EvtId'''
+#----------------------------IO-----------------------------
+def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, observ_types=DEFAULT_OBSERVS,rows_per_event=DEFAULT_RPE):
+    '''Helper Function - Gets a numpy array from a pandas .h5 file
+    
+        :param f: The filepath of the pandas file
+        :type f: str
+        :param file_start_read: what samples to start reading with
+        :type file_start_read: uint
+        :param samples_to_read: the number of samples to read
+        :type samples_to_read: uint
+        :param file_total_events: the total events in the file (if you know it)
+        :type file_total_events: uint
+        :param observ_types: A dictionary of the features (ordered) to get from pandas for each data type
+        :type observ_types: dict
+        :param rows_per_event: A dictionary of the number of rows per event for each data type
+        :type rows_per_event: dict
+        :returns: the numpy array
+    '''
     store = pd.HDFStore(f)
 
     values = {}
@@ -46,9 +61,12 @@ def get_from_pandas(f, rows_per_event, file_start_read, samples_to_read, file_to
             x = x.reshape((n_rows / rpe, rpe, n_columns))
 
         values[key] = x
-    return values, store
+    store.close()
+    return values
+#------------------------------------------------------------
 
 
+#---------------------------HELPERS---------------------------
 def _gen_label_vecs(data_dirs):
     num_labels = len(data_dirs)
     label_vecs = {}
@@ -66,23 +84,7 @@ def _initializeArrays(data_dirs, samples_per_class):
     y_train = [None] * (samples_per_class * num_classes)
     HLF_train = [None] * (samples_per_class * num_classes)
     return X_train, y_train, HLF_train
-
-
-def getSizesDict(directory, verbose=0):
-    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
-    from CMS_Deep_Learning.storage.archiving import read_json_obj
-    if (not os.path.isdir(directory)):
-        split = os.path.split(directory)
-        directory = "/".join(split[:-1])
-    sizesDict = read_json_obj(directory, "sizesMetaData.json", verbose=verbose)
-    return sizesDict
-
-
-def _readNumSamples(file_path):
-    f = h5py.File(file_path, 'r')
-    out = f["HLF"]['axis1'].len()
-    f.close()
-    return out
+#-------------------------------------------------------------
 
 
 def _check_inputs(data_dirs, observ_types):
@@ -92,6 +94,23 @@ def _check_inputs(data_dirs, observ_types):
     for x in observ_types.values():
         if ("EvtId" in x):
             raise ValueError("Using EvtId in observ_types can result in skewed training results. Just don't.")
+
+
+#--------------------------SIZE UTILS-------------------------------
+def _readNumSamples(file_path):
+    f = h5py.File(file_path, 'r')
+    out = f["HLF"]['axis1'].len()
+    f.close()
+    return out
+
+def getSizesDict(directory, verbose=0):
+    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
+    from CMS_Deep_Learning.storage.archiving import read_json_obj
+    if (not os.path.isdir(directory)):
+        split = os.path.split(directory)
+        directory = "/".join(split[:-1])
+    sizesDict = read_json_obj(directory, "sizesMetaData.json", verbose=verbose)
+    return sizesDict
 
 
 def getSizeMetaData(filename, sizesDict=None, verbose=0):
@@ -109,55 +128,18 @@ def getSizeMetaData(filename, sizesDict=None, verbose=0):
         write_json_obj(sizesDict, directory, "sizesMetaData.json", verbose=verbose)
     return sizesDict[filename][0]
 
+#-----------------------------------------------------------------
 
+#--------------------SORTING UTILS--------------------------------
 def maxLepPtEtaPhi(X, locs):
     for x in X:
         if (x[locs['isEle']] or x[locs["isMu"]]):
             return x[locs['Pt']], x[locs['Eta']], x[locs['Phi']]
-
-
-def MaxLepDeltaPhi(X, locs, mlpep=None):
-    maxLepPt, maxLepEta, maxLepPhi = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
-    out = maxLepPhi - X[:, locs["Phi"]]
-
-    tooLarge = -2.0 * math.pi * (out > math.pi)
-    tooSmall = 2.0 * math.pi * (out < -math.pi)
-    out = out + tooLarge + tooSmall
-    return out
-
-
-def MaxLepDeltaEta(X, locs, mlpep=None):
-    maxLepPt, maxLepEta, maxLepPhi = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
-    return maxLepEta - X[:, locs["Eta"]]
-
-
-def MaxLepDeltaR(X, locs, mlpep=None):
-    mlpep = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
-    # print(mlpep)
-    return np.sqrt(MaxLepDeltaPhi(X, locs, mlpep) ** 2 + MaxLepDeltaEta(X, locs, mlpep) ** 2)
-
-
-def MaxLepKt(X, locs):
-    mlpep = maxLepPtEtaPhi(X, locs)
-    maxLepPt, maxLepEta, maxLepPhi = mlpep
-    return np.minimum(X[:, locs["Pt"]] ** 2, maxLepPt ** 2) * MaxLepDeltaR(X, locs, mlpep) ** 2
-
-
-def MaxLepAntiKt(X, locs):
-    mlpep = maxLepPtEtaPhi(X, locs)
-    maxLepPt, maxLepEta, maxLepPhi = mlpep
-    return np.minimum(X[:, locs["Pt"]] ** -2, maxLepPt ** -2) * MaxLepDeltaR(X, locs, mlpep) ** 2
-
-
-SORT_METRICS = {f.__name__: f for f in
-                [MaxLepDeltaPhi, MaxLepDeltaEta, MaxLepDeltaR, MaxLepKt, MaxLepAntiKt]}
-
-
+        
 def assertZerosBack(sort_slice, x, locs, sort_ascending):
     from numpy import inf
     sort_slice[np.all(x == 0.0, axis=1)] = inf if sort_ascending else -inf
     return sort_slice
-
 
 def resolveMetric(s, locs, sort_ascending):
     if s in SORT_METRICS:
@@ -199,12 +181,49 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
 
     return x
+#------------------------------------------------------------------
+
+#-------------------------SORTINGS---------------------------------
+def MaxLepDeltaPhi(X, locs, mlpep=None):
+    maxLepPt, maxLepEta, maxLepPhi = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
+    out = maxLepPhi - X[:, locs["Phi"]]
+
+    tooLarge = -2.0 * math.pi * (out > math.pi)
+    tooSmall = 2.0 * math.pi * (out < -math.pi)
+    out = out + tooLarge + tooSmall
+    return out
 
 
-# d, store = get_from_pandas("/bigdata/shared/Delphes/REDUCED_IsoLep/wjets_lepFilter_13TeV/wjets_lepFilter_1070.h5",
-#                            DEFAULT_RPE
-#                            , 0, 100, 101,
-#                            DEFAULT_OBSERVS)
+def MaxLepDeltaEta(X, locs, mlpep=None):
+    maxLepPt, maxLepEta, maxLepPhi = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
+    return maxLepEta - X[:, locs["Eta"]]
+
+
+def MaxLepDeltaR(X, locs, mlpep=None):
+    mlpep = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
+    # print(mlpep)
+    return np.sqrt(MaxLepDeltaPhi(X, locs, mlpep) ** 2 + MaxLepDeltaEta(X, locs, mlpep) ** 2)
+
+
+def MaxLepKt(X, locs):
+    mlpep = maxLepPtEtaPhi(X, locs)
+    maxLepPt, maxLepEta, maxLepPhi = mlpep
+    return np.minimum(X[:, locs["Pt"]] ** 2, maxLepPt ** 2) * MaxLepDeltaR(X, locs, mlpep) ** 2
+
+
+def MaxLepAntiKt(X, locs):
+    mlpep = maxLepPtEtaPhi(X, locs)
+    maxLepPt, maxLepEta, maxLepPhi = mlpep
+    return np.minimum(X[:, locs["Pt"]] ** -2, maxLepPt ** -2) * MaxLepDeltaR(X, locs, mlpep) ** 2
+
+
+SORT_METRICS = {f.__name__: f for f in
+                [MaxLepDeltaPhi, MaxLepDeltaEta, MaxLepDeltaR, MaxLepKt, MaxLepAntiKt]}
+#---------------------------------------------------------------------
+
+
+
+
 
 import glob
 
@@ -212,22 +231,21 @@ import glob
 def pandas_to_numpy(data_dirs, start, samples_per_class,
                     observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, verbose=1):
     '''Builds a trainable (particle level) sorted and (event level) shuffled numpy array from directories of pandas .h5 files.
-        #Arguements:
-            :param data_dirs: A list of pandas directories containing pandas .h5 files, tuples of ('label','dir'),
-                                or dictionary with .values() equal to such a list. The order indicates which
-                                files correspond to which output (i.e. the first directory corresponds to
-                                [1,0,...,0] and the second to [0,1,...,0], etc.). For dictionaries the 
-                                order defaults to the alphabetical order of the directory names.
-            :param start:        Where to start reading (as if all of the files in a given directory are part of one long list)
-            :param samples_per_class: The number of samples to read for each label. Every directory must have enough data starting
-                                from 'start'.
-            :param observ_types: The column headers for the data to be read from the panadas table. Also indicated the order of the columns.
-            :param sort_columns: The columns to sort by, or special quantities including [MaxLepDeltaPhi,
-                                MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt]
-            :param sort_ascending: If True sort in ascending order, false decending  
-        #Returns:
-            particle training data with its correspoinding labels and High Level Features (HLF)
-            (X_train, Y_train, HFL_train)
+    
+        :param data_dirs: 
+            A list of pandas directories containing pandas .h5 files, tuples of ('label','dir'),
+            or dictionary with .values() equal to such a list. The order indicates which
+            files correspond to which output (i.e. the first directory corresponds to
+            [1,0,...,0] and the second to [0,1,...,0], etc.). For dictionaries the 
+            order defaults to the alphabetical order of the directory names.
+        :param start:        Where to start reading (as if all of the files in a given directory are part of one long list)
+        :param samples_per_class: The number of samples to read for each label. Every directory must have enough data starting
+                            from 'start'.
+        :param observ_types: The column headers for the data to be read from the panadas table. Also indicated the order of the columns.
+        :param sort_columns: The columns to sort by, or special quantities including [MaxLepDeltaPhi,
+                            MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt]
+        :param sort_ascending: If True sort in ascending order, false decending  
+        :returns: (X_train, Y_train, HFL_train) 
     '''
     if (isinstance(data_dirs, dict)): data_dirs = sorted(data_dirs.values(), key=lambda x: x.join(x.split("/")[::-1]))
     if (isinstance(data_dirs[0], tuple)): data_dirs = [x[1] for x in data_dirs]
@@ -268,10 +286,10 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
             samples_to_read = min(samples_per_class - samples_read, file_total_events - file_start_read)
             assert samples_to_read >= 0
 
-            d, store = get_from_pandas(f, rows_per_event=DEFAULT_RPE,
-                                       file_start_read=file_start_read,
+            d = get_from_pandas(f, file_start_read=file_start_read,
                                        samples_to_read=samples_to_read,
                                        file_total_events=file_total_events,
+                                       rows_per_event=DEFAULT_RPE,
                                        observ_types=observ_types)
             Particles, HLF = d["Particles"], d["HLF"]
 
@@ -296,7 +314,6 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
 
             X_train_index += samples_to_read
 
-            store.close()
             location += file_total_events
             samples_read += samples_to_read
             if (samples_read >= samples_per_class):
@@ -323,9 +340,6 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
     y_train = y_train[indices]
 
     return X_train, y_train, HLF_train
-
-def store():
-    pass
 
 def splitsFromVal(v,n_samples):
     if(v == 0.0): return (n_samples,)
@@ -385,6 +399,31 @@ def runAndStore():
 def make_datasets(sources, output_dir, num_samples, size=1000,
                   num_processes=1, sort_on=None, sort_ascending=False,
                   v_split=0.0, force=False):
+    '''Creates a data set in the output_dir folder with /train and /val subdirectories
+    
+        :param sources: a list of source directories of pandas .h5 files. Order matters; 
+                        the first source corresponds to [1,0,..,0], the second to [0,1,..,0],etc.
+        :type sources: list of str
+        :param output_dir: the directory to output to
+        :type output_dir: str
+        :param num_samples: the number of samples to take for each class
+        :type num_samples: int
+        :param size: the number of samples to put in each file, or '<int>MB' (i.e '100MB')
+                    corresponding to the target filesize
+        :type size: int or str
+        :param num_processes: The number of processes to use concurrently to build the dataset 
+        :type num_processes: int 
+        :param sort_on: The column or special value [MaxLepDeltaPhi,MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt] to sort on
+        :type sort_on: str
+        :param sort_ascending: whether to sort ascending or descending
+        :type sort_ascending: bool
+        :param v_split: the proportion of the total data to use for validation, 
+                        or the total number of events to use (the rest goes to training)
+        :type v_split: float or int
+        
+        
+        
+        '''
     sources = [_checkDir(s) for s in sources]
 
     if ("MB" in size):
