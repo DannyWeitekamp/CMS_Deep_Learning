@@ -11,6 +11,7 @@ Subpackages
 .. toctree::
     layers
     postprocessing
+    postprocessing_example
     preprocessing
     storage
     utils
