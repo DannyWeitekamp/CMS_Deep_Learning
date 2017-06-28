@@ -379,7 +379,77 @@ def _checkDir(dir):
     return out_dir
 
 def runAndStore():
-    pass    
+    pass
+
+
+def make_datasets(sources, output_dir, num_samples, size=1000,
+                  num_processes=1, sort_on=None, sort_ascending=False,
+                  v_split=0.0, force=False):
+    sources = [_checkDir(s) for s in sources]
+
+    if ("MB" in size):
+        megabytes = int(re.search(r'\d+', size).group())
+        stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)
+    else:
+        stride = int(re.search(r'\d+', size).group())
+    #print("STRIDE", stride)
+    #print(splitsFromVal(v_split, num_samples))
+    SNs = set_range_from_splits(splitsFromVal(v_split, num_samples), num_samples)
+
+    if (not os.path.exists(output_dir)):
+        os.mkdir(output_dir)
+    jobs = []
+    for i, sn in enumerate(SNs):
+        folder = os.path.abspath(output_dir) + ("/train" if (i == 0) else '/val')
+        if (force):
+            os.rmdir(folder)
+        if (len(glob.glob(folder + "/*.h5")) != 0):
+            raise IOError("directory %r is not empty use -f or --force to clear the directory first" % folder)
+
+        if (not os.path.exists(folder)):
+            os.mkdir(folder)
+        print(sn[1])
+        order_of_mag = max(int(math.log(sn[1] / stride + 1, 10)), 3)
+        end = sn[0] + sn[1]
+        for j, start in enumerate(range(sn[0], end, stride)):
+            samples_per_class = min(stride, end - start)
+            kargs = {'data_dirs': sources, 'start': start, 'samples_per_class': samples_per_class,
+                     'observ_types': DEFAULT_OBSERVS, 'sort_columns': [sort_on], 'sort_ascending': sort_ascending,
+                     'verbose': 1}
+            dest = os.path.abspath(folder + ("/%0" + str(order_of_mag) + "d.h5") % j)
+            jobs.append((kargs, dest))
+
+    def f(jobs):
+        for kargs, dest in jobs:
+            x = pandas_to_numpy(**kargs)
+            # print(x.shape)
+            h5f = h5py.File(dest, 'w')
+            for D, key in zip(x, ["Particles", "Labels", "HLF"]):
+                h5f.create_dataset(key, data=D)
+            h5f.close()
+            print("DONE")
+
+    num_processes = num_processes
+    processes = []
+    splits = [jobs[i::num_processes] for i in range(num_processes)]
+    print(splits)
+    samples_per_process = np.ceil(num_samples / num_processes)
+    # np.array_split(jobs, num_processes)
+    for i, sublist in enumerate(splits[1:]):
+        print("Thread %r Started" % i)
+        p = Process(target=f, args=sublist)
+        processes.append(p)
+        p.start()
+        sleep(.001)
+    try:
+        # print("SPLIT", splits[0])
+        f(splits[0])
+    except Exception as e:
+        for p in processes:
+            p.terminate()
+        raise e
+    for p in processes:
+        p.join()
 
 def main(argv):
     parser = argparse.ArgumentParser(
@@ -401,101 +471,16 @@ def main(argv):
                         help='To sort ascending')
     parser.add_argument('--sort_descending', action='store_false', default=False, dest='sort_ascending',
                         help='To sort descending')
-    
-    # parser.add_argument('--clean_pandas', action='store_true', default=False)
-    # parser.add_argument('--clean_archive', action='store_true', default=False)
-    # parser.add_argument('--skip_parse', action='store_true', default=False)
-
-    # parser.add_argument('--photon_max', metavar='N', type=int, default=DEFAULT_PHOTON_MAX)
-    # parser.add_argument('--neutral_max', metavar='N', type=int, default=DEFAULT_NEUTRAL_MAX)
-    # parser.add_argument('--charged_max', metavar='N', type=int, default=DEFAULT_CHARGED_MAX)
-    # parser.print_usage()
+    parser.add_argument('-f','--force', action='store_true', default=False, dest='force',
+                       help='To clear a destination directory before running')
     
     try:
         args = parser.parse_args(argv)
     except Exception:
         parser.print_usage()
-    
-    sources = [_checkDir(s) for s in args.sources]
-    
-	
-    if ("MB" in args.size):
-        megabytes = int(re.search(r'\d+', args.size).group())
-        stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)
-    else:
-        stride = int(re.search(r'\d+', args.size).group())
-    print("STRIDE",stride)
-    print(splitsFromVal(args.v_split,args.num_samples))
-    SNs = set_range_from_splits(splitsFromVal(args.v_split, args.num_samples), args.num_samples)
-    
-    if(not os.path.exists(args.output_dir)):
-        os.mkdir(args.output_dir)
-    jobs = []
-    for i,sn in enumerate(SNs):
-        folder = os.path.abspath(args.output_dir) + ("/train" if(i==0) else '/val')
-        if(len(glob.glob(folder+"/*.h5")) != 0):
-            if(not args.force):
-                raise IOError("directory %r is not empty use -f or --force to force overwrite" % folder)
+    make_datasets(args.sources, args.output_dir, args.num_samples, size=args.size, num_processes=args.num_processes,
+                  sort_on=args.sort_on, sort_ascending=args.sort_ascending, v_split=args.v_split, force=args.force)
         
-        if(not os.path.exists(folder)):
-            os.mkdir(folder)
-        print(sn[1])
-        order_of_mag = max(int(math.log(sn[1]/stride+1, 10)),3)
-        end = sn[0] +sn[1] 
-        for j,start in enumerate(range(sn[0], end, stride)):
-            samples_per_class= min(stride, end - start)
-            kargs = {'data_dirs':args.sources, 'start':start, 'samples_per_class':samples_per_class,
-                    'observ_types':DEFAULT_OBSERVS, 'sort_columns':[args.sort_on], 'sort_ascending':args.sort_ascending, 'verbose':1}
-            dest = os.path.abspath(folder + ("/%0" + str(order_of_mag) + "d.h5") % j)
-            jobs.append((kargs,dest))
-    
-    def f(jobs):
-        for kargs,dest in jobs:
-            x = pandas_to_numpy(**kargs)
-            #print(x.shape)
-            h5f = h5py.File(dest, 'w')
-            for D, key in zip(x, ["Particles","Labels","HLF"]):
-                h5f.create_dataset(key, data=D)
-            h5f.close()
-            print("DONE")
-    
-    num_processes = args.num_processes
-    processes = []
-    splits = [jobs[i::num_processes] for i in range(num_processes)]
-    print(splits)
-    samples_per_process = np.ceil(args.num_samples / num_processes)
-    # np.array_split(jobs, num_processes)
-    for i, sublist in enumerate(splits[1:]):
-        print("Thread %r Started" % i)
-        p = Process(target=f, args=sublist)
-        processes.append(p)
-        p.start()
-        sleep(.001)
-    try:
-        #print("SPLIT", splits[0])
-        f(splits[0])
-    except Exception as e:
-        for p in processes:
-            p.terminate()
-        raise e
-    for p in processes:
-        p.join()
-        
-    #print(sources)
-    #print(args.clean_archive)
-    #print(args.clean_pandas)
-    #print(args.output_dir)
-    #print(args.num_samples)
-
-    # if (not args.skip_parse):
-
-    # applyPreprocessing(sources,
-    #                    args.num_samples,
-    #                    args.output_dir,
-    #                    args.num_processes,
-    #                    clean_pandas=args.clean_pandas,
-    #                    clean_archive=args.clean_archive,
-    #                    size=args.size)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
