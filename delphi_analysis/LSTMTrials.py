@@ -4,9 +4,10 @@ if __package__ is None:
     import sys, os
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
-
+print(sys.path)
 #Prevent Theano from finding this for this front end script
-sys.modules['mpi4py']=None
+#sys.modules['mpi4py']=None
+
 # p = "/home/dweitekamp/mpi_learn/"
 # if(not p in sys.path):
 #     sys.path.append(p)
@@ -71,20 +72,20 @@ def runTrials(archive_dir,
               delphes_dir=None,
               observ_types=DEFAULT_OBSV_TYPES,
               label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
-              nb_epoch = 30,
+              nb_epoch = 5,
               batch_size = 100,
               patience = 8,
               num_val = 20000,
-              num_train = 100000,
+              num_train = 60000,
               output_activation = "softmax",
               loss='categorical_crossentropy',
               optimizer_options = ['rmsprop'],
-              sortings = [("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
-                          ("PT_ET", False), ("PT_ET", True),
-                          ('MaxLepDeltaR', False),('MaxLepDeltaR', True),
-                          ('MaxLepKt',False),('MaxLepKt',True),
-                          ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
-                          ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
+              sortings = #[("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
+                         # ("PT_ET", False), ("PT_ET", True),
+                         [ ('MaxLepDeltaR', False)],#,('MaxLepDeltaR', True),
+                         # ('MaxLepKt',False),('MaxLepKt',True),
+                         # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
+                         # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 single_list_options = [True]
               ):
@@ -95,10 +96,10 @@ def runTrials(archive_dir,
         
     os.environ["DELPHES_DIR"] = delphes_dir
     vecsize = len(observ_types)
-    ldpsubsets = [sorted(list(s)) for s in findsubsets(label_dir_pairs)]
+    ldpsubsets = []#[sorted(list(s)) for s in findsubsets(label_dir_pairs)]
     #Make sure that we do 3-way classification as well
     ldpsubsets.append(sorted(label_dir_pairs))
-    # ldpsubsets = ldpsubsets[:1]
+    #ldpsubsets = ldpsubsets[:1]
     #archive_dir = "/data/shared/Delphes/keras_archive/"
 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)
@@ -135,8 +136,10 @@ def runTrials(archive_dir,
                                               object_profiles, ldp, observ_types,
                                               single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
                                               batch_size=batch_size, megabytes=250,
+                                              data_keys= ["X","Y"],
+                                              dp_data_keys = ["X","Y","Jets", "EventChars"],
                                               verbose=0)
-
+                print("HASH",dps[0].hash())
                 dependencies = batchAssertArchived(dps, batchProcesses)
                 val, _num_val = l[0]
                 train, _num_train = l[1]
@@ -209,10 +212,10 @@ def runTrials(archive_dir,
     # trial_tups[0][0].execute()
     for tup in trial_tups:
         tup[0].summary()
-    # for tup in trial_tups:
-	# tup[0].summary()
-     #    tup[0].execute()
-    batchExecuteAndTestTrials(trial_tups, time_str="1:00:00", use_mpi=workers > 1)
+    for tup in trial_tups:
+        tup[0].summary()
+        tup[0].execute()
+    #batchExecuteAndTestTrials(trial_tups, time_str="1:00:00", use_mpi=workers > 1)
     
 if __name__ == '__main__':
     argv = sys.argv
