@@ -4,7 +4,7 @@ if __package__ is None:
     sys.path.append(os.path.realpath(__file__+"/../../../"))
 
 
-import time, math,re,h5py
+import time, math,re,h5py,shutil
 import argparse
 from multiprocessing import Process
 from time import sleep
@@ -402,7 +402,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     for i, sn in enumerate(SNs):
         folder = os.path.abspath(output_dir) + ("/train" if (i == 0) else '/val')
         if (force):
-            os.rmdir(folder)
+            shutil.rmtree(folder)
         if (len(glob.glob(folder + "/*.h5")) != 0):
             raise IOError("directory %r is not empty use -f or --force to clear the directory first" % folder)
 
