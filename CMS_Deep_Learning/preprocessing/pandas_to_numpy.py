@@ -471,8 +471,6 @@ def main(argv):
                         help='To sort ascending')
     parser.add_argument('--sort_descending', action='store_false', default=False, dest='sort_ascending',
                         help='To sort descending')
-    parser.add_argument('-f','--force', action='store_true', default=False, dest='force',
-                       help='To clear a destination directory before running')
     
     try:
         args = parser.parse_args(argv)
