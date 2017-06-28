@@ -187,10 +187,10 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             locs = {t: s for s, t in enumerate(observ_types)}
             sorts = [locs[s] if s in observ_types else resolveMetric(s, locs, sort_ascending)
                      for s in sort_columns]
-    # KLUGE FIX
-    x[x[:, locs["Energy"]] == 0] = 0.0
-    # Sort
-    x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
+        # KLUGE FIX
+        x[x[:, locs["Energy"]] == 0] = 0.0
+        # Sort
+        x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
 
     return x
 
@@ -437,6 +437,7 @@ def main(argv):
     def f(jobs):
         for kargs,dest in jobs:
             x = pandas_to_numpy(**kargs)
+            print(x.shape)
             h5f = h5py.File(dest, 'w')
             for D, key in zip(x, ["Particles","Labels","HLF"]):
                 h5f.create_dataset(key, data=D)
@@ -449,23 +450,23 @@ def main(argv):
     # np.array_split(jobs, num_processes)
     for i, sublist in enumerate(splits[1:]):
         print("Thread %r Started" % i)
-        p = Process(target=f, args=(sublist, samples_per_process, 1, i + 1))
+        p = Process(target=f, args=sublist)
         processes.append(p)
         p.start()
         sleep(.001)
     try:
-        f(splits[0], samples_per_process, verbose=1)
+        f(splits[0])
     except:
         for p in processes:
             p.terminate()
     for p in processes:
         p.join()
         
-    print(sources)
+    #print(sources)
     #print(args.clean_archive)
     #print(args.clean_pandas)
-    print(args.output_dir)
-    print(args.num_samples)
+    #print(args.output_dir)
+    #print(args.num_samples)
 
     # if (not args.skip_parse):
 
