@@ -1,0 +1,619 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.preprocessing.pandas_to_numpy &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.preprocessing.pandas_to_numpy</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
+<span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1">#sys.path.append(os.path.realpath(&quot;../&quot;))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="o">+</span><span class="s2">&quot;/../../../&quot;</span><span class="p">))</span>
+
+
+<span class="kn">import</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span><span class="nn">re</span><span class="o">,</span><span class="nn">h5py</span><span class="o">,</span><span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+
+<span class="n">PARTICLE_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Energy&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;Pt&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;ChPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuPFIso&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;isChHad&#39;</span><span class="p">,</span> <span class="s1">&#39;isEle&#39;</span><span class="p">,</span> <span class="s1">&#39;isGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;isMu&#39;</span><span class="p">,</span> <span class="s1">&#39;isNeuHad&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;vtxX&#39;</span><span class="p">,</span> <span class="s1">&#39;vtxY&#39;</span><span class="p">,</span> <span class="s1">&#39;vtxZ&#39;</span><span class="p">]</span>
+<span class="n">HLF_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;HT&#39;</span><span class="p">,</span> <span class="s1">&#39;MET&#39;</span><span class="p">,</span> <span class="s1">&#39;MT&#39;</span><span class="p">,</span> <span class="s1">&#39;PhiMET&#39;</span><span class="p">,</span> <span class="s1">&#39;bJets&#39;</span><span class="p">,</span> <span class="s1">&#39;nJets&#39;</span><span class="p">]</span>
+<span class="n">DEFAULT_RPE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Particles&quot;</span><span class="p">:</span> <span class="mi">801</span><span class="p">,</span> <span class="s2">&quot;HLF&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">DEFAULT_OBSERVS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Particles&quot;</span><span class="p">:</span> <span class="n">PARTICLE_OBSERVS</span><span class="p">,</span> <span class="s2">&quot;HLF&quot;</span><span class="p">:</span> <span class="n">HLF_OBSERVS</span> <span class="p">}</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1">#----------------------------IO-----------------------------</span>
+<div class="viewcode-block" id="get_from_pandas"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.pandas_to_numpy.get_from_pandas">[docs]</a><span class="k">def</span> <span class="nf">get_from_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file_start_read</span><span class="p">,</span> <span class="n">samples_to_read</span><span class="p">,</span> <span class="n">file_total_events</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">observ_types</span><span class="o">=</span><span class="n">DEFAULT_OBSERVS</span><span class="p">,</span><span class="n">rows_per_event</span><span class="o">=</span><span class="n">DEFAULT_RPE</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Gets a numpy array from a pandas .h5 file</span>
+<span class="sd">    </span>
+<span class="sd">        :param f: The filepath of the pandas file</span>
+<span class="sd">        :type f: str</span>
+<span class="sd">        :param file_start_read: what samples to start reading with</span>
+<span class="sd">        :type file_start_read: uint</span>
+<span class="sd">        :param samples_to_read: the number of samples to read</span>
+<span class="sd">        :type samples_to_read: uint</span>
+<span class="sd">        :param file_total_events: the total events in the file (if you know it)</span>
+<span class="sd">        :type file_total_events: uint</span>
+<span class="sd">        :param observ_types: A dictionary of the features (ordered) to get from pandas for each data type</span>
+<span class="sd">        :type observ_types: dict</span>
+<span class="sd">        :param rows_per_event: A dictionary of the number of rows per event for each data type</span>
+<span class="sd">        :type rows_per_event: dict</span>
+<span class="sd">        :returns: the numpy array</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">HDFStore</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">rpe</span> <span class="ow">in</span> <span class="n">rows_per_event</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="c1"># Where to start reading the table based on the sum of the selection start </span>
+        <span class="n">select_start</span> <span class="o">=</span> <span class="n">file_start_read</span> <span class="o">*</span> <span class="n">rpe</span>
+        <span class="n">select_stop</span> <span class="o">=</span> <span class="n">select_start</span> <span class="o">+</span> <span class="n">samples_to_read</span> <span class="o">*</span> <span class="n">rpe</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">samples_to_read</span> <span class="o">==</span> <span class="n">file_total_events</span><span class="p">):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">select_start</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">select_stop</span><span class="p">)</span>
+
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">observ_types</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="n">columns</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">observ_types</span><span class="p">[</span><span class="n">key</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">rpe</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">n_rows</span><span class="p">,</span> <span class="n">n_columns</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n_rows</span> <span class="o">/</span> <span class="n">rpe</span><span class="p">,</span> <span class="n">rpe</span><span class="p">,</span> <span class="n">n_columns</span><span class="p">))</span>
+
+        <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">store</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">values</span></div>
+<span class="c1">#------------------------------------------------------------</span>
+
+
+<span class="c1">#---------------------------HELPERS---------------------------</span>
+<span class="k">def</span> <span class="nf">_gen_label_vecs</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">):</span>
+    <span class="n">num_labels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">)</span>
+    <span class="n">label_vecs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data_dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_labels</span><span class="p">,))</span>
+        <span class="n">arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">label_vecs</span><span class="p">[</span><span class="n">data_dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span>
+    <span class="k">return</span> <span class="n">label_vecs</span>
+
+
+<span class="k">def</span> <span class="nf">_initializeArrays</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="n">samples_per_class</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Generates the initial data structures for the X (data) and Y (target)&#39;&#39;&#39;</span>
+    <span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">)</span>
+    <span class="n">X_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_class</span> <span class="o">*</span> <span class="n">num_classes</span><span class="p">)</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_class</span> <span class="o">*</span> <span class="n">num_classes</span><span class="p">)</span>
+    <span class="n">HLF_train</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">samples_per_class</span> <span class="o">*</span> <span class="n">num_classes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">HLF_train</span>
+<span class="c1">#-------------------------------------------------------------</span>
+
+
+<span class="k">def</span> <span class="nf">_check_inputs</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - Makes sure that data_dirs, and observ_types are correctly formatted&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">))</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">)):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot have duplicate directories </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data_dirs</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">observ_types</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;EvtId&quot;</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Using EvtId in observ_types can result in skewed training results. Just don&#39;t.&quot;</span><span class="p">)</span>
+
+
+<span class="c1">#--------------------------SIZE UTILS-------------------------------</span>
+<span class="k">def</span> <span class="nf">_readNumSamples</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;HLF&quot;</span><span class="p">][</span><span class="s1">&#39;axis1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+<span class="k">def</span> <span class="nf">getSizesDict</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory&#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">read_json_obj</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)):</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">read_json_obj</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sizesDict</span>
+
+
+<span class="k">def</span> <span class="nf">getSizeMetaData</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">write_json_obj</span>
+    <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sizesDict</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">modtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sizesDict</span> <span class="ow">or</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modtime</span><span class="p">):</span>
+        <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">_readNumSamples</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">file_total_events</span><span class="p">,</span> <span class="n">modtime</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">filename</span><span class="p">)):</span>
+            <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">write_json_obj</span><span class="p">(</span><span class="n">sizesDict</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1">#-----------------------------------------------------------------</span>
+
+<span class="c1">#--------------------SORTING UTILS--------------------------------</span>
+<span class="k">def</span> <span class="nf">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="s1">&#39;isEle&#39;</span><span class="p">]]</span> <span class="ow">or</span> <span class="n">x</span><span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="s2">&quot;isMu&quot;</span><span class="p">]]):</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="s1">&#39;Pt&#39;</span><span class="p">]],</span> <span class="n">x</span><span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="s1">&#39;Eta&#39;</span><span class="p">]],</span> <span class="n">x</span><span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="s1">&#39;Phi&#39;</span><span class="p">]]</span>
+        
+<span class="k">def</span> <span class="nf">assertZerosBack</span><span class="p">(</span><span class="n">sort_slice</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">inf</span>
+    <span class="n">sort_slice</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">inf</span> <span class="k">if</span> <span class="n">sort_ascending</span> <span class="k">else</span> <span class="o">-</span><span class="n">inf</span>
+    <span class="k">return</span> <span class="n">sort_slice</span>
+
+<span class="k">def</span> <span class="nf">resolveMetric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">SORT_METRICS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">assertZerosBack</span><span class="p">(</span><span class="n">SORT_METRICS</span><span class="p">[</span><span class="n">s</span><span class="p">](</span><span class="n">x</span><span class="p">,</span> <span class="n">locs</span><span class="p">),</span> <span class="n">x</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized sorting metric </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">):</span>  <span class="c1"># , observ_types,):</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sorts</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">sorts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                <span class="n">sort_slice</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="n">s</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sort_slice</span> <span class="o">=</span> <span class="n">s</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sort_ascending</span> <span class="o">==</span> <span class="kc">True</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">sort_slice</span><span class="o">.</span><span class="n">argsort</span><span class="p">()]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">sort_slice</span><span class="o">.</span><span class="n">argsort</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">sort_numpy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sort_columns</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Helper Function - pads the data and sorts it&#39;&#39;&#39;</span>
+    <span class="n">sort_locs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;sort_columns improperly stored&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">c</span> <span class="ow">in</span> <span class="n">sort_columns</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;shuffle&quot;</span><span class="p">,</span> <span class="s2">&quot;random&quot;</span><span class="p">]]):</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">],</span> \
+                <span class="s2">&quot;Type should be string got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">]))</span>
+            <span class="n">locs</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">observ_types</span><span class="p">)}</span>
+            <span class="n">sorts</span> <span class="o">=</span> <span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">observ_types</span> <span class="k">else</span> <span class="n">resolveMetric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>
+                     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">]</span>
+            <span class="c1"># KLUGE FIX</span>
+            <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">]]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="c1"># Sort</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>  <span class="c1"># , observ_types)</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+<span class="c1">#------------------------------------------------------------------</span>
+
+<span class="c1">#-------------------------SORTINGS---------------------------------</span>
+<span class="k">def</span> <span class="nf">MaxLepDeltaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">maxLepPt</span><span class="p">,</span> <span class="n">maxLepEta</span><span class="p">,</span> <span class="n">maxLepPhi</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mlpep</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span> <span class="k">else</span> <span class="n">mlpep</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">maxLepPhi</span> <span class="o">-</span> <span class="n">X</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Phi&quot;</span><span class="p">]]</span>
+
+    <span class="n">tooLarge</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">out</span> <span class="o">&gt;</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">tooSmall</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">out</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">out</span> <span class="o">+</span> <span class="n">tooLarge</span> <span class="o">+</span> <span class="n">tooSmall</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">MaxLepDeltaEta</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">maxLepPt</span><span class="p">,</span> <span class="n">maxLepEta</span><span class="p">,</span> <span class="n">maxLepPhi</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mlpep</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span> <span class="k">else</span> <span class="n">mlpep</span>
+    <span class="k">return</span> <span class="n">maxLepEta</span> <span class="o">-</span> <span class="n">X</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Eta&quot;</span><span class="p">]]</span>
+
+
+<span class="k">def</span> <span class="nf">MaxLepDeltaR</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">mlpep</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mlpep</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span> <span class="k">else</span> <span class="n">mlpep</span>
+    <span class="c1"># print(mlpep)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">MaxLepDeltaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">MaxLepDeltaEta</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">MaxLepKt</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">):</span>
+    <span class="n">mlpep</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
+    <span class="n">maxLepPt</span><span class="p">,</span> <span class="n">maxLepEta</span><span class="p">,</span> <span class="n">maxLepPhi</span> <span class="o">=</span> <span class="n">mlpep</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Pt&quot;</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">maxLepPt</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">MaxLepDeltaR</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">MaxLepAntiKt</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">):</span>
+    <span class="n">mlpep</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
+    <span class="n">maxLepPt</span><span class="p">,</span> <span class="n">maxLepEta</span><span class="p">,</span> <span class="n">maxLepPhi</span> <span class="o">=</span> <span class="n">mlpep</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Pt&quot;</span><span class="p">]]</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">maxLepPt</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">MaxLepDeltaR</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+
+
+<span class="n">SORT_METRICS</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span>
+                <span class="p">[</span><span class="n">MaxLepDeltaPhi</span><span class="p">,</span> <span class="n">MaxLepDeltaEta</span><span class="p">,</span> <span class="n">MaxLepDeltaR</span><span class="p">,</span> <span class="n">MaxLepKt</span><span class="p">,</span> <span class="n">MaxLepAntiKt</span><span class="p">]}</span>
+<span class="c1">#---------------------------------------------------------------------</span>
+
+
+
+
+
+<span class="kn">import</span> <span class="nn">glob</span>
+
+
+<div class="viewcode-block" id="pandas_to_numpy"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.pandas_to_numpy.pandas_to_numpy">[docs]</a><span class="k">def</span> <span class="nf">pandas_to_numpy</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">samples_per_class</span><span class="p">,</span>
+                    <span class="n">observ_types</span><span class="o">=</span><span class="n">DEFAULT_OBSERVS</span><span class="p">,</span> <span class="n">sort_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Builds a trainable (particle level) sorted and (event level) shuffled numpy array from directories of pandas .h5 files.</span>
+<span class="sd">    </span>
+<span class="sd">        :param data_dirs: </span>
+<span class="sd">            A list of pandas directories containing pandas .h5 files, tuples of (&#39;label&#39;,&#39;dir&#39;),</span>
+<span class="sd">            or dictionary with .values() equal to such a list. The order indicates which</span>
+<span class="sd">            files correspond to which output (i.e. the first directory corresponds to</span>
+<span class="sd">            [1,0,...,0] and the second to [0,1,...,0], etc.). For dictionaries the </span>
+<span class="sd">            order defaults to the alphabetical order of the directory names.</span>
+<span class="sd">        :param start:        Where to start reading (as if all of the files in a given directory are part of one long list)</span>
+<span class="sd">        :param samples_per_class: The number of samples to read for each label. Every directory must have enough data starting</span>
+<span class="sd">                            from &#39;start&#39;.</span>
+<span class="sd">        :param observ_types: The column headers for the data to be read from the panadas table. Also indicated the order of the columns.</span>
+<span class="sd">        :param sort_columns: The columns to sort by, or special quantities including [MaxLepDeltaPhi,</span>
+<span class="sd">                            MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt]</span>
+<span class="sd">        :param sort_ascending: If True sort in ascending order, false decending  </span>
+<span class="sd">        :returns: (X_train, Y_train, HFL_train) </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span> <span class="n">data_dirs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">data_dirs</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">data_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_dirs</span><span class="p">]</span>
+    <span class="n">_check_inputs</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">)</span>
+
+    <span class="n">label_vecs</span> <span class="o">=</span> <span class="n">_gen_label_vecs</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">)</span>
+    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">HLF_train</span> <span class="o">=</span> <span class="n">_initializeArrays</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">,</span> <span class="n">samples_per_class</span><span class="p">)</span>
+    <span class="n">X_train_index</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">y_train_start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">data_dir</span> <span class="ow">in</span> <span class="n">data_dirs</span><span class="p">:</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">)</span>
+        <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="n">samples_read</span><span class="p">,</span> <span class="n">location</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+
+        <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span>
+        <span class="c1">#print(&quot;FILES&quot;,files)</span>
+        <span class="c1"># Loop the files associated with the current label</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>  <span class="c1"># len(num_val_frame.index)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">file_total_events</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">assert</span> <span class="n">file_total_events</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;num_val_frame has zero values&quot;</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">location</span> <span class="o">+</span> <span class="n">file_total_events</span> <span class="o">&lt;=</span> <span class="n">start</span><span class="p">):</span>
+                <span class="n">location</span> <span class="o">+=</span> <span class="n">file_total_events</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Determine what row to start reading the num_val table which contains</span>
+            <span class="c1"># information about how many rows there are for each entry</span>
+            <span class="n">file_start_read</span> <span class="o">=</span> <span class="n">start</span> <span class="o">-</span> <span class="n">location</span> <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">location</span> <span class="k">else</span> <span class="mi">0</span>
+
+            <span class="c1"># How many rows we will read from this table each corresponds to one entry</span>
+            <span class="n">samples_to_read</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">samples_per_class</span> <span class="o">-</span> <span class="n">samples_read</span><span class="p">,</span> <span class="n">file_total_events</span> <span class="o">-</span> <span class="n">file_start_read</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">samples_to_read</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+            <span class="n">d</span> <span class="o">=</span> <span class="n">get_from_pandas</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file_start_read</span><span class="o">=</span><span class="n">file_start_read</span><span class="p">,</span>
+                                       <span class="n">samples_to_read</span><span class="o">=</span><span class="n">samples_to_read</span><span class="p">,</span>
+                                       <span class="n">file_total_events</span><span class="o">=</span><span class="n">file_total_events</span><span class="p">,</span>
+                                       <span class="n">rows_per_event</span><span class="o">=</span><span class="n">DEFAULT_RPE</span><span class="p">,</span>
+                                       <span class="n">observ_types</span><span class="o">=</span><span class="n">observ_types</span><span class="p">)</span>
+            <span class="n">Particles</span><span class="p">,</span> <span class="n">HLF</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;HLF&quot;</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">hlf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Particles</span><span class="p">,</span> <span class="n">HLF</span><span class="p">)):</span>
+                <span class="c1"># ----------pretty progress bar---------------</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">last_time</span> <span class="o">+</span> <span class="o">.</span><span class="mi">25</span><span class="p">):</span>
+                        <span class="n">prog</span> <span class="o">=</span> <span class="n">X_train_index</span> <span class="o">+</span> <span class="n">s</span>
+                        <span class="n">percent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">prog</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">samples_per_class</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">))</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%-20s</span><span class="s2">] </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2">  </span><span class="si">%r</span><span class="s2">(Event/sec)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="mi">20</span> <span class="o">*</span> <span class="n">percent</span><span class="p">),</span> <span class="n">prog</span><span class="p">,</span>
+                                                                           <span class="nb">int</span><span class="p">(</span><span class="n">samples_per_class</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">),</span>
+                                                                           <span class="mi">4</span> <span class="o">*</span> <span class="n">prog</span><span class="p">))</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                        <span class="n">last_time</span> <span class="o">=</span> <span class="n">c</span>
+                <span class="c1"># ------------------------------------------</span>
+                <span class="n">particles</span> <span class="o">=</span> <span class="n">sort_numpy</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">sort_columns</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">])</span>
+
+                <span class="n">X_train</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">particles</span>
+                <span class="n">HLF_train</span><span class="p">[</span><span class="n">X_train_index</span> <span class="o">+</span> <span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">hlf</span>
+
+            <span class="n">X_train_index</span> <span class="o">+=</span> <span class="n">samples_to_read</span>
+
+            <span class="n">location</span> <span class="o">+=</span> <span class="n">file_total_events</span>
+            <span class="n">samples_read</span> <span class="o">+=</span> <span class="n">samples_to_read</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">samples_read</span> <span class="o">&gt;=</span> <span class="n">samples_per_class</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="n">samples_read</span> <span class="o">==</span> <span class="n">samples_per_class</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">samples_read</span> <span class="o">!=</span> <span class="n">samples_per_class</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                <span class="s2">&quot;Not enough data in </span><span class="si">%r</span><span class="s2"> to read in range(</span><span class="si">%r</span><span class="s2">, </span><span class="si">%r</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">samples_per_class</span> <span class="o">+</span> <span class="n">start</span><span class="p">))</span>
+
+        <span class="c1"># Generate the target data as vectors like [1,0,0], [0,1,0], [0,0,1]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">samples_per_class</span><span class="p">):</span>
+            <span class="n">y_train</span><span class="p">[</span><span class="n">y_train_start</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">label_vecs</span><span class="p">[</span><span class="n">data_dir</span><span class="p">]</span>
+        <span class="n">y_train_start</span> <span class="o">+=</span> <span class="n">samples_per_class</span>
+
+    <span class="c1"># Turn everything into numpy arrays and shuffle them just in case.</span>
+    <span class="c1"># Although, we probably don&#39;t need to shuffle since keras shuffles by default.</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_train</span><span class="p">)</span>
+
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_train</span><span class="p">))</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+
+    <span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X_train</span><span class="p">)[</span><span class="n">indices</span><span class="p">]</span>
+    <span class="n">HLF_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">HLF_train</span><span class="p">)[</span><span class="n">indices</span><span class="p">]</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">HLF_train</span></div>
+
+<span class="k">def</span> <span class="nf">splitsFromVal</span><span class="p">(</span><span class="n">v</span><span class="p">,</span><span class="n">n_samples</span><span class="p">):</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">v</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">):</span> <span class="k">return</span> <span class="p">(</span><span class="n">n_samples</span><span class="p">,)</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">v</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span><span class="o">-</span><span class="n">v</span><span class="p">,</span><span class="n">v</span><span class="p">)</span>
+    <span class="k">elif</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">n_samples</span><span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot make fractional validation samples </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v</span><span class="p">)</span>
+        
+    
+
+<span class="k">def</span> <span class="nf">set_range_from_splits</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Takes in a tuple of splits and a length and returns a list of tuples with the starts and number of</span>
+<span class="sd">        samples for each split&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">]):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Splits cannot be negative </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">splits</span><span class="p">))</span>
+    <span class="n">are_static_vals</span> <span class="o">=</span> <span class="p">[(</span><span class="kc">True</span> <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">splits</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="n">are_static_vals</span><span class="p">):</span>
+        <span class="n">ratios</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">a</span><span class="p">)]</span>
+        <span class="n">static_vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">)]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">static_vals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">&gt;</span> <span class="n">length</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Static values have sum </span><span class="si">%r</span><span class="s2"> exceeding given length </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">length</span><span class="p">))</span>
+        <span class="n">length</span> <span class="o">-=</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ratios</span> <span class="o">=</span> <span class="n">splits</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sum of splits </span><span class="si">%r</span><span class="s2"> must equal 1.0&quot;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">))</span>
+
+    <span class="n">nums</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span> <span class="o">*</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">splits</span><span class="p">,</span> <span class="n">are_static_vals</span><span class="p">)]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nums</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+        <span class="n">start</span> <span class="o">+=</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span> <span class="nf">strideFromTargetSize</span><span class="p">(</span><span class="n">rows_per_event</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Computes how large a stride is required to build a file with size megabytes&#39;&#39;&#39;</span>
+    <span class="n">megabytes_per_sample</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">rows_per_event</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">*</span><span class="n">observ_types</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="ow">in</span> <span class="n">rows_per_event</span><span class="p">])</span> <span class="o">*</span> <span class="mf">24.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="mf">1000.0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">megabytes</span><span class="o">/</span><span class="n">megabytes_per_sample</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_checkDir</span><span class="p">(</span><span class="nb">dir</span><span class="p">):</span>
+    <span class="n">out_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">out_dir</span><span class="p">))):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;no such directory </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">out_dir</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out_dir</span>
+
+<span class="k">def</span> <span class="nf">runAndStore</span><span class="p">():</span>
+    <span class="k">pass</span>
+
+
+<div class="viewcode-block" id="make_datasets"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.pandas_to_numpy.make_datasets">[docs]</a><span class="k">def</span> <span class="nf">make_datasets</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                  <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sort_on</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">v_split</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Creates a data set in the output_dir folder with /train and /val subdirectories</span>
+<span class="sd">    </span>
+<span class="sd">        :param sources: a list of source directories of pandas .h5 files. Order matters; </span>
+<span class="sd">                        the first source corresponds to [1,0,..,0], the second to [0,1,..,0],etc.</span>
+<span class="sd">        :type sources: list of str</span>
+<span class="sd">        :param output_dir: the directory to output to</span>
+<span class="sd">        :type output_dir: str</span>
+<span class="sd">        :param num_samples: the number of samples to take for each class</span>
+<span class="sd">        :type num_samples: int</span>
+<span class="sd">        :param size: the number of samples to put in each file, or &#39;&lt;int&gt;MB&#39; (i.e &#39;100MB&#39;)</span>
+<span class="sd">                    corresponding to the target filesize</span>
+<span class="sd">        :type size: int or str</span>
+<span class="sd">        :param num_processes: The number of processes to use concurrently to build the dataset </span>
+<span class="sd">        :type num_processes: int </span>
+<span class="sd">        :param sort_on: The column or special value [MaxLepDeltaPhi,MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt] to sort on</span>
+<span class="sd">        :type sort_on: str</span>
+<span class="sd">        :param sort_ascending: whether to sort ascending or descending</span>
+<span class="sd">        :type sort_ascending: bool</span>
+<span class="sd">        :param v_split: the proportion of the total data to use for validation, </span>
+<span class="sd">                        or the total number of events to use (the rest goes to training)</span>
+<span class="sd">        :type v_split: float or int</span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        </span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">_checkDir</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;MB&quot;</span> <span class="ow">in</span> <span class="n">size</span><span class="p">):</span>
+        <span class="n">megabytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="n">strideFromTargetSize</span><span class="p">(</span><span class="n">rows_per_event</span><span class="o">=</span><span class="n">DEFAULT_RPE</span><span class="p">,</span> <span class="n">observ_types</span><span class="o">=</span><span class="n">DEFAULT_OBSERVS</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="n">megabytes</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+    <span class="c1">#print(&quot;STRIDE&quot;, stride)</span>
+    <span class="c1">#print(splitsFromVal(v_split, num_samples))</span>
+    <span class="n">SNs</span> <span class="o">=</span> <span class="n">set_range_from_splits</span><span class="p">(</span><span class="n">splitsFromVal</span><span class="p">(</span><span class="n">v_split</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">),</span> <span class="n">num_samples</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="n">jobs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">SNs</span><span class="p">):</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;/train&quot;</span> <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;/val&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">force</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">folder</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;directory </span><span class="si">%r</span><span class="s2"> is not empty use -f or --force to clear the directory first&quot;</span> <span class="o">%</span> <span class="n">folder</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">order_of_mag</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">stride</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">sn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="p">,</span> <span class="n">stride</span><span class="p">)):</span>
+            <span class="n">samples_per_class</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">stride</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+            <span class="n">kargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;data_dirs&#39;</span><span class="p">:</span> <span class="n">sources</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="n">start</span><span class="p">,</span> <span class="s1">&#39;samples_per_class&#39;</span><span class="p">:</span> <span class="n">samples_per_class</span><span class="p">,</span>
+                     <span class="s1">&#39;observ_types&#39;</span><span class="p">:</span> <span class="n">DEFAULT_OBSERVS</span><span class="p">,</span> <span class="s1">&#39;sort_columns&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">sort_on</span><span class="p">],</span> <span class="s1">&#39;sort_ascending&#39;</span><span class="p">:</span> <span class="n">sort_ascending</span><span class="p">,</span>
+                     <span class="s1">&#39;verbose&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="n">dest</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">folder</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;/%0&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">order_of_mag</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;d.h5&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">jobs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">kargs</span><span class="p">,</span> <span class="n">dest</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jobs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">kargs</span><span class="p">,</span> <span class="n">dest</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">pandas_to_numpy</span><span class="p">(</span><span class="o">**</span><span class="n">kargs</span><span class="p">)</span>
+            <span class="c1"># print(x.shape)</span>
+            <span class="n">h5f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">D</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">,</span> <span class="s2">&quot;Labels&quot;</span><span class="p">,</span> <span class="s2">&quot;HLF&quot;</span><span class="p">]):</span>
+                <span class="n">h5f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
+            <span class="n">h5f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DONE&quot;</span><span class="p">)</span>
+
+    <span class="n">num_processes</span> <span class="o">=</span> <span class="n">num_processes</span>
+    <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">splits</span> <span class="o">=</span> <span class="p">[</span><span class="n">jobs</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">num_processes</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">splits</span><span class="p">)</span>
+    <span class="n">samples_per_process</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_samples</span> <span class="o">/</span> <span class="n">num_processes</span><span class="p">)</span>
+    <span class="c1"># np.array_split(jobs, num_processes)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread </span><span class="si">%r</span><span class="s2"> Started&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">sublist</span><span class="p">)</span>
+        <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">001</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># print(&quot;SPLIT&quot;, splits[0])</span>
+        <span class="n">f</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="k">raise</span> <span class="n">e</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Convert ROOT data to numpy arrays stored as HDF5 for Machine Learning use.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;sources&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--output_dir&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;output_dir&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s1">&#39;--num_samples&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_samples&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--num_processes&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;num_processes&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;How many processes to use concurrently.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="s1">&#39;--size&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;1000&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The number of samples per file to use. Can also indicate a target size in MB. An integer, or integer followed by MB (i.e 100MB)&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;--force&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>  <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;if true clean the output directory before starting, else throw an error&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-v&#39;</span><span class="p">,</span> <span class="s1">&#39;--validation_split&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;v_split&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;the proportion of samples that should be reserved for validation, or the number of samples_per_class that should be used&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--sort_on&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sort_on&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The column or special value [MaxLepDeltaPhi,MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt] to sort on&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--sort_ascending&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sort_ascending&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;To sort ascending&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--sort_descending&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_false&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sort_ascending&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;To sort descending&#39;</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_usage</span><span class="p">()</span>
+    <span class="n">make_datasets</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">num_processes</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">num_processes</span><span class="p">,</span>
+                  <span class="n">sort_on</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">sort_on</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">sort_ascending</span><span class="p">,</span> <span class="n">v_split</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">v_split</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">force</span><span class="p">)</span>
+        
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+   <span class="n">main</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>
