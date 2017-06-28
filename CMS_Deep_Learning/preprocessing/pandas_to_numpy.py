@@ -268,6 +268,7 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
         sizesDict = getSizesDict(data_dir)
 
         last_time = time.clock() - 1.0
+        count,last_count = 0,0
         #print("FILES",files)
         # Loop the files associated with the current label
         for f in files:
@@ -299,6 +300,7 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
 
             for s, (particles, hlf) in enumerate(zip(Particles, HLF)):
                 # ----------pretty progress bar---------------
+                
                 if (verbose >= 1):
                     c = time.clock()
                     if (c > last_time + .25):
@@ -307,9 +309,13 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
                         sys.stdout.write('\r')
                         sys.stdout.write("[%-20s] %r/%r  %r(Event/sec)" % ('=' * int(20 * percent), prog,
                                                                            int(samples_per_class) * len(data_dirs),
-                                                                           4 * prog))
+                                                                           4 * (count-last_count)))
                         sys.stdout.flush()
+                        #prev_sample = s
                         last_time = c
+                        last_count = count
+
+                count += 1
                 # ------------------------------------------
                 particles = sort_numpy(particles, sort_columns, sort_ascending, observ_types["Particles"])
 
