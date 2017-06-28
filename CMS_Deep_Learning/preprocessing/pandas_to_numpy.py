@@ -1,4 +1,10 @@
-import time, math,os,sys,re,h5py
+import sys,os
+if __package__ is None:
+    #sys.path.append(os.path.realpath("../"))
+    sys.path.append(os.path.realpath(__file__+"/../../../"))
+
+
+import time, math,re,h5py
 import argparse
 from multiprocessing import Process
 from time import sleep
@@ -420,12 +426,15 @@ def main(argv):
     print(splitsFromVal(args.v_split,args.num_samples))
     SNs = set_range_from_splits(splitsFromVal(args.v_split, args.num_samples), args.num_samples)
     
+    if(not os.path.exists(args.output_dir)):
+        os.mkdir(args.output_dir) 
     jobs = []
     for i,sn in enumerate(SNs):
         folder = os.path.abspath(args.output_dir) + ("/train" if(i==0) else '/val')
         if(not os.path.exists(folder)):
             os.mkdir(folder)
-        order_of_mag = max(int(math.log(sn[1]/stride, 10)),3)
+        print(sn[1])
+        order_of_mag = max(int(math.log(sn[1]/stride+1, 10)),3)
         end = sn[0] +sn[1] 
         for j,start in enumerate(range(sn[0], end, stride)):
             samples_per_class= min(stride, end - start)
@@ -437,14 +446,17 @@ def main(argv):
     def f(jobs):
         for kargs,dest in jobs:
             x = pandas_to_numpy(**kargs)
+            print(x.shape)
             h5f = h5py.File(dest, 'w')
             for D, key in zip(x, ["Particles","Labels","HLF"]):
                 h5f.create_dataset(key, data=D)
             h5f.close()
+            print("DONE")
     
     num_processes = args.num_processes
     processes = []
     splits = [jobs[i::num_processes] for i in range(num_processes)]
+    print(splits)
     samples_per_process = np.ceil(args.num_samples / num_processes)
     # np.array_split(jobs, num_processes)
     for i, sublist in enumerate(splits[1:]):
@@ -454,18 +466,20 @@ def main(argv):
         p.start()
         sleep(.001)
     try:
-        f(splits[0], samples_per_process, verbose=1)
-    except:
+        print("SPLIT", splits[0])
+        f(splits[0])
+    except Exception as e:
         for p in processes:
             p.terminate()
+        raise e
     for p in processes:
         p.join()
         
-    print(sources)
+    #print(sources)
     #print(args.clean_archive)
     #print(args.clean_pandas)
-    print(args.output_dir)
-    print(args.num_samples)
+    #print(args.output_dir)
+    #print(args.num_samples)
 
     # if (not args.skip_parse):
 
