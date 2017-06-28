@@ -193,10 +193,10 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             locs = {t: s for s, t in enumerate(observ_types)}
             sorts = [locs[s] if s in observ_types else resolveMetric(s, locs, sort_ascending)
                      for s in sort_columns]
-        # KLUGE FIX
-        x[x[:, locs["Energy"]] == 0] = 0.0
-        # Sort
-        x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
+            # KLUGE FIX
+            x[x[:, locs["Energy"]] == 0] = 0.0
+            # Sort
+            x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
 
     return x
 
@@ -239,13 +239,14 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
 
     y_train_start = 0
     for data_dir in data_dirs:
-        files = glob.glob(data_dir + "*.h5")
+        files = glob.glob(os.path.abspath(data_dir) + "/*.h5")
         files.sort()
         samples_read, location = 0, 0
 
         sizesDict = getSizesDict(data_dir)
 
         last_time = time.clock() - 1.0
+        #print("FILES",files)
         # Loop the files associated with the current label
         for f in files:
             file_total_events = getSizeMetaData(f, sizesDict=sizesDict)  # len(num_val_frame.index)
@@ -416,7 +417,8 @@ def main(argv):
         parser.print_usage()
     
     sources = [_checkDir(s) for s in args.sources]
-
+    
+	
     if ("MB" in args.size):
         megabytes = int(re.search(r'\d+', args.size).group())
         stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)
@@ -427,10 +429,14 @@ def main(argv):
     SNs = set_range_from_splits(splitsFromVal(args.v_split, args.num_samples), args.num_samples)
     
     if(not os.path.exists(args.output_dir)):
-        os.mkdir(args.output_dir) 
+        os.mkdir(args.output_dir)
     jobs = []
     for i,sn in enumerate(SNs):
         folder = os.path.abspath(args.output_dir) + ("/train" if(i==0) else '/val')
+        if(len(glob.glob(folder+"/*.h5")) != 0):
+            if(not args.force):
+                raise IOError("directory %r is not empty use -f or --force to force overwrite" % folder)
+        
         if(not os.path.exists(folder)):
             os.mkdir(folder)
         print(sn[1])
@@ -446,7 +452,7 @@ def main(argv):
     def f(jobs):
         for kargs,dest in jobs:
             x = pandas_to_numpy(**kargs)
-            print(x.shape)
+            #print(x.shape)
             h5f = h5py.File(dest, 'w')
             for D, key in zip(x, ["Particles","Labels","HLF"]):
                 h5f.create_dataset(key, data=D)
@@ -466,14 +472,9 @@ def main(argv):
         p.start()
         sleep(.001)
     try:
-<<<<<<< HEAD
-        print("SPLIT", splits[0])
+        #print("SPLIT", splits[0])
         f(splits[0])
     except Exception as e:
-=======
-        f(splits[0])
-    except:
->>>>>>> d4026b4711dc0ac853811d6391d1db941079cf0c
         for p in processes:
             p.terminate()
         raise e
