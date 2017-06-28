@@ -93,7 +93,7 @@ class Storable( object ):
             return 1
         return 0
 
-    def output_as_dir(self, directory, output_model=True, output_train=True, output_val=True, symlink=False, check=True, raiseError=False):
+    def output_as_dir(self, directory, output_model=True, output_weights=False,output_train=True, output_val=True, symlink=False, check=True,isGenerator=False, raiseError=False):
         import shutil
         def _assertPath(p):
             if (not os.path.exists(p)):
@@ -131,12 +131,19 @@ class Storable( object ):
                     warnings.warn("MODEL JSON DOESN'T LOAD %r" % self.hash())
                     if(raiseError): raise IOError()
             # write_json_obj(self.model, directory, "model.json")
+        if(output_weights):
+            cop = os.symlink if symlink else shutil.copyfile
+            cop("/".join([self.get_path(),"weights.h5"]),
+                "/".join([directory, "weights.h5"]))
+            
         if (output_train):
             train_dir = "/".join([directory, "trian"])
-            _dirFromData(train_dir, self.get_train(), symlink=symlink, check=check, raiseError=raiseError)
+            train = self.get_train() if not isGenerator else self.get_train()[0].args[0]
+            _dirFromData(train_dir, train, symlink=symlink, check=check, raiseError=raiseError)
         if (output_val):
             val_dir = "/".join([directory, "val"])
-            _dirFromData(val_dir, self.get_val(), symlink=symlink, check=check, raiseError=raiseError)
+            val = self.get_train() if not isGenerator else self.get_train()[0].args[0]
+            _dirFromData(val_dir, val, symlink=symlink, check=check, raiseError=raiseError)
 
     @staticmethod
     def get_all_paths(archive_dir):
@@ -188,12 +195,12 @@ class Storable( object ):
 class DataProcedure(Storable):
     '''A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
         data and Y contains the labels/targets for each entry'''
-    def __init__(self, archive_dir, archive_getData, func, *args, **kargs):
+    def __init__(self, archive_dir, archive_on_getData, func, args=[], kargs={}, data_keys=["X", "Y"]):
         Storable.__init__(self)
         if(isinstance(archive_dir, str) == False and isinstance(archive_dir, unicode) == False):
             raise TypeError("_archive_dir must be str, but got %r" % type(archive_dir))
-        if(isinstance(archive_getData, bool) == False):
-            raise TypeError("archive_getData must be bool, but got %r" % type(archive_getData))
+        if(isinstance(archive_on_getData, bool) == False):
+            raise TypeError("archive_getData must be bool, but got %r" % type(archive_on_getData))
         if(isinstance(func, types.FunctionType) == False):
             raise TypeError("func must be function, but got %r" % type(func))
         self.archive_dir =  os.path.normpath(archive_dir)
@@ -201,7 +208,8 @@ class DataProcedure(Storable):
         self.func_module = func.__module__
         self.args = args
         self.kargs = kargs
-        self.archive_getData = archive_getData
+        self.archive_getData = archive_on_getData
+        self.data_keys = data_keys
 
 
     def set_encoder(self, encoder):
@@ -251,96 +259,103 @@ class DataProcedure(Storable):
         else:
             return False
 
-    def archive(self, X, Y):
+    def archive(self, data):#,data_keys=["X", "Y"]):
         '''Store the DataProcedure in a directory computed by its hashcode'''
-        if((not X is None) and (not Y is None)):
-            blob_path = self.get_path()
-            if( os.path.exists(blob_path) == False):
-                os.makedirs(blob_path)
-            if( os.path.exists("/".join([blob_path, 'procedure.json'])) == False):
-                self.write()
-
-            if(isinstance(X, list) == False): X = [X]
-            if(isinstance(Y, list) == False): Y = [Y]
-            blob_path = self.get_path()
-            data_path = "/".join([blob_path, "archive.h5"])
-            h5f = h5py.File(data_path, 'w')
-            h5f.create_group("X")
-            for i, x in enumerate(X):
-                h5f.create_dataset('X/'+str(i), data=x)
-            h5f.create_group("Y")
-            for i, y in enumerate(Y):
-                h5f.create_dataset('Y/'+str(i), data=y)
-            
-            h5f.close()
-
-            #TODO: this is a really backward way of doing this
-            jstr = self.to_json()
-            d = json.loads(jstr)
-
-            record_dict = {}
-            record_dict['func'] = d['func']
-            record_dict['module'] = d['func_module']
-            record_dict['args'] = d['args']
-            record_dict['kargs'] = d['kargs']
-
-            self.write_record(record_dict)
-                
-        else:
-            raise ValueError("Cannot archive DataProcedure with NoneType X or Y")
+        if type(None) in [type(d) for d in data]:
+            raise ValueError("Cannot archive DataProcedure that includes NoneType")
+        if len(data) != len(self.data_keys):
+            raise ValueError("dataset with %r groups cannot be named with data_keys %r with %r keys; %r" % (len(data), self.data_keys, len(self.data_keys), self.hash()))
         
+        # if((not X is None) and (not Y is None)):
+        blob_path = self.get_path()
+        if( os.path.exists(blob_path) == False):
+            os.makedirs(blob_path)
+        if( os.path.exists("/".join([blob_path, 'procedure.json'])) == False):
+            self.write()
+        
+        data = [d if isinstance(d, list) else [d] for d in data]
+        # if(isinstance(X, list) == False): X = [X]
+        # if(isinstance(Y, list) == False): Y = [Y]
+        blob_path = self.get_path()
+        data_path = "/".join([blob_path, "archive.h5"])
+        h5f = h5py.File(data_path, 'w')
+        
+        for D,key in zip(data,self.data_keys):
+            h5f.create_group(key)
+            for i, d in enumerate(D):
+                h5f.create_dataset(key + '/'+str(i), data=d)
+        # h5f.create_group("Y")
+        # for i, y in enumerate(Y):
+        #     h5f.create_dataset('Y/'+str(i), data=y)
+        
+        h5f.close()
 
-    def get_data(self, archive=True, redo=False, verbose=1):
+        #TODO: this is a really backward way of doing this
+        jstr = self.to_json()
+        d = json.loads(jstr)
+
+        record_dict = {}
+        record_dict['func'] = d['func']
+        record_dict['module'] = d['func_module']
+        record_dict['args'] = d['args']
+        record_dict['kargs'] = d['kargs']
+
+        self.write_record(record_dict)
+                        
+        
+    def _checkData(self, data, data_keys):
+        # if(not len(data) == len(data_keys)):
+        #     raise ValueError("getData returned too many arguments expected %r got %r" % len(out))
+        for i,d in enumerate(data):
+            if(not isinstance(d, list) and not isinstance(d, np.ndarray)):
+                raise ValueError("data type expected list but got %r in key %r" % (type(d), sorted(data_keys.keys())[i]))
+
+    def load_hdf5_data(self, data):
+        """ https://github.com/duanders/mpi_learn -- train/data.py
+            Returns a numpy array or (possibly nested) list of numpy arrays 
+            corresponding to the group structure of the input HDF5 data.
+            If a group has more than one key, we give its datasets alphabetically by key"""
+        if hasattr(data, 'keys'):
+            out = [self.load_hdf5_data(data[key]) for key in sorted(data.keys())]
+        else:
+            out = data[:]
+        return out
+        
+    def get_data(self, archive=True, redo=False,data_keys=["X","Y"], verbose=1):
         '''Apply the DataProcedure returning X,Y from the archive or generating them from func'''
         # if verbose == 1: raise ValueError()
         if(self.is_archived() and redo == False):
-            h5f = None
+            h5_file = None
             try:
-                h5f = h5py.File("/".join([self.get_path(), 'archive.h5']), 'r')
-                X = []
-                X_group = h5f['X']
-                keys = list(X_group.keys())
-                keys.sort()
-                for key in keys:
-                    X.append(X_group[key][:])
-
-
-                Y = []
-                Y_group = h5f['Y']
-                keys = list(Y_group.keys())
-                keys.sort()
-                for key in keys:
-                    Y.append(Y_group[key][:])
-
-                h5f.close()
-                out = (X, Y)
+                h5_file = h5py.File("/".join([self.get_path(), 'archive.h5']), 'r')
+                out = []
+                for data_key in data_keys:
+                    data = h5_file[data_key]
+                    o = self.load_hdf5_data(data)
+                    out.append(o)
+                out = tuple(out)
                 if(verbose >= 1): print("DataProcedure results %r read from archive" % self.hash())
-            except Exception as e:
+            except IOError as e:
                 print(e)
-                if(h5f != None): h5f.close()
+                if(h5_file != None): h5_file.close()
                 if(verbose >= 1): print("Failed to load archive %r running from scratch" % self.hash())
-                return self.get_data(archive=archive, redo=True, verbose=verbose)
+                return self.get_data(archive=archive, redo=True, data_keys=data_keys, verbose=verbose)
         else:
             prep_func = self.get_func(self.func, self.func_module)
-
             out = prep_func(*self.args, **self.kargs)
             
-
             if(isinstance(out, tuple)):
-                if(len(out) == 2):
-                    if( (isinstance(out[0], list) or isinstance(out[0], np.ndarray)) 
-                        and (isinstance(out[1], list) or isinstance(out[1], np.ndarray))):
-                        if(self.archive_getData == True or archive == True):
-                            self.archive(out[0], out[1])
-                            if(verbose >= 1): print("ARCHIVE SUCCESSFUL %r" % self.hash())
-                else:
-                    raise ValueError("getData returned too many arguments expected 2 got %r" % len(out))
+                self._checkData(out,data_keys)
+                if(self.archive_getData == True or archive == True):
+                    self.archive(out)
+                    if(verbose >= 1): print("ARCHIVE SUCCESSFUL %r" % self.hash())
+                
             elif(isinstance(out, types.GeneratorType)):
                     self.archive_getData = False
                     archive = False
             else:
-                raise ValueError("getData did not return (X,Y) or Generator got types (%r,%r)"
-                                    % ( type(out[0]), type(out[1]) ))
+                raise ValueError("getData did not return (X,Y,...) or Generator got types %r"
+                                    % ( [type(o) for o in out] ))
             
         return out
 
@@ -377,7 +392,7 @@ class DataProcedure(Storable):
             func = cls.get_func(d['func'], d['func_module'])
         except ValueError:
             func = temp
-        args, kargs = d['args'], d['kargs']
+        args, kargs,data_keys = d['args'], d['kargs'], d['data_keys']
         for i,arg in enumerate(args):
             islist = True
             if(isinstance(arg, list) == False):
@@ -401,7 +416,7 @@ class DataProcedure(Storable):
             args, kargs = arg_decode_func(*args, **kargs)
 
         archive_getData = d['archive_getData']
-        dp = cls(archive_dir, archive_getData, func, *args, **kargs)
+        dp = cls(archive_dir, archive_getData, func, args, kargs,data_keys=data_keys)
         if(func == temp):
             dp.func = d['func']
             dp.func_module = d['func_module']
@@ -787,7 +802,7 @@ class KerasTrial(Storable):
         self.to_record({'name' : self.name}, append=True)
                  
 
-    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, verbosity=1):
+    def execute(self, archiveTraining=True, archiveValidation=True, train_arg_decode_func=None, val_arg_decode_func=None, custom_objects={}, data_keys=["X","Y"], verbosity=1):
         '''Executes the trial, fitting the traing data in each DataProcedure in series'''
         if(self.train_procedure is None):
             raise ValueError("Cannot execute trial without DataProcedure")
@@ -803,7 +818,7 @@ class KerasTrial(Storable):
                 if(len(self.val_procedure) != 1):
                     raise ValueError("val_procedure must be single procedure, but got list")
                 val_proc = DataProcedure.from_json(self.archive_dir,self.val_procedure[0], arg_decode_func=val_arg_decode_func)
-                val = val_proc.get_data(archive=archiveValidation, verbose=int(verbosity > 1))
+                val = val_proc.get_data(archive=archiveValidation, data_keys=data_keys,verbose=int(verbosity > 1))
                 num_val = self.nb_val_samples
             else:
                 val = None
@@ -811,7 +826,7 @@ class KerasTrial(Storable):
             for p in train_procs:
                 train_proc = DataProcedure.from_json(self.archive_dir,p, arg_decode_func=train_arg_decode_func)
 
-                train = train_proc.get_data(archive=archiveTraining, verbose=int(verbosity > 1))
+                train = train_proc.get_data(archive=archiveTraining,data_keys=data_keys, verbose=int(verbosity > 1))
                 
                 history = self.get_history()
                 

@@ -1,0 +1,229 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.storage.batch &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for CMS_Deep_Learning.storage.batch</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.layers.lorentz</span> <span class="k">import</span> <span class="n">Lorentz</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.layers.slice</span> <span class="k">import</span> <span class="n">Slice</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span> <span class="n">KerasTrial</span>
+
+
+<div class="viewcode-block" id="batchAssertArchived"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.batch.batchAssertArchived">[docs]</a><span class="k">def</span> <span class="nf">batchAssertArchived</span><span class="p">(</span><span class="n">dps</span><span class="p">,</span> <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">time_str</span><span class="o">=</span><span class="s2">&quot;01:00:00&quot;</span><span class="p">,</span><span class="n">repo</span><span class="o">=</span><span class="s2">&quot;/scratch/snx3000/dweiteka/CMS_Deep_Learning/&quot;</span><span class="p">,</span> <span class="n">dp_out_dir</span><span class="o">=</span><span class="s1">&#39;/scratch/snx3000/dweiteka/dp_out/&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Makes sure that a list of DataProcedures are archived before training starts. When used on Daint, runs each DataProcedure in different batches and outputs</span>
+<span class="sd">        a list of job numbers corresponding each batch. These can be passed to batchExecuteAndTestTrials to make sure that the trials are run only after the</span>
+<span class="sd">        DPs have completed their preprocessing and archived the result.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">scripts_dir</span> <span class="o">=</span> <span class="n">repo</span> <span class="o">+</span> <span class="s2">&quot;scripts/&quot;</span>
+
+    <span class="n">unarchived</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">dps</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">dp</span><span class="o">.</span><span class="n">is_archived</span><span class="p">()):</span>
+            <span class="n">unarchived</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dp</span><span class="p">)</span>
+
+    <span class="k">if</span><span class="p">(</span><span class="s2">&quot;daint&quot;</span> <span class="ow">in</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()):</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scripts_dir</span> <span class="o">+</span> <span class="s2">&quot;tmp/&quot;</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">scripts_dir</span> <span class="o">+</span> <span class="s2">&quot;tmp/&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dp_out_dir</span><span class="p">)):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dp_out_dir</span><span class="p">)</span>
+        <span class="n">runDPs_file</span> <span class="o">=</span> <span class="n">scripts_dir</span> <span class="o">+</span> <span class="s2">&quot;tmp/runDPs.sh&quot;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">runDPs_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">runDPs_file</span><span class="p">,</span> <span class="mo">0o777</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;#!/bin/bash</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unarchived</span><span class="p">:</span>
+            <span class="n">u</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+            <span class="n">ofile</span> <span class="o">=</span> <span class="n">dp_out_dir</span> <span class="o">+</span> <span class="n">u</span><span class="o">.</span><span class="n">hash</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.%j&quot;</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;OutFile: &quot;</span><span class="p">,</span><span class="n">ofile</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;sbatch -C gpu -t </span><span class="si">%s</span><span class="s1"> -o </span><span class="si">%s</span><span class="s1"> -e </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">runDP.sh </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time_str</span><span class="p">,</span><span class="n">ofile</span><span class="p">,</span><span class="n">ofile</span><span class="p">,</span><span class="n">scripts_dir</span><span class="p">,</span> <span class="n">repo</span><span class="p">,</span><span class="n">u</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">u</span><span class="o">.</span><span class="n">hash</span><span class="p">()))</span>
+            
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+        <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">scripts_dir</span><span class="o">+</span><span class="s2">&quot;tmp/runDPs.sh&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THIS IS THE OUTPUT:&quot;</span><span class="p">,</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">dep_clause</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;Submitted batch job [0-9]+&quot;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span> 
+
+        <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s2">&quot;[0-9]+&quot;</span><span class="p">,</span> <span class="n">m</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dependencies</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">dep_clause</span> <span class="o">=</span> <span class="s2">&quot;--dependency=afterok:&quot;</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dependencies</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unarchived</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">archive_dir</span> <span class="o">=</span> <span class="n">unarchived</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">archive_dir</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unarchived</span><span class="p">:</span>
+            <span class="n">u</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+
+        <span class="n">hashes</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unarchived</span><span class="p">]</span>
+        <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">hashes</span><span class="p">,</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Batch process </span><span class="si">%r</span><span class="s2"> started.&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">hashes</span><span class="p">:</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="n">DataProcedure</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">archive_dir</span><span class="o">=</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">hashcode</span><span class="o">=</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;From process </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+
+        <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting batchAssertArchived starting with </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2"> DataProcedures&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dps</span><span class="p">)</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">unarchived</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">dps</span><span class="p">)))</span>
+        <span class="n">splits</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">hashes</span><span class="p">,</span> <span class="n">num_processes</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread </span><span class="si">%r</span><span class="s2"> Started&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">sublist</span><span class="p">,</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">verbose</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">processes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">001</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="k">if</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">is_archived</span><span class="p">()</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">unarchived</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Batch Assert Failed&quot;</span><span class="p">)</span>
+            <span class="k">pass</span><span class="c1">#batchAssertArchived(dps, num_processes=num_processes)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Done.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dependencies</span></div>
+
+<div class="viewcode-block" id="batchExecuteAndTestTrials"><a class="viewcode-back" href="../../../storage.html#CMS_Deep_Learning.storage.batch.batchExecuteAndTestTrials">[docs]</a><span class="k">def</span> <span class="nf">batchExecuteAndTestTrials</span><span class="p">(</span><span class="n">tups</span><span class="p">,</span> <span class="n">time_str</span><span class="o">=</span><span class="s2">&quot;24:00:00&quot;</span><span class="p">,</span> <span class="n">repo</span><span class="o">=</span><span class="s2">&quot;/scratch/snx3000/dweiteka/CMS_Deep_Learning/&quot;</span><span class="p">,</span> <span class="n">trial_out_dir</span><span class="o">=</span><span class="s1">&#39;/scratch/snx3000/dweiteka/trial_out/&#39;</span><span class="p">,</span><span class="n">use_mpi</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Takes in a list of tuples &#39;tups&#39; of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests </span>
+<span class="sd">        each trial, either in in order or in separate batches in the case of CSCS.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">isdaint</span> <span class="o">=</span> <span class="s2">&quot;daint&quot;</span> <span class="ow">in</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+    <span class="n">scripts_dir</span> <span class="o">=</span> <span class="n">repo</span> <span class="o">+</span> <span class="s2">&quot;scripts/&quot;</span> 
+    <span class="k">for</span> <span class="n">trial</span><span class="p">,</span> <span class="n">test</span><span class="p">,</span> <span class="n">num_test</span><span class="p">,</span> <span class="n">deps</span> <span class="ow">in</span> <span class="n">tups</span><span class="p">:</span>
+        <span class="n">archive_dir</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">archive_dir</span>
+        <span class="n">hashcode</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span>
+
+        <span class="n">test_hashcode</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">test</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            
+            <span class="n">test</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+            <span class="n">test_hashcode</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">isdaint</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">trial_out_dir</span><span class="p">)):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">trial_out_dir</span><span class="p">)</span>
+            <span class="n">dep_clause</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;--dependency=afterok:&quot;</span> <span class="o">+</span> <span class="s2">&quot;:&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">deps</span><span class="p">)</span>
+            <span class="n">ofile</span> <span class="o">=</span> <span class="n">trial_out_dir</span> <span class="o">+</span> <span class="n">hashcode</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.%j&quot;</span>
+            <span class="n">sbatch</span> <span class="o">=</span> <span class="s1">&#39;sbatch -C gpu -t </span><span class="si">%s</span><span class="s1"> -o </span><span class="si">%s</span><span class="s1"> -e </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">time_str</span><span class="p">,</span><span class="n">ofile</span><span class="p">,</span><span class="n">ofile</span><span class="p">,</span><span class="n">dep_clause</span><span class="p">)</span>
+            <span class="n">sbatch</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">runTrial.sh </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scripts_dir</span><span class="p">,</span><span class="n">repo</span><span class="p">,</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">hashcode</span><span class="p">,</span> <span class="n">test_hashcode</span><span class="p">,</span> <span class="n">num_test</span><span class="p">,</span> <span class="n">use_mpi</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span><span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="n">sbatch</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">sbatch</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span><span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THIS IS THE OUTPUT:&quot;</span><span class="p">,</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">use_mpi</span><span class="p">):</span>
+                <span class="n">trial</span> <span class="o">=</span> <span class="n">KerasTrial</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">hashcode</span><span class="p">)</span> 
+            <span class="k">else</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.MPIArchiving</span> <span class="k">import</span> <span class="n">MPI_KerasTrial</span>
+                <span class="n">trial</span> <span class="o">=</span> <span class="n">MPI_KerasTrial</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">hashcode</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span><span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;EXECUTE </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">trial</span><span class="o">.</span><span class="n">hash</span><span class="p">())</span>
+            <span class="n">trial</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span><span class="c1">#custom_objects={&quot;Lorentz&quot;:Lorentz,&quot;Slice&quot;: Slice})</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">test_hashcode</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span><span class="mi">1</span><span class="p">):</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;TEST </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">trial</span><span class="o">.</span><span class="n">hash</span><span class="p">())</span>
+                <span class="n">test</span> <span class="o">=</span> <span class="n">DataProcedure</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">archive_dir</span><span class="p">,</span> <span class="n">test_hashcode</span><span class="p">)</span>
+                <span class="n">trial</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">test_proc</span><span class="o">=</span><span class="n">test</span><span class="p">,</span>
+                             <span class="n">test_samples</span><span class="o">=</span><span class="n">num_test</span><span class="p">,</span>
+                             <span class="n">custom_objects</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Lorentz&quot;</span><span class="p">:</span><span class="n">Lorentz</span><span class="p">,</span><span class="s2">&quot;Slice&quot;</span><span class="p">:</span> <span class="n">Slice</span><span class="p">})</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

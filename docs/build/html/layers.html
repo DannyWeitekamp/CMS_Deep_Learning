@@ -1,0 +1,246 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.layers &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CMS_Deep_Learning.postprocessing" href="postprocessing.html" />
+    <link rel="prev" title="CMS_Deep_Learning package" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="postprocessing.html" title="CMS_Deep_Learning.postprocessing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CMS_Deep_Learning.layers</a><ul>
+<li><a class="reference internal" href="#lorentz-layer">lorentz layer</a></li>
+<li><a class="reference internal" href="#slice-layer">slice layer</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">CMS_Deep_Learning package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="postprocessing.html"
+                        title="next chapter">CMS_Deep_Learning.postprocessing</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/layers.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cms-deep-learning-layers">
+<h1>CMS_Deep_Learning.layers<a class="headerlink" href="#cms-deep-learning-layers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="lorentz-layer">
+<h2>lorentz layer<a class="headerlink" href="#lorentz-layer" title="Permalink to this headline">¶</a></h2>
+<p>The Lorentz layer applies the relativistic Lorentz transformation to inputs of shape <cite>(batch_size, N, 4)</cite>, where each of N 4-vectors have a set of 3 weights corresponding to a boost relative to the lab frame. A boost matrix is found for each N sets of boost coordinates, and is applied to each of N 4-vectors independently. In short training resolves the coordinates of each boost, and each forward pass of the network applies the boost.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">slicedA</span> <span class="o">=</span> <span class="n">Slice</span><span class="p">(</span><span class="s2">&quot;[:,0:4]&quot;</span><span class="p">)(</span><span class="nb">input</span><span class="p">)</span>
+<span class="n">slicedB</span> <span class="o">=</span> <span class="n">Slice</span><span class="p">(</span><span class="s2">&quot;[:,4:9]&quot;</span><span class="p">)(</span><span class="nb">input</span><span class="p">)</span>
+<span class="n">lorentzApplied</span> <span class="o">=</span> <span class="n">Lorentz</span><span class="p">(</span><span class="n">sphereCoords</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">vec_start</span><span class="o">=</span><span class="mi">0</span><span class="p">)(</span><span class="n">slicedA</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The argument <cite>sphereCoords</cite> if set to True will find the weights in (theta, phi, mag) coordinates instead of Cartesian coordinates. It is up to the user to determine which coordinate system trains more effectively, but the Cartesian default has given better results in preliminary tests.</p>
+<p>The argument <cite>vec_start</cite> determines where in the final dimension of the input to start reading each 4-vector. By default it reads from 0 (the 1st position) to 3 (the 4th positon). This is useful if one wants to forgo using slice layers and the 4-vector in the data is not held in the first 4 spots.</p>
+<span class="target" id="module-CMS_Deep_Learning.layers.lorentz"></span><p>lorentz.py
+Contains the LorentzLayer
+Author: Danny Weitekamp
+e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<dl class="class">
+<dt id="CMS_Deep_Learning.layers.lorentz.Lorentz">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.layers.lorentz.</code><code class="descname">Lorentz</code><span class="sig-paren">(</span><em>sphereCoords=False</em>, <em>vec_start=0</em>, <em>sum_input=False</em>, <em>weight_output=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">keras.engine.topology.Layer</span></code></p>
+<p>A layer that uses the lorentz transformation to analyze input 4-vectors
+in different relativistic frames.
+Trains on a set of weights:</p>
+<blockquote>
+<div><p>Bo (boost: which boosts each of any number of input 4-vectors)
+W  (weight: applies a mulitplier to the boosted 4-vectors)
+DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">param sphereCoords:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">if True uses spherical coordinates for calculating the boost instead of Cartesian.</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">parma vec_start:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">determines where to start reading the 4-vector along the last axis of the input.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.lorentz.Lorentz.build">
+<code class="descname">build</code><span class="sig-paren">(</span><em>input_shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz.build" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.lorentz.Lorentz.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>T</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz.call" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.lorentz.Lorentz.get_config">
+<code class="descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz.get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.lorentz.Lorentz.get_output_shape_for">
+<code class="descname">get_output_shape_for</code><span class="sig-paren">(</span><em>input_shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/lorentz.html#Lorentz.get_output_shape_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.lorentz.Lorentz.get_output_shape_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="slice-layer">
+<h2>slice layer<a class="headerlink" href="#slice-layer" title="Permalink to this headline">¶</a></h2>
+<p>The slice layer simply slices multidimentional data. For example to take an input of shape (batch_size, 100 , 9), and output two tensors with shape (batch_size, 100 , 4) and (batch_size, 100 , 5) a Slice layer can be used like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1">#input.shape is (batch_size, 100 , 9)</span>
+<span class="n">slicedA</span> <span class="o">=</span> <span class="n">Slice</span><span class="p">(</span><span class="s2">&quot;[:,0:4]&quot;</span><span class="p">)(</span><span class="nb">input</span><span class="p">)</span>
+<span class="n">slicedB</span> <span class="o">=</span> <span class="n">Slice</span><span class="p">(</span><span class="s2">&quot;[:,4:9]&quot;</span><span class="p">)(</span><span class="nb">input</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Taking note that the the user is protected from slicing on the dimension that hold the batch_size. So:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">Slice</span><span class="p">(</span><span class="s2">&quot;[:,0:10:2]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is really applying <cite>[:,:,0:10:2]</cite> to the input tensor.</p>
+<p>Each slice takes the form of <cite>start:end:stepsize</cite>, where <cite>start:end</cite> implies <cite>start:end:1</cite> and omitting start or end implies that the slice has a lower bound of 0 or the end of the axis respectively.</p>
+<span class="target" id="module-CMS_Deep_Learning.layers.slice"></span><dl class="class">
+<dt id="CMS_Deep_Learning.layers.slice.Slice">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.layers.slice.</code><code class="descname">Slice</code><span class="sig-paren">(</span><em>split_str</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/slice.html#Slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.slice.Slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">keras.engine.topology.Layer</span></code></p>
+<dl class="docutils">
+<dt>Applies a slice to input data and outputs the results, does not slice along the batch axis</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">param split_str:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">a string like “[A:B:C, D:E:F, … ,]” designating the splits to make on the input data where each argument has one of the usual forms start:stop:stride, start:stop, :stop, start:, etc.</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Splitting on the batch axis is protected against so [:,4:5] is really [:,:,4:5]</p>
+</div>
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.slice.Slice.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>T</em>, <em>mask=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/slice.html#Slice.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.slice.Slice.call" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.slice.Slice.get_config">
+<code class="descname">get_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/slice.html#Slice.get_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.slice.Slice.get_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.layers.slice.Slice.get_output_shape_for">
+<code class="descname">get_output_shape_for</code><span class="sig-paren">(</span><em>input_shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/layers/slice.html#Slice.get_output_shape_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.layers.slice.Slice.get_output_shape_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="postprocessing.html" title="CMS_Deep_Learning.postprocessing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>

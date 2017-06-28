@@ -34,7 +34,6 @@ def _lorentz(x, boosts,weights=None, sphereCoords=False,sum_input=False):
     # K.clip(boosts, 0.0, .33-_EPSILON)
     #Initialize Helpful variables
     x_shape = K.shape(x)
-    # printed_x = theano.printing.Print('this is a very important value')(x_shape)
     # f = function([x], printed_x)
 
 
@@ -120,9 +119,9 @@ class Lorentz(Layer):
             Bo (boost: which boosts each of any number of input 4-vectors)
             W  (weight: applies a mulitplier to the boosted 4-vectors)
             DEPRRICATED: Bi (bias: boosts the vectorial sum of the input 4-vectors)
-        #Arguements:
-            sphereCoords -- if True uses spherical coordinates for calculating the boost instead of Cartesian.
-            vec_start -- determines where to start reading the 4-vector along the last axis of the input.
+            
+            :param sphereCoords: if True uses spherical coordinates for calculating the boost instead of Cartesian.
+            :parma vec_start: determines where to start reading the 4-vector along the last axis of the input.
     '''
     def __init__(self,sphereCoords=False, vec_start=0, sum_input=False, weight_output=False, **kwargs):
         if(isinstance(sphereCoords, bool) == False):
@@ -137,7 +136,6 @@ class Lorentz(Layer):
         
     def build(self, input_shape):
         #The cluster size
-        # print(input_shape)
         input_dim = input_shape[1]
         if(self.sum_input): input_dim = 1
         # self.vec_start
@@ -183,10 +181,6 @@ class Lorentz(Layer):
         v = K.variable(self.vec_start, dtype=np.int32)
         # T_slice = T[:,:,0:4]
         T_slice = T[:,:,v:v+4]
-        # print(type(T))
-        # print(K.eval(T).shape)
-        # print(K.eval(T_slice).shape)
-        # print("SHAPE:< ",K.eval(T).shape)
         # summed_boosted = _lorentz( T_slice, self.Bo, weights=self.W, sphereCoords=self.sphereCoords)
         boosted = _lorentz( T_slice, self.Bo, weights=self.W, sphereCoords=self.sphereCoords)
         # out = _lorentz(summed_boosted, self.Bi, sphereCoords=self.sphereCoords)
@@ -204,79 +198,3 @@ class Lorentz(Layer):
         
         return dict(list(base_config.items()) + list(config.items()))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#DEPRICATED -- Can be made easily by simply chaining a regular convolutional layer after the lorentz layer
-
-class ConvLorentz(Layer):
-    ''' A layer that uses the lorentz transformation to analyze input 4-vectors
-        in different relativistic frames.
-        Trains on a set of weights:
-            Bo (boost: which boosts each of any number of input 4-vectors)
-            W  (weight: applies a mulitplier to the boosted 4-vectors)
-            Bi (bias: boosts the vectorial sum of the input 4-vectors)
-    '''
-    def __init__(self, cluster_size, sphereCoords=False, vec_start=0, **kwargs):
-        self.output_dim = 4
-        self.sphereCoords = sphereCoords
-        self.vec_start = vec_start
-        kwargs['input_shape'] = (cluster_size, 4)
-        super(LorentzLayer, self).__init__(**kwargs)
-        
-    def build(self, input_shape):
-        #The cluster size
-        input_dim = input_shape[1]
-        
-        #Boosts for each vector in the cluster
-        initial_boosts_value = np.random.random((input_dim,3))
-        #Bias Boost for the vector sum
-        initial_bias_value = np.random.random((1,3))
-        #Weight values for each vector in the cluster
-        initial_weights_value = np.random.random((input_dim,1))
-        
-        #If in Cartesian Coordinates scale so maxNorm = 1
-        if(~self.sphereCoords):
-            initial_boosts_value *= .33
-            initial_bias_value *= .33
-        
-        #store weights
-        self.Bo = K.variable(initial_boosts_value)
-        self.Bi = K.variable(initial_bias_value)
-        self.W = K.variable(initial_weights_value)
-        
-        #If in Cartesian Coordinates apply maxnorm constraint so that we can
-        #only boost our vectors into real reference frames
-        if(~self.sphereCoords):
-            self.constraints[self.Bo] = maxnorm(axis=1)
-            self.constraints[self.Bi] = maxnorm(axis=1)
-        
-        #Let keras know about our weights
-        self.trainable_weights = [self.W, self.Bi, self.Bo]
-
-    def call(self, T, mask=None):
-        #T dimensions are (batch_size, cluster_size, 4)
-        #lorentzboost of the vectorial sum of each lorentzboosted 4 vector in the cluster
-        v = self.vec_start
-        T_slice = T[:,:,v:v+4]
-
-        summed_boosted = _lorentz( T_slice, self.Bo, weights=self.W, sphereCoords=self.sphereCoords)
-        out = _lorentz(summed_boosted, self.Bi, sphereCoords=self.sphereCoords)
-        return out
-
-    def get_output_shape_for(self, input_shape):
-        return (input_shape[0], self.output_dim)
