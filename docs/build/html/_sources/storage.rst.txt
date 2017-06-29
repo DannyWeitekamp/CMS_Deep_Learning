@@ -33,4 +33,12 @@ iterators
     :undoc-members:
     :show-inheritance:
 
+input_handler
+----------------------------------------------
+
+.. automodule:: CMS_Deep_Learning.storage.input_handler
+    :members: assertModel, inputHandler
+    :undoc-members:
+    :show-inheritance:
+
 

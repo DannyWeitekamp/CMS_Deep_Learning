@@ -13,6 +13,20 @@ ITERATOR_REQS = ['predictions', 'characteristics', 'X', 'Y', 'num_samples']
 
 
 def assertModel(model, weights=None, loss='categorical_crossentropy', optimizer='rmsprop', custom_objects={}):
+    '''Asserts that the inputs create a valid keras model and returns that model
+        
+        :param model: a keras Model or the path to a model .json
+        :type model: str or Model
+        :param weights: the model weights or path to the stored weights
+        :type weights: str or weights
+        :param loss: the loss function to compile the model with
+        :type loss: str
+        :param : the optimizer to compile the model with
+        :type optimizer: str
+        :param custom_objects: a dictionary of user defined classes
+        :type custom_objects: dict of classes
+        :returns: A compiled model
+        '''
     from keras.engine.training import Model
     from keras.models import model_from_json
     import os, sys
@@ -42,15 +56,22 @@ def assertType(x, t):
     '''Asserts that x is of type t and raises an error if not'''
     assert isinstance(x, t), "expected %r but got type %r" % (t, type(x))
 
+{"predictions": [['trial'], ['model', 'data'], ['model', 'X']],
+            "characteristics": [['trial', 'accumilate'], ['model', 'data', 'accumilate'], ['model', 'X', 'accumilate']],
+            "X": [['trial'], ['data']],
+            "Y": [['trial'], ['data']],
+            "model": [['trial']],
+            "num_samples": [['trial']]}
 
 def inputHandler(req_info):
     '''Returns an inputHandler function with a set of requirements. The inputHandler function will try
-       to derive the required information from the given information, for example it can derive predictions
-       from a model path,weights path, and X (input data)
-
-       :param req_info: A set of requirements, options: predictions,X,Y,model,num_samples
-
-       :returns: an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data'''
+        to derive the required information from the given information, for example it can derive predictions
+        from a model path,weights path, and X (input data). Input information includes ['trial', 'model,'data,'X','Y',
+        accumilate,'predictions', 'characteristics', 'X', 'Y', 'model', 'num_samples'], outputs include ['predictions',
+        'characteristics', 'X', 'Y', 'model', 'num_samples']
+        
+        :param req_info: A set of requirements, options: predictions,X,Y,model,num_samples
+        :returns: an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data'''
 
     def f(data_dict={},**kargs):
         if(len(kargs) != 0): data_dict = kargs
@@ -107,7 +128,3 @@ def inputHandler(req_info):
         return tuple(list(out) + [data_dict[r] for r in req_info if not r in ITERATOR_REQS])
 
     return f
-
-
-g = inputHandler(['Y', "predictions"])
-# g({"data":0, "labels":0})

@@ -63,6 +63,7 @@
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.archiving">archiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.batch">batch</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.iterators">iterators</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.input_handler">input_handler</a></li>
 </ul>
 </li>
 </ul>
@@ -132,7 +133,7 @@ Author: Danny Weitekamp
 e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="class">
 <dt id="CMS_Deep_Learning.storage.archiving.DataProcedure">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">DataProcedure</code><span class="sig-paren">(</span><em>archive_dir, archive_on_getData, func, args=[], kargs={}, data_keys=[‘X’, ‘Y’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">DataProcedure</code><span class="sig-paren">(</span><em>archive_dir, archive_on_get_data, func, args=[], kargs={}, data_keys=[‘X’, ‘Y’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.Storable" title="CMS_Deep_Learning.storage.archiving.Storable"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.archiving.Storable</span></code></a></p>
 <p>A wrapper for archiving the results of data grabbing and preprocessing functions of the type X,Y getData where are X is the training
 data and Y contains the labels/targets for each entry</p>
@@ -662,6 +663,53 @@ the output of the accumilate function will follow any specified data_key data in
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The raw data as numpy.ndarray</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.storage.input_handler">
+<span id="input-handler"></span><h2>input_handler<a class="headerlink" href="#module-CMS_Deep_Learning.storage.input_handler" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.input_handler.assertModel">
+<code class="descclassname">CMS_Deep_Learning.storage.input_handler.</code><code class="descname">assertModel</code><span class="sig-paren">(</span><em>model</em>, <em>weights=None</em>, <em>loss=’categorical_crossentropy’</em>, <em>optimizer=’rmsprop’</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/input_handler.html#assertModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.input_handler.assertModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asserts that the inputs create a valid keras model and returns that model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>model</strong> (<em>str</em><em> or </em><em>Model</em>) – a keras Model or the path to a model .json</li>
+<li><strong>weights</strong> (<em>str</em><em> or </em><em>weights</em>) – the model weights or path to the stored weights</li>
+<li><strong>loss</strong> (<em>str</em>) – the loss function to compile the model with</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param : the optimizer to compile the model with
+:type optimizer: str
+:param custom_objects: a dictionary of user defined classes
+:type custom_objects: dict of classes
+:returns: A compiled model</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.storage.input_handler.inputHandler">
+<code class="descclassname">CMS_Deep_Learning.storage.input_handler.</code><code class="descname">inputHandler</code><span class="sig-paren">(</span><em>req_info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/input_handler.html#inputHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.input_handler.inputHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an inputHandler function with a set of requirements. The inputHandler function will try
+to derive the required information from the given information, for example it can derive predictions
+from a model path,weights path, and X (input data). Input information includes [‘trial’, ‘model,’data,’X’,’Y’,
+accumilate,’predictions’, ‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’], outputs include [‘predictions’,
+‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’]</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>req_info</strong> – A set of requirements, options: predictions,X,Y,model,num_samples</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data</td>
 </tr>
 </tbody>
 </table>

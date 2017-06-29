@@ -69,6 +69,7 @@
             
   <h1>Source code for CMS_Deep_Learning.preprocessing.pandas_to_numpy</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span><span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 <span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="c1">#sys.path.append(os.path.realpath(&quot;../&quot;))</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="o">+</span><span class="s2">&quot;/../../../&quot;</span><span class="p">))</span>
@@ -168,8 +169,15 @@
 
 <span class="c1">#--------------------------SIZE UTILS-------------------------------</span>
 <span class="k">def</span> <span class="nf">_readNumSamples</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;HLF&quot;</span><span class="p">][</span><span class="s1">&#39;axis1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;axis1&#39;</span> <span class="k">if</span> <span class="s1">&#39;axis1&#39;</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Something wrong with file </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">e</span>
     <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">out</span>
 
@@ -218,7 +226,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unrecognized sorting metric </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">):</span>  <span class="c1"># , observ_types,):</span>
+<span class="k">def</span> <span class="nf">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">):</span>  
     <span class="k">if</span> <span class="p">(</span><span class="n">sorts</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">sorts</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
@@ -235,12 +243,12 @@
 <span class="k">def</span> <span class="nf">sort_numpy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sort_columns</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Helper Function - pads the data and sorts it&#39;&#39;&#39;</span>
     <span class="n">sort_locs</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sort_columns</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s2">&quot;sort_columns improperly stored&quot;</span>
+    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sort_columns</span><span class="p">,</span> <span class="n">string_types</span><span class="p">),</span> <span class="s2">&quot;sort_columns improperly stored&quot;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">sort_columns</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="kc">True</span> <span class="ow">in</span> <span class="p">[</span><span class="n">c</span> <span class="ow">in</span> <span class="n">sort_columns</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;shuffle&quot;</span><span class="p">,</span> <span class="s2">&quot;random&quot;</span><span class="p">]]):</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="kc">None</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">):</span>
-            <span class="k">assert</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">unicode</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">],</span> \
+            <span class="k">assert</span> <span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">],</span> \
                 <span class="s2">&quot;Type should be string got </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sort_columns</span><span class="p">]))</span>
             <span class="n">locs</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">observ_types</span><span class="p">)}</span>
             <span class="n">sorts</span> <span class="o">=</span> <span class="p">[</span><span class="n">locs</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">observ_types</span> <span class="k">else</span> <span class="n">resolveMetric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>
@@ -248,7 +256,7 @@
             <span class="c1"># KLUGE FIX</span>
             <span class="n">x</span><span class="p">[</span><span class="n">x</span><span class="p">[:,</span> <span class="n">locs</span><span class="p">[</span><span class="s2">&quot;Energy&quot;</span><span class="p">]]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="c1"># Sort</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>  <span class="c1"># , observ_types)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">_sortBy</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sorts</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">)</span>  
 
     <span class="k">return</span> <span class="n">x</span>
 <span class="c1">#------------------------------------------------------------------</span>
@@ -271,7 +279,6 @@
 
 <span class="k">def</span> <span class="nf">MaxLepDeltaR</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">mlpep</span> <span class="o">=</span> <span class="n">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mlpep</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span> <span class="k">else</span> <span class="n">mlpep</span>
-    <span class="c1"># print(mlpep)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">MaxLepDeltaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">MaxLepDeltaEta</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="n">mlpep</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
 
@@ -334,7 +341,7 @@
         <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
 
         <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span>
-        <span class="c1">#print(&quot;FILES&quot;,files)</span>
+        <span class="n">count</span><span class="p">,</span><span class="n">last_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
         <span class="c1"># Loop the files associated with the current label</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
             <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>  <span class="c1"># len(num_val_frame.index)</span>
@@ -365,6 +372,7 @@
 
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">hlf</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Particles</span><span class="p">,</span> <span class="n">HLF</span><span class="p">)):</span>
                 <span class="c1"># ----------pretty progress bar---------------</span>
+                
                 <span class="k">if</span> <span class="p">(</span><span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span>
                     <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="n">last_time</span> <span class="o">+</span> <span class="o">.</span><span class="mi">25</span><span class="p">):</span>
@@ -373,9 +381,13 @@
                         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
                         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;[</span><span class="si">%-20s</span><span class="s2">] </span><span class="si">%r</span><span class="s2">/</span><span class="si">%r</span><span class="s2">  </span><span class="si">%r</span><span class="s2">(Event/sec)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="mi">20</span> <span class="o">*</span> <span class="n">percent</span><span class="p">),</span> <span class="n">prog</span><span class="p">,</span>
                                                                            <span class="nb">int</span><span class="p">(</span><span class="n">samples_per_class</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_dirs</span><span class="p">),</span>
-                                                                           <span class="mi">4</span> <span class="o">*</span> <span class="n">prog</span><span class="p">))</span>
+                                                                           <span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="o">-</span><span class="n">last_count</span><span class="p">)))</span>
                         <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                        <span class="c1">#prev_sample = s</span>
                         <span class="n">last_time</span> <span class="o">=</span> <span class="n">c</span>
+                        <span class="n">last_count</span> <span class="o">=</span> <span class="n">count</span>
+
+                <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="c1"># ------------------------------------------</span>
                 <span class="n">particles</span> <span class="o">=</span> <span class="n">sort_numpy</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">sort_columns</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="p">,</span> <span class="n">observ_types</span><span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">])</span>
 
@@ -437,7 +449,6 @@
         <span class="n">length</span> <span class="o">-=</span> <span class="n">s</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">ratios</span> <span class="o">=</span> <span class="n">splits</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sum of splits </span><span class="si">%r</span><span class="s2"> must equal 1.0&quot;</span> <span class="o">%</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ratios</span><span class="p">))</span>
 
@@ -465,6 +476,16 @@
 <span class="k">def</span> <span class="nf">runAndStore</span><span class="p">():</span>
     <span class="k">pass</span>
 
+<span class="k">def</span> <span class="nf">check_enough_data</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">)</span>
+        <span class="n">tot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="n">tot</span> <span class="o">+=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">tot</span> <span class="o">&lt;</span> <span class="n">num_samples</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only </span><span class="si">%r</span><span class="s2"> samples in </span><span class="si">%r</span><span class="s2"> but requested </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tot</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">num_samples</span><span class="p">))</span>
+    
 
 <div class="viewcode-block" id="make_datasets"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.pandas_to_numpy.make_datasets">[docs]</a><span class="k">def</span> <span class="nf">make_datasets</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                   <span class="n">num_processes</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sort_on</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sort_ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -496,13 +517,16 @@
 <span class="sd">        &#39;&#39;&#39;</span>
     <span class="n">sources</span> <span class="o">=</span> <span class="p">[</span><span class="n">_checkDir</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;MB&quot;</span> <span class="ow">in</span> <span class="n">size</span><span class="p">):</span>
-        <span class="n">megabytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
-        <span class="n">stride</span> <span class="o">=</span> <span class="n">strideFromTargetSize</span><span class="p">(</span><span class="n">rows_per_event</span><span class="o">=</span><span class="n">DEFAULT_RPE</span><span class="p">,</span> <span class="n">observ_types</span><span class="o">=</span><span class="n">DEFAULT_OBSERVS</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="n">megabytes</span><span class="p">)</span>
+    <span class="n">check_enough_data</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span><span class="n">num_samples</span><span class="p">)</span>
+    
+    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span> <span class="p">,</span><span class="n">string_types</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;MB&quot;</span> <span class="ow">in</span> <span class="n">size</span><span class="p">):</span>
+            <span class="n">megabytes</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+            <span class="n">stride</span> <span class="o">=</span> <span class="n">strideFromTargetSize</span><span class="p">(</span><span class="n">rows_per_event</span><span class="o">=</span><span class="n">DEFAULT_RPE</span><span class="p">,</span> <span class="n">observ_types</span><span class="o">=</span><span class="n">DEFAULT_OBSERVS</span><span class="p">,</span> <span class="n">megabytes</span><span class="o">=</span><span class="n">megabytes</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+&#39;</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
-    <span class="c1">#print(&quot;STRIDE&quot;, stride)</span>
-    <span class="c1">#print(splitsFromVal(v_split, num_samples))</span>
+        <span class="n">stride</span> <span class="o">=</span> <span class="n">size</span>
     <span class="n">SNs</span> <span class="o">=</span> <span class="n">set_range_from_splits</span><span class="p">(</span><span class="n">splitsFromVal</span><span class="p">(</span><span class="n">v_split</span><span class="p">,</span> <span class="n">num_samples</span><span class="p">),</span> <span class="n">num_samples</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)):</span>
@@ -517,7 +541,6 @@
 
         <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder</span><span class="p">)):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">order_of_mag</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">stride</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)),</span> <span class="mi">3</span><span class="p">)</span>
         <span class="n">end</span> <span class="o">=</span> <span class="n">sn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">sn</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">sn</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">end</span><span class="p">,</span> <span class="n">stride</span><span class="p">)):</span>
@@ -531,7 +554,6 @@
     <span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">jobs</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">kargs</span><span class="p">,</span> <span class="n">dest</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="n">pandas_to_numpy</span><span class="p">(</span><span class="o">**</span><span class="n">kargs</span><span class="p">)</span>
-            <span class="c1"># print(x.shape)</span>
             <span class="n">h5f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">D</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">,</span> <span class="s2">&quot;Labels&quot;</span><span class="p">,</span> <span class="s2">&quot;HLF&quot;</span><span class="p">]):</span>
                 <span class="n">h5f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">D</span><span class="p">)</span>
@@ -541,9 +563,7 @@
     <span class="n">num_processes</span> <span class="o">=</span> <span class="n">num_processes</span>
     <span class="n">processes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">splits</span> <span class="o">=</span> <span class="p">[</span><span class="n">jobs</span><span class="p">[</span><span class="n">i</span><span class="p">::</span><span class="n">num_processes</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">splits</span><span class="p">)</span>
     <span class="n">samples_per_process</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">num_samples</span> <span class="o">/</span> <span class="n">num_processes</span><span class="p">)</span>
-    <span class="c1"># np.array_split(jobs, num_processes)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Thread </span><span class="si">%r</span><span class="s2"> Started&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">sublist</span><span class="p">)</span>
@@ -551,7 +571,6 @@
         <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
         <span class="n">sleep</span><span class="p">(</span><span class="o">.</span><span class="mi">001</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="c1"># print(&quot;SPLIT&quot;, splits[0])</span>
         <span class="n">f</span><span class="p">(</span><span class="n">splits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">processes</span><span class="p">:</span>
