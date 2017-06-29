@@ -1,0 +1,351 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Postprocessing Example &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="CMS_Deep_Learning.utils package" href="utils.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Postprocessing Example</a><ul>
+<li><a class="reference internal" href="#add-directory-containing-cms-deep-learning-repo-to-the-sys-path-repo-docs">Add directory containing CMS_Deep_Learning repo to the sys path. repo docs</a></li>
+<li><a class="reference internal" href="#import-stuff">Import stuff</a></li>
+<li><a class="reference internal" href="#we-will-make-plots-from-a-subset-of-the-data-data-here-on-the-culture-plate-machine">We will make plots from a subset of the data data here on the culture-plate machine</a></li>
+<li><a class="reference internal" href="#plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data">Plot a ROC Curve with plot_roc_curve (be patient, it takes a long time to grab the data)</a></li>
+<li><a class="reference internal" href="#plot-the-same-roc-curve-quickly-by-using-the-precomputed-data-outputed-in-the-previous-cell-these-ploting-functions-are-very-dynamic-you-can-input-file-paths-data-precomputed-values-and-more">Plot The same ROC curve quickly by using the precomputed data outputed in the previous cell. These ploting functions are very dynamic. You can input file paths, data, precomputed values and more.</a></li>
+<li><a class="reference internal" href="#use-plot-dual-roc-to-also-plot-logscale">Use plot_dual_roc to also plot logscale</a></li>
+<li><a class="reference internal" href="#different-formatting-options-availiable">Different formatting options availiable…</a></li>
+<li><a class="reference internal" href="#use-build-accumilator-to-define-some-characteristic-to-use-for-binning-the-accumilator-is-a-functional-that-maps-the-data-to-a-characteristic-then-use-bin-metric-vs-char-to-make-the-bins-although-certain-features-can-be-grabbed-without-an-accumilator-from-the-hlf-collection">Use build_accumilator to define some characteristic to use for binning. The accumilator is a functional that maps the data to a characteristic. Then use bin_metric_vs_char to make the bins. Although certain features can be grabbed without an accumilator from the HLF collection.</a></li>
+<li><a class="reference internal" href="#use-plot-bins-and-choose-a-y-value-for-the-plot">Use plot_bins and choose a y_value for the plot.</a></li>
+<li><a class="reference internal" href="#make-histograms">Make histograms</a></li>
+<li><a class="reference internal" href="#using-the-inputhandler-class-to-simplify-grabbing-data">Using the inputHandler class to simplify grabbing data</a></li>
+<li><a class="reference internal" href="#using-this-to-find-the-confusion-matrix-for-the-classifier">Using this to find the confusion matrix for the classifier</a></li>
+<li><a class="reference internal" href="#and-of-course-feel-free-to-copy-paste-anything-in-the-repository-into-your-own-notebooks-so-that-you-have-more-control-over-the-plots-also-pull-requests-are-encouraged-cheers-danny-dannyweitekamp-gmail-com">And of course feel free to copy paste anything in the repository into your own notebooks so that you have more control over the plots. Also pull requests are encouraged… Cheers, Danny (dannyweitekamp&#64;gmail.com)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="utils.html"
+                        title="previous chapter">CMS_Deep_Learning.utils package</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/postprocessing_example.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="postprocessing-example">
+<h1>Postprocessing Example<a class="headerlink" href="#postprocessing-example" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="add-directory-containing-cms-deep-learning-repo-to-the-sys-path-repo-docs">
+<h2>Add directory containing CMS_Deep_Learning repo to the sys path. <a class="reference external" href="https://github.com/DannyWeitekamp/CMS_Deep_Learning/">repo</a> <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/index.html">docs</a><a class="headerlink" href="#add-directory-containing-cms-deep-learning-repo-to-the-sys-path-repo-docs" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="s2">&quot;/data/shared/Software/&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="import-stuff">
+<h2>Import stuff<a class="headerlink" href="#import-stuff" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.postprocessing.plot</span> <span class="k">import</span> \
+            <span class="n">plot_roc_curve</span><span class="p">,</span><span class="n">plot_dual_roc</span><span class="p">,</span><span class="n">plot_bins</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.postprocessing.metrics</span> <span class="k">import</span> \
+            <span class="n">build_accumilator</span><span class="p">,</span><span class="n">bin_metric_vs_char</span><span class="p">,</span><span class="n">get_roc_data</span><span class="p">,</span><span class="n">get_roc_points</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DELPHES_DIR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/bigdata/shared/Delphes&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="we-will-make-plots-from-a-subset-of-the-data-data-here-on-the-culture-plate-machine">
+<h2>We will make plots from a subset of the data data here on the culture-plate machine<a class="headerlink" href="#we-will-make-plots-from-a-subset-of-the-data-data-here-on-the-culture-plate-machine" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">dirr</span> <span class="o">=</span> <span class="s1">&#39;/bigdata/shared/Delphes/postproc_ex&#39;</span>
+<span class="n">data_subset</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">dirr</span><span class="o">+</span><span class="s2">&quot;/val/*.h5&quot;</span><span class="p">)[:</span><span class="mi">5</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data">
+<h2>Plot a ROC Curve with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_bins">plot_roc_curve</a> (be patient, it takes a long time to grab the data)<a class="headerlink" href="#plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">_</span><span class="p">,</span><span class="n">roc_dicts</span> <span class="o">=</span> <span class="n">plot_roc_curve</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MaxLepDeltaR&quot;</span><span class="p">,</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
+               <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
+               <span class="n">data</span><span class="o">=</span> <span class="n">data_subset</span><span class="p">,</span>
+               <span class="n">true_class_index</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Using</span> <span class="n">Theano</span> <span class="n">backend</span><span class="o">.</span>
+<span class="n">Using</span> <span class="n">cuDNN</span> <span class="n">version</span> <span class="mi">5105</span> <span class="n">on</span> <span class="n">context</span> <span class="kc">None</span>
+<span class="n">Mapped</span> <span class="n">name</span> <span class="kc">None</span> <span class="n">to</span> <span class="n">device</span> <span class="n">cuda</span><span class="p">:</span> <span class="n">GeForce</span> <span class="n">GTX</span> <span class="mi">1080</span> <span class="p">(</span><span class="mi">0000</span><span class="p">:</span><span class="mi">04</span><span class="p">:</span><span class="mf">00.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_8_1.png" src="_images/postprocessing_example_8_1.png" />
+</div>
+<div class="section" id="plot-the-same-roc-curve-quickly-by-using-the-precomputed-data-outputed-in-the-previous-cell-these-ploting-functions-are-very-dynamic-you-can-input-file-paths-data-precomputed-values-and-more">
+<h2>Plot The same ROC curve quickly by using the precomputed data outputed in the previous cell. These ploting functions are very dynamic. You can input file paths, data, precomputed values and more.<a class="headerlink" href="#plot-the-same-roc-curve-quickly-by-using-the-precomputed-data-outputed-in-the-previous-cell-these-ploting-functions-are-very-dynamic-you-can-input-file-paths-data-precomputed-values-and-more" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_roc_curve</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_10_0.png" src="_images/postprocessing_example_10_0.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="p">[{</span><span class="s1">&#39;ROC_data&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">array</span><span class="p">([</span> <span class="mf">0.</span>       <span class="p">,</span>  <span class="mf">0.</span>       <span class="p">,</span>  <span class="mf">0.</span>       <span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.9920078</span><span class="p">,</span>  <span class="mf">0.9920078</span><span class="p">,</span>  <span class="mf">1.</span>       <span class="p">]),</span>
+    <span class="n">array</span><span class="p">([</span>  <span class="mf">1.94931774e-04</span><span class="p">,</span>   <span class="mf">8.18713450e-03</span><span class="p">,</span>   <span class="mf">8.57699805e-03</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>
+             <span class="mf">9.99805068e-01</span><span class="p">,</span>   <span class="mf">1.00000000e+00</span><span class="p">,</span>   <span class="mf">1.00000000e+00</span><span class="p">]),</span>
+    <span class="n">array</span><span class="p">([</span> <span class="mf">0.99317235</span><span class="p">,</span>  <span class="mf">0.98881078</span><span class="p">,</span>  <span class="mf">0.98872644</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.00269945</span><span class="p">,</span>
+            <span class="mf">0.00269297</span><span class="p">,</span>  <span class="mf">0.00120263</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">float32</span><span class="p">),</span>
+    <span class="mf">0.94275604269499824</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;MaxLepDeltaR&#39;</span><span class="p">}])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-plot-dual-roc-to-also-plot-logscale">
+<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_dual_roc">plot_dual_roc</a> to also plot logscale<a class="headerlink" href="#use-plot-dual-roc-to-also-plot-logscale" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="p">,</span> <span class="n">roc_dicts</span> <span class="o">=</span> <span class="n">plot_dual_roc</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MaxLepDeltaR&quot;</span><span class="p">,</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
+               <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
+               <span class="n">data</span><span class="o">=</span> <span class="n">data_subset</span><span class="p">,</span><span class="c1">#dirr +&quot;/val&quot;,</span>
+               <span class="n">true_class_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">flipped</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$ vs. W-jets &amp; QCD&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">dist</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">matplotlib</span><span class="o">/</span><span class="n">font_manager</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">1288</span><span class="p">:</span> <span class="ne">UserWarning</span><span class="p">:</span> <span class="n">findfont</span><span class="p">:</span> <span class="n">Font</span> <span class="n">family</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;sans-serif&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="n">found</span><span class="o">.</span> <span class="n">Falling</span> <span class="n">back</span> <span class="n">to</span> <span class="n">Bitstream</span> <span class="n">Vera</span> <span class="n">Sans</span>
+  <span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">get_family</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaultFamily</span><span class="p">[</span><span class="n">fontext</span><span class="p">]))</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_12_1.png" src="_images/postprocessing_example_12_1.png" />
+</div>
+<div class="section" id="different-formatting-options-availiable">
+<h2>Different formatting options availiable…<a class="headerlink" href="#different-formatting-options-availiable" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_dual_roc</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">,</span><span class="n">flipped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$ vs. W-jets &amp; QCD&#39;</span><span class="p">)</span>
+<span class="n">plot_dual_roc</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">,</span><span class="n">flipped</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$ vs. W-jets &amp; QCD&#39;</span><span class="p">)</span>
+<span class="n">plot_dual_roc</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">,</span><span class="n">flipped</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$ vs. W-jets &amp; QCD&#39;</span><span class="p">)</span>
+<span class="n">plot_dual_roc</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">,</span><span class="n">flipped</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">invertCont</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$ vs. W-jets &amp; QCD&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span><span class="p">,</span>
+ <span class="p">[{</span><span class="s1">&#39;ROC_data&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">array</span><span class="p">([</span> <span class="mf">0.</span>       <span class="p">,</span>  <span class="mf">0.</span>       <span class="p">,</span>  <span class="mf">0.</span>       <span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.9920078</span><span class="p">,</span>  <span class="mf">0.9920078</span><span class="p">,</span>  <span class="mf">1.</span>       <span class="p">]),</span>
+    <span class="n">array</span><span class="p">([</span>  <span class="mf">1.94931774e-04</span><span class="p">,</span>   <span class="mf">8.18713450e-03</span><span class="p">,</span>   <span class="mf">8.57699805e-03</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>
+             <span class="mf">9.99805068e-01</span><span class="p">,</span>   <span class="mf">1.00000000e+00</span><span class="p">,</span>   <span class="mf">1.00000000e+00</span><span class="p">]),</span>
+    <span class="n">array</span><span class="p">([</span> <span class="mf">0.99317235</span><span class="p">,</span>  <span class="mf">0.98881078</span><span class="p">,</span>  <span class="mf">0.98872644</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span>  <span class="mf">0.00269945</span><span class="p">,</span>
+            <span class="mf">0.00269297</span><span class="p">,</span>  <span class="mf">0.00120263</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">float32</span><span class="p">),</span>
+    <span class="mf">0.94275604269499824</span><span class="p">),</span>
+   <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;MaxLepDeltaR&#39;</span><span class="p">}])</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_14_1.png" src="_images/postprocessing_example_14_1.png" />
+<img alt="_images/postprocessing_example_14_2.png" src="_images/postprocessing_example_14_2.png" />
+<img alt="_images/postprocessing_example_14_3.png" src="_images/postprocessing_example_14_3.png" />
+<img alt="_images/postprocessing_example_14_4.png" src="_images/postprocessing_example_14_4.png" />
+<p>## Use
+<a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.get_roc_points">get_roc_points</a>
+to determine the efficiency (tpr) and contamination (fpr) for various
+thresholds</p>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">get_roc_points</span><span class="p">(</span><span class="n">roc_dicts</span><span class="p">,</span> <span class="n">tpr</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">9</span><span class="p">,</span><span class="o">.</span><span class="mi">95</span><span class="p">,</span><span class="o">.</span><span class="mi">8</span><span class="p">],</span> <span class="n">fpr</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">1</span><span class="p">],</span> <span class="n">thresh</span><span class="o">=</span><span class="p">[</span><span class="o">.</span><span class="mi">33</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;tpr&quot;</span><span class="p">,</span><span class="s2">&quot;fpr&quot;</span><span class="p">,</span> <span class="s2">&quot;thresh&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>        <span class="n">tpr</span>       <span class="n">fpr</span>    <span class="n">thresh</span>
+<span class="mi">0</span>  <span class="mf">0.849708</span>  <span class="mf">0.100097</span>  <span class="mf">0.437413</span>
+<span class="mi">1</span>  <span class="mf">0.900000</span>  <span class="mf">0.158772</span>  <span class="mf">0.282033</span>
+<span class="mi">2</span>  <span class="mf">0.949903</span>  <span class="mf">0.304581</span>  <span class="mf">0.117821</span>
+<span class="mi">3</span>  <span class="mf">0.800000</span>  <span class="mf">0.067154</span>  <span class="mf">0.565565</span>
+<span class="mi">4</span>  <span class="mf">0.887524</span>  <span class="mf">0.137817</span>  <span class="mf">0.329983</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-build-accumilator-to-define-some-characteristic-to-use-for-binning-the-accumilator-is-a-functional-that-maps-the-data-to-a-characteristic-then-use-bin-metric-vs-char-to-make-the-bins-although-certain-features-can-be-grabbed-without-an-accumilator-from-the-hlf-collection">
+<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.build_accumilator">build_accumilator</a> to define some characteristic to use for binning. The accumilator is a functional that maps the data to a characteristic. Then use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">bin_metric_vs_char</a> to make the bins. Although certain features can be grabbed without an accumilator from the HLF collection.<a class="headerlink" href="#use-build-accumilator-to-define-some-characteristic-to-use-for-binning-the-accumilator-is-a-functional-that-maps-the-data-to-a-characteristic-then-use-bin-metric-vs-char-to-make-the-bins-although-certain-features-can-be-grabbed-without-an-accumilator-from-the-hlf-collection" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">accum</span> <span class="o">=</span> <span class="n">build_accumilator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="s2">&quot;PT_ET&quot;</span><span class="p">,[{</span><span class="s2">&quot;ObjFt1&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;ObjFt2&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span><span class="s2">&quot;ObjFt3&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;ObjFt1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;ObjFt2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="s2">&quot;ObjFt3&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">}])</span>
+<span class="n">my_bins</span> <span class="o">=</span> <span class="n">bin_metric_vs_char</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
+               <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
+               <span class="n">data</span><span class="o">=</span><span class="n">data_subset</span><span class="p">,</span><span class="c1">#dirr +&quot;/val&quot;,</span>
+                <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">,</span><span class="n">true_class_index</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">dist</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">_methods</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">82</span><span class="p">:</span> <span class="ne">RuntimeWarning</span><span class="p">:</span> <span class="n">Degrees</span> <span class="n">of</span> <span class="n">freedom</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="nb">slice</span>
+  <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Degrees of freedom &lt;= 0 for slice&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+<span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">dist</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">_methods</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">59</span><span class="p">:</span> <span class="ne">RuntimeWarning</span><span class="p">:</span> <span class="n">Mean</span> <span class="n">of</span> <span class="n">empty</span> <span class="nb">slice</span><span class="o">.</span>
+  <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Mean of empty slice.&quot;</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-plot-bins-and-choose-a-y-value-for-the-plot">
+<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_bins">plot_bins</a> and choose a y_value for the plot.<a class="headerlink" href="#use-plot-bins-and-choose-a-y-value-for-the-plot" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins</span><span class="p">,</span><span class="n">y_val</span><span class="o">=</span><span class="s1">&#39;tpr&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">)</span>
+<span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins</span><span class="p">,</span><span class="n">y_val</span><span class="o">=</span><span class="s1">&#39;acc&#39;</span><span class="p">,</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;scatter&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">dist</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">matplotlib</span><span class="o">/</span><span class="n">axes</span><span class="o">/</span><span class="n">_axes</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">531</span><span class="p">:</span> <span class="ne">UserWarning</span><span class="p">:</span> <span class="n">No</span> <span class="n">labelled</span> <span class="n">objects</span> <span class="n">found</span><span class="o">.</span> <span class="n">Use</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;...&#39;</span> <span class="n">kwarg</span> <span class="n">on</span> <span class="n">individual</span> <span class="n">plots</span><span class="o">.</span>
+  <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No labelled objects found. &quot;</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_20_1.png" src="_images/postprocessing_example_20_1.png" />
+<img alt="_images/postprocessing_example_20_2.png" src="_images/postprocessing_example_20_2.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="make-histograms">
+<h2>Make histograms<a class="headerlink" href="#make-histograms" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">label_indices</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;QCD&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;W+jets&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<span class="n">my_bins2</span> <span class="o">=</span> <span class="n">bin_metric_vs_char</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
+               <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
+               <span class="n">data</span><span class="o">=</span><span class="n">data_subset</span><span class="p">,</span>
+                <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">,</span><span class="n">true_class_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span>
+          <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;arg_max&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">binLabels</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">250</span><span class="p">)</span>
+         <span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_23_0.png" src="_images/postprocessing_example_23_0.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;arg_max&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">binLabels</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
+          <span class="n">stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_24_0.png" src="_images/postprocessing_example_24_0.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-the-inputhandler-class-to-simplify-grabbing-data">
+<h2>Using the <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.storage.input_handler.inputHandler">inputHandler</a> class to simplify grabbing data<a class="headerlink" href="#using-the-inputhandler-class-to-simplify-grabbing-data" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.input_handler</span> <span class="k">import</span> <span class="n">inputHandler</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">inputHandler</span><span class="p">([</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="s1">&#39;predictions&#39;</span><span class="p">])</span>
+<span class="n">y</span><span class="p">,</span><span class="n">pred</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
+               <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
+               <span class="n">data</span><span class="o">=</span><span class="n">data_subset</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-this-to-find-the-confusion-matrix-for-the-classifier">
+<h2>Using this to find the confusion matrix for the classifier<a class="headerlink" href="#using-this-to-find-the-confusion-matrix-for-the-classifier" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">confusion_matrix</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">confusion_matrix</span><span class="p">(</span><span class="n">_y</span><span class="p">,</span> <span class="n">_pred</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[</span><span class="mi">4771</span>  <span class="mi">337</span>   <span class="mi">22</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mi">357</span> <span class="mi">4261</span>  <span class="mi">512</span><span class="p">]</span>
+ <span class="p">[</span>  <span class="mi">82</span>  <span class="mi">533</span> <span class="mi">4515</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="and-of-course-feel-free-to-copy-paste-anything-in-the-repository-into-your-own-notebooks-so-that-you-have-more-control-over-the-plots-also-pull-requests-are-encouraged-cheers-danny-dannyweitekamp-gmail-com">
+<h2>And of course feel free to copy paste anything in the repository into your own notebooks so that you have more control over the plots. Also pull requests are encouraged… Cheers, Danny (<a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a>)<a class="headerlink" href="#and-of-course-feel-free-to-copy-paste-anything-in-the-repository-into-your-own-notebooks-so-that-you-have-more-control-over-the-plots-also-pull-requests-are-encouraged-cheers-danny-dannyweitekamp-gmail-com" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>
