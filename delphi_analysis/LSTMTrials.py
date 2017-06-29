@@ -127,19 +127,7 @@ def build_trial(name,
     trial.write()
 
     trial.to_record({k:kargs[k] for k in keys_to_record})
-    # trial.to_record({"labels": labels,
-    #                  "depth": depth,
-    #                  "sort_on": sort_on,
-    #                  "sort_ascending": sort_ascending,
-    #                  "activation": activation_name,
-    #                  "dropout": dropout,
-    #                  "lstm_dropout": lstm_dropout,
-    #                  "patience": patience,
-    #                  "single_list": single_list,
-    #                  # "useObjTypeColumn": True,
-    #                  "output_activation": output_activation
-    #                  # "Non_MPI" :True
-    #                  })
+    return  trial
 
 def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets', processes=1):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import make_datasets
