@@ -1,5 +1,6 @@
 from CMS_Deep_Learning.storage.iterators import DataIterator,TrialIterator
 from CMS_Deep_Learning.storage.archiving import KerasTrial
+from six import string_types
 import numpy as np
 
 REQ_DICT = {"predictions": [['trial'], ['model', 'data'], ['model', 'X']],
@@ -20,7 +21,7 @@ def assertModel(model, weights=None, loss='categorical_crossentropy', optimizer=
     if (loss == None): loss = 'categorical_crossentropy'
     if (optimizer == None): optimizer = 'rmsprop'
 
-    if (isinstance(model, str)):
+    if (isinstance(model, string_types)):
         if (os.path.exists(model)):
             model_str = open(model, "r").read()
         else:
@@ -30,7 +31,7 @@ def assertModel(model, weights=None, loss='categorical_crossentropy', optimizer=
     if not hasattr(model, 'test_function'):
         if (isinstance(weights, type(None))):
             raise ValueError("Cannot compile without weights")
-        if (isinstance(weights, str) and os.path.exists(weights)):
+        if (isinstance(weights, string_types) and os.path.exists(weights)):
             model.load_weights(weights)
         else:
             model.set_weights(weights)

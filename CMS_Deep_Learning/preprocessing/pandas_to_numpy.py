@@ -1,4 +1,5 @@
 import sys,os
+from six import string_types
 if __package__ is None:
     #sys.path.append(os.path.realpath("../"))
     sys.path.append(os.path.realpath(__file__+"/../../../"))
@@ -172,12 +173,12 @@ def _sortBy(x, sorts, sort_ascending):
 def sort_numpy(x, sort_columns, sort_ascending, observ_types):
     '''Helper Function - pads the data and sorts it'''
     sort_locs = None
-    assert not isinstance(sort_columns, str), "sort_columns improperly stored"
+    assert not isinstance(sort_columns, string_types), "sort_columns improperly stored"
     if (sort_columns != None):
         if (True in [c in sort_columns for c in ["shuffle", "random"]]):
             np.random.shuffle(x)
         elif (not None in sort_columns):
-            assert not False in [isinstance(s, str) or isinstance(s, unicode) for s in sort_columns], \
+            assert not False in [isinstance(s, string_types) for s in sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in sort_columns]))
             locs = {t: s for s, t in enumerate(observ_types)}
             sorts = [locs[s] if s in observ_types else resolveMetric(s, locs, sort_ascending)
@@ -448,7 +449,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
 
     check_enough_data(sources,num_samples)
     
-    if(isinstance(size ,str)):
+    if(isinstance(size ,string_types)):
         if ("MB" in size):
             megabytes = int(re.search(r'\d+', size).group())
             stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)

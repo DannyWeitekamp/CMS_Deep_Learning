@@ -7,6 +7,7 @@ import time
 
 import numpy as np
 import pandas as pd
+from six import string_types
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure,read_json_obj,write_json_obj
 from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
@@ -867,11 +868,11 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1)
         :returns: a generator that runs through the given data
     '''
     from CMS_Deep_Learning.storage.iterators import retrieveData
-    if(isinstance(lst,str) and os.path.isdir(lst)):
+    if(isinstance(lst,string_types) and os.path.isdir(lst)):
         lst = glob.glob(os.path.abspath(lst) +"/*.h5")
-    if (isinstance(lst, DataProcedure) or isinstance(lst,str)): lst = [lst]
+    if (isinstance(lst, DataProcedure) or isinstance(lst,string_types)): lst = [lst]
     for d in lst:
-        if(not isinstance(d, DataProcedure) and not (isinstance(d,str) and os.path.exists(d))):
+        if(not isinstance(d, DataProcedure) and not (isinstance(d,string_types) and os.path.exists(d))):
             raise TypeError("list element expected path or DataProcedure but got %r" % type(d))
             
     while True:

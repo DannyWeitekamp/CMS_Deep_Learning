@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 import glob
 import itertools
+from six import string_types
 from CMS_Deep_Learning.storage.archiving import DataProcedure
 
 if (sys.version_info[0] > 2):
@@ -41,7 +42,7 @@ def retrieveData(data, data_keys, just_length=False, verbose=0):
         '''
     if (isinstance(data, DataProcedure)):
         return data.get_data(data_keys=data_keys, verbose=verbose)
-    elif (isinstance(data, str)):
+    elif (isinstance(data, string_types)):
         h5_file = h5py.File(os.path.abspath(data), 'r')
         out = []
         for data_key in data_keys:
@@ -119,7 +120,7 @@ class DataIterator:
                            for key in self.union_keys]
 
         # Peek at the first part of the data
-        if (isinstance(data[0], DataProcedure) or isinstance(data[0], str)):
+        if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
             first_data = retrieveData(data[0], self.union_keys)
         else:
             first_data = data[0]
@@ -147,7 +148,7 @@ class DataIterator:
 
     def _assert_raw(self, d, verbose=0):
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
-        if (isinstance(d, DataProcedure) or isinstance(d, str)):
+        if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
             d = retrieveData(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
         else:
             d = tuple([d[x] for x in self.subset_ind])

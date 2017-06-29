@@ -1,5 +1,5 @@
 import sys,types,os,glob
-
+from six import string_types
 if __package__ is None:
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
@@ -59,7 +59,7 @@ def _readNumSamples(file_path):
 
 def assert_dataset(data, nb_data=None, as_generator=False,**kargs):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import getSizeMetaData,getSizesDict
-    if(isinstance(data, str)):
+    if(isinstance(data, string_types)):
         data = glob.glob(os.path.abspath(data) + "/*.h5")
     data_dir = data[0].split("/")[-2]
     sizesDict = getSizesDict(data_dir)
@@ -182,7 +182,7 @@ def trials_from_HPsweep(archive_dir,
             for depth in [1]:
                 
                 for activation in ['tanh']:
-                    activation_name = activation if isinstance(activation, str) \
+                    activation_name = activation if isinstance(activation, string_types) \
                         else activation.__name__
                     for lstm_dropout in [0.0]:
                         for dropout in [0.0]:
