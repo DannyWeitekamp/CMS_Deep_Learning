@@ -1,7 +1,6 @@
-import sys
+import sys,types,os
 
 if __package__ is None:
-    import sys, os
     sys.path.append(os.path.realpath("/data/shared/Software/"))
     sys.path.append(os.path.realpath("../"))
 print(sys.path)
@@ -25,58 +24,137 @@ from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking
 from keras.callbacks import EarlyStopping
 
 
-#The observables taken from the table
-DEFAULT_OBSV_TYPES = ['E/c', 'Px', 'Py', 'Pz', 'PT_ET','Eta', 'Phi',
-                      "MaxLepDeltaEta", "MaxLepDeltaPhi",'MaxLepDeltaR', 'MaxLepKt', 'MaxLepAntiKt',
-                      "METDeltaEta","METDeltaPhi",'METDeltaR', 'METKt', 'METAntiKt',
-                      'Charge', 'X', 'Y', 'Z',
-                      'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso','NeuHadIso','GammaIso', "ObjFt1","ObjFt2","ObjFt3"]
-
-
-DEFAULT_LABEL_DIR_PAIRS = \
-            [   ("qcd", "$DELPHES_DIR/qcd_lepFilter/pandas_h5/"),
-                ("ttbar", "$DELPHES_DIR/ttbar_lepFilter/pandas_h5/"),
-                ("wjet", "$DELPHES_DIR/wjets_lepFilter/pandas_h5/")
-
-            ]
-def genModel(name,object_profiles,out_dim, depth, vecsize
-            ,lstm_activation="relu", lstm_dropout = 0.0, dropout=0.0,output_activation="softmax", single_list=False):
+def build_LSTM_model(name, input_width,out_width, depth, lstm_activation="tanh", lstm_dropout = 0.0,
+                     dropout=0.0, output_activation="softmax", single_list=False, **kargs):
     inputs = []
-    if(single_list):
-        a = Input(shape=(sum([p.max_size for p in object_profiles]) , vecsize), name="input")
-        inputs.append(a)
-    else:
-        mergelist = []
-        for i, profile in enumerate(object_profiles):
-            inp = a = Input(shape=(profile.max_size , vecsize), name="input_" + str(i))
-            inputs.append(inp)
-            mergelist.append(a)
-        a = merge(mergelist, mode='concat', concat_axis=1, name="merge")
+    a = Input(shape=(None , input_width), name="input")
+    inputs.append(a)
     for i in range(depth):
         a = Masking(mask_value=0.0)(a)
-        a = LSTM(vecsize,
-                 input_shape=(None,vecsize),
+        a = LSTM(input_width,
+                 input_shape=(None, input_width),
                  dropout_W=lstm_dropout,
                  dropout_U=lstm_dropout,
                  activation=lstm_activation,
                  name = "lstm_" +str(i))(a)
         if(dropout > 0.0):
             a =  Dropout(dropout, name="dropout_"+str(i))(a)
-    dense_out = Dense(out_dim, activation=output_activation, name='main_output')(a)
+    dense_out = Dense(out_width, activation=output_activation, name='main_output')(a)
     model = Model(input=inputs, output=dense_out, name=name)
     return model
 
-def runTrials(archive_dir,
+from CMS_Deep_Learning.preprocessing.pandas_to_numpy import PARTICLE_OBSERVS
+
+
+def assert_dataset(data, nb_data=None, as_generator=False,archive_dir=None):
+    from CMS_Deep_Learning.preprocessing.preprocessing import getSizeMetaData
+    if(isinstance(data, str)):
+        data = glob.glob(os.path.abspath(data) + "/*.h5")
+    data_dir = data[0].split("/")[-2]
+    sizesDict = getSizesDict(data_dir)
+    actual_amount = sum([getSizeMetaData(x, sizesDict=sizesDict) for x in data])
+    if(nb_data != None):
+        if(nb_data > actual_amount):
+            raise IOError("Not enough data in %r, requested %r"
+                " but there are only %r samples" % (data_dir, nb_data,actual_amount) )
+    else:
+        nb_data = actual_amount
+    if(as_generator):
+        from CMS_Deep_Learning.preprocessing.preprocessing import gen_from_data
+        data = DataProcedure(archive_dir,False,func=gen_from_data, args=data)
+    return data, nb_data
+    
+
+def build_trial(name,
+                model,
+                train,
+                val,
+                archive_dir=None,
+                nb_train=None,
+                nb_val=None,
+                workers=1,
+                loss='categorical_crossentropy',
+                optimizer= 'rmsprop',
+                metrics = ['accuracy'],
+                nb_epoch=10,
+                callbacks=None,
+                max_q_size=100,
+                keys_to_record = [],
+                **kargs):
+    if isinstance(model, types.FunctionType):
+        model = model(**kargs)
+    if (workers == 1):
+        trial = KerasTrial(archive_dir, name=name, model=model, seed=0)
+        val, nb_val = assert_dataset(val, nb_data=nb_val, as_generator=True)
+        train, nb_train = assert_dataset(train, nb_train, as_generator=True)
+    else:
+        print("USING MPI")
+        p = "../../mpi_learn"
+        if not p in sys.path:
+            sys.path.append(p)
+        from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
+        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers, seed=0)
+        val, nb_val = assert_dataset(val, nb_data=nb_val)
+        train, nb_train = assert_dataset(train, nb_train)
+
+    
+    trial.set_train(train_procedure=train,  # train_dps,
+                    samples_per_epoch=nb_train
+                    )
+    trial.set_validation(val_procedure=val,  # val_dps,
+                         nb_val_samples=nb_val)
+
+    trial.set_compilation(loss=loss,
+                          optimizer=optimizer,
+                          metrics=metrics
+                          )
+
+    trial.set_fit_generator(
+        nb_epoch=nb_epoch,
+        callbacks=callbacks,
+        max_q_size=max_q_size)
+    trial.write()
+
+    trial.to_record({k:kargs[k] for k in keys_to_record})
+    # trial.to_record({"labels": labels,
+    #                  "depth": depth,
+    #                  "sort_on": sort_on,
+    #                  "sort_ascending": sort_ascending,
+    #                  "activation": activation_name,
+    #                  "dropout": dropout,
+    #                  "lstm_dropout": lstm_dropout,
+    #                  "patience": patience,
+    #                  "single_list": single_list,
+    #                  # "useObjTypeColumn": True,
+    #                  "output_activation": output_activation
+    #                  # "Non_MPI" :True
+    #                  })
+
+def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets', processes=1):
+    from CMS_Deep_Learning.preprocessing.pandas_to_numpy import make_datasets
+    dir = sort_on + '_' + 'asc' if sort_ascending else 'dec'
+    dir = os.path.abspath(dir)
+    if(not os.path.exists(dir)):
+        sources = ['/bigdata/shared/Delphes/REDUCED_IsoLep/ttbar_lepFilter_13TeV','/bigdata/shared/Delphes/REDUCED_IsoLep/wjets_lepFilter_13TeV']
+        make_datasets(sources, output_dir=dir, num_samples=120000, size=10000,
+                      num_processes=processes, sort_on=sort_on, sort_ascending=sort_ascending,
+                      v_split=20000, force=False)
+    return dir
+        
+
+# def assertDirectoryStruct(ldps, sort_on, sort_ascending):
+#     
+    
+    
+
+def trials_from_HPsweep(archive_dir,
               workers,
               batchProcesses,
               delphes_dir=None,
-              observ_types=DEFAULT_OBSV_TYPES,
-              label_dir_pairs=DEFAULT_LABEL_DIR_PAIRS,
+              data_dir=None,
               nb_epoch = 5,
               batch_size = 100,
               patience = 8,
-              num_val = 20000,
-              num_train = 60000,
               output_activation = "softmax",
               loss='categorical_crossentropy',
               optimizer_options = ['rmsprop'],
@@ -87,136 +165,65 @@ def runTrials(archive_dir,
                          # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
                          # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
-                single_list_options = [True]
               ):
-    if(delphes_dir == None):
-        split = list(archive_dir.split("/"))
-        split = split[:split.index("Delphes")+1]
-        delphes_dir = "/".join(split)
-        
-    os.environ["DELPHES_DIR"] = delphes_dir
-    vecsize = len(observ_types)
-    ldpsubsets = []#[sorted(list(s)) for s in findsubsets(label_dir_pairs)]
-    #Make sure that we do 3-way classification as well
-    ldpsubsets.append(sorted(label_dir_pairs))
-    #ldpsubsets = ldpsubsets[:1]
-    #archive_dir = "/data/shared/Delphes/keras_archive/"
-
+    # if(delphes_dir == None):
+    #     split = list(archive_dir.split("/"))
+    #     delphes_dir = "/".join( split[:split.index("Delphes")+1] )
+    #     
+    # os.environ["DELPHES_DIR"] = delphes_dir
+    # 
     earlyStopping = EarlyStopping(verbose=1, patience=patience)
-    trial_tups = []
     print(archive_dir, workers)
-    # Loop over all subsets
-    print(ldpsubsets)
-    for single_list in single_list_options:
-    	for sort_on, sort_ascending in sortings:
-            for ldp in ldpsubsets:
-                labels = [x[0] for x in ldp]
+    
+    labels = ['ttbar', 'wjets']
+    
+    trials = []
+    for sort_on, sort_ascending in sortings:
+        data_dir = assert_write_datasets(sort_on,sort_ascending)
+        for optimizer in optimizer_options:
+            for depth in [1]:
+                
+                for activation in ['tanh']:
+                    activation_name = activation if isinstance(activation, str) \
+                        else activation.__name__
+                    for lstm_dropout in [0.0]:
+                        for dropout in [0.0]:
+                            def f(**kargs):
+                                return kargs
+                            inps = f(name='LSTM', 
+                                     input_width=len(PARTICLE_OBSERVS),
+                                     out_width=2,
+                                     depth=1,
+                                     lstm_activation=activation,
+                                     lstm_dropout=lstm_dropout,
+                                     dropout=dropout,
+                                     model=model,
+                                     train=data_dir + "/train",
+                                     val=data_dir + "/val",
+                                     archive_dir=archive_dir,
+                                     workers=workers,
+                                     optimizer=optimizer,
+                                     nb_epoch=100, callbacks=[earlyStopping],
+                                     keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending',
+                                                     'activation', 'dropout', 'lstm_dropout',
+                                                     'patience'],
+                                     labels=labels,
+                                     )
+                            model = build_LSTM_model(inps)
+                            trial = build_trial(inps)
 
-                object_profiles = [
-                    # ObjectProfile("Photon", -1, pre_sort_columns=["PT_ET"], pre_sort_ascending=False, sort_columns=[sort_on], sort_ascending=False, addColumns={"ObjType":3}),
-                    ObjectProfile("EFlowPhoton", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": -1,"ObjFt3": -1}),
-                    ObjectProfile("EFlowNeutralHadron", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": -1,"ObjFt3": 1}),
-                    ObjectProfile("EFlowTrack", 100, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on], sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": 1,"ObjFt3": -1}),
-                    ObjectProfile("Electron", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on],
-                                  sort_ascending=sort_ascending, addColumns={"ObjFt1": -1, "ObjFt2": 1,"ObjFt3": 1}),
-                    ObjectProfile("MuonTight", 8, pre_sort_columns=["PT_ET"], pre_sort_ascending=False,
-                                  sort_columns=[sort_on],
-                                  sort_ascending=sort_ascending, addColumns={"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": -1}),
-                    ObjectProfile("MissingET", 1, addColumns={"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": 1}),]
+                            
+                            trials.append(trial)
+    return trials                            
+                            
 
-                #resolveProfileMaxes(object_profiles, ldp)
-                #print(archive_dir, (num_val, num_train), num_val+num_train, \
-                #                             object_profiles, ldp, observ_types,)
-		print(sort_on, labels, single_list)
-                dps, l = getGensDefaultFormat(archive_dir, (num_val, num_train), num_val+num_train, \
-                                              object_profiles, ldp, observ_types,
-                                              single_list=single_list, sort_columns=[sort_on], sort_ascending=sort_ascending,
-                                              batch_size=batch_size, megabytes=250,
-                                              data_keys= ["X","Y"],
-                                              dp_data_keys = ["X","Y","Jets", "EventChars"],
-                                              verbose=0)
-                print("HASH",dps[0].hash())
-                dependencies = batchAssertArchived(dps, batchProcesses)
-                val, _num_val = l[0]
-                train, _num_train = l[1]
-                max_q_size = l[2]
-
-                val_dps = val.args[0]
-                train_dps = train.args[0]
-
-                for name in ['LSTM']:
-                    for optimizer in optimizer_options:
-                        for depth in [1]:
-                            for activation in ['tanh']:
-                                for lstm_dropout in [0.0]:
-                                    for dropout in [0.0]:
-                                        activation_name = activation if isinstance(activation, str) \
-                                            else activation.__name__
-
-                                        model = genModel(name, object_profiles, len(labels), depth,vecsize, lstm_activation=activation,
-                                                         lstm_dropout=lstm_dropout,dropout=dropout, output_activation=output_activation,
-                                                        single_list=single_list)
-
-
-                                        if(workers == 1):
-                                            trial = KerasTrial(archive_dir, name=name, model=model,seed=0)
-                                            t,v= train,val
-                                        else:
-                                            print("USING MPI")
-                                            p = "../../mpi_learn"
-                                            if not p in sys.path:
-                                                sys.path.append(p)
-                                            from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
-                                            trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers,seed=0)
-                                            t,v= train_dps,val_dps
-
-
-                                        trial.set_train(train_procedure=t,  # train_dps,
-                                                        samples_per_epoch=_num_train
-                                                        )
-                                        trial.set_validation(val_procedure=v,  # val_dps,
-                                                             nb_val_samples=_num_val)
-
-                                        trial.set_compilation(loss=loss,
-                                                              optimizer=optimizer,
-                                                              metrics=['accuracy']
-                                                              )
-
-                                        trial.set_fit_generator(
-                                            nb_epoch=nb_epoch,
-                                            callbacks=[earlyStopping],
-                                            max_q_size=max_q_size)
-                                        trial.write()
-
-                                        trial_tups.append((trial, None, None, dependencies))
-
-                                        trial.to_record({"labels": labels,
-                                                         "depth": depth,
-                                                         "sort_on": sort_on,
-                                                         "sort_ascending": sort_ascending,
-                                                         "activation": activation_name,
-                                                         "dropout": dropout,
-                                                         "lstm_dropout": lstm_dropout,
-                                                         "query": None,
-                                                         "patience": patience,
-                                                         "single_list" : single_list,
-                                                         #"useObjTypeColumn": True,
-                                                         "output_activation": output_activation
-                                                         # "Non_MPI" :True
-                                                         })
-    # trial_tups[0][0].summary()
+                                    
+# trial_tups[0][0].summary()
     # trial_tups[0][0].execute()
-    for tup in trial_tups:
-        tup[0].summary()
-    for tup in trial_tups:
-        tup[0].summary()
-        tup[0].execute()
     #batchExecuteAndTestTrials(trial_tups, time_str="1:00:00", use_mpi=workers > 1)
     
 if __name__ == '__main__':
     argv = sys.argv
-    runTrials(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
+    trials = trials_from_HPsweep(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
+    for trial in trials:
+        trial.summary()
