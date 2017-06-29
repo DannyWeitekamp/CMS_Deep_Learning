@@ -46,6 +46,17 @@ def build_LSTM_model(name, input_width,out_width, depth, lstm_activation="tanh",
 from CMS_Deep_Learning.preprocessing.pandas_to_numpy import PARTICLE_OBSERVS
 
 
+def _readNumSamples(file_path):
+    import h5py
+    try:
+        f = h5py.File(file_path, 'r')
+        out = f["HLF"].len()
+    except IOError as e:
+        print("Something wrong with file %r" % file_path)
+        raise e
+    f.close()
+    return out
+
 def assert_dataset(data, nb_data=None, as_generator=False,archive_dir=None):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import getSizeMetaData,getSizesDict
     if(isinstance(data, str)):

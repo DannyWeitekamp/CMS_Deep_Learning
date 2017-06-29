@@ -99,8 +99,11 @@ def _check_inputs(data_dirs, observ_types):
 #--------------------------SIZE UTILS-------------------------------
 def _readNumSamples(file_path):
     try:
-        f = h5py.File(file_path, 'r')
-        out = f["HLF"]['axis1'].len()
+        f = d = h5py.File(file_path, 'r')
+        while not isinstance(d, h5py.Dataset):
+            keys = d.keys()
+            d = d['axis1' if 'axis1' in keys else keys[0]]
+        out = d.len()
     except IOError as e:
         print("Something wrong with file %r" % file_path)
         raise e
