@@ -96,8 +96,8 @@ def build_trial(name,
         model = model(**kargs)
     if (workers == 1):
         trial = KerasTrial(archive_dir, name=name, model=model, seed=0)
-        val, nb_val = assert_dataset(val, nb_data=nb_val, as_generator=True)
-        train, nb_train = assert_dataset(train, nb_train, as_generator=True)
+        val, nb_val = assert_dataset(val, nb_data=nb_val, as_generator=True,archive_dir=archive_dir)
+        train, nb_train = assert_dataset(train, nb_train, as_generator=True,archive_dir=archive_dir)
     else:
         print("USING MPI")
         p = "../../mpi_learn"
@@ -105,8 +105,8 @@ def build_trial(name,
             sys.path.append(p)
         from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
         trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers, seed=0)
-        val, nb_val = assert_dataset(val, nb_data=nb_val)
-        train, nb_train = assert_dataset(train, nb_train)
+        val, nb_val = assert_dataset(val, nb_data=nb_val,archive_dir=archive_dir)
+        train, nb_train = assert_dataset(train, nb_train,archive_dir=archive_dir)
 
     
     trial.set_train(train_procedure=train,  # train_dps,
@@ -162,7 +162,6 @@ def trials_from_HPsweep(archive_dir,
               workers,
               batchProcesses,
               delphes_dir=None,
-              data_dir=None,
               nb_epoch = 5,
               batch_size = 100,
               patience = 8,
