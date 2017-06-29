@@ -447,12 +447,15 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     sources = [_checkDir(s) for s in sources]
 
     check_enough_data(sources,num_samples)
-
-    if ("MB" in size):
-        megabytes = int(re.search(r'\d+', size).group())
-        stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)
+    
+    if(isinstance(size ,str)):
+        if ("MB" in size):
+            megabytes = int(re.search(r'\d+', size).group())
+            stride = strideFromTargetSize(rows_per_event=DEFAULT_RPE, observ_types=DEFAULT_OBSERVS, megabytes=megabytes)
+        else:
+            stride = int(re.search(r'\d+', size).group())
     else:
-        stride = int(re.search(r'\d+', size).group())
+        stride = size
     #print("STRIDE", stride)
     #print(splitsFromVal(v_split, num_samples))
     SNs = set_range_from_splits(splitsFromVal(v_split, num_samples), num_samples)
