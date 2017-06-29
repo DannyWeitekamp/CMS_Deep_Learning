@@ -208,9 +208,9 @@ def trials_from_HPsweep(archive_dir,
                                                      'patience'],
                                      labels=labels,
                                      )
-                            model = build_LSTM_model(inps)
+                            model = build_LSTM_model(**inps)
                             inps["model"] = model
-                            trial = build_trial(inps)
+                            trial = build_trial(**inps)
 
                             
                             trials.append(trial)
