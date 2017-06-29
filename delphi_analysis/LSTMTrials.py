@@ -197,7 +197,6 @@ def trials_from_HPsweep(archive_dir,
                                      lstm_activation=activation,
                                      lstm_dropout=lstm_dropout,
                                      dropout=dropout,
-                                     model=model,
                                      train=data_dir + "/train",
                                      val=data_dir + "/val",
                                      archive_dir=archive_dir,
@@ -210,6 +209,7 @@ def trials_from_HPsweep(archive_dir,
                                      labels=labels,
                                      )
                             model = build_LSTM_model(inps)
+                            inps["model"] = model
                             trial = build_trial(inps)
 
                             

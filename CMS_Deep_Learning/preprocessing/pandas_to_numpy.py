@@ -152,7 +152,7 @@ def resolveMetric(s, locs, sort_ascending):
         raise ValueError("Unrecognized sorting metric %r" % s)
 
 
-def _sortBy(x, sorts, sort_ascending):  # , observ_types,):
+def _sortBy(x, sorts, sort_ascending):  
     if (sorts != None):
         for s in reversed(sorts):
             if (isinstance(s, int)):
@@ -182,7 +182,7 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             # KLUGE FIX
             x[x[:, locs["Energy"]] == 0] = 0.0
             # Sort
-            x = _sortBy(x, sorts, sort_ascending)  # , observ_types)
+            x = _sortBy(x, sorts, sort_ascending)  
 
     return x
 #------------------------------------------------------------------
@@ -205,7 +205,6 @@ def MaxLepDeltaEta(X, locs, mlpep=None):
 
 def MaxLepDeltaR(X, locs, mlpep=None):
     mlpep = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
-    # print(mlpep)
     return np.sqrt(MaxLepDeltaPhi(X, locs, mlpep) ** 2 + MaxLepDeltaEta(X, locs, mlpep) ** 2)
 
 
@@ -269,7 +268,6 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
 
         last_time = time.clock() - 1.0
         count,last_count = 0,0
-        #print("FILES",files)
         # Loop the files associated with the current label
         for f in files:
             file_total_events = getSizeMetaData(f, sizesDict=sizesDict)  # len(num_val_frame.index)
@@ -377,7 +375,6 @@ def set_range_from_splits(splits, length):
         length -= s
     else:
         ratios = splits
-    print(ratios)
     if (len(ratios) > 0 and np.isclose(sum(ratios), 1.0) == False):
         raise ValueError("Sum of splits %r must equal 1.0" % sum(ratios))
 
@@ -456,8 +453,6 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
             stride = int(re.search(r'\d+', size).group())
     else:
         stride = size
-    #print("STRIDE", stride)
-    #print(splitsFromVal(v_split, num_samples))
     SNs = set_range_from_splits(splitsFromVal(v_split, num_samples), num_samples)
 
     if (not os.path.exists(output_dir)):
@@ -472,7 +467,6 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
 
         if (not os.path.exists(folder)):
             os.mkdir(folder)
-        print(sn[1])
         order_of_mag = max(int(math.log(sn[1] / stride + 1, 10)), 3)
         end = sn[0] + sn[1]
         for j, start in enumerate(range(sn[0], end, stride)):
@@ -486,7 +480,6 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     def f(jobs):
         for kargs, dest in jobs:
             x = pandas_to_numpy(**kargs)
-            # print(x.shape)
             h5f = h5py.File(dest, 'w')
             for D, key in zip(x, ["Particles", "Labels", "HLF"]):
                 h5f.create_dataset(key, data=D)
@@ -496,9 +489,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     num_processes = num_processes
     processes = []
     splits = [jobs[i::num_processes] for i in range(num_processes)]
-    print(splits)
     samples_per_process = np.ceil(num_samples / num_processes)
-    # np.array_split(jobs, num_processes)
     for i, sublist in enumerate(splits[1:]):
         print("Thread %r Started" % i)
         p = Process(target=f, args=sublist)
@@ -506,7 +497,6 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
         p.start()
         sleep(.001)
     try:
-        # print("SPLIT", splits[0])
         f(splits[0])
     except Exception as e:
         for p in processes:
