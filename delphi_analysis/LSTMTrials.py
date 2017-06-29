@@ -1,4 +1,4 @@
-import sys,types,os
+import sys,types,os,glob
 
 if __package__ is None:
     sys.path.append(os.path.realpath("/data/shared/Software/"))
@@ -14,8 +14,8 @@ print(sys.path)
 # from CMS_Deep_Learning.utils.deepconfig import deepconfig
 # deepconfig("cpu", backend="theano")
 
-from CMS_Deep_Learning.storage.batch import *
-from CMS_Deep_Learning.preprocessing.preprocessing import *
+from CMS_Deep_Learning.preprocessing.preprocessing import DataProcedure
+from CMS_Deep_Learning.storage.archiving import KerasTrial
 # from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
 
@@ -47,7 +47,7 @@ from CMS_Deep_Learning.preprocessing.pandas_to_numpy import PARTICLE_OBSERVS
 
 
 def assert_dataset(data, nb_data=None, as_generator=False,archive_dir=None):
-    from CMS_Deep_Learning.preprocessing.preprocessing import getSizeMetaData
+    from CMS_Deep_Learning.preprocessing.pandas_to_numpy import getSizeMetaData,getSizesDict
     if(isinstance(data, str)):
         data = glob.glob(os.path.abspath(data) + "/*.h5")
     data_dir = data[0].split("/")[-2]
