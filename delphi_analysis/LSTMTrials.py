@@ -132,7 +132,7 @@ def build_trial(name,
 
 def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets', processes=1):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import make_datasets
-    dir = sort_on + '_' + 'asc' if sort_ascending else 'dec'
+    dir = dataset_dir + sort_on + '_' + ('asc' if sort_ascending else 'dec')
     dir = os.path.abspath(dir)
     if(not os.path.exists(dir)):
         sources = ['/bigdata/shared/Delphes/REDUCED_IsoLep/ttbar_lepFilter_13TeV','/bigdata/shared/Delphes/REDUCED_IsoLep/wjets_lepFilter_13TeV']
