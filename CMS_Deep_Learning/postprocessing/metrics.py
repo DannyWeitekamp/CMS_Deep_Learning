@@ -83,7 +83,7 @@ def bin_metric_vs_char(args=[],
                         will be very unusual, varying significantly in their domain.
         :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
         :param plot: If True plot the bins automatically.
-        
+
         :Keyword Arguments:
         - **bins** (``list``) -- A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
         - **threshold** -- The threshold for the classifier for the 'true_class'
@@ -99,6 +99,8 @@ def bin_metric_vs_char(args=[],
 
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
+
+    from sklearn.metrics import confusion_matrix
     inputs = args
     if (len(args) == 0):
         inputs = [kargs]
@@ -118,8 +120,8 @@ def bin_metric_vs_char(args=[],
         y_vals = y_vals[0]
     else:
         raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
-    
-    true_class_index = inp.get('true_class_index',-1)
+
+    true_class_index = inp.get('true_class_index', -1)
     if (len(y_vals.shape) == 1 or y_vals.shape[-1] == 1):
         true_class_index = 0
     elif (true_class_index == -1):
@@ -144,73 +146,74 @@ def bin_metric_vs_char(args=[],
     predict_bins = np.split(predictions, split_at)
     y_bins = np.split(y_vals, split_at)
 
-    def non_gen(n):
-        for i in range(n):
-            yield
-
-    n = len(predict_bins)
-    tp_bins, fp_bins, tn_bins, fn_bins, cont_bins = non_gen(n), non_gen(n), non_gen(n), non_gen(n), non_gen(n)
-    
-    threshold = inp.get('threshold',-1)
+    threshold = inp.get('threshold', -1)
     if (threshold == -1): threshold = 1.0 / max(y_vals.shape[-1], 2)
 
-    PosClassPop_indicies = [[i for i, v in enumerate(np.argmax(y, axis=-1) == true_class_index) if v] \
-                            for (p, y) in zip(predict_bins, y_bins)]
-    NegClassPop_indicies = [[i for i, v in enumerate(np.argmax(y, axis=-1) != true_class_index) if v] \
-                            for (p, y) in zip(predict_bins, y_bins)]
-
-    tp_bins = [(p[:, true_class_index] >= threshold)[PosClassPop_indicies[i]].astype("int") \
-               for i, p in enumerate(predict_bins)]
-    fp_bins = [(p[:, true_class_index] >= threshold)[NegClassPop_indicies[i]].astype("int") \
-               for i, p in enumerate(predict_bins)]
-    tn_bins = [(p[:, true_class_index] < threshold)[NegClassPop_indicies[i]].astype("int") \
-               for i, p in enumerate(predict_bins)]
-    fn_bins = [(p[:, true_class_index] < threshold)[PosClassPop_indicies[i]].astype("int") \
-               for i, p in enumerate(predict_bins)]
-
-    cont_bins = [(np.argmax(y, axis=-1))[np.where(p[:, true_class_index] >= threshold)] for i, (p, y) in
-                 enumerate(zip(predict_bins, y_bins))]
-    labelArgMax_bins = [{x: np.sum(np.argmax(y, axis=-1) == x) for x in range(y_vals.shape[-1])} for y in y_bins]
-
-    true_false_bins = [np.equal(np.argmax(p, axis=-1), np.argmax(y, axis=-1)).astype("float64") for (p, y) in
-                       zip(predict_bins, y_bins)]
     out_bins = []
     prevmax = min_char
-    for i, (tf, tp, fp, tn, fn, agm, cb) in enumerate(
-            zip(true_false_bins, tp_bins, fp_bins, tn_bins, fn_bins, labelArgMax_bins, cont_bins)):
+    for i, (p, y) in enumerate(zip(predict_bins, y_bins)):
         b = {}
-        num = tf.shape[0]
-        _tp, _fp, _tn, _fn = np.sum(tp), np.sum(fp), np.sum(tn), np.sum(fn)
-        pos_pop = max(_tp + _fn, 1)
-        neg_pop = max(_tn + _fp, 1)
-        b["tpr"] = float(_tp) / pos_pop
-        b["fpr"] = float(_fp) / neg_pop
-        b["ppv"] = float(_tp) / max(_fp + _tp, 1)
-        b["acc"] = np.mean(tf)
-        b["acc_std"] = np.std(tf)
-        b["tpr_std"] = np.std(tp)
-        b["fpr_std"] = np.std(fp)
+        argmax_p = np.argmax(p, axis=-1)
+        argmax_y = np.argmax(y, axis=-1)
+
+        # The indicies corresponding to the 'positive' and 'negative' classes
+        PosClassPop_indicies = [j for j, v in enumerate(argmax_y == true_class_index) if v]
+        NegClassPop_indicies = [j for j, v in enumerate(argmax_y != true_class_index) if v]
+
+        # True-pos,False-pos,True-neg,False-neg
+        tp_list = (p[:, true_class_index] >= threshold)[PosClassPop_indicies].astype("int")
+        fp_list = (p[:, true_class_index] >= threshold)[NegClassPop_indicies].astype("int")
+        tn_list = (p[:, true_class_index] < threshold)[NegClassPop_indicies].astype("int")
+        fn_list = (p[:, true_class_index] < threshold)[PosClassPop_indicies].astype("int")
+
+        # Contamination of 'positive' predictions with 'negative' classes
+        cont_list = (argmax_y)[np.where(p[:, true_class_index] >= threshold)]
+
+        # Counts of each class in the bin
+        labelArgMax_dict = {x: np.sum(argmax_y == x) for x in range(y_vals.shape[-1])}
+
+        # True/False (i.e correct=1 incorrect=0)
+        tf_list = np.equal(argmax_p, argmax_y).astype("float64")
+        num = tf_list.shape[0]
+
+        # Confusion matrix for this class C_ij = 
+        # http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
+        b['confusion'] = confusion_matrix(argmax_y, argmax_p)
+        b['norm_confusion'] = b['confusion'].astype('float') / b['confusion'].sum(axis=1)[:, np.newaxis]
+
+        b["tp"] = np.sum(tp_list)
+        b["fp"] = np.sum(fp_list)
+        b["tn"] = np.sum(tn_list)
+        b["fn"] = np.sum(fn_list)
+        pos_pop = max(b["tp"] + b["fn"], 1)
+        neg_pop = max(b["tn"] + b["fp"], 1)
+        print(pos_pop, neg_pop)
+        b["tpr"] = float(b["tp"]) / pos_pop
+        b["fpr"] = float(b["fp"]) / neg_pop
+        b["ppv"] = float(b["tp"]) / max(b["fp"] + b["tp"], 1)
+        b["acc"] = np.mean(tf_list)
+        b["acc_std"] = np.std(tf_list)
+        b["tpr_std"] = np.std(tp_list)
+        b["fpr_std"] = np.std(fp_list)
         b["acc_error"] = b["acc_std"] / np.sqrt(num)
         b["tpr_error"] = b["tpr_std"] / np.sqrt(pos_pop)
         b["fpr_error"] = b["fpr_std"] / np.sqrt(neg_pop)
-        unique, counts = np.unique(cb, return_counts=True)
+        unique, counts = np.unique(cont_list, return_counts=True)
         cont_classes_d = dict(zip(unique, counts))
         b["cont_classes"] = {key: float(val) / neg_pop for key, val in cont_classes_d.items() if
                              key != true_class_index}
         # print(b["cont_classes"])
-        b["arg_max"] = agm
+        b["arg_max"] = labelArgMax_dict
         b["num_samples"] = num
         b["min_bin_x"] = prevmax
-        if (i == len(true_false_bins) - 1):
+        if (i == len(predict_bins) - 1):
             b["max_bin_x"] = max_char
         else:
             b["max_bin_x"] = prevmax = characteristics[split_at[i]]
         out_bins.append(b)
 
-    if (plot):
-        from CMS_Deep_Learning.postprocessing.plot import plot_bins
-        plot_bins(out_bins)
     return out_bins
+
 
 def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
     '''Finds the tpr,fpr, and threshold holding one of them constant.
