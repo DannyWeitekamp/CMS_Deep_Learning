@@ -57,7 +57,7 @@ def _readNumSamples(file_path):
     f.close()
     return out
 
-def assert_dataset(data, nb_data=None, as_generator=False,archive_dir=None):
+def assert_dataset(data, nb_data=None, as_generator=False,**kargs):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import getSizeMetaData,getSizesDict
     if(isinstance(data, str)):
         data = glob.glob(os.path.abspath(data) + "/*.h5")
@@ -72,7 +72,7 @@ def assert_dataset(data, nb_data=None, as_generator=False,archive_dir=None):
         nb_data = actual_amount
     if(as_generator):
         from CMS_Deep_Learning.preprocessing.preprocessing import gen_from_data
-        data = DataProcedure(archive_dir,False,func=gen_from_data, args=data)
+        data = DataProcedure(kargs['archive_dir'],False,func=gen_from_data, kargs={'lst':data, 'batch_size':kargs['batch_size']})
     return data, nb_data
     
 
@@ -96,8 +96,8 @@ def build_trial(name,
         model = model(**kargs)
     if (workers == 1):
         trial = KerasTrial(archive_dir, name=name, model=model, seed=0)
-        val, nb_val = assert_dataset(val, nb_data=nb_val, as_generator=True,archive_dir=archive_dir)
-        train, nb_train = assert_dataset(train, nb_train, as_generator=True,archive_dir=archive_dir)
+        val, nb_val = assert_dataset(val, nb_data=nb_val, as_generator=True,archive_dir=archive_dir,**kargs)
+        train, nb_train = assert_dataset(train, nb_train, as_generator=True,archive_dir=archive_dir,**kargs)
     else:
         print("USING MPI")
         p = "../../mpi_learn"
@@ -105,8 +105,8 @@ def build_trial(name,
             sys.path.append(p)
         from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
         trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers, seed=0)
-        val, nb_val = assert_dataset(val, nb_data=nb_val,archive_dir=archive_dir)
-        train, nb_train = assert_dataset(train, nb_train,archive_dir=archive_dir)
+        val, nb_val = assert_dataset(val, nb_data=nb_val,archive_dir=archive_dir,**kargs)
+        train, nb_train = assert_dataset(train, nb_train,archive_dir=archive_dir,**kargs)
 
     
     trial.set_train(train_procedure=train,  # train_dps,
@@ -229,3 +229,4 @@ if __name__ == '__main__':
     trials = trials_from_HPsweep(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
     for trial in trials:
         trial.summary()
+        trial.execute()
