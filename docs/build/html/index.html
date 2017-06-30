@@ -28,7 +28,7 @@
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="CMS_Deep_Learning.layers" href="layers.html" />
+    <link rel="next" title="CMS_Deep_Learning.preprocessing" href="preprocessing.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -45,7 +45,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="layers.html" title="CMS_Deep_Learning.layers"
+          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
              accesskey="N">next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
@@ -64,8 +64,8 @@
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="layers.html"
-                        title="next chapter">CMS_Deep_Learning.layers</a></p>
+  <p class="topless"><a href="preprocessing.html"
+                        title="next chapter">CMS_Deep_Learning.preprocessing</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -95,25 +95,28 @@
 <h1>CMS_Deep_Learning package<a class="headerlink" href="#cms-deep-learning-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<p>CMS_Deep_Learning is a set of Python libraries that assist the workflow of doing deep learning with <a class="reference external" href="https://keras.io">keras</a>, especially with high engergy physics datasets. CMS_Deep_Learning contains packages for:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/preprocessing.html#CMS_Deep_Learning.preprocessing.pandas_to_numpy.pandas_to_numpy">data preprocessing</a></li>
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.gen_from_data">dataset generator creation</a></li>
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/storage.html#CMS_Deep_Learning.storage.input_handler.inputHandler">IO simplification</a></li>
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/layers.html#cms-deep-learning-layers">custom layers</a></li>
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial">data bookkeeping</a></li>
+<li><a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing_example.html">plot creation</a></li>
+</ul>
 </div>
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="layers.html#lorentz-layer">lorentz layer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="layers.html#slice-layer">slice layer</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.colors">colors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.metrics">metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.plot">plot</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="preprocessing.html#module-CMS_Deep_Learning.preprocessing.preprocessing">preprocessing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="preprocessing.html#module-CMS_Deep_Learning.preprocessing.pandas_to_numpy">pandas_to_numpy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="layers.html#lorentz-layer">lorentz layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="layers.html#slice-layer">slice layer</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a><ul>
@@ -122,6 +125,12 @@
 <li class="toctree-l2"><a class="reference internal" href="storage.html#module-CMS_Deep_Learning.storage.batch">batch</a></li>
 <li class="toctree-l2"><a class="reference internal" href="storage.html#module-CMS_Deep_Learning.storage.iterators">iterators</a></li>
 <li class="toctree-l2"><a class="reference internal" href="storage.html#module-CMS_Deep_Learning.storage.input_handler">input_handler</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.colors">colors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.metrics">metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="postprocessing.html#module-CMS_Deep_Learning.postprocessing.plot">plot</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils package</a><ul>
@@ -165,7 +174,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="layers.html" title="CMS_Deep_Learning.layers"
+          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
              >next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
