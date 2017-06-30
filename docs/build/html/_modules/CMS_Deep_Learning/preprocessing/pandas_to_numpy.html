@@ -79,7 +79,7 @@
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
-<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.preprocessing.preprocessing</span> <span class="k">import</span> <span class="n">getSizeMetaData</span><span class="p">,</span><span class="n">getSizesDict</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.preprocessing.preprocessing</span> <span class="k">import</span> <span class="n">size_from_meta</span><span class="p">,</span><span class="n">get_sizes_meta_dict</span>
 
 <span class="n">PARTICLE_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Energy&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;Pt&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;ChPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuPFIso&#39;</span><span class="p">,</span>
@@ -299,13 +299,13 @@
         <span class="n">files</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
         <span class="n">samples_read</span><span class="p">,</span> <span class="n">location</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
 
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">get_sizes_meta_dict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
 
         <span class="n">last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span>
         <span class="n">count</span><span class="p">,</span><span class="n">last_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
         <span class="c1"># Loop the files associated with the current label</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>  <span class="c1"># len(num_val_frame.index)</span>
+            <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">size_from_meta</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>  <span class="c1"># len(num_val_frame.index)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">file_total_events</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -441,9 +441,9 @@
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">:</span>
         <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">)</span>
         <span class="n">tot</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">get_sizes_meta_dict</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">tot</span> <span class="o">+=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>
+            <span class="n">tot</span> <span class="o">+=</span> <span class="n">size_from_meta</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span>
         <span class="k">if</span><span class="p">(</span><span class="n">tot</span> <span class="o">&lt;</span> <span class="n">num_samples</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Only </span><span class="si">%r</span><span class="s2"> samples in </span><span class="si">%r</span><span class="s2"> but requested </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tot</span><span class="p">,</span><span class="n">s</span><span class="p">,</span><span class="n">num_samples</span><span class="p">))</span>
     

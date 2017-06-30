@@ -58,12 +58,12 @@ def _readNumSamples(file_path):
     return out
 
 def assert_dataset(data, nb_data=None, as_generator=False,**kargs):
-    from CMS_Deep_Learning.preprocessing.pandas_to_numpy import getSizeMetaData,getSizesDict
+    from CMS_Deep_Learning.preprocessing.pandas_to_numpy import size_from_meta,get_sizes_meta_dict
     if(isinstance(data, string_types)):
         data = glob.glob(os.path.abspath(data) + "/*.h5")
     data_dir = data[0].split("/")[-2]
-    sizesDict = getSizesDict(data_dir)
-    actual_amount = sum([getSizeMetaData(x, sizesDict=sizesDict) for x in data])
+    sizesDict = get_sizes_meta_dict(data_dir)
+    actual_amount = sum([size_from_meta(x, sizesDict=sizesDict) for x in data])
     if(nb_data != None):
         if(nb_data > actual_amount):
             raise IOError("Not enough data in %r, requested %r"

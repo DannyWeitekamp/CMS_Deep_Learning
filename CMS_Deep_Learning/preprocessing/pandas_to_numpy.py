@@ -9,7 +9,7 @@ import time, math,re,h5py,shutil
 import argparse
 from multiprocessing import Process
 from time import sleep
-from CMS_Deep_Learning.preprocessing.preprocessing import getSizeMetaData,getSizesDict
+from CMS_Deep_Learning.preprocessing.preprocessing import size_from_meta,get_sizes_meta_dict
 
 PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 'Charge',
                     'ChPFIso', 'GammaPFIso', 'NeuPFIso',
@@ -229,13 +229,13 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
         files.sort()
         samples_read, location = 0, 0
 
-        sizesDict = getSizesDict(data_dir)
+        sizesDict = get_sizes_meta_dict(data_dir)
 
         last_time = time.clock() - 1.0
         count,last_count = 0,0
         # Loop the files associated with the current label
         for f in files:
-            file_total_events = getSizeMetaData(f, sizesDict=sizesDict)  # len(num_val_frame.index)
+            file_total_events = size_from_meta(f, sizesDict=sizesDict)  # len(num_val_frame.index)
             if (file_total_events == None):
                 print("Skipping %r" % f)
                 continue
@@ -371,9 +371,9 @@ def check_enough_data(sources, num_samples):
     for s in sources:
         files = glob.glob(os.path.abspath(s) + "/*.h5")
         tot = 0
-        sizesDict = getSizesDict(s)
+        sizesDict = get_sizes_meta_dict(s)
         for f in files:
-            tot += getSizeMetaData(f,sizesDict=sizesDict)
+            tot += size_from_meta(f, sizesDict=sizesDict)
         if(tot < num_samples):
             raise IOError("Only %r samples in %r but requested %r" % (tot,s,num_samples))
     

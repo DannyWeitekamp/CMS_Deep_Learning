@@ -85,7 +85,12 @@
 
 
 <span class="c1"># --------------------------SIZE UTILS-------------------------------</span>
-<span class="k">def</span> <span class="nf">nb_samples_from_h5</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+<div class="viewcode-block" id="nb_samples_from_h5"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.nb_samples_from_h5">[docs]</a><span class="k">def</span> <span class="nf">nb_samples_from_h5</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Get the number of samples contained in any .h5 file; numpy or pandas.</span>
+<span class="sd">    </span>
+<span class="sd">    :param file_path: The file_path</span>
+<span class="sd">    :returns: the number of samples</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
         <span class="k">while</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
@@ -96,24 +101,33 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Something wrong with file </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_path</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">e</span>
     <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out</span>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
-<span class="k">def</span> <span class="nf">getSizesDict</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="get_sizes_meta_dict"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.get_sizes_meta_dict">[docs]</a><span class="k">def</span> <span class="nf">get_sizes_meta_dict</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns a dictionary of the number of sample points contained in each .h5 file in a directory</span>
+<span class="sd">    </span>
+<span class="sd">    :param directory: The directory where the .h5 files are</span>
+<span class="sd">    :returns: the sizes dictionary</span>
+<span class="sd">    &#39;&#39;&#39;</span>
     <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">read_json_obj</span>
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)):</span>
         <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
         <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">read_json_obj</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sizesDict</span>
+    <span class="k">return</span> <span class="n">sizesDict</span></div>
 
 
-<span class="k">def</span> <span class="nf">getSizeMetaData</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="size_from_meta"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.size_from_meta">[docs]</a><span class="k">def</span> <span class="nf">size_from_meta</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary</span>
+<span class="sd">    </span>
+<span class="sd">    :param filename: The path the the file.</span>
+<span class="sd">    :param sizesDict: (optional) the sizes dictionary gotten from get_sizes_meta_dict, if not passed will find it anyway.</span>
+<span class="sd">    :returns: The number of samples in the file</span>
+<span class="sd">     &#39;&#39;&#39;</span>
     <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">write_json_obj</span>
-    <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary&#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">sizesDict</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">get_sizes_meta_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">modtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sizesDict</span> <span class="ow">or</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modtime</span><span class="p">):</span>
         <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">nb_samples_from_h5</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
@@ -122,7 +136,7 @@
             <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">write_json_obj</span><span class="p">(</span><span class="n">sizesDict</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 <span class="c1"># -------------------------------------------------------------</span>
 
 <div class="viewcode-block" id="gen_from_data"><a class="viewcode-back" href="../../../preprocessing.html#CMS_Deep_Learning.preprocessing.preprocessing.gen_from_data">[docs]</a><span class="k">def</span> <span class="nf">gen_from_data</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Particles&quot;</span><span class="p">,</span> <span class="s2">&quot;Labels&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -346,7 +360,7 @@
 <span class="k">def</span> <span class="nf">getSizeMetaData</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary&#39;&#39;&#39;</span>
     <span class="k">if</span><span class="p">(</span><span class="n">sizesDict</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">get_sizes_meta_dict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">modtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="c1"># print(sizesDict[filename][1],modtime)</span>
     <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sizesDict</span> <span class="ow">or</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modtime</span><span class="p">):</span>
@@ -642,10 +656,10 @@
         <span class="n">samples_read</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">location</span> <span class="o">=</span> <span class="mi">0</span>
         
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
+        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">get_sizes_meta_dict</span><span class="p">(</span><span class="n">data_dir</span><span class="p">)</span>
          <span class="c1">#Loop the files associated with the current label</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-            <span class="n">file_total_entries</span> <span class="o">=</span> <span class="n">getSizeMetaData</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">storeType</span><span class="p">,</span><span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span><span class="c1">#len(num_val_frame.index)</span>
+            <span class="n">file_total_entries</span> <span class="o">=</span> <span class="n">size_from_meta</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">storeType</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="n">sizesDict</span><span class="p">)</span><span class="c1">#len(num_val_frame.index)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">file_total_entries</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
                 <span class="k">continue</span>

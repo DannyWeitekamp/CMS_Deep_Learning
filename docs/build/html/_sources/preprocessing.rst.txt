@@ -6,7 +6,7 @@ preprocessing
 --------------------------------------------------------
 
 .. automodule:: CMS_Deep_Learning.preprocessing.preprocessing
-    :members: gen_from_data
+    :members: gen_from_data, nb_samples_from_h5, get_sizes_meta_dict, size_from_meta
     :undoc-members:
     :show-inheritance:
 

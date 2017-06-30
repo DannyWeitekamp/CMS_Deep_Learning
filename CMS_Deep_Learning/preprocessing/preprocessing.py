@@ -34,8 +34,12 @@ def nb_samples_from_h5(file_path):
     return out
 
 
-def getSizesDict(directory, verbose=0):
-    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
+def get_sizes_meta_dict(directory, verbose=0):
+    '''Returns a dictionary of the number of sample points contained in each .h5 file in a directory
+    
+    :param directory: The directory where the .h5 files are
+    :returns: the sizes dictionary
+    '''
     from CMS_Deep_Learning.storage.archiving import read_json_obj
     if (not os.path.isdir(directory)):
         split = os.path.split(directory)
@@ -44,11 +48,16 @@ def getSizesDict(directory, verbose=0):
     return sizesDict
 
 
-def getSizeMetaData(filename, sizesDict=None, verbose=0):
+def size_from_meta(filename, sizesDict=None, verbose=0):
+    '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary
+    
+    :param filename: The path the the file.
+    :param sizesDict: (optional) the sizes dictionary gotten from get_sizes_meta_dict, if not passed will find it anyway.
+    :returns: The number of samples in the file
+     '''
     from CMS_Deep_Learning.storage.archiving import write_json_obj
-    '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary'''
     if (sizesDict == None):
-        sizesDict = getSizesDict(filename)
+        sizesDict = get_sizes_meta_dict(filename)
     modtime = os.path.getmtime(filename)
     if (not filename in sizesDict or sizesDict[filename][1] != modtime):
         file_total_events = nb_samples_from_h5(filename)
@@ -281,7 +290,7 @@ def getFiles_StoreType(data_dir):
 def getSizeMetaData(filename, storeType, sizesDict=None, verbose=0):
     '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary'''
     if(sizesDict == None):
-        sizesDict = getSizesDict(filename)
+        sizesDict = get_sizes_meta_dict(filename)
     modtime = os.path.getmtime(filename)
     # print(sizesDict[filename][1],modtime)
     if(not filename in sizesDict or sizesDict[filename][1] != modtime):
@@ -577,10 +586,10 @@ def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_labe
         samples_read = 0
         location = 0
         
-        sizesDict = getSizesDict(data_dir)
+        sizesDict = get_sizes_meta_dict(data_dir)
          #Loop the files associated with the current label
         for f in files:
-            file_total_entries = getSizeMetaData(f,storeType,sizesDict=sizesDict)#len(num_val_frame.index)
+            file_total_entries = size_from_meta(f, storeType, sizesDict=sizesDict)#len(num_val_frame.index)
             if (file_total_entries == None):
                 print("Skipping %r" % f)
                 continue
