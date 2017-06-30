@@ -170,7 +170,7 @@ def bin_metric_vs_char(args=[],
         cont_list = (argmax_y)[np.where(p[:, true_class_index] >= threshold)]
 
         # Counts of each class in the bin
-        labelArgMax_dict = {x: np.sum(argmax_y == x) for x in range(y_vals.shape[-1])}
+        freq_dict = {x: np.sum(argmax_y == x) for x in range(y_vals.shape[-1])}
 
         # True/False (i.e correct=1 incorrect=0)
         tf_list = np.equal(argmax_p, argmax_y).astype("float64")
@@ -187,7 +187,6 @@ def bin_metric_vs_char(args=[],
         b["fn"] = np.sum(fn_list)
         pos_pop = max(b["tp"] + b["fn"], 1)
         neg_pop = max(b["tn"] + b["fp"], 1)
-        print(pos_pop, neg_pop)
         b["tpr"] = float(b["tp"]) / pos_pop
         b["fpr"] = float(b["fp"]) / neg_pop
         b["ppv"] = float(b["tp"]) / max(b["fp"] + b["tp"], 1)
@@ -200,10 +199,16 @@ def bin_metric_vs_char(args=[],
         b["fpr_error"] = b["fpr_std"] / np.sqrt(neg_pop)
         unique, counts = np.unique(cont_list, return_counts=True)
         cont_classes_d = dict(zip(unique, counts))
-        b["cont_classes"] = {key: float(val) / neg_pop for key, val in cont_classes_d.items() if
-                             key != true_class_index}
+        cont_classes_d = {indx: cont_classes_d.get(indx, 0)
+                          for indx in range(y_vals.shape[-1]) if indx != true_class_index}
+        b["freq"] = freq_dict
+        b["cont_split"] = {key: float(val) for key, val in cont_classes_d.items() if
+                           key != true_class_index}
+        b["norm_cont_split"] = {key: float(val) / freq_dict[key] if freq_dict[key] != 0 else 0
+                                for key, val in cont_classes_d.items() if
+                                key != true_class_index}
         # print(b["cont_classes"])
-        b["arg_max"] = labelArgMax_dict
+
         b["num_samples"] = num
         b["min_bin_x"] = prevmax
         if (i == len(predict_bins) - 1):
