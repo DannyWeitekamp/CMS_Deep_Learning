@@ -16,6 +16,11 @@ from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
 
 # --------------------------SIZE UTILS-------------------------------
 def nb_samples_from_h5(file_path):
+    '''Get the number of samples contained in any .h5 file; numpy or pandas.
+    
+    :param file_path: The file_path
+    :returns: the number of samples
+    '''
     try:
         f = d = h5py.File(file_path, 'r')
         while not isinstance(d, h5py.Dataset):

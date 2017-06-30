@@ -79,6 +79,7 @@
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
 <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.preprocessing.preprocessing</span> <span class="k">import</span> <span class="n">getSizeMetaData</span><span class="p">,</span><span class="n">getSizesDict</span>
 
 <span class="n">PARTICLE_OBSERVS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Energy&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;Pt&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span> <span class="s1">&#39;Charge&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;ChPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaPFIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuPFIso&#39;</span><span class="p">,</span>
@@ -167,46 +168,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Using EvtId in observ_types can result in skewed training results. Just don&#39;t.&quot;</span><span class="p">)</span>
 
 
-<span class="c1">#--------------------------SIZE UTILS-------------------------------</span>
-<span class="k">def</span> <span class="nf">_readNumSamples</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">d</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
-        <span class="k">while</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;axis1&#39;</span> <span class="k">if</span> <span class="s1">&#39;axis1&#39;</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">else</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Something wrong with file </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_path</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">e</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">out</span>
-
-<span class="k">def</span> <span class="nf">getSizesDict</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory&#39;&#39;&#39;</span>
-    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">read_json_obj</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)):</span>
-        <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-    <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">read_json_obj</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sizesDict</span>
-
-
-<span class="k">def</span> <span class="nf">getSizeMetaData</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sizesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">write_json_obj</span>
-    <span class="sd">&#39;&#39;&#39;Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary&#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">sizesDict</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">sizesDict</span> <span class="o">=</span> <span class="n">getSizesDict</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">modtime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">sizesDict</span> <span class="ow">or</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">modtime</span><span class="p">):</span>
-        <span class="n">file_total_events</span> <span class="o">=</span> <span class="n">_readNumSamples</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-        <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">file_total_events</span><span class="p">,</span> <span class="n">modtime</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">filename</span><span class="p">)):</span>
-            <span class="n">split</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-            <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">split</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">write_json_obj</span><span class="p">(</span><span class="n">sizesDict</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="s2">&quot;sizesMetaData.json&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sizesDict</span><span class="p">[</span><span class="n">filename</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-
-<span class="c1">#-----------------------------------------------------------------</span>
 
 <span class="c1">#--------------------SORTING UTILS--------------------------------</span>
 <span class="k">def</span> <span class="nf">maxLepPtEtaPhi</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">locs</span><span class="p">):</span>

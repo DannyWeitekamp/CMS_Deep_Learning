@@ -10,7 +10,7 @@ Add directory containing CMS\_Deep\_Learning repo to the sys path. `repo <https:
     %matplotlib inline
     if __package__ is None:
         import sys, os
-        sys.path.append(os.path.realpath("/data/shared/Software/"))
+        sys.path.append(os.path.realpath("/data/shared/Software/CMS_Deep_Learning"))
 
 Import stuff
 ------------
@@ -225,20 +225,30 @@ Make histograms
 
 .. code:: ipython2
 
-    label_indices = {'QCD':0,r'$t\bar{t}$':1, "W+jets":2}
+    class_labels = {0:'QCD',1:r'$t\bar{t}$', 2:"W+jets"}
     my_bins2 = bin_metric_vs_char(model=dirr +"/model.json",
                    weights=dirr +"/weights.h5",
                    data=data_subset,
                     accumilate=accum,true_class_index=1,
-                    bins=200)
+                    nb_bins=200)
 
 .. code:: ipython2
 
     plot_bins(my_bins2,
-              y_val="arg_max",
+              y_val="freq",
               mode='histo',
               ylim=None,
-              binLabels = {val:key for key,val in label_indices.items()},
+              class_labels = class_labels,
+              xlabel="PT of Highest PT Letpon (GeV)",
+              title="Event Counts",
+              min_samples=20,
+              xlim=(0,250)
+             )
+    plot_bins(my_bins2,
+              y_val="freq",
+              mode='bar',
+              ylim=None,
+              class_labels = class_labels,
               xlabel="PT of Highest PT Letpon (GeV)",
               title="Event Counts",
               min_samples=20,
@@ -251,6 +261,10 @@ Make histograms
 
 
 
+.. image:: postprocessing_example_files/postprocessing_example_23_1.png
+
+
+
 
 .. parsed-literal::
 
@@ -258,21 +272,105 @@ Make histograms
 
 
 
+Stacked
+-------
+
 .. code:: ipython2
 
-    plot_bins(my_bins2, y_val="arg_max",
+    plot_bins(my_bins2, y_val="freq",
               mode='histo',
               ylim=None,
-              binLabels = {val:key for key,val in label_indices.items()},
+              class_labels = class_labels,
               xlabel="PT of Highest PT Letpon (GeV)",
               title="Event Counts",
+              stack=True,
+              min_samples=20,
+              alpha=.75)
+    plot_bins(my_bins2, y_val="freq",
+              mode='histo',
+              ylim=None,
+              class_labels = class_labels,
+              xlabel="PT of Highest PT Letpon (GeV)",
+              title="Event Counts",
+              stack=True,
+              normalize=True,
+              min_samples=20,
+              alpha=.75)
+
+
+
+.. image:: postprocessing_example_files/postprocessing_example_25_0.png
+
+
+
+.. image:: postprocessing_example_files/postprocessing_example_25_1.png
+
+
+
+
+.. parsed-literal::
+
+    <module 'matplotlib.pyplot' from '/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc'>
+
+
+
+plot the total contamination ('fpr': False-Positive Rate)
+---------------------------------------------------------
+
+.. code:: ipython2
+
+    plot_bins(my_bins2, y_val="fpr",
+              mode='scatter',
+              ylim=None,
+              class_labels = class_labels,
+              xlabel="PT of Highest PT Letpon (GeV)",
+              title="ttbar Contamination",
               stack=True,
               min_samples=20,
               alpha=.75)
 
 
 
-.. image:: postprocessing_example_files/postprocessing_example_24_0.png
+.. image:: postprocessing_example_files/postprocessing_example_27_0.png
+
+
+
+
+.. parsed-literal::
+
+    <module 'matplotlib.pyplot' from '/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc'>
+
+
+
+And the class contaminations for the 'false' classes individually
+-----------------------------------------------------------------
+
+.. code:: ipython2
+
+    plot_bins(my_bins2, y_val="norm_cont_split",
+              mode='scatter',
+              ylim=(-.1,1.1),
+              class_labels = class_labels,
+              xlabel="PT of Highest PT Letpon (GeV)",
+              title="Contamination Rates for W+Jets and QCD",
+              min_samples=20,
+              alpha=.75)
+    plot_bins(my_bins2, y_val="norm_cont_split",
+              mode='histo',
+              ylim=(-.1,1.1),
+              class_labels = class_labels,
+              xlabel="PT of Highest PT Letpon (GeV)",
+              title="Contamination Rates for W+Jets and QCD",
+              min_samples=20,
+              alpha=.75)
+
+
+
+.. image:: postprocessing_example_files/postprocessing_example_29_0.png
+
+
+
+.. image:: postprocessing_example_files/postprocessing_example_29_1.png
 
 
 

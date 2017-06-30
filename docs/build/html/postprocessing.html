@@ -111,19 +111,16 @@
 <span id="metrics"></span><h2>metrics<a class="headerlink" href="#module-CMS_Deep_Learning.postprocessing.metrics" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">bin_metric_vs_char</code><span class="sig-paren">(</span><em>args=[]</em>, <em>char_name=None</em>, <em>char_collection=None</em>, <em>accumilate=None</em>, <em>num_samples=None</em>, <em>bins=20</em>, <em>equalBins=False</em>, <em>custom_objects={}</em>, <em>plot=False</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#bin_metric_vs_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">bin_metric_vs_char</code><span class="sig-paren">(</span><em>args=[]</em>, <em>nb_bins=20</em>, <em>equalBins=False</em>, <em>plot=False</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#bin_metric_vs_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>accumilate</strong> – an accumilator function build by build_accumilator</li>
-<li><strong>num_samples</strong> – The number of samples to be read from a generator dat input.</li>
-<li><strong>bins</strong> – The number of bins to use in the analysis.</li>
+<li><strong>nb_bins</strong> – The number of bins to use in the analysis.</li>
 <li><strong>equalBins</strong> – True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
 will be very unusual, varying significantly in their domain.</li>
-<li><strong>custom_objects</strong> – A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.</li>
 <li><strong>plot</strong> – If True plot the bins automatically.</li>
 </ul>
 </td>
@@ -147,6 +144,7 @@ will be very unusual, varying significantly in their domain.</li>
 </li>
 <li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
 <li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
+<li><strong>accumilate</strong> (<code class="docutils literal"><span class="pre">function</span></code>) – an accumilator function build by build_accumilator</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -243,20 +241,22 @@ Author: Danny Weitekamp
 e-mail: <a class="reference external" href="mailto:dannyweitekamp&#37;&#52;&#48;gmail&#46;com">dannyweitekamp<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
 <dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.plot.plot_bins">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_bins</code><span class="sig-paren">(</span><em>bins, y_val=’acc’, min_samples=10, mode=’bar’, title=”, xlabel=”, ylabel=”, binLabels=None, legendTitle=None, legendBelow=False, alpha=0.8, colors=[‘b’, ‘g’, ‘r’], shapes=None, xlim=None, ylim=(0, 1.025), useGrid=True, log=False, stack=False, normalize=False, show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_bins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_bins" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.postprocessing.plot.</code><code class="descname">plot_bins</code><span class="sig-paren">(</span><em>bins, y_val=’acc’, min_samples=10, mode=’bar’, title=”, xlabel=”, ylabel=”, class_labels=None, legendTitle=None, legendBelow=False, alpha=0.8, colors=[‘b’, ‘g’, ‘r’], shapes=None, xlim=None, ylim=(0, 1.025), useGrid=True, log=False, stack=False, normalize=False, show=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/plot.html#plot_bins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.plot.plot_bins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bins</strong> – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</li>
+<li><strong>bins</strong> – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
+or a dictionary of such lists keyed by a label for each binset.</li>
 <li><strong>min_samples</strong> – The minumum number of samples that must be in a bin for it to be plotted.</li>
+<li><strong>y_val</strong> – The y_value to plot</li>
 <li><strong>mode</strong> – “bar”,”scatter” or ‘histo’</li>
 <li><strong>title</strong> – The title of the plot</li>
 <li><strong>xlabel</strong> – The xlabel of the plot</li>
 <li><strong>ylabel</strong> – the ylabel of the plot</li>
-<li><strong>binLabels</strong> – A list of labels to be shown in the legend. One for each set of bins.</li>
+<li><strong>class_labels</strong> – A list of labels to be shown in the legend. One for each set of bins.</li>
 <li><strong>legendTitle</strong> – The title of the legend.</li>
 <li><strong>legendBelow</strong> – Whether or not to put the legend below the graph</li>
 <li><strong>alpha</strong> – The opacity of the plot.</li>

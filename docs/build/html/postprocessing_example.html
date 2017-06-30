@@ -65,6 +65,9 @@
 <li><a class="reference internal" href="#use-build-accumilator-to-define-some-characteristic-to-use-for-binning-the-accumilator-is-a-functional-that-maps-the-data-to-a-characteristic-then-use-bin-metric-vs-char-to-make-the-bins-although-certain-features-can-be-grabbed-without-an-accumilator-from-the-hlf-collection">Use build_accumilator to define some characteristic to use for binning. The accumilator is a functional that maps the data to a characteristic. Then use bin_metric_vs_char to make the bins. Although certain features can be grabbed without an accumilator from the HLF collection.</a></li>
 <li><a class="reference internal" href="#use-plot-bins-and-choose-a-y-value-for-the-plot">Use plot_bins and choose a y_value for the plot.</a></li>
 <li><a class="reference internal" href="#make-histograms">Make histograms</a></li>
+<li><a class="reference internal" href="#stacked">Stacked</a></li>
+<li><a class="reference internal" href="#plot-the-total-contamination-fpr-false-positive-rate">plot the total contamination (‘fpr’: False-Positive Rate)</a></li>
+<li><a class="reference internal" href="#and-the-class-contaminations-for-the-false-classes-individually">And the class contaminations for the ‘false’ classes individually</a></li>
 <li><a class="reference internal" href="#using-the-inputhandler-class-to-simplify-grabbing-data">Using the inputHandler class to simplify grabbing data</a></li>
 <li><a class="reference internal" href="#using-this-to-find-the-confusion-matrix-for-the-classifier">Using this to find the confusion matrix for the classifier</a></li>
 <li><a class="reference internal" href="#and-of-course-feel-free-to-copy-paste-anything-in-the-repository-into-your-own-notebooks-so-that-you-have-more-control-over-the-plots-also-pull-requests-are-encouraged-cheers-danny-dannyweitekamp-gmail-com">And of course feel free to copy paste anything in the repository into your own notebooks so that you have more control over the plots. Also pull requests are encouraged… Cheers, Danny (dannyweitekamp&#64;gmail.com)</a></li>
@@ -107,7 +110,7 @@
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 <span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
-    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="s2">&quot;/data/shared/Software/&quot;</span><span class="p">))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="s2">&quot;/data/shared/Software/CMS_Deep_Learning&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -252,19 +255,29 @@ thresholds</p>
 </div>
 <div class="section" id="make-histograms">
 <h2>Make histograms<a class="headerlink" href="#make-histograms" title="Permalink to this headline">¶</a></h2>
-<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">label_indices</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;QCD&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;W+jets&quot;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">class_labels</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s1">&#39;QCD&#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">:</span><span class="sa">r</span><span class="s1">&#39;$t\bar</span><span class="si">{t}</span><span class="s1">$&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="s2">&quot;W+jets&quot;</span><span class="p">}</span>
 <span class="n">my_bins2</span> <span class="o">=</span> <span class="n">bin_metric_vs_char</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/model.json&quot;</span><span class="p">,</span>
                <span class="n">weights</span><span class="o">=</span><span class="n">dirr</span> <span class="o">+</span><span class="s2">&quot;/weights.h5&quot;</span><span class="p">,</span>
                <span class="n">data</span><span class="o">=</span><span class="n">data_subset</span><span class="p">,</span>
                 <span class="n">accumilate</span><span class="o">=</span><span class="n">accum</span><span class="p">,</span><span class="n">true_class_index</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+                <span class="n">nb_bins</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span>
-          <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;arg_max&quot;</span><span class="p">,</span>
+          <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span>
           <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
           <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">binLabels</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">xlim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">250</span><span class="p">)</span>
+         <span class="p">)</span>
+<span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span>
+          <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
           <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
           <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
           <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
@@ -273,21 +286,80 @@ thresholds</p>
 </pre></div>
 </div>
 <img alt="_images/postprocessing_example_23_0.png" src="_images/postprocessing_example_23_0.png" />
+<img alt="_images/postprocessing_example_23_1.png" src="_images/postprocessing_example_23_1.png" />
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;arg_max&quot;</span><span class="p">,</span>
+</div>
+<div class="section" id="stacked">
+<h2>Stacked<a class="headerlink" href="#stacked" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span>
           <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
           <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">binLabels</span> <span class="o">=</span> <span class="p">{</span><span class="n">val</span><span class="p">:</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">label_indices</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
           <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
           <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
           <span class="n">stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
           <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
           <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
+<span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Event Counts&quot;</span><span class="p">,</span>
+          <span class="n">stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="_images/postprocessing_example_24_0.png" src="_images/postprocessing_example_24_0.png" />
+<img alt="_images/postprocessing_example_25_0.png" src="_images/postprocessing_example_25_0.png" />
+<img alt="_images/postprocessing_example_25_1.png" src="_images/postprocessing_example_25_1.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="plot-the-total-contamination-fpr-false-positive-rate">
+<h2>plot the total contamination (‘fpr’: False-Positive Rate)<a class="headerlink" href="#plot-the-total-contamination-fpr-false-positive-rate" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;fpr&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;scatter&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;ttbar Contamination&quot;</span><span class="p">,</span>
+          <span class="n">stack</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_27_0.png" src="_images/postprocessing_example_27_0.png" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="and-the-class-contaminations-for-the-false-classes-individually">
+<h2>And the class contaminations for the ‘false’ classes individually<a class="headerlink" href="#and-the-class-contaminations-for-the-false-classes-individually" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;norm_cont_split&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;scatter&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-.</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">),</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Contamination Rates for W+Jets and QCD&quot;</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
+<span class="n">plot_bins</span><span class="p">(</span><span class="n">my_bins2</span><span class="p">,</span> <span class="n">y_val</span><span class="o">=</span><span class="s2">&quot;norm_cont_split&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;histo&#39;</span><span class="p">,</span>
+          <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="o">-.</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.1</span><span class="p">),</span>
+          <span class="n">class_labels</span> <span class="o">=</span> <span class="n">class_labels</span><span class="p">,</span>
+          <span class="n">xlabel</span><span class="o">=</span><span class="s2">&quot;PT of Highest PT Letpon (GeV)&quot;</span><span class="p">,</span>
+          <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Contamination Rates for W+Jets and QCD&quot;</span><span class="p">,</span>
+          <span class="n">min_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+          <span class="n">alpha</span><span class="o">=.</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/postprocessing_example_29_0.png" src="_images/postprocessing_example_29_0.png" />
+<img alt="_images/postprocessing_example_29_1.png" src="_images/postprocessing_example_29_1.png" />
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">module</span> <span class="s1">&#39;matplotlib.pyplot&#39;</span> <span class="kn">from</span> <span class="s1">&#39;/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc&#39;</span><span class="o">&gt;</span>
 </pre></div>
 </div>
