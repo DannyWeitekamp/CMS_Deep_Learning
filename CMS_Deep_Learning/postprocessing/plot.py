@@ -394,6 +394,25 @@ def plot_dual_roc(args=[], flipped=False, invertCont=False, title="",
     return plt, roc_dicts
 
 
+def _expand_multi_vals(ys, binlabel, class_labels, normalize=False):
+    out = {}
+    if (True in [isinstance(y, dict) for y in ys]):
+        key_set = list(set.union(*[set(d.keys()) for d in ys if isinstance(d, dict)]))
+        ys = [d if isinstance(d, dict) else {k: 0.0 for k in key_set} for d in ys]
+
+        prefix = binlabel + "_" if binlabel != "" else ""
+        totals = [sum(y.values()) for y in ys]
+
+        for k in key_set:
+            class_label = class_labels[k] if class_labels != None else "class_" + str(k)
+            y = [d[k] for d in ys]
+            if (normalize): y = [float(v) / t for v, t in zip(y, totals)]
+            out[prefix + class_label] = y
+    else:
+        out[binlabel] = ys
+    return out
+
+
 def plot_bins(bins,
               y_val="acc",
               min_samples=10,
@@ -401,7 +420,7 @@ def plot_bins(bins,
               title='',
               xlabel='',
               ylabel='',
-              binLabels=None,
+              class_labels=None,
               legendTitle=None,
               legendBelow=False,
               alpha=.8,
@@ -417,12 +436,14 @@ def plot_bins(bins,
     ''' Plots the output of CMS_Deep_Learning.utils.metrics.accVsEventChar
 
         :param bins: A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
+                    or a dictionary of such lists keyed by a label for each binset.
         :param min_samples: The minumum number of samples that must be in a bin for it to be plotted.
+        :param y_val: The y_value to plot 
         :param mode: "bar","scatter" or 'histo'
         :param title: The title of the plot
         :param xlabel: The xlabel of the plot
         :param ylabel: the ylabel of the plot
-        :param binLabels: A list of labels to be shown in the legend. One for each set of bins.
+        :param class_labels: A list of labels to be shown in the legend. One for each set of bins.
         :param legendTitle: The title of the legend.
         :param legendBelow: Whether or not to put the legend below the graph
         :param alpha: The opacity of the plot.
@@ -437,15 +458,13 @@ def plot_bins(bins,
         :param title: The title of the plot
         :param color_set: A list of colors to use for each ROC.
         :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data
-        
-        
+
+
         :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)
         '''
     from matplotlib import pyplot as plt
     if (not isinstance(bins, dict)):
         bins = {"": bins}
-    elif (binLabels == None):
-        binLabels = bins.keys()
     if (shapes == None):
         shapes = ['o', 's', 'v', 'D', '^', '*', '<', '>']
     if (not isinstance(colors, list)):
@@ -459,42 +478,51 @@ def plot_bins(bins,
             ax.grid(True)
         ax.set_axisbelow(True)
 
-    for i, (binlabel, binset) in enumerate(bins.items()):
-        bs = binset
-
+    for i, (binlabel, bs) in enumerate(bins.items()):
         color = colors[i % len(colors)]
         label = binlabel  # binLabels[i] if binLabels != None and len(binLabels) > i else None
         xs = [b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
-        ys = [b[y_val] for b in bs if (b["num_samples"] >= min_samples)]
+        bot = np.array([0.0] * len(xs))
         widths = [b["max_bin_x"] - b["min_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+
+        ys = [b[y_val] for b in bs if (b["num_samples"] >= min_samples)]
         errors = None if not (y_val + "_error") in bs[0] \
             else [b[y_val + "_error"] for b in bs if (b["num_samples"] >= min_samples)]
-        if (mode == "bar"):
 
-            ax.bar(xs, ys, width=widths, yerr=errors, color=color, label=label, ecolor='k', alpha=alpha, log=log)
-        elif (mode == "histo"):
-            ys = [[y[key] for key in sorted(y.keys())] for y in ys]
-            if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
-            ys = zip(*ys)
-            bot = np.array([0.0] * len(xs))
+        ys = _expand_multi_vals(ys, binlabel, class_labels, normalize)
+        # errors = _expand_multi_vals(errors,binlabel,class_labels)
+        items = ys.items()
+        if (mode == 'bar' or mode == 'histo'): items = sorted(items, key=lambda x: -np.average(x[1]))
+        for j, (label, y) in enumerate(items):
+            print(y)
+            if (mode == "bar"):
+                ax.bar(xs, y, width=widths, yerr=errors, color=colors[j % len(colors)], label=label, ecolor='k',
+                       alpha=alpha, log=log)
+            elif (mode == "histo"):
+                # ys = [[y[key] for key in sorted(y.keys())] for y in ys]
+                # if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
+                # ys = zip(*ys)
+                # bot = np.array([0.0] * len(xs))
 
-            for j, y in enumerate(ys):
-                if (binLabels != None): label = binLabels[j]
+                # if (class_labels != None): label = class_labels[j]
                 if (stack):
                     ax.bar(xs, y, width=widths, yerr=errors, bottom=bot, color=colors[j % len(colors)], label=label,
                            ecolor='k', alpha=alpha, log=log, edgecolor="none", lw=0)
                 else:
                     # Append points to beginning and end
-                    xs = [b["max_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
-                    xs = [bs[0]['min_bin_x']] + xs + [xs[-1]]
+                    _xs = [b["max_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
+                    _xs = [bs[0]['min_bin_x']] + xs + [xs[-1]]
                     y = [0] + list(y) + [0]
-                    ax.plot(xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
+                    print(_xs)
+                    print(y)
+                    ax.plot(_xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
                 if (stack): bot += y
-        else:
-            s = shapes[i % len(colors)]
-            ax.plot(xs, ys, color=color, label=label, marker=s, linestyle='None')
-            ax.errorbar(xs, ys, yerr=errors, color=color, ecolor=color, alpha=alpha, fmt='', linestyle='None')
-            if (log): ax.set_yscale("log")
+            else:
+                s = shapes[i % len(colors)]
+                ax.plot(xs, y, color=colors[j % len(colors)], label=label, marker=s, linestyle='None')
+                ax.errorbar(xs, y, yerr=errors, color=colors[j % len(colors)], ecolor=colors[j % len(colors)], alpha=alpha, fmt='',
+                            linestyle='None')
+                if (log): ax.set_yscale("log")
 
     ax.set_title(title, size=16)
     ax.set_xlabel(xlabel, size=14)
