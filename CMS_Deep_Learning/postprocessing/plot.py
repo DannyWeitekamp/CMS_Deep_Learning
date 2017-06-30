@@ -496,7 +496,6 @@ def plot_bins(bins,
         items = ys.items()
         if (mode == 'bar' or mode == 'histo'): items = sorted(items, key=lambda x: -np.average(x[1]))
         for j, (label, y) in enumerate(items):
-            print(y)
             if (mode == "bar"):
                 ax.bar(xs, y, width=widths, yerr=errors, color=colors[j % len(colors)], label=label, ecolor='k',
                        alpha=alpha, log=log)
