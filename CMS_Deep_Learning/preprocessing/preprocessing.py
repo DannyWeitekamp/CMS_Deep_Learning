@@ -7,11 +7,87 @@ import time
 
 import numpy as np
 import pandas as pd
+import h5py
 from six import string_types
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure,read_json_obj,write_json_obj
 from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
 
+
+# --------------------------SIZE UTILS-------------------------------
+def nb_samples_from_h5(file_path):
+    try:
+        f = d = h5py.File(file_path, 'r')
+        while not isinstance(d, h5py.Dataset):
+            keys = d.keys()
+            d = d['axis1' if 'axis1' in keys else keys[0]]
+        out = d.len()
+    except IOError as e:
+        print("Something wrong with file %r" % file_path)
+        raise e
+    f.close()
+    return out
+
+
+def getSizesDict(directory, verbose=0):
+    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
+    from CMS_Deep_Learning.storage.archiving import read_json_obj
+    if (not os.path.isdir(directory)):
+        split = os.path.split(directory)
+        directory = "/".join(split[:-1])
+    sizesDict = read_json_obj(directory, "sizesMetaData.json", verbose=verbose)
+    return sizesDict
+
+
+def getSizeMetaData(filename, sizesDict=None, verbose=0):
+    from CMS_Deep_Learning.storage.archiving import write_json_obj
+    '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary'''
+    if (sizesDict == None):
+        sizesDict = getSizesDict(filename)
+    modtime = os.path.getmtime(filename)
+    if (not filename in sizesDict or sizesDict[filename][1] != modtime):
+        file_total_events = nb_samples_from_h5(filename)
+        sizesDict[filename] = (file_total_events, modtime)
+        if (not os.path.isdir(filename)):
+            split = os.path.split(filename)
+            directory = "/".join(split[:-1])
+        write_json_obj(sizesDict, directory, "sizesMetaData.json", verbose=verbose)
+    return sizesDict[filename][0]
+# -------------------------------------------------------------
+
+def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
+    '''Gets a generator that generates data of batch_size from a list of DataProcedures.
+        Optionally uses threading to apply getData in parellel, although this may be obsolete
+        with the proper fit_generator settings
+
+        :param lst: a list of .h5 filepaths and/or DataProcedures or a directory path
+        :type lst: str or list
+        :param batch_size: The number of samples to grab at each call to next()
+        :type batch_size: int
+        :param data_keys: The keys to draw from in the .h5 files. (order matters)
+        :type data_keys: list of str
+        :param verbose: whether or not to print out info to the user.
+        :type verbose: int
+        :returns: a generator that runs through the given data
+    '''
+    from CMS_Deep_Learning.storage.iterators import retrieveData
+    if (isinstance(lst, string_types) and os.path.isdir(lst)):
+        lst = glob.glob(os.path.abspath(lst) + "/*.h5")
+    if (isinstance(lst, DataProcedure) or isinstance(lst, string_types)): lst = [lst]
+    for d in lst:
+        if (not isinstance(d, DataProcedure) and not (isinstance(d, string_types) and os.path.exists(d))):
+            raise TypeError("list element expected path or DataProcedure but got %r" % type(d))
+
+    while True:
+        for i, elmt in enumerate(lst):
+            out = retrieveData(elmt, data_keys=data_keys, verbose=verbose)
+            out = [x if isinstance(x, list) else [x] for x in out]
+            tot_set = set([x[0].shape[0] for x in out])
+            tot = list(tot_set)[0]
+            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
+            for start in range(0, tot, batch_size):
+                end = start + min(batch_size, tot - start)
+                yield tuple([[x[start:end] for x in X] for X in out])
 
 
 DEFAULT_PROFILE = {
@@ -852,40 +928,6 @@ class dataFetchThread(threading.Thread):
         self.X, self.Y = self.proc.get_data()
         return
 
-def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
-    '''Gets a generator that generates data of batch_size from a list of DataProcedures.
-        Optionally uses threading to apply getData in parellel, although this may be obsolete
-        with the proper fit_generator settings
-        
-        :param lst: a list of .h5 filepaths and/or DataProcedures or a directory path
-        :type lst: str or list
-        :param batch_size: The number of samples to grab at each call to next()
-        :type batch_size: int
-        :param data_keys: The keys to draw from in the .h5 files. (order matters)
-        :type data_keys: list of str
-        :param verbose: whether or not to print out info to the user.
-        :type verbose: int
-        :returns: a generator that runs through the given data
-    '''
-    from CMS_Deep_Learning.storage.iterators import retrieveData
-    if(isinstance(lst,string_types) and os.path.isdir(lst)):
-        lst = glob.glob(os.path.abspath(lst) +"/*.h5")
-    if (isinstance(lst, DataProcedure) or isinstance(lst,string_types)): lst = [lst]
-    for d in lst:
-        if(not isinstance(d, DataProcedure) and not (isinstance(d,string_types) and os.path.exists(d))):
-            raise TypeError("list element expected path or DataProcedure but got %r" % type(d))
-            
-    while True:
-        for i,elmt in enumerate(lst):
-            out = retrieveData(elmt, data_keys=data_keys, verbose=verbose)
-            out = [x if isinstance(x,list) else [x] for x in out]       
-            tot_set = set([x[0].shape[0] for x in out])
-            tot = list(tot_set)[0]
-            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
-            for start in range(0, tot, batch_size):
-                end = start+min(batch_size, tot-start)
-                yield tuple([[x[start:end] for x in X] for X in out])
-                
 
 def genFrom_label_dir_pairs(start, samples_per_label, stride, batch_size, archive_dir,label_dir_pairs, object_profiles, observ_types, verbose=1):
     '''Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files

@@ -9,6 +9,7 @@ import time, math,re,h5py,shutil
 import argparse
 from multiprocessing import Process
 from time import sleep
+from CMS_Deep_Learning.preprocessing.preprocessing import getSizeMetaData,getSizesDict
 
 PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 'Charge',
                     'ChPFIso', 'GammaPFIso', 'NeuPFIso',
@@ -97,46 +98,6 @@ def _check_inputs(data_dirs, observ_types):
             raise ValueError("Using EvtId in observ_types can result in skewed training results. Just don't.")
 
 
-#--------------------------SIZE UTILS-------------------------------
-def _readNumSamples(file_path):
-    try:
-        f = d = h5py.File(file_path, 'r')
-        while not isinstance(d, h5py.Dataset):
-            keys = d.keys()
-            d = d['axis1' if 'axis1' in keys else keys[0]]
-        out = d.len()
-    except IOError as e:
-        print("Something wrong with file %r" % file_path)
-        raise e
-    f.close()
-    return out
-
-def getSizesDict(directory, verbose=0):
-    '''Returns a dictionary of the number of sample points contained in each hdfStore/msgpack in a directory'''
-    from CMS_Deep_Learning.storage.archiving import read_json_obj
-    if (not os.path.isdir(directory)):
-        split = os.path.split(directory)
-        directory = "/".join(split[:-1])
-    sizesDict = read_json_obj(directory, "sizesMetaData.json", verbose=verbose)
-    return sizesDict
-
-
-def getSizeMetaData(filename, sizesDict=None, verbose=0):
-    from CMS_Deep_Learning.storage.archiving import write_json_obj
-    '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary'''
-    if (sizesDict == None):
-        sizesDict = getSizesDict(filename)
-    modtime = os.path.getmtime(filename)
-    if (not filename in sizesDict or sizesDict[filename][1] != modtime):
-        file_total_events = _readNumSamples(filename)
-        sizesDict[filename] = (file_total_events, modtime)
-        if (not os.path.isdir(filename)):
-            split = os.path.split(filename)
-            directory = "/".join(split[:-1])
-        write_json_obj(sizesDict, directory, "sizesMetaData.json", verbose=verbose)
-    return sizesDict[filename][0]
-
-#-----------------------------------------------------------------
 
 #--------------------SORTING UTILS--------------------------------
 def maxLepPtEtaPhi(X, locs):
