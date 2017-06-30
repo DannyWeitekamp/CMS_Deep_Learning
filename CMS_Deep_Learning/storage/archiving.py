@@ -1024,8 +1024,8 @@ class KerasTrial(Storable):
 
         out_str += "-"*50 + "\n"
         out_str += "TRIAL SUMMARY (" + self.hash() + ")" + "\n"
-        if(showDirectory):print(indent + "Directory: " + self.archive_dir)
-        if(showName):  print(indent + "Name: " + self.name)
+        if(showDirectory): out_str += indent + "Directory: " + self.archive_dir + "\n"
+        if(showName): out_str += indent + "Name: " + self.name + "\n"
         def _getPairsFromKeys(record,keys):
             p_keys = [key for key in record]
             out = []
@@ -1057,7 +1057,7 @@ class KerasTrial(Storable):
                             records.append(str(key) + " = " + "%.4f" % value)
                         else:
                             records.append(str(key) + " = " + json.dumps(value))
-                    print(indent*2 + sep.join(records))
+                    out_str += indent*2 + sep.join(records) + "\n"
                 records = []
                 for key in record:
                     records.append(str(key) + " = " + json.dumps(record[key]))
@@ -1077,7 +1077,7 @@ class KerasTrial(Storable):
                 out_str += indent*2 + "samples_per_epoch = %r" % self.samples_per_epoch + "\n"
 
         if(showValidation):
-            print(indent + "Validation:")
+            out_str + indent + "Validation:" + "\n"
             if(self.val_procedure == None):
                 out_str += indent*2 + "validation_split = %r" % self.validation_split + "\n"
             else:
