@@ -213,25 +213,27 @@ def plotEverything(trials, custom_objects={}):
         except Exception as e:
             print(e)
 
-def showColors(colors):
+
+def plot_colors(colors, show_edges=False):
     '''Plots a list of colors with outlines taken from the same list
-    
+
     '''
     fig, ax = plt.subplots(1)
-    fig.set_size_inches((10,10))
+    fig.set_size_inches((10, 10))
 
     # Show the whole color range
     for i in range(len(colors)):
-        x = np.random.normal(loc=(i%4)*3, size=100)
-        y = np.random.normal(loc=(i//4)*3, size=100)
+        x = np.random.normal(loc=(i % 4) * 3, size=100)
+        y = np.random.normal(loc=(i // 4) * 3, size=100)
         c = colors[i]
-        j = (i * 3 +4) % len(colors)
-        b = colors[j]
-        
-        ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b,s=60, facecolor=c, linewidth=1.0)
+        j = (i * 3 + 4) % len(colors)
+        b = colors[j] if show_edges else c
+
+        ax.scatter(x, y, label=str(i), alpha=.7, edgecolor=b, s=60, facecolor=c, linewidth=1.0)
     return plt
 
-def plotTable(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title="",show=True):
+
+def plot_table(rows, columns, cellText, rowColors=None, textSize=14, scale=1.5, title="",show=True):
     nrows, ncols = len(rows), len(columns)
     hcell, wcell = 0.005, 1.
     hpad, wpad = 0, 0    
@@ -499,12 +501,6 @@ def plot_bins(bins,
                 ax.bar(xs, y, width=widths, yerr=errors, color=colors[j % len(colors)], label=label, ecolor='k',
                        alpha=alpha, log=log)
             elif (mode == "histo"):
-                # ys = [[y[key] for key in sorted(y.keys())] for y in ys]
-                # if (normalize): ys = [np.array(y).astype('float') / np.sum(y) for y in ys]
-                # ys = zip(*ys)
-                # bot = np.array([0.0] * len(xs))
-
-                # if (class_labels != None): label = class_labels[j]
                 if (stack):
                     ax.bar(xs, y, width=widths, yerr=errors, bottom=bot, color=colors[j % len(colors)], label=label,
                            ecolor='k', alpha=alpha, log=log, edgecolor="none", lw=0)
