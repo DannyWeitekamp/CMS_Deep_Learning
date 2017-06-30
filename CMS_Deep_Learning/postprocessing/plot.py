@@ -507,16 +507,16 @@ def plot_bins(bins,
                 else:
                     # Append points to beginning and end
                     _xs = [b["max_bin_x"] for b in bs if (b["num_samples"] >= min_samples)]
-                    _xs = [bs[0]['min_bin_x']] + xs + [xs[-1]]
+                    _xs = [bs[0]['min_bin_x']] + _xs + [_xs[-1]]
                     y = [0] + list(y) + [0]
-                    print(_xs)
-                    print(y)
+
                     ax.plot(_xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
                 if (stack): bot += y
             else:
                 s = shapes[i % len(colors)]
                 ax.plot(xs, y, color=colors[j % len(colors)], label=label, marker=s, linestyle='None')
-                ax.errorbar(xs, y, yerr=errors, color=colors[j % len(colors)], ecolor=colors[j % len(colors)], alpha=alpha, fmt='',
+                ax.errorbar(xs, y, yerr=errors, color=colors[j % len(colors)], ecolor=colors[j % len(colors)],
+                            alpha=alpha, fmt='',
                             linestyle='None')
                 if (log): ax.set_yscale("log")
 
