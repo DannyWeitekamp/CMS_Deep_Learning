@@ -65,23 +65,15 @@ def build_accumilator(char,
 
 
 def bin_metric_vs_char(args=[],
-                       char_name=None,
-                       char_collection=None,
-                       accumilate=None,
-                       num_samples=None,
                        nb_bins=20,
                        equalBins=False,
-                       custom_objects={},
                        plot=False,
                        **kargs):
     '''Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.
 
-        :param accumilate: an accumilator function build by build_accumilator
-        :param num_samples: The number of samples to be read from a generator dat input.
         :param nb_bins: The number of bins to use in the analysis.
         :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                         will be very unusual, varying significantly in their domain.
-        :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
         :param plot: If True plot the bins automatically.
 
         :Keyword Arguments:
@@ -95,6 +87,7 @@ def bin_metric_vs_char(args=[],
                   weights=? must be given.
         - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
         - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
+        - **accumilate** (``function``) -- an accumilator function build by build_accumilator
 
 
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
@@ -109,9 +102,8 @@ def bin_metric_vs_char(args=[],
 
     inp = inputs[0]
 
-    if (accumilate != None):
+    if (inp['accumilate'] != None):
         h = inputHandler(['Y', 'predictions', 'characteristics'])
-        inp["accumilate"] = accumilate
         y_vals, predictions, characteristics = h(inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
