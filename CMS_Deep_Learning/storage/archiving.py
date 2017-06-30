@@ -1100,7 +1100,7 @@ class KerasTrial(Storable):
                                      "validation_split", "validation_data", "shuffle",
                                      "class_weight", "sample_weight"])
             out_str += indent*2 + sep.join(fits) + "\n"
-        out_str += "-"*50 + "\n"
+        out_str += "-"*50
         return out_str
 
 
