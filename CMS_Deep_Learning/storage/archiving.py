@@ -359,18 +359,17 @@ class DataProcedure(Storable):
             
         return out
 
-    def get_summary(self):
+    def summary(self):
         '''Get the summary for the DataProcedure as a string'''
+        out_str = ""
+        out_str += "-"*50 + "\n"
+        out_str += "DataProcedure (%r)" % self.hash() + "\n"
         str_args = ','.join([str(x) for x in self.args])
         str_kargs = ','.join([str(x) + "=" + str(self.kargs[x]) for x in self.kargs])
         arguments = ','.join([str_args, str_kargs])
-        return self.func_module + "." + self.func +"(" + arguments + ")"
-    def summary(self):
-        '''Print a summary'''
-        print("-"*50)
-        print("DataProcedure (%r)" % self.hash())
-        print("    " + self.get_summary())
-        print("-"*50) 
+        out_str += "    " + self.func_module + "." + self.func +"(" + arguments + ")" + "\n"
+        out_str += "-"*50 + "\n"
+        return out_str
 
     @staticmethod
     def get_func(name, module):
@@ -1007,6 +1006,7 @@ class KerasTrial(Storable):
                  showModelPic=False, showNoneType=False -- Control what data is printed
                 squat=True -- If False shows data on separate lines
         '''
+        out_str = ""
         indent = "    "     
         d = self.__dict__
         def _listIfNotNone(keys):
@@ -1020,10 +1020,10 @@ class KerasTrial(Storable):
         if(squat):
             sep = ", "         
         else:
-            sep = "\n" + indent*2 
+            sep = "\n" + indent*2
 
-        print("-"*50)
-        print("TRIAL SUMMARY (" + self.hash() + ")" )
+        out_str += "-"*50 + "\n"
+        out_str += "TRIAL SUMMARY (" + self.hash() + ")" + "\n"
         if(showDirectory):print(indent + "Directory: " + self.archive_dir)
         if(showName):  print(indent + "Name: " + self.name)
         def _getPairsFromKeys(record,keys):
@@ -1035,9 +1035,8 @@ class KerasTrial(Storable):
                     del record[key]
             return out
 
-
         if(showRecord):
-            print(indent + "Record_Info:")
+            out_str += indent + "Record_Info:" + "\n"
             record = self.read_record()
             
             if(record != None):
@@ -1063,45 +1062,46 @@ class KerasTrial(Storable):
                 for key in record:
                     records.append(str(key) + " = " + json.dumps(record[key]))
                 records.sort()
-                print(indent*2 + sep.join(records))
+                out_str += indent*2 + sep.join(records) + "\n"
             else:
-                print(indent*2 + "No record. Not stored in archive.")
+                out_str += indent*2 + "No record. Not stored in archive." + "\n"
 
         if(showTraining):
-            print(indent + "Training:")
+            out_str += indent + "Training:" + "\n"
             preps = []
             for s in self.train_procedure:
                 p = DataProcedure.from_json(self.archive_dir, s)
                 preps.append(p.get_summary())
-            print(indent*2 + sep.join(preps))
+            out_str += indent*2 + sep.join(preps) + "\n"
             if(self.samples_per_epoch != None):
-                print(indent*2 + "samples_per_epoch = %r" % self.samples_per_epoch)
+                out_str += indent*2 + "samples_per_epoch = %r" % self.samples_per_epoch + "\n"
 
         if(showValidation):
             print(indent + "Validation:")
             if(self.val_procedure == None):
-                print(indent*2 + "validation_split = %r" % self.validation_split)
+                out_str += indent*2 + "validation_split = %r" % self.validation_split + "\n"
             else:
                 preps = []
                 for s in self.val_procedure:
                     p = DataProcedure.from_json(self.archive_dir, s)
                     preps.append(p.get_summary())
-                print(indent*2 + sep.join(preps))
+                    out_str += indent*2 + sep.join(preps) + "\n"
                 if(self.nb_val_samples != None):
-                    print(indent*2 + "nb_val_samples = %r" % self.nb_val_samples)
+                    out_str += indent*2 + "nb_val_samples = %r" % self.nb_val_samples + "\n"
 
         if(showCompilation):
-            print(indent + "Compilation:")
+            out_str += indent + "Compilation:" + "\n"
             comps = _listIfNotNone(["optimizer", "loss", "metrics", "sample_weight_mode"])
-            print(indent*2 + sep.join(comps))
+            out_str += indent*2 + sep.join(comps) + "\n"
 
         if(showFit):
-            print(indent + "Fit:")
+            out_str += indent + "Fit:" + "\n"
             fits = _listIfNotNone(["batch_size", "nb_epoch", "verbose", "callbacks",
                                      "validation_split", "validation_data", "shuffle",
                                      "class_weight", "sample_weight"])
-            print(indent*2 + sep.join(fits))
-        print("-"*50)
+            out_str += indent*2 + sep.join(fits) + "\n"
+        out_str += "-"*50 + "\n"
+        return out_str
 
 
     @classmethod
