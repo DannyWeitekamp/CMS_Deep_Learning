@@ -69,7 +69,7 @@ def bin_metric_vs_char(args=[],
                        char_collection=None,
                        accumilate=None,
                        num_samples=None,
-                       bins=20,
+                       nb_bins=20,
                        equalBins=False,
                        custom_objects={},
                        plot=False,
@@ -78,7 +78,7 @@ def bin_metric_vs_char(args=[],
 
         :param accumilate: an accumilator function build by build_accumilator
         :param num_samples: The number of samples to be read from a generator dat input.
-        :param bins: The number of bins to use in the analysis.
+        :param nb_bins: The number of bins to use in the analysis.
         :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                         will be very unusual, varying significantly in their domain.
         :param custom_objects: A dictionary keyed by names containing the classes of any model components not used in the standard Keras library.
@@ -136,12 +136,12 @@ def bin_metric_vs_char(args=[],
     min_char = characteristics[0]
     max_char = characteristics[characteristics.shape[0] - 1]
     if (not equalBins):
-        stride = (max_char - min_char) / bins
-        split_vals = [min_char + stride * (i + 1) for i in range(bins - 1)]
+        stride = (max_char - min_char) / nb_bins
+        split_vals = [min_char + stride * (i + 1) for i in range(nb_bins - 1)]
         split_at = characteristics.searchsorted(split_vals)
     else:
-        stride = characteristics.shape[0] / float(bins)
-        split_at = [int(stride * float(i + 1)) for i in range(bins - 1)]
+        stride = characteristics.shape[0] / float(nb_bins)
+        split_at = [int(stride * float(i + 1)) for i in range(nb_bins - 1)]
 
     predict_bins = np.split(predictions, split_at)
     y_bins = np.split(y_vals, split_at)
