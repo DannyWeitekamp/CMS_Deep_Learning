@@ -189,7 +189,8 @@ def trials_from_HPsweep(archive_dir,
                     for lstm_dropout in [0.0]:
                         for dropout in [0.0]:
                             for ntf in n_train_files:
-                                train = glob.glob(data_dir + "/train/*.h5")[:ntf]
+                                g = glob.glob(data_dir + "/train/*.h5")
+                                train = g[:ntf] if ntf > 0 else g 
                                 val = glob.glob(data_dir + "/val/*.h5")[:n_train_files]
                                 def f(**kargs):
                                     return kargs
