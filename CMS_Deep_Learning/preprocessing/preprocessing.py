@@ -28,7 +28,7 @@ def nb_samples_from_h5(file_path):
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
     except IOError as e:
-        print("Something wrong with file %r" % file_path)
+        e.message += "Something wrong with file %r" % file_path
         raise e
     f.close()
     return out
@@ -48,7 +48,7 @@ def get_sizes_meta_dict(directory, verbose=0):
     return sizesDict
 
 
-def size_from_meta(filename, sizesDict=None, verbose=0):
+def size_from_meta(filename, sizesDict=None,zero_errors=True, verbose=0):
     '''Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary
     
     :param filename: The path the the file.
