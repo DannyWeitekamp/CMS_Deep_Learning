@@ -29,7 +29,7 @@ def nb_samples_from_h5(file_path):
         out = d.len()
     except IOError:
         #Unpack and reraise the error but splice in the file_path
-        reraise(*[x + "Something wrong with file %r" % file_path if i==1 else x for i,x in enumerate(sys.exc_info())])
+        reraise(*[IOError(str(x) + "Something wrong with file %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
     f.close()
     return out
 
