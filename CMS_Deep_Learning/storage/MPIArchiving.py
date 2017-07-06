@@ -85,11 +85,6 @@ class MPI_KerasTrial(KerasTrial):
                 verbosity=1,
                 # numProcesses=2
                 ):
-        from mpi4py import MPI
-        from mpi_learn.mpi.manager import MPIManager, get_device
-        from mpi_learn.train.algo import Algo
-        from mpi_learn.train.data import H5Data
-        from mpi_learn.train.model import ModelFromJson
         # print(kargs)
         # if(not "isMPI_Instance" in kargs):
         if(not self.is_complete()):
@@ -149,8 +144,13 @@ class MPI_KerasTrial(KerasTrial):
                     archiveTraining=True,
                     archiveValidation=True,
                     verbose=1):
-        
-            #return prep_func
+        from mpi4py import MPI
+        from mpi_learn.mpi.manager import MPIManager, get_device
+        from mpi_learn.train.algo import Algo
+        from mpi_learn.train.data import H5Data
+        from mpi_learn.train.model import ModelFromJson
+
+        #return prep_func
         #print(self.custom_objects)
         #print(custom_objects)
         #print(Lorentz, Slice)
@@ -160,7 +160,7 @@ class MPI_KerasTrial(KerasTrial):
         # sync_every = 1
         # MPIoptimizer = "rmsprop"
         # batch_size = 100
-
+        
         if(comm == None):
             comm = MPI.COMM_WORLD.Dup()
 
