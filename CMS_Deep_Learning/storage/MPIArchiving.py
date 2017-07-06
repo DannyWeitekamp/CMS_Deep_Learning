@@ -7,7 +7,7 @@ import subprocess
 from time import time,sleep
 import select
 import importlib
-
+from six import string_types
 
 import CMS_Deep_Learning
 from .archiving import KerasTrial, DataProcedure
@@ -176,9 +176,9 @@ class MPI_KerasTrial(KerasTrial):
         train = [DataProcedure.from_json(self.archive_dir,x) if isinstance(x,DataProcedure) else str(x) for x in self.train_procedure]
         val = [DataProcedure.from_json(self.archive_dir,x) if isinstance(x,DataProcedure) else str(x) for x in self.val_procedure]
 
-        if(not(isinstance(train, list) and isinstance(train[0], DataProcedure))):
+        if(not isinstance(train, list) or not False in [isinstance(x,DataProcedure) or isinstance(x,string_types) for x in train]):
             raise ValueError("Train procedure must be list of DataProcedures")
-        if(not(isinstance(val, list) and isinstance(val[0], DataProcedure))):
+        if (not isinstance(val, list) or not False in [isinstance(x, DataProcedure) or isinstance(x, string_types) for x in val]):
             raise ValueError("Validation procedure must be list of DataProcedures")
         batchAssertArchived(train)
         batchAssertArchived(val)
