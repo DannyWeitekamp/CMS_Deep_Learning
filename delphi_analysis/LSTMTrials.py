@@ -155,7 +155,7 @@ def trials_from_HPsweep(archive_dir,
               patience = 8,
               output_activation = "softmax",
               loss='categorical_crossentropy',
-              optimizer_options = ['rmsprop'],
+              optimizer_options = ['adam'],
               sortings = #[("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
                          # ("PT_ET", False), ("PT_ET", True),
                          [ ('MaxLepDeltaR', False)],#,('MaxLepDeltaR', True),
@@ -163,6 +163,8 @@ def trials_from_HPsweep(archive_dir,
                          # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
                          # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
+                n_train_files = [1,5,10,20,35,-1],
+                n_val_files = 2
               ):
     # if(delphes_dir == None):
     #     split = list(archive_dir.split("/"))
@@ -186,38 +188,41 @@ def trials_from_HPsweep(archive_dir,
                         else activation.__name__
                     for lstm_dropout in [0.0]:
                         for dropout in [0.0]:
-                            def f(**kargs):
-                                return kargs
-                            inps = f(name='LSTM', 
-                                     input_width=len(PARTICLE_OBSERVS),
-                                     out_width=2,
-                                     depth=1,
-                                     lstm_activation=activation,
-                                     lstm_dropout=lstm_dropout,
-                                     dropout=dropout,
-                                     train=data_dir + "/train",
-                                     val=data_dir + "/val",
-                                     archive_dir=archive_dir,
-                                     workers=workers,
-                                     optimizer=optimizer,
-                                     nb_epoch=100,
-                                     batch_size=100,
-                                     callbacks=[earlyStopping],
-                                     keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending',
-                                                     'activation', 'dropout', 'lstm_dropout',
-                                                     'patience'],
-                                     sort_on=sort_on,
-                                     sort_ascending=sort_ascending,
-                                     activation=activation,
-                                     labels=labels,
-                                     patience=patience
-                                     )
-                            model = build_LSTM_model(**inps)
-                            inps["model"] = model
-                            trial = build_trial(**inps)
-
-                            
-                            trials.append(trial)
+                            for ntf in n_train_files:
+                                train = glob.glob(data_dir + "/train/*.h5")[:ntf]
+                                val = glob.glob(data_dir + "/val/*.h5")[:n_train_files]
+                                def f(**kargs):
+                                    return kargs
+                                inps = f(name='LSTM', 
+                                         input_width=len(PARTICLE_OBSERVS),
+                                         out_width=2,
+                                         depth=1,
+                                         lstm_activation=activation,
+                                         lstm_dropout=lstm_dropout,
+                                         dropout=dropout,
+                                         train=train,#data_dir + "/train",
+                                         val=val,#data_dir + "/val",
+                                         archive_dir=archive_dir,
+                                         workers=workers,
+                                         optimizer=optimizer,
+                                         nb_epoch=100,
+                                         batch_size=100,
+                                         callbacks=[earlyStopping],
+                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending',
+                                                         'activation', 'dropout', 'lstm_dropout',
+                                                         'patience'],
+                                         sort_on=sort_on,
+                                         sort_ascending=sort_ascending,
+                                         activation=activation,
+                                         labels=labels,
+                                         patience=patience
+                                         )
+                                model = build_LSTM_model(**inps)
+                                inps["model"] = model
+                                trial = build_trial(**inps)
+    
+                                
+                                trials.append(trial)
     return trials                            
                             
 
