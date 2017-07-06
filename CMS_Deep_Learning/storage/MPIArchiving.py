@@ -169,21 +169,29 @@ class MPI_KerasTrial(KerasTrial):
         # if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]
         # if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]
         if(not(isinstance(self.train_procedure,list))):
-            raise ValueError("Trial attribute train_procedure: expected list of DataProcedures but got type %r" % type(self.train_procedure))
+            raise ValueError("Trial attribute train_procedure: expected list of DataProcedures or paths but got type %r" % type(self.train_procedure))
         if(not(isinstance(self.val_procedure,list))):
-            raise ValueError("Trial attribute val_procedure: expected list of DataProcedures but got type %r" % type(self.val_procedure))
+            raise ValueError("Trial attribute val_procedure: expected list of DataProcedures or paths but got type %r" % type(self.val_procedure))
 
-        train_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.train_procedure]
-        val_dps = [DataProcedure.from_json(self.archive_dir,x) for x in self.val_procedure]
+        train = [DataProcedure.from_json(self.archive_dir,x) if isinstance(x,DataProcedure) else str(x) for x in self.train_procedure]
+        val = [DataProcedure.from_json(self.archive_dir,x) if isinstance(x,DataProcedure) else str(x) for x in self.val_procedure]
 
-        if(not(isinstance(train_dps, list) and isinstance(train_dps[0], DataProcedure))):
+        if(not(isinstance(train, list) and isinstance(train[0], DataProcedure))):
             raise ValueError("Train procedure must be list of DataProcedures")
-        if(not(isinstance(val_dps, list) and isinstance(val_dps[0], DataProcedure))):
+        if(not(isinstance(val, list) and isinstance(val[0], DataProcedure))):
             raise ValueError("Validation procedure must be list of DataProcedures")
-        batchAssertArchived(train_dps)
-        batchAssertArchived(val_dps)
-        train_list = [dp.get_path() + "archive.h5" for dp in train_dps]
-        val_list = [dp.get_path() + "archive.h5" for dp in val_dps]
+        batchAssertArchived(train)
+        batchAssertArchived(val)
+        def assertStr(x):
+            if(isinstance(x,DataProcedure)):
+                return dp.get_path() + "archive.h5"
+            elif(os.path.isfile(x)):
+                return x  
+            else:
+                raise IOError("Cannot find %r" % x)
+                
+        train_list = [assertStr(x) for x in train]
+        val_list = [assertStr(x) for dp in val]
         # print("Train List:", train_list)
         # print("Val List:", val_list)
 

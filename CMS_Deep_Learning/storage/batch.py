@@ -24,7 +24,7 @@ def batchAssertArchived(dps, num_processes=1, time_str="01:00:00",repo="/scratch
     dependencies = []
     for dp in dps:
         # print(dps)
-        if(not dp.is_archived()):
+        if(isinstance(dp,DataProcedure) and not dp.is_archived()):
             unarchived.append(dp)
 
     if("daint" in socket.gethostname()):
