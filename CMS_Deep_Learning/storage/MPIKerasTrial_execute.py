@@ -3,7 +3,7 @@ import sys
 
 from mpi4py import MPI
 
-software = "/data/shared/Software/"
+software = "/data/shared/Software/CMS_Deep_Learning"
 if(not software in sys.path):
     sys.path.append(software)
 p = "/home/dweitekamp/mpi_learn/"
