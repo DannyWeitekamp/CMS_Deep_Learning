@@ -223,8 +223,9 @@ class MPI_KerasTrial(KerasTrial):
         # We initialize the Data object with the training data list
         # so that we can use it to count the number of training examples
 
-        data = H5Data( train_list, batch_size=self.batch_size, 
+        data = H5Data(batch_size=self.batch_size, 
                 features_name="X", labels_name="Y")
+        data.set_file_names(train_list)
         num_train = data.count_data()
         
 
