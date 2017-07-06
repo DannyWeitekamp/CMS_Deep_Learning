@@ -8,7 +8,7 @@ import time
 import numpy as np
 import pandas as pd
 import h5py
-from six import string_types
+from six import string_types,reraise
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure,read_json_obj,write_json_obj
 from CMS_Deep_Learning.storage.meta import msgpack_assertMeta
@@ -27,9 +27,9 @@ def nb_samples_from_h5(file_path):
             keys = d.keys()
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
-    except IOError as e:
-        e.message += "Something wrong with file %r" % file_path
-        raise e
+    except IOError:
+        #Unpack and reraise the error but splice in the file_path
+        reraise(*[x + "Something wrong with file %r" % file_path if i==1 else x for i,x in enumerate(sys.exc_info())])
     f.close()
     return out
 
