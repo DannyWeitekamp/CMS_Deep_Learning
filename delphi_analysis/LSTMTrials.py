@@ -191,7 +191,7 @@ def trials_from_HPsweep(archive_dir,
                             for ntf in n_train_files:
                                 g = glob.glob(data_dir + "/train/*.h5")
                                 train = g[:ntf] if ntf > 0 else g 
-                                val = glob.glob(data_dir + "/val/*.h5")[:n_train_files]
+                                val = glob.glob(data_dir + "/val/*.h5")[:n_val_files]
                                 def f(**kargs):
                                     return kargs
                                 inps = f(name='LSTM', 
