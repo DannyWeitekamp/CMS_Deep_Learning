@@ -236,11 +236,9 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
         # Loop the files associated with the current label
         for f in files:
             file_total_events = size_from_meta(f, sizesDict=sizesDict)  # len(num_val_frame.index)
-            if (file_total_events == None):
+            if (file_total_events == None or file_total_events == 0):
                 print("Skipping %r" % f)
                 continue
-
-            assert file_total_events > 0, "num_val_frame has zero values"
 
             if (location + file_total_events <= start):
                 location += file_total_events
