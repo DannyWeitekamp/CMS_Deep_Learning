@@ -29,7 +29,7 @@ def nb_samples_from_h5(file_path):
         out = d.len()
     except IOError:
         #Unpack and reraise the error but splice in the file_path
-        reraise(*[IOError(str(x) + "Something wrong with file %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
+        reraise(*[IOError(str(x) + " at %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
     f.close()
     return out
 
@@ -60,7 +60,13 @@ def size_from_meta(filename, sizesDict=None,zero_errors=True, verbose=0):
         sizesDict = get_sizes_meta_dict(filename)
     modtime = os.path.getmtime(filename)
     if (not filename in sizesDict or sizesDict[filename][1] != modtime):
-        file_total_events = nb_samples_from_h5(filename)
+        try:
+            file_total_events = nb_samples_from_h5(filename)
+        except IOError as e:
+            if(zero_errors):
+                file_total_events = 0
+            else:
+                reraise(IOError,e)
         sizesDict[filename] = (file_total_events, modtime)
         if (not os.path.isdir(filename)):
             split = os.path.split(filename)
