@@ -318,8 +318,8 @@ def splitsFromVal(v,n_samples):
     if(v == 0.0): return (n_samples,)
     if(v < 1.0):
         return (1.0-v,v)
-    elif(isinstance(v, int)):
-        return (n_samples-v, v)
+    elif(isinstance(v, int) or v == int(v)):
+        return (n_samples-int(v), int(v))
     else:
         raise ValueError("Cannot make fractional validation samples %r" % v)
         
