@@ -104,7 +104,7 @@ def build_trial(name,
         if not p in sys.path:
             sys.path.append(p)
         from CMS_Deep_Learning.storage.MPIArchiving import MPI_KerasTrial
-        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers, seed=0)
+        trial = MPI_KerasTrial(archive_dir, name=name, model=model, workers=workers, seed=0, features_name="Particles",labels_name="Labels")
         val, nb_val = assert_dataset(val, nb_data=nb_val,archive_dir=archive_dir,**kargs)
         train, nb_train = assert_dataset(train, nb_train,archive_dir=archive_dir,**kargs)
 
@@ -134,6 +134,7 @@ def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/De
     dir = dataset_dir + "/" + sort_on + '_' + ('asc' if sort_ascending else 'dec')
     dir = os.path.abspath(dir)
     if(not os.path.exists(dir)):
+        raise IOError("NOPE")
         sources = ['/bigdata/shared/Delphes/REDUCED_IsoLep/ttbar_lepFilter_13TeV','/bigdata/shared/Delphes/REDUCED_IsoLep/wjets_lepFilter_13TeV']
         make_datasets(sources, output_dir=dir, num_samples=120000, size=10000,
                       num_processes=processes, sort_on=sort_on, sort_ascending=sort_ascending,

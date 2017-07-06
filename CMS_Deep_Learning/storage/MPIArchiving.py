@@ -24,7 +24,9 @@ MPI_INPUT_DEFAULTS = { "masters" : 1,
                        "easgd" : False,
                        "elastic_force" : 0.9,
                        "elastic_lr" : 1.0,
-                       "elastic_momentum" : 0.0
+                       "elastic_momentum" : 0.0,
+                       "features_name":"X",
+                       "labels_name":"Y"
 
 }
 
@@ -224,7 +226,7 @@ class MPI_KerasTrial(KerasTrial):
         # so that we can use it to count the number of training examples
 
         data = H5Data(batch_size=self.batch_size, 
-                features_name="X", labels_name="Y")
+                features_name=self.features_name, labels_name=self.labels_name)
         data.set_file_names(train_list)
         num_train = data.count_data()
         
@@ -266,7 +268,7 @@ class MPI_KerasTrial(KerasTrial):
                 self.to_record({"num_train": num_train})
             if(not "num_val" in record):
                 val_data = H5Data( val_list, batch_size=self.batch_size,
-                features_name="X", labels_name="Y")
+                features_name=self.features_name, labels_name=self.labels_name)
                 self.to_record({"num_val": val_data.count_data()})
 
             print(custom_objects)
