@@ -426,7 +426,10 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     for i, sn in enumerate(SNs):
         folder = os.path.abspath(output_dir) + ("/train" if (i == 0) else '/val')
         if (force):
-            shutil.rmtree(folder)
+            try:
+                shutil.rmtree(folder)
+            except Exception:
+                pass
         if (len(glob.glob(folder + "/*.h5")) != 0):
             raise IOError("directory %r is not empty use -f or --force to clear the directory first" % folder)
 
