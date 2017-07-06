@@ -255,7 +255,7 @@ class MPI_KerasTrial(KerasTrial):
         callbacks = self._generateCallbacks(verbose=verbose)
 
         # Creating the MPIManager object causes all needed worker and master nodes to be created
-        manager = MPIManager(comm=comm, data=data, num_epochs=self.epochs,
+        manager = MPIManager(comm=comm, data=data, num_epochs=self.epochs if hasattr(self,'epochs') else self.nb_epoch,
                              algo=algo, model_builder=model_builder,
                              train_list=train_list, val_list=val_list, num_masters=self.masters,
                              synchronous=self.synchronous, callbacks=callbacks, custom_objects=custom_objects)
