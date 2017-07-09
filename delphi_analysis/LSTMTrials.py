@@ -182,7 +182,8 @@ def trials_from_HPsweep(archive_dir,
     
     trials = []
     for sort_on, sort_ascending in sortings:
-        data_dir = assert_write_datasets(sort_on,sort_ascending)
+        # data_dir = assert_write_datasets(sort_on,sort_ascending)
+        data_dir = '/bigdata/shared/Delphes/np_datasets/3_way/MaxLepDeltaR_dec'
         for optimizer in optimizer_options:
             for depth in [1]:
                 
