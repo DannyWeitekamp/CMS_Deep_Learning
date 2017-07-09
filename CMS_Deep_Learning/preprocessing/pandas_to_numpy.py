@@ -450,7 +450,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
             for D, key in zip(x, ["Particles", "Labels", "HLF"]):
                 h5f.create_dataset(key, data=D)
             h5f.close()
-            print("Done: %r/%r" % tuple(dest.split("/")[-2:]))
+            print("Done: %s/%s" % tuple(dest.split("/")[-2:]))
 
     num_processes = num_processes
     processes = []
