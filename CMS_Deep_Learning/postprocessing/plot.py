@@ -170,7 +170,7 @@ def plotMetricVsMetric(trials,metricX,metricY="val_acc",groupOn=None,constants={
                          edgecolors=b,
                          color=c,
                          label=group)
-        plt.xticks(Xs)
+        # plt.xticks(Xs)
     if(xlabel == None): xlabel = metricX
     if(ylabel == None): ylabel = metricY
     
