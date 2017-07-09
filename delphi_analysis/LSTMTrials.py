@@ -178,7 +178,7 @@ def trials_from_HPsweep(archive_dir,
     earlyStopping = EarlyStopping(verbose=1, patience=patience)
     print(archive_dir, workers)
     
-    labels = ['ttbar', 'wjets']
+    labels = ['qcd','ttbar', 'wjets']
     
     trials = []
     for sort_on, sort_ascending in sortings:
