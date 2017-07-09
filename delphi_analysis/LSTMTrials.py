@@ -164,8 +164,10 @@ def trials_from_HPsweep(archive_dir,
                          # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
                          # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
-                n_train_files = [1,5,10,20,35,-1],
-                n_val_files = 2
+                n_train_files = [20,30,40,50,60,
+                                 55,45,35,25,17,
+                                 22,57,58],
+                n_val_files = 5
               ):
     # if(delphes_dir == None):
     #     split = list(archive_dir.split("/"))
@@ -190,9 +192,9 @@ def trials_from_HPsweep(archive_dir,
                     for lstm_dropout in [0.0]:
                         for dropout in [0.0]:
                             for ntf in n_train_files:
-                                g = glob.glob(data_dir + "/train/*.h5")
+                                g = sorted(glob.glob(data_dir + "/train/*.h5"))
                                 train = g[:ntf] if ntf > 0 else g 
-                                val = glob.glob(data_dir + "/val/*.h5")[:n_val_files]
+                                val = sorted(glob.glob(data_dir + "/val/*.h5")[:n_val_files])
                                 def f(**kargs):
                                     return kargs
                                 inps = f(name='LSTM', 
@@ -223,7 +225,7 @@ def trials_from_HPsweep(archive_dir,
                                 model = build_LSTM_model(**inps)
                                 inps["model"] = model
                                 trial = build_trial(**inps)
-    
+                            
                                 
                                 trials.append(trial)
     return trials                            
@@ -236,7 +238,10 @@ def trials_from_HPsweep(archive_dir,
     
 if __name__ == '__main__':
     argv = sys.argv
-    trials = trials_from_HPsweep(argv[1], int(argv[2]), batchProcesses=int(argv[3]) if len(argv) >= 4 else 4)
+    trials = trials_from_HPsweep(argv[1], 1, batchProcesses=1 if len(argv) >= 4 else 4)
+    trials = [trials[i] for i in range(int(argv[3]),len(trials),int(argv[2]))]
     for trial in trials:
-        trial.summary()
+        print(trial.summary())
+    for trial in trials:
+        print(trial.summary())
         trial.execute()
