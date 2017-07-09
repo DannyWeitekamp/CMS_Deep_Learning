@@ -23,13 +23,14 @@ def nb_samples_from_h5(file_path):
     '''
     try:
         f = d = h5py.File(file_path, 'r')
+    except IOError as e:
+        raise IOError(str(e) + " at %r" % file_path)
+    try:
         while not isinstance(d, h5py.Dataset):
             keys = d.keys()
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
     except IOError as e:
-        #Unpack and reraise the error but splice in the file_path
-        # reraise(*[IOError(str(x) + " at %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
         raise IOError(str(e) + " at %r" % file_path)
     finally:
         f.close()
