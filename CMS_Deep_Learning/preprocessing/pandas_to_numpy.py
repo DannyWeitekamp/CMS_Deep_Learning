@@ -455,7 +455,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     num_processes = num_processes
     processes = []
     splits = [jobs[i::num_processes] for i in range(num_processes)]
-    samples_per_process = np.ceil(num_samples / num_processes)
+    Ksamples_per_process = np.ceil(num_samples / num_processes)
     for i, sublist in enumerate(splits[1:]):
         print("Thread %r Started" % i)
         p = Process(target=f, args=sublist)

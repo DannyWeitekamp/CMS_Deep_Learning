@@ -200,7 +200,7 @@ def trials_from_HPsweep(archive_dir,
                                     return kargs
                                 inps = f(name='LSTM', 
                                          input_width=len(PARTICLE_OBSERVS),
-                                         out_width=2,
+                                         out_width=3,
                                          depth=1,
                                          lstm_activation=activation,
                                          lstm_dropout=lstm_dropout,
