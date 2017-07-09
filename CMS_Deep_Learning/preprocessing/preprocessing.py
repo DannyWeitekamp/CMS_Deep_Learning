@@ -27,10 +27,12 @@ def nb_samples_from_h5(file_path):
             keys = d.keys()
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
-    except IOError:
+    except IOError as e:
         #Unpack and reraise the error but splice in the file_path
-        reraise(*[IOError(str(x) + " at %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
-    f.close()
+        # reraise(*[IOError(str(x) + " at %r" % file_path) if i==1 else x for i,x in enumerate(sys.exc_info())])
+        raise IOError(str(e) + " at %r" % file_path)
+    finally:
+        f.close()
     return out
 
 
