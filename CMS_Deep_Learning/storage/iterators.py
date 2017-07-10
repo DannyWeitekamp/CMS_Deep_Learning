@@ -50,13 +50,14 @@ def retrieveData(data, data_keys, just_length=False, verbose=0):
         h5_file = h5py.File(os.path.abspath(data), 'r') if not ish5 else data
         out = []
         for data_key in data_keys:
-            data = h5_file[data_key]
-            if (just_length):
-                out.append(load_hdf5_dataset(data)[0].len())
-            elif isinstance(data_key,list):
-                out.append(retrieveData(h5_file,data_keys=data_key))
+            if isinstance(data_key, list):
+                out.append(retrieveData(h5_file, data_keys=data_key))
             else:
-                out.append(load_hdf5_dataset(data)[:])
+                data = h5_file[data_key]
+                if (just_length):
+                    out.append(load_hdf5_dataset(data)[0].len())
+                else:
+                    out.append(load_hdf5_dataset(data)[:])
         return tuple(out)
     else:
         return data
