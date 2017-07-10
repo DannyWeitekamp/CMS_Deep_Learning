@@ -6,8 +6,7 @@ import glob
 import itertools
 from six import string_types
 from CMS_Deep_Learning.storage.archiving import DataProcedure
-from CMS_Deep_Learning.preprocessing.archiving import DataProcedure
-from CMS_Deep_Learning.io import retrieve_data, load_hdf5_dataset
+from CMS_Deep_Learning.io import retrieve_data
 
 if (sys.version_info[0] > 2):
     from inspect import signature
@@ -17,8 +16,6 @@ else:
     from inspect import getargspec
 
     getNumParams = lambda f: len(getargspec(f)[0])
-
-
 
 
 class DataIterator:
