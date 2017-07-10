@@ -6,6 +6,8 @@ import glob
 import itertools
 from six import string_types
 from CMS_Deep_Learning.storage.archiving import DataProcedure
+from CMS_Deep_Learning.preprocessing.archiving import DataProcedure
+from CMS_Deep_Learning.io import retrieve_data, load_hdf5_dataset
 
 if (sys.version_info[0] > 2):
     from inspect import signature
@@ -17,59 +19,6 @@ else:
     getNumParams = lambda f: len(getargspec(f)[0])
 
 
-def load_hdf5_dataset(data):
-    """ based off - https://github.com/duanders/mpi_learn -- train/data.py
-        Converts an HDF5 structure to nested lists of databases which can be
-        copied to get numpy arrays or lists of numpy arrays."""
-    if isinstance(data, h5py.Group):
-        sorted_keys = sorted(data.keys())
-        data = [data[key] for key in sorted_keys]
-    return data
-
-
-def retrieveData(data, data_keys, just_length=False, assertList=True, verbose=0):
-    '''Grabs raw data from a DataProcedure or file
-
-        :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
-        :type data: DataProcedure or str<path> or other
-        :param data_keys: The names of the keys in the hdf5 store to get the data from. Can be nested as in
-                            [["HCAL", "ECAL"], "target"]
-        :type data_keys: list of str
-        :param just_length: If True just return the length of the data instead of the data itself
-        :type just_length: bool
-        :param assertList: Whether or not the data should always be nested in a list even if there is only
-                            one numpy array.
-        :type assertList: bool
-        :param verbose:
-        :returns: The raw data as numpy.ndarray
-
-        '''
-    ish5 = isinstance(data, h5py.File)
-    if (isinstance(data, DataProcedure)):
-        return data.get_data(data_keys=data_keys, verbose=verbose)
-    elif (isinstance(data, string_types) or ish5):
-        h5_file = h5py.File(os.path.abspath(data), 'r') if not ish5 else data
-        out = []
-        for data_key in data_keys:
-            if isinstance(data_key, list):
-                #Get Recursively keys are list
-                ret = retrieveData(h5_file, data_keys=data_key, assertList=False, )
-                out.append(ret)
-            else:
-                #Grab directly from the HDF5 store
-                data = h5_file[data_key]
-                if (just_length):
-                    nxt = load_hdf5_dataset(data)[0].len()
-                else:
-                    nxt = load_hdf5_dataset(data)[:]
-                if (assertList):
-                    out.append(nxt if isinstance(nxt, list) else [nxt])
-                else:
-                    out.append(nxt)
-
-        return tuple(out)
-    else:
-        return data
 
 
 class DataIterator:
@@ -137,7 +86,7 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
-            first_data = retrieveData(data[0], self.union_keys)
+            first_data = retrieve_data(data[0], self.union_keys)
         else:
             first_data = data[0]
 
@@ -157,7 +106,7 @@ class DataIterator:
         if (self.num_samples == None):
             num_samples = 0
             for d in self.data:
-                l = retrieveData(d, self.union_keys, just_length=True, verbose=verbose)[0]
+                l = retrieve_data(d, self.union_keys, just_length=True, verbose=verbose)[0]
                 num_samples += l
             self.num_samples = num_samples
         return self.num_samples
@@ -165,7 +114,7 @@ class DataIterator:
     def _assert_raw(self, d, verbose=0):
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
-            d = retrieveData(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
+            d = retrieve_data(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
         else:
             d = tuple([d[x] for x in self.subset_ind])
         return d
