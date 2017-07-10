@@ -1324,7 +1324,7 @@ def get_all_trials(archive_dir, verbose=0):
     '''Get all the trials listed in the trial_record'''
     return get_trials_by_name('.', archive_dir, verbose=verbose)
 
-def get_trials_by_name(archive_dir,name, verbose=0):
+def get_trials_by_name(archive_dir,name,assert_complete=False,verbose=0):
     '''Get all the trials with a particluar name or that match a given regular expression'''
     records = KerasTrial.get_all_records(archive_dir)
     if(not os.path.exists(archive_dir)):
@@ -1336,7 +1336,7 @@ def get_trials_by_name(archive_dir,name, verbose=0):
             t_name = [t_name]
         if True in [re.match(unicode(name), unicode(x)) != None for x in t_name]:
             trial = KerasTrial.find(archive_dir, key, verbose=verbose)
-            if(trial != None):
+            if(trial != None and (not assert_complete or trial.is_complete())):
                 out.append(trial)
     return out
 
