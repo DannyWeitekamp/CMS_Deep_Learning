@@ -78,6 +78,18 @@ def size_from_meta(filename, sizesDict=None,zero_errors=True, verbose=0):
     return sizesDict[filename][0]
 # -------------------------------------------------------------
 
+def _collect_sizes(x,s=None):
+    '''A helper method that makes a set of the number of samples in a tree grabbed data
+        if all is well the set should only have one element (i.e. all of the datasets 
+        agree on the number of samples)'''
+    if(s == None): s = set([])
+    if(isinstance(x,(list,tuple))):
+        for y in x:
+            _collect_sizes(y,s)
+    else:
+        s.add(x.shape[0])
+    return s
+
 def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
     '''Gets a generator that generates data of batch_size from a list of DataProcedures.
         Optionally uses threading to apply getData in parellel, although this may be obsolete
@@ -104,9 +116,8 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1)
     while True:
         for i, elmt in enumerate(lst):
             out = retrieveData(elmt, data_keys=data_keys, verbose=verbose)
-            out = [x if isinstance(x, list) else [x] for x in out]
-            #TODO: make recursive
-            tot_set = set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])
+            # print(out[0][0].shape,out[0][1].shape,out[1][0].shape)
+            tot_set = _collect_sizes(out)  # set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])
             tot = list(tot_set)[0]
             assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
             for start in range(0, tot, batch_size):

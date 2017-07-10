@@ -25,22 +25,26 @@ def load_hdf5_dataset(data):
         sorted_keys = sorted(data.keys())
         data = [data[key] for key in sorted_keys]
     return data
-    
 
-def retrieveData(data, data_keys, just_length=False, verbose=0):
+
+def retrieveData(data, data_keys, just_length=False, assertList=True, verbose=0):
     '''Grabs raw data from a DataProcedure or file
-        
+
         :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
         :type data: DataProcedure or str<path> or other
-        :param data_keys: The names of the keys in the hdf5 store to get the data from
+        :param data_keys: The names of the keys in the hdf5 store to get the data from. Can be nested as in
+                            [["HCAL", "ECAL"], "target"]
         :type data_keys: list of str
         :param just_length: If True just return the length of the data instead of the data itself
         :type just_length: bool
+        :param assertList: Whether or not the data should always be nested in a list even if there is only
+                            one numpy array.
+        :type assertList: bool
         :param verbose:
         :returns: The raw data as numpy.ndarray
-        
+
         '''
-    ish5 = isinstance(data,h5py.File)
+    ish5 = isinstance(data, h5py.File)
     if (isinstance(data, DataProcedure)):
         return data.get_data(data_keys=data_keys, verbose=verbose)
     elif (isinstance(data, string_types) or ish5):
@@ -48,13 +52,21 @@ def retrieveData(data, data_keys, just_length=False, verbose=0):
         out = []
         for data_key in data_keys:
             if isinstance(data_key, list):
-                out.append(retrieveData(h5_file, data_keys=data_key))
+                #Get Recursively keys are list
+                ret = retrieveData(h5_file, data_keys=data_key, assertList=False, )
+                out.append(ret)
             else:
+                #Grab directly from the HDF5 store
                 data = h5_file[data_key]
                 if (just_length):
-                    out.append(load_hdf5_dataset(data)[0].len())
+                    nxt = load_hdf5_dataset(data)[0].len()
                 else:
-                    out.append(load_hdf5_dataset(data)[:])
+                    nxt = load_hdf5_dataset(data)[:]
+                if (assertList):
+                    out.append(nxt if isinstance(nxt, list) else [nxt])
+                else:
+                    out.append(nxt)
+
         return tuple(out)
     else:
         return data
