@@ -105,7 +105,8 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1)
         for i, elmt in enumerate(lst):
             out = retrieveData(elmt, data_keys=data_keys, verbose=verbose)
             out = [x if isinstance(x, list) else [x] for x in out]
-            tot_set = set([x[0].shape[0] for x in out])
+            #TODO: make recursive
+            tot_set = set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])
             tot = list(tot_set)[0]
             assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
             for start in range(0, tot, batch_size):
