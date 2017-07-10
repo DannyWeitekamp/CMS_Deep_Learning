@@ -27,6 +27,9 @@ def load_hdf5_dataset(data):
     return data
 
 
+def _grabRaw():
+    
+
 def retrieveData(data, data_keys, just_length=False, verbose=0):
     '''Grabs raw data from a DataProcedure or file
         
@@ -40,15 +43,18 @@ def retrieveData(data, data_keys, just_length=False, verbose=0):
         :returns: The raw data as numpy.ndarray
         
         '''
+    ish5 = isinstance(data,h5py.File)
     if (isinstance(data, DataProcedure)):
         return data.get_data(data_keys=data_keys, verbose=verbose)
-    elif (isinstance(data, string_types)):
-        h5_file = h5py.File(os.path.abspath(data), 'r')
+    elif (isinstance(data, string_types) or ish5):
+        h5_file = h5py.File(os.path.abspath(data), 'r') if not ish5 else data
         out = []
         for data_key in data_keys:
             data = h5_file[data_key]
             if (just_length):
                 out.append(load_hdf5_dataset(data)[0].len())
+            elif isinstance(data_key,list):
+                out.append(retrieveData(h5_file,data_keys=data_key))
             else:
                 out.append(load_hdf5_dataset(data)[:])
         return tuple(out)

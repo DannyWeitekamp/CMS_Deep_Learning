@@ -1,4 +1,4 @@
-import sys
+import sys,os
 from keras import backend as K
 from keras.backend.common import _EPSILON
 from keras.constraints import maxnorm
@@ -71,7 +71,13 @@ class Sort(Layer):
         
     def call(self, T, mask=None):
         import theano
-        metrics = K.dot( self.mapping(T), K.reshape(self.beta, (self.beta.shape[-1],1)))
+        if(hasattr(self,'perturb_each_sample') and self.perturb_each_sample):
+            # print(K.eval(self.beta))
+            self.beta = theano.printing.Print("BETa", attrs=['shape'])(self.beta)
+            # metrics = K.zeros_like(T,dtype=T.dtype )#K.batch_dot(self.mapping(T), self.beta)
+            metrics = K.batch_dot(self.mapping(T), self.beta, axes=1)
+        else:
+            metrics = K.dot( self.mapping(T), K.reshape(self.beta, (self.beta.shape[-1],1)))
 
         #Resolve the number of sequence elements to keep
         k = K.variable(self.nb_out if self.nb_out != -1 else sys.maxint,dtype='int') 
@@ -101,9 +107,10 @@ class Sort(Layer):
         return dict(list(base_config.items()) + list(config.items()))
     
 class Perturbed_Sort(Sort):
-    def __init__(self, parent, lr=.1, **kwargs):
+    def __init__(self, parent, lr=.1, perturb_each_sample=False, **kwargs):
         self.parent = parent
         self.lr = K.variable(lr)
+        self.perturb_each_sample = perturb_each_sample
         for key,val in parent.get_config().items():
             kwargs[key] = val
         kwargs['name'] = 'pert_' + kwargs['name']
@@ -111,9 +118,17 @@ class Perturbed_Sort(Sort):
 
     def build(self, input_shape):
         self.trainable_weights = [self.parent.beta]
-        pass
+
     def call(self, T, mask=None):
-        self.beta = self.parent.beta + K.random_normal((self.parent.mapping_dim,),0,self.lr)
+        if(self.perturb_each_sample):
+            # self.beta = K.map_fn(lambda x:self.parent.beta + K.random_normal((self.parent.mapping_dim,),mean=0,std=self.lr,dtype=self.parent.beta.dtype) ,T)
+            self.beta = self.parent.beta + K.random_normal((T.shape[0],self.parent.mapping_dim),mean=0,std=self.lr,dtype=self.parent.beta.dtype)
+        else:
+            dev = K.zeros((self.parent.mapping_dim,),dtype=self.parent.beta.dtype)
+            loc = K.random_uniform((1,),low=0.0,high=self.parent.mapping_dim)
+            dev = 
+            # self.beta = self.parent.beta + K.random_normal((self.parent.mapping_dim,),mean=0,std=self.lr,dtype=self.parent.beta.dtype)
+            self.beta = self.parent.beta + dev #+ K.random_normal((self.parent.mapping_dim,),mean=0,std=self.lr,dtype=self.parent.beta.dtype)
         return super(Perturbed_Sort, self).call(T,mask=mask)
     
 class Finite_Differences(Optimizer):
@@ -128,40 +143,48 @@ class Finite_Differences(Optimizer):
         super(Optimizer,self).__init__(**kwargs)
     
     def get_gradients(self, loss, params):
-        '''A Monkey Patched version of get_gradients'''
+        '''A Monkey Patched version of get_gradients that handles finite differences'''
         finites = filter(lambda x: hasattr(x,"finite_only"), params)
         params = filter(lambda x: not hasattr(x,"finite_only"), params)
         finites = list(set(finites))
         # params = [x if hasattr(x,"finite_only") else None for x in params]
-        print(type(self.main.beta),type(self.pert.beta), (self.main.beta-self.pert.beta).shape)
+        # print(type(self.main.beta),type(self.pert.beta), (self.main.beta-self.pert.beta).shape)
         metric_dict = {key: val for key, val in zip(self.model.metrics_names[1:], self.model.metrics_tensors)}
-        
-        weight_diffs = [self.main.beta- self.pert.beta]
-        # weight_diffs = [x-p for x,p in zip(self.main.trainable_weights, self.pert.trainable_weights) if x in finites]
-        loss_diff = metric_dict[self.main.name + "_loss"] - metric_dict[self.pert.name + "_loss"]
-        grads = [weight_diffs/loss_diff for x in weight_diffs]
-        print(metric_dict)
-        print(weight_diffs)
+        # print(metric_dict)
 
+        self.pert.beta = theano.printing.Print("BETA")(self.pert.beta)
+        weight_diffs = [self.pert.beta - self.main.beta]
+        # weight_diffs = [x-p for x,p in zip(self.main.trainable_weights, self.pert.trainable_weights) if x in finites]
+        loss_diff =  K.minimum(metric_dict[self.pert.name + "_loss"] - metric_dict[self.main.name + "_loss"],0.0)
         loss_diff = theano.printing.Print("loss_diff")(loss_diff)
-        grads[0] = theano.printing.Print("grad", attrs=['shape'])(grads[0])
-        weight_diffs[0] = theano.printing.Print("weights")(self.main.trainable_weights[0])
+        if (self.pert.perturb_each_sample):
+            grads = [loss_diff / K.sum(x,axis=0) for x in weight_diffs]
+        else:
+            grads = [loss_diff/x for x in weight_diffs]
+        # print(metric_dict)
+        # print(weight_diffs)
+
+        
+        grads[0] = theano.printing.Print("grad")(grads[0])
+        # weight_diffs[0] = theano.printing.Print("weights")(self.main.trainable_weights[0])
         # grads = [loss_diff]
-        grads = weight_diffs
-        print(self.model.metrics_names[1:])
-        print(self.model.metrics_tensors)
+        # grads = weight_diffs
+        # print(self.model.metrics_names[1:])
+        # print(self.model.metrics_tensors)
         # 
         print("FINITS", [(x.name,x.dtype) for x in finites])
         # print("Params", params)
         # print("Losses", [x.__dict__ for x in loss.owner.inputs[0].owner.inputs])
         # print(self.main)
         # print(self.pert)
-        loss = theano.printing.Print("LOSS")(loss)
-        self.model.metrics_tensors[0] = theano.printing.Print("1")(self.model.metrics_tensors[0])
-        self.model.metrics_tensors[1] = theano.printing.Print("2")(self.model.metrics_tensors[1])
-        K.print_tensor(loss,"LOSS")
+        # loss = theano.printing.Print("LOSS")(loss)
+        # self.model.metrics_tensors[0] = theano.printing.Print("1")(self.model.metrics_tensors[0])
+        # self.model.metrics_tensors[1] = theano.printing.Print("2")(self.model.metrics_tensors[1])
+        # K.print_tensor(loss,"LOSS")
         # theano.printing.debugprint(loss)
         grads = grads + K.gradients(loss, params)
+        # print("GRADS LEN", len(grads))
+        # grads = theano.printing.Print("grads")(grads[0])
         if hasattr(self, 'clipnorm') and self.clipnorm > 0:
             norm = K.sqrt(sum([K.sum(K.square(g)) for g in grads]))
             grads = [clip_norm(g, self.clipnorm, norm) for g in grads]
