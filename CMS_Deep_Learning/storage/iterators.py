@@ -25,9 +25,6 @@ def load_hdf5_dataset(data):
         sorted_keys = sorted(data.keys())
         data = [data[key] for key in sorted_keys]
     return data
-
-
-def _grabRaw():
     
 
 def retrieveData(data, data_keys, just_length=False, verbose=0):
