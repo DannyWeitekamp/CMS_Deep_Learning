@@ -28,8 +28,8 @@
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="CMS_Deep_Learning.utils package" href="utils.html" />
-    <link rel="prev" title="CMS_Deep_Learning.preprocessing" href="preprocessing.html" />
+    <link rel="next" title="CMS_Deep_Learning.postprocessing" href="postprocessing.html" />
+    <link rel="prev" title="CMS_Deep_Learning.layers" href="layers.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -46,10 +46,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+          <a href="postprocessing.html" title="CMS_Deep_Learning.postprocessing"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
+          <a href="layers.html" title="CMS_Deep_Learning.layers"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
@@ -62,18 +62,18 @@
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.MPIArchiving">MPIArchiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.archiving">archiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.batch">batch</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.iterators">iterators</a></li>
+<li><a class="reference internal" href="#iterators">iterators</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.input_handler">input_handler</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="preprocessing.html"
-                        title="previous chapter">CMS_Deep_Learning.preprocessing</a></p>
+  <p class="topless"><a href="layers.html"
+                        title="previous chapter">CMS_Deep_Learning.layers</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="utils.html"
-                        title="next chapter">CMS_Deep_Learning.utils package</a></p>
+  <p class="topless"><a href="postprocessing.html"
+                        title="next chapter">CMS_Deep_Learning.postprocessing</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -168,12 +168,6 @@ data and Y contains the labels/targets for each entry</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.get_summary">
-<code class="descname">get_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.get_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.get_summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the summary for the DataProcedure as a string</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived">
 <code class="descname">is_archived</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.is_archived"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.is_archived" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if this procedure is already archived</p>
@@ -197,7 +191,7 @@ If a group has more than one key, we give its datasets alphabetically by key</p>
 <dl class="method">
 <dt id="CMS_Deep_Learning.storage.archiving.DataProcedure.summary">
 <code class="descname">summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#DataProcedure.summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.DataProcedure.summary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print a summary</p>
+<dd><p>Get the summary for the DataProcedure as a string</p>
 </dd></dl>
 
 <dl class="method">
@@ -569,9 +563,9 @@ each trial, either in in order or in separate batches in the case of CSCS.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-CMS_Deep_Learning.storage.iterators">
-<span id="iterators"></span><h2>iterators<a class="headerlink" href="#module-CMS_Deep_Learning.storage.iterators" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<div class="section" id="iterators">
+<h2>iterators<a class="headerlink" href="#iterators" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-CMS_Deep_Learning.storage.iterators"></span><dl class="class">
 <dt id="CMS_Deep_Learning.storage.iterators.DataIterator">
 <em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data</em>, <em>num_samples=None</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>A tool for retrieving inputs, labels,prediction values and functions of data</p>
@@ -645,29 +639,6 @@ the output of the accumilate function will follow any specified data_key data in
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.iterators.retrieveData">
-<code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">retrieveData</code><span class="sig-paren">(</span><em>data</em>, <em>data_keys</em>, <em>just_length=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#retrieveData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.retrieveData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Grabs raw data from a DataProcedure or file</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.DataProcedure" title="CMS_Deep_Learning.storage.archiving.DataProcedure"><em>DataProcedure</em></a><em> or </em><em>str&lt;path&gt;</em><em> or </em><em>other</em>) – the data to get the raw verion of. If not str or DataProcedure returns itself</li>
-<li><strong>data_keys</strong> (<em>list of str</em>) – The names of the keys in the hdf5 store to get the data from</li>
-<li><strong>just_length</strong> (<em>bool</em>) – If True just return the length of the data instead of the data itself</li>
-<li><strong>verbose</strong> – </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The raw data as numpy.ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 </div>
 <div class="section" id="module-CMS_Deep_Learning.storage.input_handler">
 <span id="input-handler"></span><h2>input_handler<a class="headerlink" href="#module-CMS_Deep_Learning.storage.input_handler" title="Permalink to this headline">¶</a></h2>
@@ -734,10 +705,10 @@ accumilate,’predictions’, ‘characteristics’, ‘X’, ‘Y’, ‘model�
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="utils.html" title="CMS_Deep_Learning.utils package"
+          <a href="postprocessing.html" title="CMS_Deep_Learning.postprocessing"
              >next</a> |</li>
         <li class="right" >
-          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
+          <a href="layers.html" title="CMS_Deep_Learning.layers"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>

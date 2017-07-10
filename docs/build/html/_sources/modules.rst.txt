@@ -1,7 +1,0 @@
-CMS_Deep_Learning
-=================
-
-.. toctree::
-   :maxdepth: 4
-
-   CMS_Deep_Learning

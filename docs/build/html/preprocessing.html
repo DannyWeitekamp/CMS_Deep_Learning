@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="CMS_Deep_Learning.layers" href="layers.html" />
-    <link rel="prev" title="CMS_Deep_Learning package" href="index.html" />
+    <link rel="prev" title="CMS_Deep_Learning.io" href="io.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -49,7 +49,7 @@
           <a href="layers.html" title="CMS_Deep_Learning.layers"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="CMS_Deep_Learning package"
+          <a href="io.html" title="CMS_Deep_Learning.io"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
@@ -59,15 +59,14 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">CMS_Deep_Learning.preprocessing</a><ul>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.preprocessing.preprocessing">preprocessing</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.preprocessing.pandas_to_numpy">pandas_to_numpy</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">CMS_Deep_Learning package</a></p>
+  <p class="topless"><a href="io.html"
+                        title="previous chapter">CMS_Deep_Learning.io</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="layers.html"
                         title="next chapter">CMS_Deep_Learning.layers</a></p>
@@ -98,87 +97,6 @@
             
   <div class="section" id="cms-deep-learning-preprocessing">
 <h1>CMS_Deep_Learning.preprocessing<a class="headerlink" href="#cms-deep-learning-preprocessing" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-CMS_Deep_Learning.preprocessing.preprocessing">
-<span id="preprocessing"></span><h2>preprocessing<a class="headerlink" href="#module-CMS_Deep_Learning.preprocessing.preprocessing" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="CMS_Deep_Learning.preprocessing.preprocessing.gen_from_data">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">gen_from_data</code><span class="sig-paren">(</span><em>lst, batch_size, data_keys=[‘Particles’, ‘Labels’], verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#gen_from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.gen_from_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a generator that generates data of batch_size from a list of DataProcedures.
-Optionally uses threading to apply getData in parellel, although this may be obsolete
-with the proper fit_generator settings</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lst</strong> (<em>str</em><em> or </em><em>list</em>) – a list of .h5 filepaths and/or DataProcedures or a directory path</li>
-<li><strong>batch_size</strong> (<em>int</em>) – The number of samples to grab at each call to next()</li>
-<li><strong>data_keys</strong> (<em>list of str</em>) – The keys to draw from in the .h5 files. (order matters)</li>
-<li><strong>verbose</strong> (<em>int</em>) – whether or not to print out info to the user.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator that runs through the given data</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.preprocessing.preprocessing.nb_samples_from_h5">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">nb_samples_from_h5</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#nb_samples_from_h5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.nb_samples_from_h5" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of samples contained in any .h5 file; numpy or pandas.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – The file_path</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the number of samples</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.preprocessing.preprocessing.get_sizes_meta_dict">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">get_sizes_meta_dict</code><span class="sig-paren">(</span><em>directory</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#get_sizes_meta_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.get_sizes_meta_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictionary of the number of sample points contained in each .h5 file in a directory</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>directory</strong> – The directory where the .h5 files are</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the sizes dictionary</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.preprocessing.preprocessing.size_from_meta">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">size_from_meta</code><span class="sig-paren">(</span><em>filename</em>, <em>sizesDict=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#size_from_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.size_from_meta" title="Permalink to this definition">¶</a></dt>
-<dd><p>Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> – The path the the file.</li>
-<li><strong>sizesDict</strong> – (optional) the sizes dictionary gotten from get_sizes_meta_dict, if not passed will find it anyway.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The number of samples in the file</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
 <div class="section" id="module-CMS_Deep_Learning.preprocessing.pandas_to_numpy">
 <span id="pandas-to-numpy"></span><h2>pandas_to_numpy<a class="headerlink" href="#module-CMS_Deep_Learning.preprocessing.pandas_to_numpy" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
@@ -286,7 +204,7 @@ or the total number of events to use (the rest goes to training)</li>
           <a href="layers.html" title="CMS_Deep_Learning.layers"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="CMS_Deep_Learning package"
+          <a href="io.html" title="CMS_Deep_Learning.io"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>

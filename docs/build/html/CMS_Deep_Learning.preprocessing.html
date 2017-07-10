@@ -28,8 +28,6 @@
     <script type="text/javascript" src="_static/bizstyle.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="CMS_Deep_Learning.storage" href="CMS_Deep_Learning.storage.html" />
-    <link rel="prev" title="CMS_Deep_Learning package" href="index.html" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <!--[if lt IE 9]>
     <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
@@ -45,12 +43,6 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="CMS_Deep_Learning.storage.html" title="CMS_Deep_Learning.storage"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="CMS_Deep_Learning package"
-             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
     </div>
@@ -67,12 +59,6 @@
 </li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">CMS_Deep_Learning package</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="CMS_Deep_Learning.storage.html"
-                        title="next chapter">CMS_Deep_Learning.storage</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -435,14 +421,6 @@ reconstruced particle.</dd>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="CMS_Deep_Learning.preprocessing.preprocessing.genFromDPs">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">genFromDPs</code><span class="sig-paren">(</span><em>dps</em>, <em>batch_size</em>, <em>threading=False</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#genFromDPs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.genFromDPs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a generator that generates data of batch_size from a list of DataProcedures.
-Optionally uses threading to apply getData in parellel, although this may be obsolete
-with the proper fit_generator settings</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="CMS_Deep_Learning.preprocessing.preprocessing.genFrom_label_dir_pairs">
 <code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">genFrom_label_dir_pairs</code><span class="sig-paren">(</span><em>start</em>, <em>samples_per_label</em>, <em>stride</em>, <em>batch_size</em>, <em>archive_dir</em>, <em>label_dir_pairs</em>, <em>object_profiles</em>, <em>observ_types</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#genFrom_label_dir_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.genFrom_label_dir_pairs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets a data generator that use DataProcedures and preprocessFromPandas_label_dir_pairs to read from the unjoined pandas files
@@ -474,7 +452,7 @@ verbose – Whether or not to print</p>
 
 <dl class="function">
 <dt id="CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat">
-<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getGensDefaultFormat</code><span class="sig-paren">(</span><em>archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, data_keys=[‘X’, ‘Y’], verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getGensDefaultFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">getGensDefaultFormat</code><span class="sig-paren">(</span><em>archive_dir, splits, length, object_profiles, label_dir_pairs, observ_types, single_list=False, sort_columns=None, sort_ascending=True, batch_size=100, megabytes=500, data_keys=[‘X’, ‘Y’], dp_data_keys=None, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#getGensDefaultFormat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.getGensDefaultFormat" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a set of DataProcedures that return generators and their corresponding lengths. Each generator consists of a list DataProcedures that preprocess data
 from a set of label_dir_pairs in a given range. The size of the archived files for each DP is set by ‘megabytes’ so that each one is not too big. Each generator
 reads a number of samples per label type set by ‘splits’ and ‘length’, and feeds data in batches of ‘batch_size’ into training.
@@ -548,10 +526,10 @@ label_dir_pairs. Must also input object_profiles so that it knows what keys to c
 <dl class="function">
 <dt id="CMS_Deep_Learning.preprocessing.preprocessing.preprocessFromPandas_label_dir_pairs">
 <code class="descclassname">CMS_Deep_Learning.preprocessing.preprocessing.</code><code class="descname">preprocessFromPandas_label_dir_pairs</code><span class="sig-paren">(</span><em>label_dir_pairs</em>, <em>start</em>, <em>samples_per_label</em>, <em>object_profiles</em>, <em>observ_types</em>, <em>single_list=False</em>, <em>sort_columns=None</em>, <em>sort_ascending=True</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/preprocessing/preprocessing.html#preprocessFromPandas_label_dir_pairs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.preprocessing.preprocessing.preprocessFromPandas_label_dir_pairs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets training data from folders of pandas tables
-#Arguements:</p>
-<blockquote>
-<div><dl class="docutils">
+<dd><p>Gets training data from folders of pandas tables</p>
+<dl class="docutils">
+<dt>#Arguements:</dt>
+<dd><dl class="first docutils">
 <dt>label_dir_pairs – a list of tuples of the form (label, directory) where the directory contains</dt>
 <dd>tables containing data of all the same event types.</dd>
 </dl>
@@ -560,12 +538,11 @@ samples_per_label – The number of samples to read for each label
 object_profiles – A list of ObjectProfile(s) corresponding to each type of observable object and</p>
 <blockquote>
 <div>its preprocessing steps.</div></blockquote>
-<p>observ_types    – The column headers for the data to be read from the panadas table
+<p class="last">observ_types    – The column headers for the data to be read from the panadas table
 single_list – If True all object types are joined into a single list.
 sort_columns – If single_list the columns to sort by.
 sort_ascending – If True sort in ascending order, false decending</p>
-</div></blockquote>
-<dl class="docutils">
+</dd>
 <dt>#Returns:</dt>
 <dd>Training data with its correspoinding labels
 (X_train, Y_train)</dd>
@@ -650,12 +627,6 @@ samples for each split</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="CMS_Deep_Learning.storage.html" title="CMS_Deep_Learning.storage"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="CMS_Deep_Learning package"
-             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
       </ul>
     </div>

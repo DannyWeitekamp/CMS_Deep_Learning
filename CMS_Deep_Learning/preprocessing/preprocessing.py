@@ -460,6 +460,7 @@ def _check_inputs(label_dir_pairs, observ_types):
 def preprocessFromPandas_label_dir_pairs(label_dir_pairs,start, samples_per_label, object_profiles, observ_types,
                                          single_list=False, sort_columns=None, sort_ascending=True,verbose=1):
     '''Gets training data from folders of pandas tables
+    
         #Arguements:
             label_dir_pairs -- a list of tuples of the form (label, directory) where the directory contains
                                 tables containing data of all the same event types.

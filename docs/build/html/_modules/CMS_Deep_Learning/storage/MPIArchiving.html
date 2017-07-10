@@ -77,7 +77,7 @@
 <span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">time</span><span class="p">,</span><span class="n">sleep</span>
 <span class="kn">import</span> <span class="nn">select</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
-
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
 <span class="kn">import</span> <span class="nn">CMS_Deep_Learning</span>
 <span class="kn">from</span> <span class="nn">.archiving</span> <span class="k">import</span> <span class="n">KerasTrial</span><span class="p">,</span> <span class="n">DataProcedure</span>
@@ -94,7 +94,9 @@
                        <span class="s2">&quot;easgd&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                        <span class="s2">&quot;elastic_force&quot;</span> <span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
                        <span class="s2">&quot;elastic_lr&quot;</span> <span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
-                       <span class="s2">&quot;elastic_momentum&quot;</span> <span class="p">:</span> <span class="mf">0.0</span>
+                       <span class="s2">&quot;elastic_momentum&quot;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                       <span class="s2">&quot;features_name&quot;</span><span class="p">:</span><span class="s2">&quot;X&quot;</span><span class="p">,</span>
+                       <span class="s2">&quot;labels_name&quot;</span><span class="p">:</span><span class="s2">&quot;Y&quot;</span>
 
 <span class="p">}</span>
 
@@ -155,11 +157,6 @@
                 <span class="n">verbosity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                 <span class="c1"># numProcesses=2</span>
                 <span class="p">):</span>
-        <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
-        <span class="kn">from</span> <span class="nn">mpi_learn.mpi.manager</span> <span class="k">import</span> <span class="n">MPIManager</span><span class="p">,</span> <span class="n">get_device</span>
-        <span class="kn">from</span> <span class="nn">mpi_learn.train.algo</span> <span class="k">import</span> <span class="n">Algo</span>
-        <span class="kn">from</span> <span class="nn">mpi_learn.train.data</span> <span class="k">import</span> <span class="n">H5Data</span>
-        <span class="kn">from</span> <span class="nn">mpi_learn.train.model</span> <span class="k">import</span> <span class="n">ModelFromJson</span>
         <span class="c1"># print(kargs)</span>
         <span class="c1"># if(not &quot;isMPI_Instance&quot; in kargs):</span>
         <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_complete</span><span class="p">()):</span>
@@ -219,8 +216,13 @@
                     <span class="n">archiveTraining</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">archiveValidation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        
-            <span class="c1">#return prep_func</span>
+        <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+        <span class="kn">from</span> <span class="nn">mpi_learn.mpi.manager</span> <span class="k">import</span> <span class="n">MPIManager</span><span class="p">,</span> <span class="n">get_device</span>
+        <span class="kn">from</span> <span class="nn">mpi_learn.train.algo</span> <span class="k">import</span> <span class="n">Algo</span>
+        <span class="kn">from</span> <span class="nn">mpi_learn.train.data</span> <span class="k">import</span> <span class="n">H5Data</span>
+        <span class="kn">from</span> <span class="nn">mpi_learn.train.model</span> <span class="k">import</span> <span class="n">ModelFromJson</span>
+
+        <span class="c1">#return prep_func</span>
         <span class="c1">#print(self.custom_objects)</span>
         <span class="c1">#print(custom_objects)</span>
         <span class="c1">#print(Lorentz, Slice)</span>
@@ -230,7 +232,7 @@
         <span class="c1"># sync_every = 1</span>
         <span class="c1"># MPIoptimizer = &quot;rmsprop&quot;</span>
         <span class="c1"># batch_size = 100</span>
-
+        
         <span class="k">if</span><span class="p">(</span><span class="n">comm</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Dup</span><span class="p">()</span>
 
@@ -239,21 +241,29 @@
         <span class="c1"># if(not isinstance(self.train_procedure,list)): self.train_procedure = [self.train_procedure]</span>
         <span class="c1"># if(not isinstance(self.val_procedure,list)): self.val_procedure = [self.val_procedure]</span>
         <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">,</span><span class="nb">list</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trial attribute train_procedure: expected list of DataProcedures but got type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trial attribute train_procedure: expected list of DataProcedures or paths but got type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">))</span>
         <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">,</span><span class="nb">list</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trial attribute val_procedure: expected list of DataProcedures but got type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trial attribute val_procedure: expected list of DataProcedures or paths but got type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">))</span>
 
-        <span class="n">train_dps</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">]</span>
-        <span class="n">val_dps</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">]</span>
+        <span class="n">train</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">DataProcedure</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_procedure</span><span class="p">]</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="p">[</span><span class="n">DataProcedure</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">archive_dir</span><span class="p">,</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">DataProcedure</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_procedure</span><span class="p">]</span>
 
-        <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">train_dps</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">train_dps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">DataProcedure</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Train procedure must be list of DataProcedures&quot;</span><span class="p">)</span>
-        <span class="k">if</span><span class="p">(</span><span class="ow">not</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">val_dps</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val_dps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">DataProcedure</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Validation procedure must be list of DataProcedures&quot;</span><span class="p">)</span>
-        <span class="n">batchAssertArchived</span><span class="p">(</span><span class="n">train_dps</span><span class="p">)</span>
-        <span class="n">batchAssertArchived</span><span class="p">(</span><span class="n">val_dps</span><span class="p">)</span>
-        <span class="n">train_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dp</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;archive.h5&quot;</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">train_dps</span><span class="p">]</span>
-        <span class="n">val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">dp</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;archive.h5&quot;</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">val_dps</span><span class="p">]</span>
+        <span class="c1"># if(not isinstance(train, list) or not False in [isinstance(x,DataProcedure) or isinstance(x,string_types) for x in train]):</span>
+        <span class="c1">#     raise ValueError(&quot;Train procedure must be list of DataProcedures&quot;)</span>
+        <span class="c1"># if(not isinstance(val, list) or not False in [isinstance(x, DataProcedure) or isinstance(x, string_types) for x in val]):</span>
+        <span class="c1">#     raise ValueError(&quot;Validation procedure must be list of DataProcedures&quot;)</span>
+        <span class="n">batchAssertArchived</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
+        <span class="n">batchAssertArchived</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">assertStr</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">DataProcedure</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">dp</span><span class="o">.</span><span class="n">get_path</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;archive.h5&quot;</span>
+            <span class="k">elif</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="n">x</span>  
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Cannot find </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">x</span><span class="p">)</span>
+                
+        <span class="n">train_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">assertStr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">train</span><span class="p">]</span>
+        <span class="n">val_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">assertStr</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">val</span><span class="p">]</span>
         <span class="c1"># print(&quot;Train List:&quot;, train_list)</span>
         <span class="c1"># print(&quot;Val List:&quot;, val_list)</span>
 
@@ -285,8 +295,9 @@
         <span class="c1"># We initialize the Data object with the training data list</span>
         <span class="c1"># so that we can use it to count the number of training examples</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="n">H5Data</span><span class="p">(</span> <span class="n">train_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
-                <span class="n">features_name</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">labels_name</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">H5Data</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> 
+                <span class="n">features_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_name</span><span class="p">,</span> <span class="n">labels_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_name</span><span class="p">)</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">set_file_names</span><span class="p">(</span><span class="n">train_list</span><span class="p">)</span>
         <span class="n">num_train</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">count_data</span><span class="p">()</span>
         
 
@@ -314,7 +325,7 @@
         <span class="n">callbacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generateCallbacks</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
 
         <span class="c1"># Creating the MPIManager object causes all needed worker and master nodes to be created</span>
-        <span class="n">manager</span> <span class="o">=</span> <span class="n">MPIManager</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">num_epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span>
+        <span class="n">manager</span> <span class="o">=</span> <span class="n">MPIManager</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">num_epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;epochs&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">nb_epoch</span><span class="p">,</span>
                              <span class="n">algo</span><span class="o">=</span><span class="n">algo</span><span class="p">,</span> <span class="n">model_builder</span><span class="o">=</span><span class="n">model_builder</span><span class="p">,</span>
                              <span class="n">train_list</span><span class="o">=</span><span class="n">train_list</span><span class="p">,</span> <span class="n">val_list</span><span class="o">=</span><span class="n">val_list</span><span class="p">,</span> <span class="n">num_masters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">masters</span><span class="p">,</span>
                              <span class="n">synchronous</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">synchronous</span><span class="p">,</span> <span class="n">callbacks</span><span class="o">=</span><span class="n">callbacks</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
@@ -327,7 +338,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">to_record</span><span class="p">({</span><span class="s2">&quot;num_train&quot;</span><span class="p">:</span> <span class="n">num_train</span><span class="p">})</span>
             <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="s2">&quot;num_val&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="p">):</span>
                 <span class="n">val_data</span> <span class="o">=</span> <span class="n">H5Data</span><span class="p">(</span> <span class="n">val_list</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
-                <span class="n">features_name</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">labels_name</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">)</span>
+                <span class="n">features_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">features_name</span><span class="p">,</span> <span class="n">labels_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_name</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">to_record</span><span class="p">({</span><span class="s2">&quot;num_val&quot;</span><span class="p">:</span> <span class="n">val_data</span><span class="o">.</span><span class="n">count_data</span><span class="p">()})</span>
 
             <span class="nb">print</span><span class="p">(</span><span class="n">custom_objects</span><span class="p">)</span>

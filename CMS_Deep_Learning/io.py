@@ -1,4 +1,4 @@
-import os,sys
+import os,sys, types
 import numpy as np
 import h5py
 import glob
@@ -17,7 +17,7 @@ def load_hdf5_dataset(data):
     return data
 
 
-def retrieve_data(data, data_keys, just_length=False, assertList=True, verbose=0):
+def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_func=None, verbose=0):
     '''Grabs raw data from a DataProcedure or file
 
         :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
@@ -27,23 +27,31 @@ def retrieve_data(data, data_keys, just_length=False, assertList=True, verbose=0
         :type data_keys: list of str
         :param just_length: If True just return the length of the data instead of the data itself
         :type just_length: bool
-        :param assertList: Whether or not the data should always be nested in a list even if there is only
+        :param assert_list: Whether or not the data should always be nested in a list even if there is only
                             one numpy array.
-        :type assertList: bool
+        :type assert_list: bool
+        :param prep_func: a function that takes in the tuple of outputs and returns some light transformation
+                        on them, for example reshaping or padding.
+        :param prep_func: function
         :param verbose:
         :returns: The raw data as numpy.ndarray
 
         '''
+    assert prep_func == None or isinstance(prep_func,types.FunctionType),\
+        "prep_func must be function type but got %r" % type(prep_func)
+    #Applies prep_func if it does exists
+    f_ret = lambda x: prep_func(x) if prep_func != None else x
+    
     ish5 = isinstance(data, h5py.File)
     if (isinstance(data, DataProcedure)):
-        return data.get_data(data_keys=data_keys, verbose=verbose)
+        return f_ret(data.get_data(data_keys=data_keys, verbose=verbose))
     elif (isinstance(data, string_types) or ish5):
         h5_file = h5py.File(os.path.abspath(data), 'r') if not ish5 else data
         out = []
         for data_key in data_keys:
             if isinstance(data_key, list):
                 #Get Recursively keys are list
-                ret = retrieve_data(h5_file, data_keys=data_key, assertList=False, )
+                ret = retrieve_data(h5_file, data_keys=data_key, assert_list=False, )
                 out.append(ret)
             else:
                 #Grab directly from the HDF5 store
@@ -52,14 +60,14 @@ def retrieve_data(data, data_keys, just_length=False, assertList=True, verbose=0
                     nxt = load_hdf5_dataset(data)[0].len()
                 else:
                     nxt = load_hdf5_dataset(data)[:]
-                if (assertList):
+                if (assert_list):
                     out.append(nxt if isinstance(nxt, list) else [nxt])
                 else:
                     out.append(nxt)
 
-        return tuple(out)
+        return f_ret(tuple(out))
     else:
-        return data
+        return f_ret(data)
 
 
 # --------------------------SIZE UTILS-------------------------------
@@ -141,10 +149,9 @@ def _size_set(x, s=None):
     return s
 
 
-def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1):
-    '''Gets a generator that generates data of batch_size from a list of DataProcedures.
-        Optionally uses threading to apply getData in parellel, although this may be obsolete
-        with the proper fit_generator settings
+def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=None, verbose=1):
+    '''Gets a generator that generates data of batch_size from a list of .h5 files or DataProcedures,
+        or a directory containing .h5 files.
 
         :param lst: a list of .h5 filepaths and/or DataProcedures or a directory path
         :type lst: str or list
@@ -152,6 +159,9 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1)
         :type batch_size: int
         :param data_keys: The keys to draw from in the .h5 files. (order matters)
         :type data_keys: list of str
+        :param prep_func: a function that takes in the tuple of outputs and returns some light transformation
+                        on them, for example reshaping or padding.
+        :param prep_func: function
         :param verbose: whether or not to print out info to the user.
         :type verbose: int
         :returns: a generator that runs through the given data
@@ -166,7 +176,7 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], verbose=1)
 
     while True:
         for i, elmt in enumerate(lst):
-            out = retrieve_data(elmt, data_keys=data_keys, verbose=verbose)
+            out = retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)
             # print(out[0][0].shape,out[0][1].shape,out[1][0].shape)
             tot_set = _size_set(
                 out)  # set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])
