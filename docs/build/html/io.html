@@ -1,0 +1,240 @@
+
+
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CMS_Deep_Learning.io &#8212; CMS_Deep_Learning 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CMS_Deep_Learning.preprocessing" href="preprocessing.html" />
+    <link rel="prev" title="CMS_Deep_Learning package" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">CMS_Deep_Learning package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="preprocessing.html"
+                        title="next chapter">CMS_Deep_Learning.preprocessing</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/io.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-CMS_Deep_Learning.io">
+<span id="cms-deep-learning-io"></span><h1>CMS_Deep_Learning.io<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.gen_from_data">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">gen_from_data</code><span class="sig-paren">(</span><em>lst, batch_size, data_keys=[‘Particles’, ‘Labels’], prep_func=None, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#gen_from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.gen_from_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a generator that generates data of batch_size from a list of .h5 files or DataProcedures,
+or a directory containing .h5 files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lst</strong> (<em>str</em><em> or </em><em>list</em>) – a list of .h5 filepaths and/or DataProcedures or a directory path</li>
+<li><strong>batch_size</strong> (<em>int</em>) – The number of samples to grab at each call to next()</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – The keys to draw from in the .h5 files. (order matters)</li>
+<li><strong>prep_func</strong> – a function that takes in the tuple of outputs and returns some light transformation
+on them, for example reshaping or padding.</li>
+<li><strong>prep_func</strong> – function</li>
+<li><strong>verbose</strong> (<em>int</em>) – whether or not to print out info to the user.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator that runs through the given data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.get_sizes_meta_dict">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">get_sizes_meta_dict</code><span class="sig-paren">(</span><em>directory</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#get_sizes_meta_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.get_sizes_meta_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the number of sample points contained in each .h5 file in a directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>directory</strong> – The directory where the .h5 files are</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the sizes dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.load_hdf5_dataset">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">load_hdf5_dataset</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#load_hdf5_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.load_hdf5_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>based off - <a class="reference external" href="https://github.com/duanders/mpi_learn">https://github.com/duanders/mpi_learn</a> – train/data.py
+Converts an HDF5 structure to nested lists of databases which can be
+copied to get numpy arrays or lists of numpy arrays.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.nb_samples_from_h5">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">nb_samples_from_h5</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#nb_samples_from_h5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.nb_samples_from_h5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of samples contained in any .h5 file; numpy or pandas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – The file_path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the number of samples</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.retrieve_data">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">retrieve_data</code><span class="sig-paren">(</span><em>data</em>, <em>data_keys</em>, <em>just_length=False</em>, <em>assert_list=True</em>, <em>prep_func=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#retrieve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.retrieve_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Grabs raw data from a DataProcedure or file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<a class="reference internal" href="storage.html#CMS_Deep_Learning.storage.archiving.DataProcedure" title="CMS_Deep_Learning.storage.archiving.DataProcedure"><em>DataProcedure</em></a><em> or </em><em>str&lt;path&gt;</em><em> or </em><em>other</em>) – the data to get the raw verion of. If not str or DataProcedure returns itself</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – The names of the keys in the hdf5 store to get the data from. Can be nested as in
+[[“HCAL”, “ECAL”], “target”]</li>
+<li><strong>just_length</strong> (<em>bool</em>) – If True just return the length of the data instead of the data itself</li>
+<li><strong>assert_list</strong> (<em>bool</em>) – Whether or not the data should always be nested in a list even if there is only
+one numpy array.</li>
+<li><strong>prep_func</strong> – a function that takes in the tuple of outputs and returns some light transformation
+on them, for example reshaping or padding.</li>
+<li><strong>prep_func</strong> – function</li>
+<li><strong>verbose</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The raw data as numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.size_from_meta">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">size_from_meta</code><span class="sig-paren">(</span><em>filename</em>, <em>sizesDict=None</em>, <em>zero_errors=True</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#size_from_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.size_from_meta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> – The path the the file.</li>
+<li><strong>sizesDict</strong> – (optional) the sizes dictionary gotten from get_sizes_meta_dict, if not passed will find it anyway.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">The number of samples in the file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="preprocessing.html" title="CMS_Deep_Learning.preprocessing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CMS_Deep_Learning package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CMS_Deep_Learning 1.0.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Daniel Phillip Weitekamp.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.2.
+    </div>
+  </body>
+</html>
