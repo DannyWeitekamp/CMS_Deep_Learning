@@ -5,7 +5,6 @@ import glob
 import itertools
 from six import string_types,reraise
 from CMS_Deep_Learning.storage.archiving import DataProcedure
-from CMS_Deep_Learning.io import retrieve_data, load_hdf5_dataset
 
 
 def load_hdf5_dataset(data):
