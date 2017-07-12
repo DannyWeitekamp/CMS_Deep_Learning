@@ -107,7 +107,7 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
-            first_data = retrieve_data(data[0], self.union_keys)
+            first_data = self._retrieve_data(data[0], self.union_keys)
         else:
             first_data = data[0]
 
