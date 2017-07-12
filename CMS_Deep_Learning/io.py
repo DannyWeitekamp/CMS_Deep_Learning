@@ -398,7 +398,7 @@ class DataIterator:
                 for j, zo in enumerate(Z_out):
                     Z_out[j] = np.array(zo)
                 Z_out = restructure(Z_out, key)
-                Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
+                # Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
                 out.append(Z_out)
         if (pred_out != None):
             out.append(np.array(pred_out))
