@@ -194,7 +194,8 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
             tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
-                yield tuple([[x[start:end] for x in X] for X in out])
+                # yield tuple([[x[start:end] for x in X] for X in out])
+                yield tuple(restructure([x[start:end] for x in flatten(out)], data_keys))
                 
 #--------------------------------------------------------------
 
