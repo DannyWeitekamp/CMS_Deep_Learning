@@ -264,8 +264,8 @@ class DataIterator:
         self.accumilate = accumilate
         self.prediction_model = prediction_model
         self.data_keys = data_keys
-        self.input_keys = input_keys if isinstance(input_keys, list) else [input_keys]
-        self.label_keys = label_keys if isinstance(input_keys, list) else [input_keys]
+        self.input_keys = input_keys #if isinstance(input_keys, list) else [input_keys]
+        self.label_keys = label_keys #if isinstance(input_keys, list) else [input_keys]
 
         # Make sure the data is some kind of list 
         if (not isinstance(data, list)):
@@ -556,8 +556,8 @@ def _call_iters(data_dict, to_return, sat_dict):
             if (sat_dict[to_get[0]][0] == 'trial'):
                 dItr = TrialIterator(data_dict['trial'],
                                      data_keys=data_keys,
-                                     input_keys=data_dict.get('input_keys'),
-                                     label_keys=data_dict.get('label_keys'),
+                                     input_keys=data_dict.get('input_keys','X'),
+                                     label_keys=data_dict.get('label_keys','Y'),
                                      return_prediction='predictions' in to_get,
                                      accumilate=accumilate)
                 out = dItr.as_list(verbose=0)
