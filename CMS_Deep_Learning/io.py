@@ -18,7 +18,7 @@ def load_hdf5_dataset(data):
     return data
 
 
-def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_func=None, verbose=0):
+def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_func=None, verbose=0):
     '''Grabs raw data from a DataProcedure or file
 
         :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
@@ -66,10 +66,8 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
                     nxt = len(dataset) if not isinstance(dataset, list) else [len(x) for x in dataset]
                 else:
                     nxt = dataset[:]
-                if (assert_list):
-                    out.append(nxt if isinstance(nxt, list) else [nxt])
-                else:
-                    out.append(nxt)
+                nxt = nxt if (not assert_list or isinstance(nxt, list)) else [nxt]
+                out.append(nxt)
 
         return f_ret(tuple(out))
     else:
