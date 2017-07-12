@@ -59,9 +59,9 @@ class DataIterator:
                 data = [data]
 
         # Resolve source_data_keys
-        if (isinstance(data[0], DataProcedure)):
-            if (source_data_keys == None): source_data_keys = data[0].data_keys
-        if (source_data_keys == None): source_data_keys = [self.input_keys , self.label_keys ]
+        # if (isinstance(data[0], DataProcedure)):
+        #     if (source_data_keys == None): source_data_keys = data[0].data_keys
+        # if (source_data_keys == None): source_data_keys = [self.input_keys , self.label_keys ]
 
         # Resolve the full set of data that needs to be read
         if (self.accumilate != None): self.num_params = getNumParams(self.accumilate)
@@ -79,8 +79,8 @@ class DataIterator:
                 self.union_keys.append(self.label_keys)
             self.label_index = self.union_keys.index(self.label_keys)
 
-        self.subset_ind = [source_data_keys.index(key)
-                           for key in self.union_keys]
+        # self.subset_ind = [source_data_keys.index(key)
+        #                    for key in self.union_keys]
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
@@ -122,8 +122,8 @@ class DataIterator:
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
             d = self.retrieve_data(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
-        else:
-            d = tuple([d[x] for x in self.subset_ind])
+        # else:
+        #     d = tuple([d[x] for x in self.subset_ind])
         return d
 
     def as_list(self, verbose=0):
