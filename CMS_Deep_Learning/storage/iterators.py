@@ -19,7 +19,7 @@ else:
 
 
 class DataIterator:
-    '''A tool for retrieving inputs, labels,prediction values and functions of data
+    '''A tool for retrieving inputs, labels,prediction values and functions of data. Unlike generator class aggregates data together. 
     
         :param data: A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data
         :type data: lst or str

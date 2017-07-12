@@ -171,17 +171,19 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
         lst = glob.glob(os.path.abspath(lst) + "/*.h5")
     if (isinstance(lst, DataProcedure) or isinstance(lst, string_types)): lst = [lst]
     for d in lst:
-        if (not isinstance(d, DataProcedure) and not (isinstance(d, string_types) and os.path.exists(d))):
-            raise TypeError("list element expected path or DataProcedure but got %r" % type(d))
+        if (not (isinstance(d, DataProcedure) or (isinstance(d, string_types) and os.path.exists(d))) ):
+            if(isinstance(d, string_types)):
+                raise IOError("No such file %r" % d)
+            else:
+                raise TypeError("List elements should be existing file path or DataProcedure but got %r" % type(d))
+            
 
     while True:
         for i, elmt in enumerate(lst):
             out = retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)
-            # print(out[0][0].shape,out[0][1].shape,out[1][0].shape)
-            tot_set = _size_set(
-                out)  # set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])
-            tot = list(tot_set)[0]
+            tot_set = _size_set(out)  
             assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
+            tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
                 yield tuple([[x[start:end] for x in X] for X in out])

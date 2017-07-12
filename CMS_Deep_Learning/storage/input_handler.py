@@ -56,12 +56,7 @@ def assertType(x, t):
     '''Asserts that x is of type t and raises an error if not'''
     assert isinstance(x, t), "expected %r but got type %r" % (t, type(x))
 
-{"predictions": [['trial'], ['model', 'data'], ['model', 'X']],
-            "characteristics": [['trial', 'accumilate'], ['model', 'data', 'accumilate'], ['model', 'X', 'accumilate']],
-            "X": [['trial'], ['data']],
-            "Y": [['trial'], ['data']],
-            "model": [['trial']],
-            "num_samples": [['trial']]}
+
 
 def inputHandler(req_info):
     '''Returns an inputHandler function with a set of requirements. The inputHandler function will try
