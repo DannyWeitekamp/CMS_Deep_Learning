@@ -53,7 +53,7 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
         for data_key in data_keys:
             if isinstance(data_key, list):
                 # Get Recursively keys are list
-                ret = retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False, )
+                ret = retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False)
                 out.append(ret)
             else:
                 # Grab directly from the HDF5 store
@@ -66,7 +66,7 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
                     nxt = len(dataset) if not isinstance(dataset, list) else [len(x) for x in dataset]
                 else:
                     nxt = dataset[:]
-                nxt = nxt if (not assert_list or isinstance(nxt, list)) else [nxt]
+                nxt = [nxt] if (assert_list and not isinstance(nxt, list)) else nxt
                 out.append(nxt)
 
         return f_ret(tuple(out))
