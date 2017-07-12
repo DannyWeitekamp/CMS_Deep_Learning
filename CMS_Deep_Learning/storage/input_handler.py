@@ -1,4 +1,4 @@
-from CMS_Deep_Learning.storage.iterators import DataIterator, TrialIterator
+from CMS_Deep_Learning.io import DataIterator, TrialIterator
 from CMS_Deep_Learning.storage.archiving import KerasTrial
 from six import string_types
 import numpy as np
