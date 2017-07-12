@@ -17,7 +17,6 @@ def load_hdf5_dataset(data):
     return data
 
 
-
 def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_func=None, verbose=0):
     '''Grabs raw data from a DataProcedure or file
 
@@ -38,11 +37,11 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
         :returns: The raw data as numpy.ndarray
 
         '''
-    assert prep_func == None or isinstance(prep_func,types.FunctionType),\
+    assert prep_func == None or isinstance(prep_func, types.FunctionType), \
         "prep_func must be function type but got %r" % type(prep_func)
-    #Applies prep_func if it does exists
+    # Applies prep_func if it does exists
     f_ret = lambda x: prep_func(x) if prep_func != None else x
-    
+
     ish5 = isinstance(data, h5py.File)
     if (isinstance(data, DataProcedure)):
         return f_ret(data.get_data(data_keys=data_keys, verbose=verbose))
@@ -52,20 +51,21 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
         out = []
         for data_key in data_keys:
             if isinstance(data_key, list):
-                #Get Recursively keys are list
-                ret = retrieve_data(h5_file, data_keys=data_key, assert_list=False, )
+                # Get Recursively keys are list
+                ret = retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False, )
                 out.append(ret)
             else:
-                #Grab directly from the HDF5 store
+                # Grab directly from the HDF5 store
                 try:
                     data = h5_file[data_key]
                 except KeyError:
                     raise KeyError("No such key %r in H5 store %r." % (data_key, f_path))
+                dataset = load_hdf5_dataset(data)
                 if (just_length):
-                    nxt = len(load_hdf5_dataset(data)[0])
+                    nxt = len(dataset) if not isinstance(dataset, list) else [len(x) for x in dataset]
                 else:
-                    nxt = load_hdf5_dataset(data)[:]
-                if (not just_length and assert_list):
+                    nxt = dataset[:]
+                if (assert_list):
                     out.append(nxt if isinstance(nxt, list) else [nxt])
                 else:
                     out.append(nxt)
