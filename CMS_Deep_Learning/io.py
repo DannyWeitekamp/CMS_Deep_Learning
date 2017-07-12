@@ -46,7 +46,7 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
     if (isinstance(data, DataProcedure)):
         return f_ret(data.get_data(data_keys=data_keys, verbose=verbose))
     elif (isinstance(data, string_types) or ish5):
-        f_path = os.path.abspath(data)
+        f_path = os.path.abspath(data) if not ish5 else data.filename
         h5_file = h5py.File(f_path, 'r') if not ish5 else data
         out = []
         for data_key in data_keys:
