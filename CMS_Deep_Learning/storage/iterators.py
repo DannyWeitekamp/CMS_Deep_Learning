@@ -127,8 +127,8 @@ class DataIterator:
         try:
             out = retrieve_data(*args, **kwargs)
         except KeyError as e:
-            raise KeyError(str(e) + "If these key names are unfamiliar please try setting"
-                                    " input_keys=, label_keys= in the calling method. (e.g. input_keys=[['ECAL', 'HCAL']] )")
+            raise KeyError(str(e) + "If these key names are unfamiliar please try setting \
+                                     input_keys=, label_keys= in the calling method. (e.g. input_keys=[['ECAL', 'HCAL']] )")
         return out
 
     def length(self, verbose=0):
