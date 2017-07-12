@@ -18,7 +18,7 @@ else:
     getNumParams = lambda f: len(getargspec(f)[0])
 
 
-def _flatten(items, seqtypes=(list, tuple)):
+def flatten(items, seqtypes=(list, tuple)):
     '''Flattens an arbitrary nesting of lists'''
     items = list(items)
     for i, x in enumerate(items):
@@ -27,7 +27,7 @@ def _flatten(items, seqtypes=(list, tuple)):
     return items
 
 
-def _restructure(flattened, data_keys, seqtypes=(list, tuple)):
+def restructure(flattened, data_keys, seqtypes=(list, tuple)):
     '''Structures a flattened list into the structure of data_keys'''
     # print(flattened,data_keys)
     if (not isinstance(data_keys, seqtypes)):
@@ -35,8 +35,8 @@ def _restructure(flattened, data_keys, seqtypes=(list, tuple)):
     pos = 0
     out = []
     for key in data_keys:
-        k = len(_flatten(key)) if isinstance(key, seqtypes) else 1
-        out.append(_restructure(flattened[pos:pos + k], key))
+        k = len(flatten(key)) if isinstance(key, seqtypes) else 1
+        out.append(restructure(flattened[pos:pos + k], key))
         pos += k
     return out
 
@@ -136,9 +136,9 @@ class DataIterator:
         if (self.num_samples == None):
             num_samples = 0
             for d in self.data:
-                lengths = _flatten(self._retrieve_data(d, self.union_keys, just_length=True, verbose=verbose))
+                lengths = flatten(self._retrieve_data(d, self.union_keys, just_length=True, verbose=verbose))
                 assert len(set(lengths)) == 1, "Collection lengths mismatch %r, with lengths %r" % \
-                                               (_flatten(self.union_keys), _flatten(self.union_keys))
+                                               (flatten(self.union_keys), flatten(self.union_keys))
                 num_samples += lengths[0]
             self.num_samples = num_samples
         return self.num_samples
@@ -155,7 +155,7 @@ class DataIterator:
         '''Return the data as a list of lists/numpy arrays'''
         pos = 0
 
-        flat_union_keys = _flatten(self.union_keys)
+        flat_union_keys = flatten(self.union_keys)
         samples_outs = [None] * len(self.union_keys)
 
         # Just make sure that self.num_samples is resolved
@@ -169,7 +169,7 @@ class DataIterator:
             if (pos >= self.num_samples):
                 break
             out = self._assert_raw(d, verbose=verbose)
-            flat_out = _flatten(out)
+            flat_out = flatten(out)
             L = flat_out[0].shape[0]
             for i, Z in enumerate(out):
                 if (isinstance(Z, tuple)): Z = list(Z)
@@ -177,7 +177,7 @@ class DataIterator:
                 if (i == self.input_index): X = Z
                 if (i == self.label_index): Y = Z
 
-                flat_Z = _flatten(Z)
+                flat_Z = flatten(Z)
                 if (samples_outs[i] == None):
                     samples_outs[i] = [[None] * self.length(verbose=verbose) for _ in
                                        range(len(flat_Z))]
@@ -204,7 +204,7 @@ class DataIterator:
             if (Z_out != None):
                 for j, zo in enumerate(Z_out):
                     Z_out[j] = np.array(zo)
-                Z_out = _restructure(Z_out, key)
+                Z_out = restructure(Z_out, key)
                 Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
                 out.append(Z_out)
         if (pred_out != None):
