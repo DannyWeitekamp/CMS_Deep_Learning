@@ -4,9 +4,10 @@ import h5py
 import glob
 import itertools
 from six import string_types,reraise
-from CMS_Deep_Learning.storage.archiving import DataProcedure
+from CMS_Deep_Learning.storage.archiving import DataProcedure,KerasTrial
 
 
+#-----------------------------IO Utils----------------------------------------
 def load_hdf5_dataset(data):
     """ based off - https://github.com/duanders/mpi_learn -- train/data.py
         Converts an HDF5 structure to nested lists of databases which can be
@@ -73,6 +74,8 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
         return f_ret(tuple(out))
     else:
         return f_ret(data)
+
+# ---------------------------------------------------------------------
 
 
 # --------------------------SIZE UTILS-------------------------------
@@ -141,6 +144,8 @@ def size_from_meta(filename, sizesDict=None, zero_errors=True, verbose=0):
 
 # -------------------------------------------------------------
 
+#-----------------------------GENERATOR------------------------
+
 def _size_set(x, s=None):
     '''A helper method that makes a set of the number of samples in a tree grabbed data
         if all is well the set should only have one element (i.e. all of the datasets 
@@ -192,3 +197,415 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
                 yield tuple([[x[start:end] for x in X] for X in out])
+                
+#--------------------------------------------------------------
+
+
+#-----------------------------Iterator------------------------
+if (sys.version_info[0] > 2):
+    from inspect import signature
+
+    getNumParams = lambda f: len(signature(f).parameters)
+else:
+    from inspect import getargspec
+
+    getNumParams = lambda f: len(getargspec(f)[0])
+
+
+def _flatten(items, seqtypes=(list, tuple)):
+    '''Flattens an arbitrary nesting of lists'''
+    items = list(items)
+    for i, x in enumerate(items):
+        while i < len(items) and isinstance(items[i], seqtypes):
+            items[i:i + 1] = items[i]
+    return items
+
+
+def _restructure(flattened, data_keys, seqtypes=(list, tuple)):
+    '''Structures a flattened list into the structure of data_keys'''
+    # print(flattened,data_keys)
+    if (not isinstance(data_keys, seqtypes)):
+        return flattened[0] if isinstance(flattened, seqtypes) else flattened
+    pos = 0
+    out = []
+    for key in data_keys:
+        k = len(_flatten(key)) if isinstance(key, seqtypes) else 1
+        out.append(_restructure(flattened[pos:pos + k], key))
+        pos += k
+    return out
+
+
+class DataIterator:
+    '''A tool for retrieving inputs, labels,prediction values and functions of data.
+        Unlike gen_from_data aggregates data from multiple files together into a single list. 
+
+        :param data: A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data
+        :type data: lst or str
+        :param num_samples: If using a generator, must specify now many samples to read
+        :type num_samples: uint
+        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator
+        :type data_keys: list of str
+        :param input_key: The key in the source hdf5 store that corresponds to the input data
+        :type input_keys: str
+        :param label_key: The key in the source hdf5 store that corresponds to the label data
+        :type label_keys: str
+        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+            the output of the accumilate function will follow any specified data_key data in the output
+        :type accumilate: function
+        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary
+        :type source_data_keys: list of str
+        :param prediction_model: A compiled model from which to get the predictions. If specified then predictions are returned
+        :type prediction_model: Model
+        :Output format: (data_keys outputs...,acummilate, predictions)
+    '''
+
+    def __init__(self, data, num_samples=None, data_keys=[], input_keys=["X"], label_keys=["Y"], accumilate=None,
+                 source_data_keys=None, prediction_model=None):
+        self.num_samples = num_samples
+        self.accumilate = accumilate
+        self.prediction_model = prediction_model
+        self.data_keys = data_keys
+        self.input_keys = input_keys if isinstance(input_keys, list) else [input_keys]
+        self.label_keys = label_keys if isinstance(input_keys, list) else [input_keys]
+
+        # Make sure the data is some kind of list 
+        if (not isinstance(data, list)):
+            if (os.path.exists(os.path.abspath(data)) and os.path.isdir(os.path.abspath(data))):
+                data = sorted(glob.glob(os.path.abspath(data) + "/*.h5"))
+            else:
+                data = [data]
+
+        # Resolve source_data_keys
+        # if (isinstance(data[0], DataProcedure)):
+        #     if (source_data_keys == None): source_data_keys = data[0].data_keys
+        # if (source_data_keys == None): source_data_keys = [self.input_keys , self.label_keys ]
+
+        # Resolve the full set of data that needs to be read
+        if (self.accumilate != None): self.num_params = getNumParams(self.accumilate)
+        self.x_required = self.prediction_model != None or self.accumilate != None
+        self.y_required = self.accumilate != None and self.num_params > 1
+
+        self.input_index, self.label_index = -1, -1
+        self.union_keys = self.data_keys[:]
+        if (self.x_required):
+            if (not self.input_keys in self.union_keys):
+                self.union_keys.append(self.input_keys)
+            self.input_index = self.union_keys.index(self.input_keys)
+        if (self.y_required):
+            if (not self.label_keys in self.union_keys):
+                self.union_keys.append(self.label_keys)
+            self.label_index = self.union_keys.index(self.label_keys)
+
+        # self.subset_ind = [source_data_keys.index(key)
+        #                    for key in self.union_keys]
+
+        # Peek at the first part of the data
+        if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
+            first_data = self._retrieve_data(data[0], self.union_keys)
+        else:
+            first_data = data[0]
+
+        # If it is a generator undo the peeking with chain
+        if (isinstance(first_data, types.GeneratorType)):
+            peek = next(first_data)
+            data = itertools.chain([peek], first_data)
+            first_data = peek
+
+        self.data = data
+        if (len(self.union_keys) != len(first_data)):
+            raise ValueError("source_data_keys %r do not match data size of %r" % \
+                             (source_data_keys, len(first_data)))
+
+    def _retrieve_data(self, *args, **kwargs):
+        '''Just a helper method for error better error handling retrieve_data.'''
+        try:
+            out = retrieve_data(*args, **kwargs)
+        except KeyError as e:
+            raise KeyError(str(e).replace("'", "") + str(" If these key names are unfamiliar please try setting " +
+                                                         "input_keys=, label_keys= in the calling method. (e.g. input_keys=[['ECAL', 'HCAL']] )"))
+        return out
+
+    def length(self, verbose=0):
+        '''Finds the length of the iterator if taken as a single list'''
+        if (self.num_samples == None):
+            num_samples = 0
+            for d in self.data:
+                lengths = _flatten(self._retrieve_data(d, self.union_keys, just_length=True, verbose=verbose))
+                assert len(set(lengths)) == 1, "Collection lengths mismatch %r, with lengths %r" % \
+                                               (_flatten(self.union_keys), _flatten(self.union_keys))
+                num_samples += lengths[0]
+            self.num_samples = num_samples
+        return self.num_samples
+
+    def _assert_raw(self, d, verbose=0):
+        '''Makes sure that the data is raw and not a string or DataProcdedure'''
+        if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
+            d = self._retrieve_data(d,
+                                    data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
+        # else:
+        #     d = tuple([d[x] for x in self.subset_ind])
+        return d
+
+    def as_list(self, verbose=0):
+        '''Return the data as a list of lists/numpy arrays'''
+        pos = 0
+
+        flat_union_keys = _flatten(self.union_keys)
+        samples_outs = [None] * len(self.union_keys)
+
+        # Just make sure that self.num_samples is resolved
+        self.length()
+
+        acc_out = [None] * self.length(verbose=verbose) if (self.accumilate != None) else None
+        pred_out = [None] * self.length(verbose=verbose) if (self.prediction_model != None) else None
+
+        # Loop through the data, compute predictions and accum and put it in a list
+        for d in self.data:
+            if (pos >= self.num_samples):
+                break
+            out = self._assert_raw(d, verbose=verbose)
+            flat_out = _flatten(out)
+            L = flat_out[0].shape[0]
+            for i, Z in enumerate(out):
+                if (isinstance(Z, tuple)): Z = list(Z)
+                if (not isinstance(Z, list)): Z = [Z]
+                if (i == self.input_index): X = Z
+                if (i == self.label_index): Y = Z
+
+                flat_Z = _flatten(Z)
+                if (samples_outs[i] == None):
+                    samples_outs[i] = [[None] * self.length(verbose=verbose) for _ in
+                                       range(len(flat_Z))]
+                for j, z in enumerate(flat_Z):
+                    Zj_out = samples_outs[i][j]
+                    for k in range(L):
+                        Zj_out[pos + k] = z[k]
+            if (self.prediction_model != None):
+                pred = self.prediction_model.predict_on_batch(X)
+                for j in range(L):
+                    pred_out[pos + j] = pred[j]
+
+            if (self.accumilate != None):
+                if (self.num_params == 1):
+                    acc = self.accumilate(X)
+                else:
+                    acc = self.accumilate(X, Y)
+                for j in range(L):
+                    acc_out[pos + j] = acc[j]
+            pos += L
+        out = []
+        for key in self.data_keys:
+            Z_out = samples_outs[self.union_keys.index(key)]
+            if (Z_out != None):
+                for j, zo in enumerate(Z_out):
+                    Z_out[j] = np.array(zo)
+                Z_out = _restructure(Z_out, key)
+                Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
+                out.append(Z_out)
+        if (pred_out != None):
+            out.append(np.array(pred_out))
+        if (acc_out != None):
+            out.append(np.array(acc_out))
+        return out
+
+    def next(self):
+        raise NotImplementedError("Need to actually make this an iterator")
+
+    '''
+    def _listNext():
+        for p in self.proc:
+            X,Y = p.getData()
+            pred = self.prediction_model.predict_on_batch(X) if self.prediction_model != None else None
+            acc = self.accumilate(X) if self.accumilate != None else None
+            for  in
+                yield next(self.proc)
+        return StopIteration()
+    '''
+
+    def __iter__(self):
+        raise NotImplementedError("Need to actually make this an iterator")
+        return self
+
+
+class TrialIterator(DataIterator):
+    '''A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance
+
+        :param trial: A KerasTrial from which the model, and data can be assumed
+        :type trial: KerasTrial
+        :param data_type: 'val' or 'train'
+        :type data_type: str
+        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator
+        :type data_keys: list of str
+        :param input_key: The key in the source hdf5 store that corresponds to the input data
+        :type input_key: str
+        :param label_key: The key in the source hdf5 store that corresponds to the label data
+        :type label_key: str
+        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+            the output of the accumilate function will follow any specified data_key data in the output
+        :type accumilate: function
+        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary
+        :type source_data_keys: list of str
+        :param return_prediction: Whether or not to return predictions
+        :type return_prediction: bool
+        :Output format: (data_keys outputs...,acummilate, predictions)
+    '''
+
+    def __init__(self, trial, data_type="val", data_keys=[], input_keys="X", label_keys="Y", accumilate=None,
+                 source_data_keys=None, return_prediction=False, custom_objects={}):
+        if (data_type == "val"):
+            data = trial.get_val()
+            num_samples = trial.nb_val_samples
+        elif (data_type == "train"):
+            data = trial.get_train()
+            num_samples = trial.samples_per_epoch
+        else:
+            raise ValueError("data_type must be either val or train but got %r" % data_type)
+
+        # print(data, trial.get_val(), trial.get_train)
+        model = None
+        if (return_prediction):
+            model = trial.compile(loadweights=True, custom_objects=custom_objects)
+        DataIterator.__init__(self, data, num_samples=num_samples, data_keys=data_keys,
+                              input_keys=input_keys, label_keys=label_keys, source_data_keys=source_data_keys,
+                              accumilate=accumilate, prediction_model=model)
+
+#--------------------------------------------------------------------
+
+#--------------------------------SIMPLE GRAB-----------------------------------
+
+REQ_DICT = {"predictions": [['trial'], ['model', 'data'], ['model', 'X']],
+            "characteristics": [['trial', 'accumilate'], ['model', 'data', 'accumilate'], ['model', 'X', 'accumilate']],
+            "X": [['trial'], ['data']],
+            "Y": [['trial'], ['data']],
+            "model": [['trial']],
+            "num_samples": [['trial']]}
+ITERATOR_REQS = ['predictions', 'characteristics', 'X', 'Y', 'num_samples']
+
+
+def assertModel(model, weights=None, loss='categorical_crossentropy', optimizer='rmsprop', custom_objects={}):
+    '''Asserts that the inputs create a valid keras model and returns that model
+
+        :param model: a keras Model or the path to a model .json
+        :type model: str or Model
+        :param weights: the model weights or path to the stored weights
+        :type weights: str or weights
+        :param loss: the loss function to compile the model with
+        :type loss: str
+        :param : the optimizer to compile the model with
+        :type optimizer: str
+        :param custom_objects: a dictionary of user defined classes
+        :type custom_objects: dict of classes
+        :returns: A compiled model
+        '''
+    from keras.engine.training import Model
+    from keras.models import model_from_json
+    import os, sys
+    '''Takes a model and weights, path and weights, json_sting and weights, or compiled model
+        and outputs a compiled model'''
+    if (loss == None): loss = 'categorical_crossentropy'
+    if (optimizer == None): optimizer = 'rmsprop'
+
+    if (isinstance(model, string_types)):
+        if (os.path.exists(model)):
+            model_str = open(model, "r").read()
+        else:
+            model_str = model
+        model = model_from_json(model_str, custom_objects=custom_objects)
+    # If not compiled
+    if not hasattr(model, 'test_function'):
+        if (isinstance(weights, type(None))):
+            raise ValueError("Cannot compile without weights")
+        if (isinstance(weights, string_types) and os.path.exists(weights)):
+            model.load_weights(weights)
+        else:
+            model.set_weights(weights)
+    return model
+
+
+def assertType(x, t):
+    '''Asserts that x is of type t and raises an error if not'''
+    assert isinstance(x, t), "expected %r but got type %r" % (t, type(x))
+
+
+def _checkAndAssert(data_dict, data_to_check):
+    '''A helper function for simple_grab that checks and asserts the correct data types'''
+    if ("model" in data_to_check):
+        data_dict['model'] = assertModel(data_dict['model'],
+                                         weights=data_dict.get('weights', None),
+                                         loss=data_dict.get('loss', None),
+                                         optimizer=data_dict.get('optimizer', None),
+                                         custom_objects=data_dict.get('custom_objects', {})
+                                         )
+    if ("trial" in data_to_check): assertType(data_dict['trial'], KerasTrial)
+    if ("X" in data_to_check): assertType(data_dict['X'], (np.ndarray, list, tuple))
+    if ("Y" in data_to_check): assertType(data_dict['Y'], (np.ndarray, list, tuple))
+    if ("predictions" in data_to_check): assertType(data_dict['predictions'], np.ndarray)
+    if ("num_samples" in data_to_check): assertType(data_dict['num_samples'], int)
+
+    return data_dict
+
+
+def _call_iters(data_dict, to_return, sat_dict):
+    '''A helper function for simple_grab that calls the DataIterators if necessary'''
+    if (len(set.intersection(set(to_return), set(ITERATOR_REQS))) != 0):
+        to_get = [req for req in to_return if req in ITERATOR_REQS and not req == sat_dict[req]]
+        if (len(to_get) > 0):
+            data_keys = []
+            if ('X' in to_get): data_keys.append(data_dict.get('input_keys', 'X'))
+            if ('Y' in to_get): data_keys.append(data_dict.get('label_keys', 'Y'))
+            accumilate = data_dict.get('accumilate', None)  # if('accumilate' in to_get) else None
+            if (sat_dict[to_get[0]][0] == 'trial'):
+                dItr = TrialIterator(data_dict['trial'],
+                                     data_keys=data_keys,
+                                     input_keys=data_dict.get('input_keys'),
+                                     label_keys=data_dict.get('label_keys'),
+                                     return_prediction='predictions' in to_get,
+                                     accumilate=accumilate)
+                out = dItr.as_list(verbose=0)
+            else:
+                dItr = DataIterator(data_dict.get('data', None),
+                                    data_keys=data_keys,
+                                    num_samples=data_dict.get('num_samples', None),
+                                    input_keys=data_dict.get('input_keys', 'X'),
+                                    label_keys=data_dict.get('label_keys', 'Y'),
+                                    prediction_model=data_dict.get('model', None),
+                                    accumilate=accumilate)
+                out = dItr.as_list(verbose=0)
+            for i, key in enumerate(to_get):
+                data_dict[key] = out[i]
+    return data_dict
+
+
+def simple_grab(to_return, data_dict={}, **kargs):
+    '''Returns the data requested in to_return given that the data can be found/derived from the given inputs.
+        for example one can derive predictions from a model path, weights path, and X (input data).
+         Input information includes ['trial', 'model,'data,'X','Y', accumilate,'predictions', 'characteristics', 'X', 'Y', 'model', 'num_samples'].
+         outputs include ['predictions','characteristics', 'X', 'Y', 'model', 'num_samples'].
+
+
+
+        :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
+        :returns: the data requested in to_return'''
+
+    if (len(kargs) != 0): data_dict = kargs
+    data_to_check = set([])
+    sat_dict = {}
+    for req in to_return:
+        if not req in REQ_DICT:
+            raise ValueError("Requirement %r not recognized" % req)
+        satisfiers = REQ_DICT[req]
+        ok = [not False in [x in data_dict for x in sat] \
+              for sat in satisfiers]
+        if (not req in data_dict and not True in ok):
+            raise ValueError('To handle requirement %r need (%s) or %s' % \
+                             (req, req, ' or '.join(['(' + ",".join(x) + ')' for x in satisfiers])))
+        satisfier = req if req in data_dict else satisfiers[ok.index(True)]
+        sat_dict[req] = satisfier
+        for x in satisfier:
+            data_to_check.add(x)
+
+    data_dict = _checkAndAssert(data_dict, data_to_check)
+    data_dict = _call_iters(data_dict, to_return, sat_dict)
+    # out = []
+
+    return tuple([data_dict[r] for r in to_return])
