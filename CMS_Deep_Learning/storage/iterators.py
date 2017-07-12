@@ -113,7 +113,7 @@ class DataIterator:
         if (self.num_samples == None):
             num_samples = 0
             for d in self.data:
-                l = self.retrieve_data(d, self.union_keys, just_length=True, verbose=verbose)[0]
+                l = self._retrieve_data(d, self.union_keys, just_length=True, verbose=verbose)[0]
                 num_samples += l
             self.num_samples = num_samples
         return self.num_samples
@@ -121,7 +121,7 @@ class DataIterator:
     def _assert_raw(self, d, verbose=0):
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
-            d = self.retrieve_data(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
+            d = self._retrieve_data(d, data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
         # else:
         #     d = tuple([d[x] for x in self.subset_ind])
         return d
