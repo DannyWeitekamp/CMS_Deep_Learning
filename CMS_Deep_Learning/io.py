@@ -61,13 +61,13 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
                 except KeyError:
                     raise KeyError("No such key %r in H5 store %r." % (data_key, f_path))
                 if (just_length):
-                    return len(load_hdf5_dataset(data)[0])
+                    nxt = len(load_hdf5_dataset(data)[0])
                 else:
                     nxt = load_hdf5_dataset(data)[:]
-                    if (assert_list):
-                        out.append(nxt if isinstance(nxt, list) else [nxt])
-                    else:
-                        out.append(nxt)
+                if (not just_length and assert_list):
+                    out.append(nxt if isinstance(nxt, list) else [nxt])
+                else:
+                    out.append(nxt)
 
         return f_ret(tuple(out))
     else:
