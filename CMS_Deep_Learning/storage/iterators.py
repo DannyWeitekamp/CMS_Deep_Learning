@@ -146,8 +146,7 @@ class DataIterator:
     def _assert_raw(self, d, verbose=0):
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
-            d = self._retrieve_data(d,
-                                    data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
+            d = self._retrieve_data(d,data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
         # else:
         #     d = tuple([d[x] for x in self.subset_ind])
         return d
@@ -172,8 +171,6 @@ class DataIterator:
             out = self._assert_raw(d, verbose=verbose)
             flat_out = _flatten(out)
             L = flat_out[0].shape[0]
-            print([type(x) for x in flat_out])
-            print(L)
             for i, Z in enumerate(out):
                 if (isinstance(Z, tuple)): Z = list(Z)
                 if (not isinstance(Z, list)): Z = [Z]
@@ -207,8 +204,6 @@ class DataIterator:
             if (Z_out != None):
                 for j, zo in enumerate(Z_out):
                     Z_out[j] = np.array(zo)
-                print(key)
-                print([type(x) for x in Z_out])
                 Z_out = _restructure(Z_out, key)
                 Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
                 out.append(Z_out)
