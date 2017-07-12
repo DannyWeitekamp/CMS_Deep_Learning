@@ -1,4 +1,4 @@
-from CMS_Deep_Learning.storage.input_handler import inputHandler
+from CMS_Deep_Learning.storage.input_handler import simple_grab
 
 from CMS_Deep_Learning.storage.archiving import DataProcedure, KerasTrial
 from CMS_Deep_Learning.storage.iterators import TrialIterator, DataIterator
@@ -103,8 +103,7 @@ def bin_metric_vs_char(args=[],
     inp = inputs[0]
 
     if (inp['accumilate'] != None):
-        h = inputHandler(['Y', 'predictions', 'characteristics'])
-        y_vals, predictions, characteristics = h(inp)
+        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],data_dict=inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
 
@@ -261,8 +260,7 @@ def get_roc_data(**kargs):
         fpr, tpr, thres, roc_auc = inp["ROC_data"]
     else:
         from sklearn.metrics import roc_curve, auc
-        h = inputHandler(['Y', 'predictions'])
-        labels, predictions = h(inp)
+        labels, predictions = simple_grab(['Y', 'predictions'],data_dict=inp)
         labels = labels[0]
         true_class_index = kargs.get("true_class_index", None)
 

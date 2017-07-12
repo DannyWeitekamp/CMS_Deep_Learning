@@ -46,7 +46,8 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
     if (isinstance(data, DataProcedure)):
         return f_ret(data.get_data(data_keys=data_keys, verbose=verbose))
     elif (isinstance(data, string_types) or ish5):
-        h5_file = h5py.File(os.path.abspath(data), 'r') if not ish5 else data
+        f_path = os.path.abspath(data)
+        h5_file = h5py.File(f_path, 'r') if not ish5 else data
         out = []
         for data_key in data_keys:
             if isinstance(data_key, list):
@@ -55,7 +56,10 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=True, prep_fun
                 out.append(ret)
             else:
                 #Grab directly from the HDF5 store
-                data = h5_file[data_key]
+                try:
+                    data = h5_file[data_key]
+                except KeyError:
+                    raise KeyError("No such key %r in H5 store %r." % (data_key, f_path))
                 if (just_length):
                     nxt = load_hdf5_dataset(data)[0].len()
                 else:

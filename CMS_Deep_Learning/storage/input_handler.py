@@ -58,68 +58,65 @@ def assertType(x, t):
 
 
 
-def inputHandler(req_info):
+def simple_grab(to_return, data_dict={}, **kargs):
     '''Returns an inputHandler function with a set of requirements. The inputHandler function will try
         to derive the required information from the given information, for example it can derive predictions
         from a model path,weights path, and X (input data). Input information includes ['trial', 'model,'data,'X','Y',
         accumilate,'predictions', 'characteristics', 'X', 'Y', 'model', 'num_samples'], outputs include ['predictions',
         'characteristics', 'X', 'Y', 'model', 'num_samples']
         
-        :param req_info: A set of requirements, options: predictions,X,Y,model,num_samples
+        :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
         :returns: an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data'''
 
-    def f(data_dict={},**kargs):
-        if(len(kargs) != 0): data_dict = kargs
-        data_to_check = set([])
-        sat_dict = {}
-        for req in req_info:
-            if not req in REQ_DICT:
-                raise ValueError("Requirement %r not recognized" % req)
-            satisfiers = REQ_DICT[req]
-            ok = [not False in [x in data_dict for x in sat] \
-                  for sat in satisfiers]
-            if (not req in data_dict and not True in ok):
-                raise ValueError('To handle requirement %r need (%s) or %s' % \
-                                 (req, req, ' or '.join(['(' + ",".join(x) + ')' for x in satisfiers])))
-            satisfier = req if req in data_dict else satisfiers[ok.index(True)]
-            sat_dict[req] = satisfier
-            for x in satisfier:
-                data_to_check.add(x)
-        if ("model" in data_to_check):
-            data_dict['model'] = assertModel(data_dict['model'],
-                                             weights=data_dict.get('weights', None),
-                                             loss=data_dict.get('loss', None),
-                                             optimizer=data_dict.get('optimizer', None),
-                                             custom_objects=data_dict.get('custom_objects', {})
-                                             )
-        if ("trial" in data_to_check): assertType(data_dict['trial'], KerasTrial)
-        if ("X" in data_to_check): assertType(data_dict['X'], np.ndarray)
-        if ("Y" in data_to_check): assertType(data_dict['Y'], np.ndarray)
-        if ("predictions" in data_to_check): assertType(data_dict['predictions'], np.ndarray)
-        if ("num_samples" in data_to_check): assertType(data_dict['num_samples'], int)
+    if(len(kargs) != 0): data_dict = kargs
+    data_to_check = set([])
+    sat_dict = {}
+    for req in to_return:
+        if not req in REQ_DICT:
+            raise ValueError("Requirement %r not recognized" % req)
+        satisfiers = REQ_DICT[req]
+        ok = [not False in [x in data_dict for x in sat] \
+              for sat in satisfiers]
+        if (not req in data_dict and not True in ok):
+            raise ValueError('To handle requirement %r need (%s) or %s' % \
+                             (req, req, ' or '.join(['(' + ",".join(x) + ')' for x in satisfiers])))
+        satisfier = req if req in data_dict else satisfiers[ok.index(True)]
+        sat_dict[req] = satisfier
+        for x in satisfier:
+            data_to_check.add(x)
+    if ("model" in data_to_check):
+        data_dict['model'] = assertModel(data_dict['model'],
+                                         weights=data_dict.get('weights', None),
+                                         loss=data_dict.get('loss', None),
+                                         optimizer=data_dict.get('optimizer', None),
+                                         custom_objects=data_dict.get('custom_objects', {})
+                                         )
+    if ("trial" in data_to_check): assertType(data_dict['trial'], KerasTrial)
+    if ("X" in data_to_check): assertType(data_dict['X'], np.ndarray)
+    if ("Y" in data_to_check): assertType(data_dict['Y'], np.ndarray)
+    if ("predictions" in data_to_check): assertType(data_dict['predictions'], np.ndarray)
+    if ("num_samples" in data_to_check): assertType(data_dict['num_samples'], int)
 
-        out = []
-        if (len(set.intersection(set(req_info), set(ITERATOR_REQS))) != 0):
-            to_get = [req for req in req_info if not req == sat_dict[req]]
-            data_keys = []
-            if ('X' in to_get): data_keys.append("X")
-            if ('Y' in to_get): data_keys.append("Y")
-            # TODO: if('accumilation' in to_get): accumilate = data_dict['']
-            accumilate = data_dict.get('accumilate', None)  # if('accumilate' in to_get) else None
-            return_prediction = True if ('predictions' in to_get) else False
-            if (sat_dict[to_get[0]][0] == 'trial'):
-                dItr = TrialIterator(data_dict['trial'],
-                                     data_keys=data_keys,
-                                     return_prediction=return_prediction,
-                                     accumilate=accumilate)
-                out = dItr.as_list(verbose=0)
-            else:
-                dItr = DataIterator(data_dict.get('data', None),
-                                    data_keys=data_keys,
-                                    num_samples=data_dict.get('num_samples', None),
-                                    prediction_model=data_dict.get('model', None),
-                                    accumilate=accumilate)
-                out = dItr.as_list(verbose=0)
-        return tuple(list(out) + [data_dict[r] for r in req_info if not r in ITERATOR_REQS])
-
-    return f
+    out = []
+    if (len(set.intersection(set(to_return), set(ITERATOR_REQS))) != 0):
+        to_get = [req for req in to_return if not req == sat_dict[req]]
+        data_keys = []
+        if ('X' in to_get): data_keys.append("X")
+        if ('Y' in to_get): data_keys.append("Y")
+        # TODO: if('accumilation' in to_get): accumilate = data_dict['']
+        accumilate = data_dict.get('accumilate', None)  # if('accumilate' in to_get) else None
+        return_prediction = True if ('predictions' in to_get) else False
+        if (sat_dict[to_get[0]][0] == 'trial'):
+            dItr = TrialIterator(data_dict['trial'],
+                                 data_keys=data_keys,
+                                 return_prediction=return_prediction,
+                                 accumilate=accumilate)
+            out = dItr.as_list(verbose=0)
+        else:
+            dItr = DataIterator(data_dict.get('data', None),
+                                data_keys=data_keys,
+                                num_samples=data_dict.get('num_samples', None),
+                                prediction_model=data_dict.get('model', None),
+                                accumilate=accumilate)
+            out = dItr.as_list(verbose=0)
+    return tuple(list(out) + [data_dict[r] for r in to_return if not r in ITERATOR_REQS])
