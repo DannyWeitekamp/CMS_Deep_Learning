@@ -405,7 +405,7 @@ class DataIterator:
             out.append(np.array(pred_out))
         if (acc_out != None):
             out.append(np.array(acc_out))
-        return out
+        return tuple(out)
 
     def next(self):
         raise NotImplementedError("Need to actually make this an iterator")
