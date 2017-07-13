@@ -100,7 +100,7 @@ def bin_metric_vs_char(args=[],
     inp = inputs[0]
 
     if (inp['accumilate'] != None):
-        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],data_dict=inp)
+        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],**inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
 
@@ -257,7 +257,7 @@ def get_roc_data(**kargs):
         fpr, tpr, thres, roc_auc = inp["ROC_data"]
     else:
         from sklearn.metrics import roc_curve, auc
-        labels, predictions = simple_grab(['Y', 'predictions'],data_dict=inp)
+        labels, predictions = simple_grab(['Y', 'predictions'],**inp)
         labels = labels[0]
         true_class_index = kargs.get("true_class_index", None)
 

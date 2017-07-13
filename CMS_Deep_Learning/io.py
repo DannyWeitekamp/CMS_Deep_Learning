@@ -583,15 +583,27 @@ def _call_iters(data_dict, to_return, sat_dict):
     return data_dict
 
 
-def simple_grab(to_return, data_dict={}, **kargs):
+def simple_grab(to_return, **kargs):
     '''Returns the data requested in to_return given that the data can be found/derived from the given inputs.
         for example one can derive predictions from a model path, weights path, and X (input data).
          Input information includes ['trial', 'model,'data,'X','Y', accumilate,'predictions', 'characteristics', 'X', 'Y', 'model', 'num_samples'].
          outputs include ['predictions','characteristics', 'X', 'Y', 'model', 'num_samples'].
 
-
-
-        :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
+        :param to_return: The set of data that you would like to get options: [predictions,X,Y,model,num_samples]
+        :type to_return: (list of str, or str)
+        :param data: A directory path, or list of files that contain your dataset.
+        :type data: (str,list)
+        :param X: Your input data to your model
+        :type X: (numpy.array or nested list of numpy.arrays)
+        :param Y: Your data labels for your model
+        :type Y: (numpy.array or nested list of numpy.arrays)
+        :param model: The path to a model .json file, the json_string, or the compiled model
+        :type model: (str,Model)
+        :param accumilate: an accumilator function for deriving characteristics
+        :type accumilate: function
+        :param trial: A KerasTrial from which the model,weights, and dataset can be derived
+        :type trial: CMS_Deep_Learning.storage.archiving.KerasTrial
+        
         :returns: the data requested in to_return'''
     flat_to_return = flatten(to_return)
     assert len(flat_to_return) > 0, 'to_return must be a nonempty list of return type_strings'
