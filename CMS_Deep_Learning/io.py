@@ -357,8 +357,6 @@ class DataIterator:
     def as_list(self, verbose=0):
         '''Return the data as a list of lists/numpy arrays'''
         pos = 0
-        #flat_union_keys = flatten(self.union_keys)
-        print(self.union_keys)#, flat_union_keys)
         samples_outs = [None] * len(self.union_keys)
 
         # Just make sure that self.num_samples is resolved
@@ -403,7 +401,6 @@ class DataIterator:
             pos += L
         out = []
         for key in assert_list(self.data_keys):
-            print(self.union_keys)
             Z_out = samples_outs[self.union_keys.index(key)]
             if (Z_out != None):
                 for j, zo in enumerate(Z_out):
@@ -469,7 +466,6 @@ class TrialIterator(DataIterator):
         else:
             raise ValueError("data_type must be either val or train but got %r" % data_type)
 
-        # print(data, trial.get_val(), trial.get_train)
         model = None
         if (return_prediction):
             model = trial.compile(loadweights=True, custom_objects=custom_objects)
