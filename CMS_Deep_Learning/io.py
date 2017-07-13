@@ -323,9 +323,9 @@ class DataIterator:
             first_data = peek
 
         self.data = data
-        if (len(flatten(self.union_keys)) != len(first_data)):
-            raise ValueError("source_data_keys %r do not match data size of %r" % \
-                             (source_data_keys, len(first_data)))
+        if (len(self.union_keys) != len(first_data)):
+            raise ValueError("union_keys %r do not match data size of %r" % \
+                             (self.union_keys, len(first_data)))
 
     def _retrieve_data(self, *args, **kwargs):
         '''Just a helper method for error better error handling retrieve_data.'''
@@ -357,7 +357,8 @@ class DataIterator:
     def as_list(self, verbose=0):
         '''Return the data as a list of lists/numpy arrays'''
         pos = 0
-        flat_union_keys = flatten(self.union_keys)
+        #flat_union_keys = flatten(self.union_keys)
+        print(self.union_keys)#, flat_union_keys)
         samples_outs = [None] * len(self.union_keys)
 
         # Just make sure that self.num_samples is resolved
@@ -371,7 +372,7 @@ class DataIterator:
             if (pos >= self.num_samples):
                 break
             out = self._assert_raw(d, verbose=verbose)
-            flat_out = flatten(out)
+            flat_out = flatten(out[:])
             L = flat_out[0].shape[0]
             for i, Z in enumerate(out):
                 if (isinstance(Z, tuple)): Z = list(Z)
@@ -402,6 +403,7 @@ class DataIterator:
             pos += L
         out = []
         for key in assert_list(self.data_keys):
+            print(self.union_keys)
             Z_out = samples_outs[self.union_keys.index(key)]
             if (Z_out != None):
                 for j, zo in enumerate(Z_out):
