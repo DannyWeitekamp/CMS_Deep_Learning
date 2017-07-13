@@ -121,36 +121,16 @@
 <li><strong>nb_bins</strong> – The number of bins to use in the analysis.</li>
 <li><strong>equalBins</strong> – True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
 will be very unusual, varying significantly in their domain.</li>
-<li><strong>plot</strong> – If True plot the bins automatically.</li>
+<li><strong>plot</strong> (<em>bool</em>) – If True plot the bins automatically.</li>
+<li><strong>bins</strong> (<em>list of dict</em>) – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</li>
+<li><strong>threshold</strong> (<em>float</em>) – The threshold for the classifier for the True class. All other classes are collectively the False class.</li>
+<li><strong>true_class_index</strong> (<em>int</em>) – The index in the output vector corresponding to the True class element.All other classes are collectively the False class.</li>
+<li><strong>*</strong> – Any argument available to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a> to get <strong>Y</strong>, <strong>predictions</strong>, <strong>characteristics</strong></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<ul class="simple">
-<li><strong>bins</strong> (<code class="docutils literal"><span class="pre">list</span></code>) – A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</li>
-<li><strong>threshold</strong> – The threshold for the classifier for the ‘true_class’</li>
-<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
-<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
-<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
-<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
-<li><dl class="first docutils">
-<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
-<dd>weights=? must be given.</dd>
-</dl>
-</li>
-<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
-<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
-<li><strong>accumulate</strong> (<code class="docutils literal"><span class="pre">function</span></code>) – an accumulator function build by build_accumulator</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -159,20 +139,15 @@ will be very unusual, varying significantly in their domain.</li>
 <dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.metrics.get_roc_data">
 <code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">get_roc_data</code><span class="sig-paren">(</span><em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#get_roc_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>get ROC curve points,thresholds, and auc from labels and predictions</p>
+<dd><p>Get ROC curve <strong>tpr</strong>, <strong>fpr</strong>, <strong>thresholds</strong>, and <strong>auc</strong> from labels and predictions.
+Takes all arguments availiable to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>ROC_data</strong> – a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc</li>
-<li><strong>trial</strong> – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
-<li><strong>Y</strong> – The data labels numpy.ndarray</li>
-<li><strong>predictions</strong> – the predictions numpy.ndarray</li>
-<li><strong>model</strong> – a compiled model, uncompiled model or path to model json. For the latter options
-weights=? must be given.</li>
-<li><strong>weights</strong> – the model weights, or a path to the weights</li>
-<li><strong>custom_objects</strong> – A dictionary of classes used inside a keras model that have been made by the user</li>
+<li><strong>*</strong> – Any argument available to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a> to get <strong>Y</strong>, <strong>predictions</strong></li>
 </ul>
 </td>
 </tr>
@@ -193,6 +168,8 @@ weights=? must be given.</li>
 <li><strong>tpr</strong> – a list of true positive rates to hold constant</li>
 <li><strong>fpr</strong> – a list of false positive rates to hold constant</li>
 <li><strong>thresh</strong> – a list of thesholds to hold constant</li>
+<li><strong>*</strong> – Any argument available to <a class="reference internal" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_data" title="CMS_Deep_Learning.postprocessing.metrics.get_roc_data"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.postprocessing.metrics.get_roc_data()</span></code></a> to get <strong>ROC_data</strong>,
+and by extension any argument available to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a> to get <strong>Y</strong>, <strong>predictions</strong></li>
 </ul>
 </td>
 </tr>
@@ -267,34 +244,14 @@ each curve.</li>
 <li><strong>invertCont</strong> – T/F use the inverse of contamination</li>
 <li><strong>title</strong> – The title of the plot</li>
 <li><strong>color_set</strong> – A list of colors to use for each ROC.</li>
+<li><strong>name</strong> – A name for use as a label in the plot</li>
+<li><strong>*</strong> – Any argument available to <a class="reference internal" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_data" title="CMS_Deep_Learning.postprocessing.metrics.get_roc_data"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.postprocessing.metrics.get_roc_data()</span></code></a> to get <strong>ROC_data</strong>,
+and by extension any argument available to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a> to get <strong>Y</strong>, <strong>predictions</strong></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<ul class="simple">
-<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – A name for use as a label in the plot</li>
-<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
-<li><strong>ROC_data</strong> (<code class="docutils literal"><span class="pre">tuple</span></code>) – (fpr, tpr, thres, roc_auc)</li>
-<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
-<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
-<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
-<li><dl class="first docutils">
-<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
-<dd>weights=? must be given.</dd>
-</dl>
-</li>
-<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
-<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -327,34 +284,14 @@ each curve.</li>
 <li><strong>title</strong> – The title of the plot</li>
 <li><strong>color_set</strong> – A list of colors to use for each ROC.</li>
 <li><strong>show</strong> – Whether or not to show the plot, can be useful if one only wants the parameterization data</li>
+<li><strong>name</strong> – A name for use as a label in the plot</li>
+<li><strong>*</strong> – Any argument available to <a class="reference internal" href="#CMS_Deep_Learning.postprocessing.metrics.get_roc_data" title="CMS_Deep_Learning.postprocessing.metrics.get_roc_data"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.postprocessing.metrics.get_roc_data()</span></code></a> to get <strong>ROC_data</strong>,
+and by extension any argument available to <a class="reference internal" href="io.html#CMS_Deep_Learning.io.simple_grab" title="CMS_Deep_Learning.io.simple_grab"><code class="xref py py-func docutils literal"><span class="pre">CMS_Deep_Learning.io.simple_grab()</span></code></a> to get <strong>Y</strong>, <strong>predictions</strong></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name" colspan="2">Keyword Arguments:</th></tr>
-<tr class="field-even field"><td>&#160;</td><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-<ul class="simple">
-<li><strong>name</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – A name for use as a label in the plot</li>
-<li><strong>true_class_index</strong> (<code class="docutils literal"><span class="pre">int</span></code>) – The index in the output vector corresponding to the ‘true class’ element</li>
-<li><strong>ROC_data</strong> (<code class="docutils literal"><span class="pre">tuple</span></code>) – (fpr, tpr, thres, roc_auc)</li>
-<li><strong>trial</strong> (<code class="docutils literal"><span class="pre">KerasTrial</span></code>) – a KerasTrial instance from which the model/predictions and validation set will be inferred</li>
-<li><strong>Y</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – The groundtruth labels</li>
-<li><strong>predictions</strong> (<code class="docutils literal"><span class="pre">numpy.ndarray</span></code>) – the model predictions</li>
-<li><dl class="first docutils">
-<dt><strong>model</strong> (<code class="docutils literal"><span class="pre">Model</span></code>,“str“) – a compiled model, uncompiled model or path to model json. For the latter options</dt>
-<dd>weights=? must be given.</dd>
-</dl>
-</li>
-<li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
-<li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)</p>
+</td>
 </tr>
 </tbody>
 </table>

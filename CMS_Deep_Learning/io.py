@@ -163,7 +163,7 @@ def _size_set(x, s=None):
 
 
 def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=None, verbose=1):
-    '''Gets a generator that generates data of batch_size from a list of .h5 files or DataProcedures,
+    '''Gets a generator that generates data of **batch_size** from a list of .h5 files or DataProcedures,
         or a directory containing .h5 files.
 
         :param lst: a list of .h5 filepaths and/or DataProcedures or a directory path
@@ -616,7 +616,7 @@ def simple_grab(to_return, **kargs):
         :type Y: (numpy.array or nested list of numpy.arrays)
         :param model: The path to a model .json file, the json_string, or the compiled model
         :type model: (str,Model)
-        :param  accumulate: an accumulator function for deriving characteristics
+        :param  accumulate: an accumulator function for deriving **characteristics**
         :type  accumulate: function
         :param trial: A KerasTrial from which the model,weights, and dataset can be derived
         :type trial: CMS_Deep_Learning.storage.archiving.KerasTrial
@@ -629,7 +629,9 @@ def simple_grab(to_return, **kargs):
         :param optimizer: The optimizer to compile the model with
         :param predictions: Predictions of some model. However this is a useless input.
         :type predictions: numpy.array
-        
+        :param characteristic: A set of characteristics derived from **accumulate**
+        :type characteristic: numpy.array
+                
         :type optimizer: str
         
         :returns: the data requested in to_return'''

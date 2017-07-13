@@ -67,21 +67,15 @@ def bin_metric_vs_char(args=[],
         :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins
                         will be very unusual, varying significantly in their domain.
         :param plot: If True plot the bins automatically.
-
-        :Keyword Arguments:
-        - **bins** (``list``) -- A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
-        - **threshold** -- The threshold for the classifier for the 'true_class'
-        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element        
-        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
-        - **Y** (``numpy.ndarray``) -- The groundtruth labels
-        - **predictions** (``numpy.ndarray``) -- the model predictions
-        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
-                  weights=? must be given.
-        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
-        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
-        - **accumulate** (``function``) -- an accumulator function build by build_accumulator
-
-
+        :type plot: bool
+        :param bins: A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char
+        :type bins: list of dict
+        :param threshold: The threshold for the classifier for the True class. All other classes are collectively the False class.
+        :type threshold: float
+        :param true_class_index: The index in the output vector corresponding to the True class element.All other classes are collectively the False class.
+        :type true_class_index: int
+        :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**, **characteristics**
+        
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
             '''
 
@@ -208,6 +202,9 @@ def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
         :param tpr: a list of true positive rates to hold constant
         :param fpr: a list of false positive rates to hold constant
         :param thresh: a list of thesholds to hold constant
+        :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,
+                    and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
+        
         :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials
         '''
     if(len(args) == 0): args = [kargs]
@@ -234,17 +231,20 @@ def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
 
 
 def get_roc_data(**kargs):
-    '''get ROC curve points,thresholds, and auc from labels and predictions
-
+    '''Get ROC curve **tpr**, **fpr**, **thresholds**, and **auc** from labels and predictions.
+        Takes all arguments availiable to :py:func:`CMS_Deep_Learning.io.simple_grab`
+        
         :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
-        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
-        :param Y: The data labels numpy.ndarray
-        :param predictions: the predictions numpy.ndarray
-        :param model: a compiled model, uncompiled model or path to model json. For the latter options
-                      weights=? must be given.
-        :param weights: the model weights, or a path to the weights
-        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
+        :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
         '''
+        # :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
+        # :param Y: The data labels numpy.ndarray
+        # :param predictions: the predictions numpy.ndarray
+        # :param model: a compiled model, uncompiled model or path to model json. For the latter options
+        #               weights=? must be given.
+        # :param weights: the model weights, or a path to the weights
+        # :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
+        
     inp = kargs
     if ("ROC_data" in inp):
         fpr, tpr, thres, roc_auc = inp["ROC_data"]

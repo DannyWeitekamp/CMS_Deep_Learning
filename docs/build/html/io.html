@@ -172,13 +172,14 @@ in your HDF5 store. This is essential for making predictions or returning X,Y fr
 <li><strong>X</strong> (<em>(</em><em>numpy.array</em><em> or </em><em>nested list of numpy.arrays</em><em>)</em>) – Your input data to your model</li>
 <li><strong>Y</strong> (<em>(</em><em>numpy.array</em><em> or </em><em>nested list of numpy.arrays</em><em>)</em>) – Your data labels for your model</li>
 <li><strong>model</strong> (<em>(</em><em>str</em><em>,</em><em>Model</em><em>)</em>) – The path to a model .json file, the json_string, or the compiled model</li>
-<li><strong>accumulate</strong> (<em>function</em>) – an accumulator function for deriving characteristics</li>
+<li><strong>accumulate</strong> (<em>function</em>) – an accumulator function for deriving <strong>characteristics</strong></li>
 <li><strong>trial</strong> (<a class="reference internal" href="storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>CMS_Deep_Learning.storage.archiving.KerasTrial</em></a>) – A KerasTrial from which the model,weights, and dataset can be derived</li>
 <li><strong>custom_objects</strong> (<em>dict of classes</em>) – A dictionary of objects created by the user keyed by their name. For example custom layers.</li>
 <li><strong>num_samples</strong> (<em>int</em>) – The number of samples to grab for ‘X’ and ‘Y’</li>
 <li><strong>loss</strong> (<em>str</em>) – The loss to compile the model with</li>
 <li><strong>optimizer</strong> (<em>str</em>) – The optimizer to compile the model with</li>
 <li><strong>predictions</strong> (<em>numpy.array</em>) – Predictions of some model. However this is a useless input.</li>
+<li><strong>characteristic</strong> (<em>numpy.array</em>) – A set of characteristics derived from <strong>accumulate</strong></li>
 </ul>
 </td>
 </tr>

@@ -68,7 +68,8 @@
           <div class="body" role="main">
             
   <h1>Source code for CMS_Deep_Learning.postprocessing.metrics</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.io</span> <span class="k">import</span> <span class="n">simple_grab</span>
+<span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.io</span> <span class="k">import</span> <span class="n">simple_grab</span><span class="p">,</span> <span class="n">assert_list</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.preprocessing.pandas_to_numpy</span> <span class="k">import</span> <span class="n">PARTICLE_OBSERVS</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -76,13 +77,7 @@
                       <span class="n">observ</span><span class="p">,</span>
                       <span class="n">objects</span><span class="p">,</span>
                       <span class="n">char2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                      <span class="n">observable_ordering</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;E/c&#39;</span><span class="p">,</span> <span class="s1">&#39;Px&#39;</span><span class="p">,</span> <span class="s1">&#39;Py&#39;</span><span class="p">,</span> <span class="s1">&#39;Pz&#39;</span><span class="p">,</span> <span class="s1">&#39;PT_ET&#39;</span><span class="p">,</span> <span class="s1">&#39;Eta&#39;</span><span class="p">,</span> <span class="s1">&#39;Phi&#39;</span><span class="p">,</span>
-                                           <span class="s2">&quot;MaxLepDeltaEta&quot;</span><span class="p">,</span> <span class="s2">&quot;MaxLepDeltaPhi&quot;</span><span class="p">,</span> <span class="s1">&#39;MaxLepDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;MaxLepKt&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;MaxLepAntiKt&#39;</span><span class="p">,</span>
-                                           <span class="s2">&quot;METDeltaEta&quot;</span><span class="p">,</span> <span class="s2">&quot;METDeltaPhi&quot;</span><span class="p">,</span> <span class="s1">&#39;METDeltaR&#39;</span><span class="p">,</span> <span class="s1">&#39;METKt&#39;</span><span class="p">,</span> <span class="s1">&#39;METAntiKt&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;Charge&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">,</span>
-                                           <span class="s1">&#39;Dxy&#39;</span><span class="p">,</span> <span class="s1">&#39;Ehad&#39;</span><span class="p">,</span> <span class="s1">&#39;Eem&#39;</span><span class="p">,</span> <span class="s1">&#39;MuIso&#39;</span><span class="p">,</span> <span class="s1">&#39;EleIso&#39;</span><span class="p">,</span> <span class="s1">&#39;ChHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;NeuHadIso&#39;</span><span class="p">,</span> <span class="s1">&#39;GammaIso&#39;</span><span class="p">,</span>
-                                           <span class="s2">&quot;ObjFt1&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt2&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt3&quot;</span><span class="p">],</span>
+                      <span class="n">observable_ordering</span><span class="o">=</span><span class="n">PARTICLE_OBSERVS</span><span class="p">,</span>
                       <span class="n">object_ordering</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span>
                                        <span class="s2">&quot;MissingET&quot;</span><span class="p">]):</span>
     <span class="sd">&#39;&#39;&#39; Builds an accumulator function, a functional of some list of numpy inputs, that can be used to compute</span>
@@ -142,21 +137,15 @@
 <span class="sd">        :param equalBins: True/False, Defualt False. If True, will try to put an equal number of samples in each bin. This should probably be left False or else the bins</span>
 <span class="sd">                        will be very unusual, varying significantly in their domain.</span>
 <span class="sd">        :param plot: If True plot the bins automatically.</span>
-
-<span class="sd">        :Keyword Arguments:</span>
-<span class="sd">        - **bins** (``list``) -- A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</span>
-<span class="sd">        - **threshold** -- The threshold for the classifier for the &#39;true_class&#39;</span>
-<span class="sd">        - **true_class_index** (``int``) -- The index in the output vector corresponding to the &#39;true class&#39; element        </span>
-<span class="sd">        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
-<span class="sd">        - **Y** (``numpy.ndarray``) -- The groundtruth labels</span>
-<span class="sd">        - **predictions** (``numpy.ndarray``) -- the model predictions</span>
-<span class="sd">        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options</span>
-<span class="sd">                  weights=? must be given.</span>
-<span class="sd">        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights</span>
-<span class="sd">        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user</span>
-<span class="sd">        - **accumulate** (``function``) -- an accumulator function build by build_accumulator</span>
-
-
+<span class="sd">        :type plot: bool</span>
+<span class="sd">        :param bins: A list of dictionaries outputted by CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char</span>
+<span class="sd">        :type bins: list of dict</span>
+<span class="sd">        :param threshold: The threshold for the classifier for the True class. All other classes are collectively the False class.</span>
+<span class="sd">        :type threshold: float</span>
+<span class="sd">        :param true_class_index: The index in the output vector corresponding to the True class element.All other classes are collectively the False class.</span>
+<span class="sd">        :type true_class_index: int</span>
+<span class="sd">        :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**, **characteristics**</span>
+<span class="sd">        </span>
 <span class="sd">        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</span>
 <span class="sd">            &#39;&#39;&#39;</span>
 
@@ -173,10 +162,8 @@
         <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">],</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to write code for getting characteristics strait from EventChars collection&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="n">y_vals</span> <span class="o">=</span> <span class="n">y_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
+    
+    <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">y_vals</span><span class="p">,(</span><span class="nb">list</span><span class="p">,</span><span class="nb">tuple</span><span class="p">))):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error multiple outputs is ambiguous, got </span><span class="si">%r</span><span class="s2"> outputs&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_vals</span><span class="p">))</span>
 
     <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;true_class_index&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -285,6 +272,9 @@
 <span class="sd">        :param tpr: a list of true positive rates to hold constant</span>
 <span class="sd">        :param fpr: a list of false positive rates to hold constant</span>
 <span class="sd">        :param thresh: a list of thesholds to hold constant</span>
+<span class="sd">        :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,</span>
+<span class="sd">                    and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**</span>
+<span class="sd">        </span>
 <span class="sd">        :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials</span>
 <span class="sd">        &#39;&#39;&#39;</span>
     <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">kargs</span><span class="p">]</span>
@@ -311,24 +301,26 @@
 
 
 <div class="viewcode-block" id="get_roc_data"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.get_roc_data">[docs]</a><span class="k">def</span> <span class="nf">get_roc_data</span><span class="p">(</span><span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;get ROC curve points,thresholds, and auc from labels and predictions</span>
-
+    <span class="sd">&#39;&#39;&#39;Get ROC curve **tpr**, **fpr**, **thresholds**, and **auc** from labels and predictions.</span>
+<span class="sd">        Takes all arguments availiable to :py:func:`CMS_Deep_Learning.io.simple_grab`</span>
+<span class="sd">        </span>
 <span class="sd">        :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc</span>
-<span class="sd">        :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
-<span class="sd">        :param Y: The data labels numpy.ndarray</span>
-<span class="sd">        :param predictions: the predictions numpy.ndarray</span>
-<span class="sd">        :param model: a compiled model, uncompiled model or path to model json. For the latter options</span>
-<span class="sd">                      weights=? must be given.</span>
-<span class="sd">        :param weights: the model weights, or a path to the weights</span>
-<span class="sd">        :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user</span>
+<span class="sd">        :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**</span>
 <span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred</span>
+        <span class="c1"># :param Y: The data labels numpy.ndarray</span>
+        <span class="c1"># :param predictions: the predictions numpy.ndarray</span>
+        <span class="c1"># :param model: a compiled model, uncompiled model or path to model json. For the latter options</span>
+        <span class="c1">#               weights=? must be given.</span>
+        <span class="c1"># :param weights: the model weights, or a path to the weights</span>
+        <span class="c1"># :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user</span>
+        
     <span class="n">inp</span> <span class="o">=</span> <span class="n">kargs</span>
     <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;ROC_data&quot;</span> <span class="ow">in</span> <span class="n">inp</span><span class="p">):</span>
         <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
         <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">],</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">assert</span> <span class="n">labels</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s2">&quot;labels and predictions should have </span><span class="se">\</span>

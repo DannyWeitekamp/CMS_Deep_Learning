@@ -77,9 +77,6 @@
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">reraise</span>
 <span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span><span class="n">KerasTrial</span>
 
-
-
-
 <span class="c1">#-----------------------------IO Utils----------------------------------------</span>
 <div class="viewcode-block" id="load_hdf5_dataset"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.load_hdf5_dataset">[docs]</a><span class="k">def</span> <span class="nf">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; based off - https://github.com/duanders/mpi_learn -- train/data.py</span>
@@ -689,7 +686,7 @@
 <span class="sd">        :type Y: (numpy.array or nested list of numpy.arrays)</span>
 <span class="sd">        :param model: The path to a model .json file, the json_string, or the compiled model</span>
 <span class="sd">        :type model: (str,Model)</span>
-<span class="sd">        :param  accumulate: an accumulator function for deriving characteristics</span>
+<span class="sd">        :param  accumulate: an accumulator function for deriving **characteristics**</span>
 <span class="sd">        :type  accumulate: function</span>
 <span class="sd">        :param trial: A KerasTrial from which the model,weights, and dataset can be derived</span>
 <span class="sd">        :type trial: CMS_Deep_Learning.storage.archiving.KerasTrial</span>
@@ -702,7 +699,9 @@
 <span class="sd">        :param optimizer: The optimizer to compile the model with</span>
 <span class="sd">        :param predictions: Predictions of some model. However this is a useless input.</span>
 <span class="sd">        :type predictions: numpy.array</span>
-<span class="sd">        </span>
+<span class="sd">        :param characteristic: A set of characteristics derived from **accumulate**</span>
+<span class="sd">        :type characteristic: numpy.array</span>
+<span class="sd">                </span>
 <span class="sd">        :type optimizer: str</span>
 <span class="sd">        </span>
 <span class="sd">        :returns: the data requested in to_return&#39;&#39;&#39;</span>

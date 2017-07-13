@@ -266,18 +266,9 @@ def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set=
         :param title: The title of the plot
         :param color_set: A list of colors to use for each ROC.
         :param show: Whether or not to show the plot, can be useful if one only wants the parameterization data
-        
-        :Keyword Arguments:
-        - **name** (``str``) -- A name for use as a label in the plot
-        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element
-        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)
-        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
-        - **Y** (``numpy.ndarray``) -- The groundtruth labels
-        - **predictions** (``numpy.ndarray``) -- the model predictions
-        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
-                  weights=? must be given.
-        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
-        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
+        :param name: A name for use as a label in the plot
+        :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,
+                    and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
 
         :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc)
 
@@ -322,19 +313,10 @@ def plot_dual_roc(args=[], flipped=False, invertCont=False, title="",
         :param invertCont: T/F use the inverse of contamination
         :param title: The title of the plot
         :param color_set: A list of colors to use for each ROC.
+        :param name: A name for use as a label in the plot
+        :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,
+                    and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
         
-        :Keyword Arguments:
-        - **name** (``str``) -- A name for use as a label in the plot
-        - **true_class_index** (``int``) -- The index in the output vector corresponding to the 'true class' element
-        - **ROC_data** (``tuple``) -- (fpr, tpr, thres, roc_auc)
-        - **trial** (``KerasTrial``) -- a KerasTrial instance from which the model/predictions and validation set will be inferred
-        - **Y** (``numpy.ndarray``) -- The groundtruth labels
-        - **predictions** (``numpy.ndarray``) -- the model predictions
-        - **model** (``Model``,``str``) -- a compiled model, uncompiled model or path to model json. For the latter options
-                  weights=? must be given.
-        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
-        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
-
         :returns: plt: the matplotlib handle, roc_dict:a list of dictionaries with ROC_data (tpr,fpr,thres,auc) 
     '''
     from matplotlib import pyplot as plt
