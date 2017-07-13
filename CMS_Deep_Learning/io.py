@@ -219,7 +219,7 @@ def assert_list(x,seqtypes=(list, tuple)):
 
 def flatten(items, seqtypes=(list, tuple)):
     '''Flattens an arbitrary nesting of lists'''
-    items = list(items)
+    items = assert_list(items,seqtypes=seqtypes)
     for i, x in enumerate(items):
         while i < len(items) and isinstance(items[i], seqtypes):
             items[i:i + 1] = items[i]
