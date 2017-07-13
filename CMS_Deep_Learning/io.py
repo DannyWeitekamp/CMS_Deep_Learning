@@ -228,7 +228,6 @@ def flatten(items, seqtypes=(list, tuple)):
 
 def restructure(flattened, data_keys, seqtypes=(list, tuple)):
     '''Structures a flattened list into the structure of data_keys'''
-    # print(flattened,data_keys)
     if (not isinstance(data_keys, seqtypes)):
         return flattened[0] if isinstance(flattened, seqtypes) else flattened
     pos = 0
@@ -319,10 +318,7 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
-            print(data[0],self.union_keys)
-            out = self._retrieve_data(data[0], self.union_keys)
-            print(repr_structure(out))
-            first_data = assert_list(out)
+            first_data = assert_list(self._retrieve_data(data[0], self.union_keys))
         else:
             first_data = data[0]
 
@@ -592,6 +588,7 @@ def _call_iters(data_dict, to_return, sat_dict):
                                     prediction_model=data_dict.get('model', None),
                                     accumilate=accumilate)
                 out = dItr.as_list(verbose=0)
+            out = assert_list(out)
             for i, key in enumerate(to_get):
                 data_dict[key] = out[i]
     return data_dict
@@ -628,5 +625,4 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
     data_dict = _checkAndAssert(data_dict, data_to_check)
     data_dict = _call_iters(data_dict, flat_to_return, sat_dict)
-
     return restructure([data_dict[r] for r in flat_to_return], to_return)
