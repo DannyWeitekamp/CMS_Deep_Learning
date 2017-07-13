@@ -1,0 +1,383 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>IO Example &mdash; CMS_Deep_Learning 1.0.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="CMS_Deep_Learning 1.0.0 documentation" href="index.html"/>
+        <link rel="prev" title="Postprocessing Example" href="postprocessing_example.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> CMS_Deep_Learning
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="io.html">CMS_Deep_Learning.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils package</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="postprocessing_example.html">Postprocessing Example</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">IO Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#grab-data-from-a-single-file-with-retrieve-data">Grab data from a single file with retrieve_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs">If we need the length of as single file (i.e number of samples) of the file we can use retrieve_data with just_length=True or nb_samples_from_h5 which also works with pandas tables. Also see size_from_meta, which caches the sizes of files for quicker reads on big jobs.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-generator-with-gen-from-data">Create a generator with gen_from_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights">Use simple_grab for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#this-time-we-output-with-a-nested-structure-and-give-it-a-list-of-files">This time we output with a nested structure and give it a list of files.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure">And finally we can use flatten and restructure if we would like to change our nesting structure.</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CMS_Deep_Learning</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>IO Example</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/io_example.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="io-example">
+<h1>IO Example<a class="headerlink" href="#io-example" title="Permalink to this headline">¶</a></h1>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span><span class="o">,</span> <span class="nn">types</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CUDA_VISIBLE_DEVICES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;4&#39;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">reraise</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">update</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="k">if</span> <span class="n">__package__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+    <span class="c1">#sys.path.append(os.path.realpath(&quot;/data/shared/Software/CMS_Deep_Learning&quot;))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="s2">&quot;/home/dweitekamp/CMS_Deep_Learning/&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.io</span> <span class="k">import</span> <span class="n">repr_structure</span><span class="p">,</span> <span class="n">retrieve_data</span><span class="p">,</span> <span class="n">nb_samples_from_h5</span><span class="p">,</span> \
+                    <span class="n">gen_from_data</span><span class="p">,</span> <span class="n">simple_grab</span><span class="p">,</span> <span class="n">restructure</span><span class="p">,</span> <span class="n">flatten</span><span class="p">,</span> <span class="n">assert_list</span><span class="p">,</span> <span class="n">DataIterator</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="n">lcd_dir</span> <span class="o">=</span> <span class="s1">&#39;/bigdata/shared/LCD/kaustuv1993/NewLCD/GammaEscan_1_MERGED&#39;</span>
+<span class="n">dat_file</span> <span class="o">=</span> <span class="n">lcd_dir</span> <span class="o">+</span> <span class="s1">&#39;/GammaEscan_1_10.h5&#39;</span>
+<span class="n">example_dir</span> <span class="o">=</span> <span class="s1">&#39;/bigdata/shared/Delphes/postproc_ex/&#39;</span>
+<span class="n">ex_subset</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">example_dir</span> <span class="o">+</span> <span class="s2">&quot;/val/*.h5&quot;</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="section" id="grab-data-from-a-single-file-with-retrieve-data">
+<h2>Grab data from a single file with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a><a class="headerlink" href="#grab-data-from-a-single-file-with-retrieve-data" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">file_dat_v1</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;target&#39;</span><span class="p">]))</span>
+<span class="n">file_dat_v2</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">]))</span>
+<span class="n">file_dat_v3</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="n">file_dat_v1</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="n">file_dat_v2</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="n">file_dat_v3</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span><span class="o">&gt;</span><span class="p">],</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span>
+<span class="p">[</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span>
+<span class="o">&lt;</span><span class="p">(</span><span class="mi">9902</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs">
+<h2>If we need the length of as single file (i.e number of samples) of the file we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a> with just_length=True or <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.nb_samples_from_h5">nb_samples_from_h5</a> which also works with pandas tables. Also see <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.size_from_meta">size_from_meta</a>, which caches the sizes of files for quicker reads on big jobs.<a class="headerlink" href="#if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">file_size_v1</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;target&#39;</span><span class="p">],</span><span class="n">just_length</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="n">file_size_v2</span> <span class="o">=</span> <span class="n">nb_samples_from_h5</span><span class="p">(</span><span class="n">dat_file</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">file_size_v1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">file_size_v2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[</span><span class="mi">9902</span><span class="p">,</span><span class="mi">9902</span><span class="p">],</span><span class="mi">9902</span><span class="p">]</span>
+<span class="mi">9902</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="create-a-generator-with-gen-from-data">
+<h2>Create a generator with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.gen_from_data">gen_from_data</a><a class="headerlink" href="#create-a-generator-with-gen-from-data" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">gen1</span> <span class="o">=</span> <span class="n">gen_from_data</span><span class="p">(</span><span class="n">lcd_dir</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span> <span class="p">[</span><span class="s2">&quot;ECAL&quot;</span><span class="p">,</span><span class="s2">&quot;HCAL&quot;</span><span class="p">],</span> <span class="s1">&#39;target&#39;</span><span class="p">])</span>
+<span class="n">gen2</span> <span class="o">=</span> <span class="n">gen_from_data</span><span class="p">(</span><span class="n">lcd_dir</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[</span> <span class="s2">&quot;ECAL&quot;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">])</span>
+<span class="n">gen3</span> <span class="o">=</span> <span class="n">gen_from_data</span><span class="p">(</span><span class="n">lcd_dir</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="s2">&quot;ECAL&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">gen1</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">gen2</span><span class="p">)))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">gen3</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span><span class="o">&gt;</span><span class="p">],</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span>
+<span class="p">[</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span>
+<span class="o">&lt;</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights">
+<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab">simple_grab</a> for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.<a class="headerlink" href="#use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">Y</span><span class="p">,</span><span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;/val&quot;</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;model.json&quot;</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">example_dir</span><span class="o">+</span><span class="s2">&quot;weights.h5&quot;</span><span class="p">,</span>
+           <span class="n">input_keys</span><span class="o">=</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span><span class="n">label_keys</span><span class="o">=</span><span class="s1">&#39;Labels&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">predictions</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1">#--------------------------------------------------------</span>
+<span class="n">Y</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;/val&quot;</span><span class="p">,</span>
+           <span class="n">input_keys</span><span class="o">=</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span><span class="n">label_keys</span><span class="o">=</span><span class="s1">&#39;Labels&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1">#--------------------------------------------------------</span>
+<span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;/val&quot;</span><span class="p">,</span>
+           <span class="n">input_keys</span><span class="o">=</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span><span class="n">label_keys</span><span class="o">=</span><span class="s1">&#39;Labels&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<span class="c1">#--------------------------------------------------------</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Using</span> <span class="n">Theano</span> <span class="n">backend</span><span class="o">.</span>
+<span class="n">Using</span> <span class="n">cuDNN</span> <span class="n">version</span> <span class="mi">5105</span> <span class="n">on</span> <span class="n">context</span> <span class="kc">None</span>
+<span class="n">Mapped</span> <span class="n">name</span> <span class="kc">None</span> <span class="n">to</span> <span class="n">device</span> <span class="n">cuda</span><span class="p">:</span> <span class="n">GeForce</span> <span class="n">GTX</span> <span class="mi">1080</span> <span class="p">(</span><span class="mi">0000</span><span class="p">:</span><span class="mi">0</span><span class="n">B</span><span class="p">:</span><span class="mf">00.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">((</span><span class="mi">37500</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">37500</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="p">(</span><span class="mi">37500</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">((</span><span class="mi">37500</span><span class="p">,</span> <span class="mi">801</span><span class="p">,</span> <span class="mi">19</span><span class="p">),</span> <span class="p">(</span><span class="mi">37500</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="this-time-we-output-with-a-nested-structure-and-give-it-a-list-of-files">
+<h2>This time we output with a nested structure and give it a list of files.<a class="headerlink" href="#this-time-we-output-with-a-nested-structure-and-give-it-a-list-of-files" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">ex_subset</span><span class="p">)</span>
+<span class="n">grabbed_complex</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([[</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">ex_subset</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;model.json&quot;</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">example_dir</span><span class="o">+</span><span class="s2">&quot;weights.h5&quot;</span><span class="p">,</span>
+           <span class="n">input_keys</span><span class="o">=</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span><span class="n">label_keys</span><span class="o">=</span><span class="s1">&#39;Labels&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">repr_structure</span><span class="p">(</span><span class="n">grabbed_complex</span><span class="p">))</span>
+
+<span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">grabbed_complex</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span><span class="n">grabbed_complex</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">X</span><span class="p">,</span><span class="n">Y</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;X&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span> <span class="n">X</span><span class="o">=</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="o">=</span><span class="n">Y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;/bigdata/shared/Delphes/postproc_ex//val/000.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;/bigdata/shared/Delphes/postproc_ex//val/001.h5&#39;</span><span class="p">]</span>
+<span class="p">[[</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">801</span><span class="p">,</span> <span class="mi">19</span><span class="p">)</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">&gt;</span><span class="p">],</span><span class="o">&lt;</span><span class="p">(</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">&gt;</span><span class="p">]</span>
+<span class="p">((</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">801</span><span class="p">,</span> <span class="mi">19</span><span class="p">),</span> <span class="p">(</span><span class="mi">15000</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure">
+<h2>And finally we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.flatten">flatten</a> and <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.restructure">restructure</a> if we would like to change our nesting structure.<a class="headerlink" href="#and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure" title="Permalink to this headline">¶</a></h2>
+<div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">flatten</span><span class="p">([</span><span class="mi">0</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,[</span><span class="mi">5</span><span class="p">]]]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">restructure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="s1">&#39;F&#39;</span><span class="p">,[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span><span class="s1">&#39;f&#39;</span><span class="p">],[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;B&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span><span class="s1">&#39;D&#39;</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">restructure</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;HCAL&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">]</span>
+<span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="postprocessing_example.html" class="btn btn-neutral" title="Postprocessing Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Daniel Phillip Weitekamp.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

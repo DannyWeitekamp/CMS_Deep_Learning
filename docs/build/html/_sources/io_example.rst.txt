@@ -1,0 +1,166 @@
+
+IO Example
+==========
+
+.. code:: ipython2
+
+    import os,sys, types
+    os.environ["CUDA_VISIBLE_DEVICES"] = '4'
+    import numpy as np
+    import h5py
+    import glob
+    import itertools
+    from six import string_types,reraise
+    os.environ.update
+    
+    %matplotlib inline
+    if __package__ is None:
+        import sys, os
+        #sys.path.append(os.path.realpath("/data/shared/Software/CMS_Deep_Learning"))
+        sys.path.append(os.path.realpath("/home/dweitekamp/CMS_Deep_Learning/"))
+
+.. code:: ipython2
+
+    from CMS_Deep_Learning.io import repr_structure, retrieve_data, nb_samples_from_h5, \
+                        gen_from_data, simple_grab, restructure, flatten, assert_list, DataIterator
+    import glob
+    lcd_dir = '/bigdata/shared/LCD/kaustuv1993/NewLCD/GammaEscan_1_MERGED'
+    dat_file = lcd_dir + '/GammaEscan_1_10.h5'
+    example_dir = '/bigdata/shared/Delphes/postproc_ex/'
+    ex_subset = glob.glob(example_dir + "/val/*.h5")[:2]
+
+Grab data from a single file with `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data>`__
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    file_dat_v1 = repr_structure(retrieve_data(dat_file,[['HCAL', 'ECAL'], 'target']))
+    file_dat_v2 = repr_structure(retrieve_data(dat_file,['HCAL', 'target']))
+    file_dat_v3 = repr_structure(retrieve_data(dat_file, 'ECAL'))
+    print(repr_structure(file_dat_v1))
+    print(repr_structure(file_dat_v2))
+    print(repr_structure(file_dat_v3))
+
+
+.. parsed-literal::
+
+    [[<(9902, 5, 5, 60)>,<(9902, 25, 25, 25)>],<(9902, 1, 5)>]
+    [<(9902, 5, 5, 60)>,<(9902, 1, 5)>]
+    <(9902, 25, 25, 25)>
+
+
+If we need the length of as single file (i.e number of samples) of the file we can use `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data>`__ with just\_length=True or `nb\_samples\_from\_h5 <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.nb_samples_from_h5>`__ which also works with pandas tables. Also see `size\_from\_meta <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.size_from_meta>`__, which caches the sizes of files for quicker reads on big jobs.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    file_size_v1 = repr_structure(retrieve_data(dat_file,[['HCAL', 'ECAL'], 'target'],just_length=True))
+    file_size_v2 = nb_samples_from_h5(dat_file)
+    
+    print(file_size_v1)
+    print(file_size_v2)
+
+
+.. parsed-literal::
+
+    [[9902,9902],9902]
+    9902
+
+
+Create a generator with `gen\_from\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.gen_from_data>`__
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    gen1 = gen_from_data(lcd_dir, batch_size=100, data_keys=[ ["ECAL","HCAL"], 'target'])
+    gen2 = gen_from_data(lcd_dir, batch_size=100, data_keys=[ "ECAL", 'target'])
+    gen3 = gen_from_data(lcd_dir, batch_size=100, data_keys="ECAL")
+    print(repr_structure(next(gen1)))
+    print(repr_structure(next(gen2)))
+    print(repr_structure(next(gen3)))
+
+
+.. parsed-literal::
+
+    [[<(100, 25, 25, 25)>,<(100, 5, 5, 60)>],<(100, 1, 5)>]
+    [<(100, 25, 25, 25)>,<(100, 1, 5)>]
+    <(100, 25, 25, 25)>
+
+
+Use `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab>`__ for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    Y,predictions = simple_grab(['Y','predictions'], data=example_dir +"/val",
+                model=example_dir +"model.json",weights=example_dir+"weights.h5",
+               input_keys='Particles',label_keys='Labels')
+    print(Y.shape, predictions.shape)
+    
+    #--------------------------------------------------------
+    Y = simple_grab('Y', data=example_dir +"/val",
+               input_keys='Particles',label_keys='Labels')
+    print(Y.shape)
+    
+    #--------------------------------------------------------
+    X,Y = simple_grab(['X','Y'], data=example_dir +"/val",
+               input_keys='Particles',label_keys='Labels')
+    print(X.shape, Y.shape)
+    
+    #--------------------------------------------------------
+
+
+
+.. parsed-literal::
+
+    Using Theano backend.
+    Using cuDNN version 5105 on context None
+    Mapped name None to device cuda: GeForce GTX 1080 (0000:0B:00.0)
+
+
+.. parsed-literal::
+
+    ((37500, 3), (37500, 3))
+    (37500, 3)
+    ((37500, 801, 19), (37500, 3))
+
+
+This time we output with a nested structure and give it a list of files.
+------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    print(ex_subset)
+    grabbed_complex = simple_grab([['X','Y'],'predictions'], data=ex_subset,
+                model=example_dir +"model.json",weights=example_dir+"weights.h5",
+               input_keys='Particles',label_keys='Labels')
+    print(repr_structure(grabbed_complex))
+    
+    X,Y = grabbed_complex[0][0],grabbed_complex[0][1]
+    X,Y = simple_grab(['X','Y'], X=X,Y=Y)
+    print(X.shape, Y.shape)
+
+
+.. parsed-literal::
+
+    ['/bigdata/shared/Delphes/postproc_ex//val/000.h5', '/bigdata/shared/Delphes/postproc_ex//val/001.h5']
+    [[<(15000, 801, 19)>,<(15000, 3)>],<(15000, 3)>]
+    ((15000, 801, 19), (15000, 3))
+
+
+And finally we can use `flatten <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.flatten>`__ and `restructure <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.restructure>`__ if we would like to change our nesting structure.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+.. code:: ipython2
+
+    print(flatten([0,[1,2,3],[4,[5]]]))
+    print(restructure([0,1,2,3,4,0,1,2,3], ['B','F',['d','f'],['A','B'], ['C'],'D']))
+    print(restructure([1,2,3], [['HCAL', 'ECAL'], 'HCAL']))
+
+
+.. parsed-literal::
+
+    [0, 1, 2, 3, 4, 5]
+    [0, 1, [2, 3], [4, 0], [1], 2]
+    [[1, 2], 3]
+
