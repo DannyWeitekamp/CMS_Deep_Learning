@@ -1,4 +1,4 @@
-CMS\_Deep\_Learning\.utils package
+CMS\_Deep\_Learning\.utils
 ==================================
 
 

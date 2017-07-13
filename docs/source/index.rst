@@ -12,6 +12,14 @@ CMS_Deep_Learning is a set of Python libraries that assist the workflow of doing
 - `Data Bookkeeping <storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial>`_
 - `Plot Creation  <postprocessing_example.html>`_
 
+Examples
+-----------
+.. toctree::
+    :maxdepth: 1
+
+    postprocessing_example
+    io_example
+
 Subpackages
 -----------
 
@@ -23,12 +31,6 @@ Subpackages
     postprocessing
     utils
 
-Examples
------------
-.. toctree::
-    :maxdepth: 1
-
-    postprocessing_example
 
 
 Indices and tables

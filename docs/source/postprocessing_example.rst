@@ -10,6 +10,7 @@ Add directory containing CMS\_Deep\_Learning repo to the sys path. `repo <https:
     %matplotlib inline
     if __package__ is None:
         import sys, os
+        os.environ["CUDA_VISIBLE_DEVICES"] = '3'
         sys.path.append(os.path.realpath("/data/shared/Software/CMS_Deep_Learning"))
 
 Import stuff
@@ -20,7 +21,7 @@ Import stuff
     from CMS_Deep_Learning.postprocessing.plot import \
                 plot_roc_curve,plot_dual_roc,plot_bins
     from CMS_Deep_Learning.postprocessing.metrics import \
-                build_accumilator,bin_metric_vs_char,get_roc_data,get_roc_points
+                build_accumulator,bin_metric_vs_char,get_roc_data,get_roc_points
     import numpy as np
     import pandas as pd
     import glob
@@ -40,6 +41,8 @@ Plot a ROC Curve with `plot\_roc\_curve <https://dannyweitekamp.github.io/CMS_De
 .. code:: ipython2
 
     _,roc_dicts = plot_roc_curve(name="MaxLepDeltaR",
+                    input_keys="Particles", #Or ["HCAL", "ECAL"]
+                    label_keys="Labels", #Or ["target"]
                     model=dirr +"/model.json",
                    weights=dirr +"/weights.h5",
                    data= data_subset,
@@ -50,7 +53,7 @@ Plot a ROC Curve with `plot\_roc\_curve <https://dannyweitekamp.github.io/CMS_De
 
     Using Theano backend.
     Using cuDNN version 5105 on context None
-    Mapped name None to device cuda: GeForce GTX 1080 (0000:04:00.0)
+    Mapped name None to device cuda: GeForce GTX 1080 (0000:07:00.0)
 
 
 
@@ -74,12 +77,12 @@ Plot The same ROC curve quickly by using the precomputed data outputed in the pr
 .. parsed-literal::
 
     (<module 'matplotlib.pyplot' from '/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc'>,
-     [{'ROC_data': (array([ 0.       ,  0.       ,  0.       , ...,  0.9920078,  0.9920078,  1.       ]),
-        array([  1.94931774e-04,   8.18713450e-03,   8.57699805e-03, ...,
-                 9.99805068e-01,   1.00000000e+00,   1.00000000e+00]),
-        array([ 0.99317235,  0.98881078,  0.98872644, ...,  0.00269945,
-                0.00269297,  0.00120263], dtype=float32),
-        0.94275604269499824),
+     [{'ROC_data': (array([ 0.     ,  0.     ,  0.     , ...,  0.97988,  0.97988,  1.     ]),
+        array([  8.00000000e-05,   1.68000000e-03,   1.84000000e-03, ...,
+                 9.99920000e-01,   1.00000000e+00,   1.00000000e+00]),
+        array([  9.99759734e-01,   9.99743998e-01,   9.99743760e-01, ...,
+                 5.58113243e-05,   5.58094653e-05,   8.57259522e-07], dtype=float32),
+        0.99469489440000025),
        'name': 'MaxLepDeltaR'}])
 
 
@@ -90,6 +93,8 @@ Use `plot\_dual\_roc <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/h
 .. code:: ipython2
 
     plt, roc_dicts = plot_dual_roc(name="MaxLepDeltaR",
+                    input_keys="Particles", #Or ["HCAL", "ECAL:]
+                    label_keys="Labels", #Or ["target"]
                     model=dirr +"/model.json",
                    weights=dirr +"/weights.h5",
                    data= data_subset,#dirr +"/val",
@@ -122,12 +127,12 @@ Different formatting options availiable...
 .. parsed-literal::
 
     (<module 'matplotlib.pyplot' from '/usr/local/lib/python2.7/dist-packages/matplotlib/pyplot.pyc'>,
-     [{'ROC_data': (array([ 0.       ,  0.       ,  0.       , ...,  0.9920078,  0.9920078,  1.       ]),
-        array([  1.94931774e-04,   8.18713450e-03,   8.57699805e-03, ...,
-                 9.99805068e-01,   1.00000000e+00,   1.00000000e+00]),
-        array([ 0.99317235,  0.98881078,  0.98872644, ...,  0.00269945,
-                0.00269297,  0.00120263], dtype=float32),
-        0.94275604269499824),
+     [{'ROC_data': (array([ 0.     ,  0.     ,  0.     , ...,  0.97988,  0.97988,  1.     ]),
+        array([  8.00000000e-05,   1.68000000e-03,   1.84000000e-03, ...,
+                 9.99920000e-01,   1.00000000e+00,   1.00000000e+00]),
+        array([  9.99759734e-01,   9.99743998e-01,   9.99743760e-01, ...,
+                 5.58113243e-05,   5.58094653e-05,   8.57259522e-07], dtype=float32),
+        0.99469489440000025),
        'name': 'MaxLepDeltaR'}])
 
 
@@ -161,24 +166,26 @@ thresholds
 
 .. parsed-literal::
 
-            tpr       fpr    thresh
-    0  0.849708  0.100097  0.437413
-    1  0.900000  0.158772  0.282033
-    2  0.949903  0.304581  0.117821
-    3  0.800000  0.067154  0.565565
-    4  0.887524  0.137817  0.329983
+           tpr      fpr    thresh
+    0  0.98896  0.09928  0.053954
+    1  0.89992  0.00696  0.804488
+    2  0.95008  0.01832  0.493277
+    3  0.80144  0.00180  0.957207
+    4  0.96448  0.02868  0.329533
 
 
-Use `build\_accumilator <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.build_accumilator>`__ to define some characteristic to use for binning. The accumilator is a functional that maps the data to a characteristic. Then use `bin\_metric\_vs\_char <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char>`__ to make the bins. Although certain features can be grabbed without an accumilator from the HLF collection.
+Use `build\_accumulator <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.build_accumulator>`__ to define some characteristic to use for binning. The accumulator is a functional that maps the data to a characteristic. Then use `bin\_metric\_vs\_char <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char>`__ to make the bins. Although certain features can be grabbed without an accumulator from the HLF collection.
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
-    accum = build_accumilator(np.max, "PT_ET",[{"ObjFt1": -1, "ObjFt2": 1,"ObjFt3": 1}, {"ObjFt1": 1, "ObjFt2": -1,"ObjFt3": -1}])
+    accum = build_accumulator(np.max, "Pt",[{'isChHad': 1}, {'isGamma': 1}, {'isEle':1}])
     my_bins = bin_metric_vs_char(model=dirr +"/model.json",
+                    input_keys="Particles", #Or ["HCAL", "ECAL:]
+                    label_keys="Labels", #Or ["target"]
                    weights=dirr +"/weights.h5",
                    data=data_subset,#dirr +"/val",
-                    accumilate=accum,true_class_index=1)
+                    accumulate=accum,true_class_index=1)
 
 
 .. parsed-literal::
@@ -228,8 +235,10 @@ Make histograms
     class_labels = {0:'QCD',1:r'$t\bar{t}$', 2:"W+jets"}
     my_bins2 = bin_metric_vs_char(model=dirr +"/model.json",
                    weights=dirr +"/weights.h5",
+                    input_keys="Particles", #Or ["HCAL", "ECAL:]
+                    label_keys="Labels", #Or ["target"]
                    data=data_subset,
-                    accumilate=accum,true_class_index=1,
+                    accumulate=accum,true_class_index=1,
                     nb_bins=200)
 
 .. code:: ipython2
@@ -381,17 +390,18 @@ And the class contaminations for the 'false' classes individually
 
 
 
-Using the `inputHandler <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.storage.input_handler.inputHandler>`__ class to simplify grabbing data
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Using the `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab>`__ class to simplify grabbing data
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
-    from CMS_Deep_Learning.storage.input_handler import inputHandler
-    h = inputHandler(["Y",'predictions'])
-    y,pred = h(model=dirr +"/model.json",
-                   weights=dirr +"/weights.h5",
-                   data=data_subset)
-    y = y[0]
+    from CMS_Deep_Learning.io import simple_grab
+    y,pred = simple_grab(["Y",'predictions'],
+                        input_keys="Particles", #Or ["HCAL", "ECAL:]
+                        label_keys="Labels", #Or ["target"]
+                           model=dirr +"/model.json",
+                           weights=dirr +"/weights.h5",
+                           data=data_subset)
 
 Using this to find the confusion matrix for the classifier
 ----------------------------------------------------------
@@ -406,9 +416,9 @@ Using this to find the confusion matrix for the classifier
 
 .. parsed-literal::
 
-    [[4771  337   22]
-     [ 357 4261  512]
-     [  82  533 4515]]
+    [[11683   274   543]
+     [  350 11903   247]
+     [  510   232 11758]]
 
 
 And of course feel free to copy paste anything in the repository into your own notebooks so that you have more control over the plots. Also pull requests are encouraged... Cheers, Danny (dannyweitekamp@gmail.com)
