@@ -191,14 +191,14 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
 
     while True:
         for i, elmt in enumerate(lst):
-            out = assert_list(retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose))
-            tot_set = _size_set(out)  
+            flat_out = flatten(assert_list(retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)))
+            tot_set = _size_set(flat_out)  
             assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
             tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
                 # yield tuple([[x[start:end] for x in X] for X in out])
-                yield restructure([x[start:end] for x in flatten(out)], data_keys)
+                yield restructure([x[start:end] for x in flat_out], data_keys)
                 
 #--------------------------------------------------------------
 
