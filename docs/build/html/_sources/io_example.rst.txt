@@ -67,8 +67,8 @@ If we need the length of as single file (i.e number of samples) of the file we c
     9902
 
 
-Create a generator with `gen\_from\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.gen_from_data>`__
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Create a generator with `gen\_from\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.gen_from_data>`__
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
