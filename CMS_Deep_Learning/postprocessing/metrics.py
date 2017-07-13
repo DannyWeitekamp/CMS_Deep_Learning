@@ -1,4 +1,4 @@
-from CMS_Deep_Learning.io import simple_grab
+from CMS_Deep_Learning.io import simple_grab, assert_list
 from CMS_Deep_Learning.preprocessing.pandas_to_numpy import PARTICLE_OBSERVS
 import numpy as np
 
@@ -98,10 +98,8 @@ def bin_metric_vs_char(args=[],
         y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],**inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
-
-    if (len(y_vals) == 1):
-        y_vals = y_vals[0]
-    else:
+    
+    if(isinstance(y_vals,(list,tuple))):
         raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
 
     true_class_index = inp.get('true_class_index', -1)
