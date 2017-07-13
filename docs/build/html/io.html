@@ -119,10 +119,9 @@
 <li><strong>just_length</strong> (<em>bool</em>) – If True just return the length of the data instead of the data itself</li>
 <li><strong>assert_list</strong> (<em>bool</em>) – Whether or not the data should always be nested in a list even if there is only
 one numpy array.</li>
-<li><strong>prep_func</strong> – a function that takes in the tuple of outputs and returns some light transformation
+<li><strong>prep_func</strong> (<em>function</em>) – a function that takes in the tuple of outputs and returns some light transformation
 on them, for example reshaping or padding.</li>
-<li><strong>prep_func</strong> – function</li>
-<li><strong>verbose</strong> – </li>
+<li><strong>verbose</strong> (<em>int</em>) – whether or not to print out extra internal information</li>
 </ul>
 </td>
 </tr>
@@ -139,6 +138,14 @@ on them, for example reshaping or padding.</li>
 <dd><p>based off - <a class="reference external" href="https://github.com/duanders/mpi_learn">https://github.com/duanders/mpi_learn</a> – train/data.py
 Converts an HDF5 structure to nested lists of databases which can be
 copied to get numpy arrays or lists of numpy arrays.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> – and h5py Group or Dataset</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -146,19 +153,37 @@ copied to get numpy arrays or lists of numpy arrays.</p>
 <span id="simplified-io"></span><span id="iosimplification"></span><h2>Simplified IO<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="CMS_Deep_Learning.io.simple_grab">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">simple_grab</code><span class="sig-paren">(</span><em>to_return</em>, <em>data_dict={}</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#simple_grab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.simple_grab" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the data requested in to_return given that the data can be found/derived from the given inputs.
-for example one can derive predictions from a model path, weights path, and X (input data).</p>
-<blockquote>
-<div>Input information includes [‘trial’, ‘model,’data,’X’,’Y’, accumilate,’predictions’, ‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’].
-outputs include [‘predictions’,’characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’].</div></blockquote>
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">simple_grab</code><span class="sig-paren">(</span><em>to_return</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#simple_grab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.simple_grab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data requested in <strong>to_return</strong> given that the data can be found or derived from the given inputs.
+for example one can derive predictions from a model path, weights path, and X (input data).
+<strong>See inputs below</strong>. Outputs include <strong>predictions</strong>, <strong>characteristics</strong>, <strong>X</strong>, <strong>Y</strong>, <strong>model</strong>, <strong>num_samples</strong>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>to_return</strong> – A set of requirements, options: predictions,X,Y,model,num_samples</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>to_return</strong> (<em>(</em><em>list of str</em><em>, or </em><em>str</em><em>)</em>) – The set of data that you would like to get options: [predictions,X,Y,model,num_samples].
+For example if I wanted the labels and predictions I would set to_return = [‘Y’,’predictions’].</li>
+<li><strong>data</strong> (<em>(</em><em>str</em><em>,</em><em>list</em><em>)</em>) – A directory path, or list of files that contain your dataset.</li>
+<li><strong>input_keys</strong> (<em>(</em><em>str</em><em>, </em><em>list</em><em>)</em>) – Nested lists of strings or a single string representing the keys of the input collection(s)
+in your HDF5 store. This is essential for making predictions or returning X,Y from data.</li>
+<li><strong>label_keys</strong> (<em>(</em><em>str</em><em>, </em><em>list</em><em>)</em>) – Nested lists of strings or a single string representing the keys of the label collection(s)
+in your HDF5 store. This is essential for making predictions or returning X,Y from data.</li>
+<li><strong>X</strong> (<em>(</em><em>numpy.array</em><em> or </em><em>nested list of numpy.arrays</em><em>)</em>) – Your input data to your model</li>
+<li><strong>Y</strong> (<em>(</em><em>numpy.array</em><em> or </em><em>nested list of numpy.arrays</em><em>)</em>) – Your data labels for your model</li>
+<li><strong>model</strong> (<em>(</em><em>str</em><em>,</em><em>Model</em><em>)</em>) – The path to a model .json file, the json_string, or the compiled model</li>
+<li><strong>accumulate</strong> (<em>function</em>) – an accumulator function for deriving characteristics</li>
+<li><strong>trial</strong> (<a class="reference internal" href="storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>CMS_Deep_Learning.storage.archiving.KerasTrial</em></a>) – A KerasTrial from which the model,weights, and dataset can be derived</li>
+<li><strong>custom_objects</strong> (<em>dict of classes</em>) – A dictionary of objects created by the user keyed by their name. For example custom layers.</li>
+<li><strong>num_samples</strong> (<em>int</em>) – The number of samples to grab for ‘X’ and ‘Y’</li>
+<li><strong>loss</strong> (<em>str</em>) – The loss to compile the model with</li>
+<li><strong>optimizer</strong> (<em>str</em>) – The optimizer to compile the model with</li>
+<li><strong>predictions</strong> (<em>numpy.array</em>) – Predictions of some model. However this is a useless input.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the data requested in to_return</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the data requested in to_return</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -207,7 +232,7 @@ on them, for example reshaping or padding.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – The file_path</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the number of samples</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The number of samples.</td>
 </tr>
 </tbody>
 </table>
@@ -255,7 +280,7 @@ on them, for example reshaping or padding.</li>
 <h2>Stiching Together Multifile Datasets<a class="headerlink" href="#stiching-together-multifile-datasets" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-CMS_Deep_Learning.io"></span><dl class="class">
 <dt id="CMS_Deep_Learning.io.DataIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data, num_samples=None, data_keys=[], input_keys=[‘X’], label_keys=[‘Y’], accumilate=None, source_data_keys=None, prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data, num_samples=None, data_keys=[], input_keys=[‘X’], label_keys=[‘Y’], accumulate=None, prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>A tool for retrieving inputs, labels,prediction values and functions of data.
 Unlike gen_from_data aggregates data from multiple files together into a single list.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -266,11 +291,10 @@ Unlike gen_from_data aggregates data from multiple files together into a single 
 <li><strong>data</strong> (<em>lst</em><em> or </em><em>str</em>) – A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</li>
 <li><strong>num_samples</strong> (<em>uint</em>) – If using a generator, must specify now many samples to read</li>
 <li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
-<li><strong>input_key</strong> – The key in the source hdf5 store that corresponds to the input data</li>
-<li><strong>label_key</strong> – The key in the source hdf5 store that corresponds to the label data</li>
-<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
-the output of the accumilate function will follow any specified data_key data in the output</li>
-<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>input_keys</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_keys</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumulate</strong> (<em>function</em>) – An accumulator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumulator
+the output of the accumulate function will follow any specified data_key data in the output</li>
 <li><strong>prediction_model</strong> (<em>Model</em>) – A compiled model from which to get the predictions. If specified then predictions are returned</li>
 </ul>
 </td>
@@ -301,7 +325,7 @@ the output of the accumilate function will follow any specified data_key data in
 
 <dl class="class">
 <dt id="CMS_Deep_Learning.io.TrialIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>input_keys=’X’</em>, <em>label_keys=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.TrialIterator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>input_keys=’X’</em>, <em>label_keys=’Y’</em>, <em>accumulate=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.TrialIterator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.io.DataIterator" title="CMS_Deep_Learning.io.DataIterator"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.io.DataIterator</span></code></a></p>
 <p>A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -312,16 +336,16 @@ the output of the accumilate function will follow any specified data_key data in
 <li><strong>trial</strong> (<a class="reference internal" href="storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>KerasTrial</em></a>) – A KerasTrial from which the model, and data can be assumed</li>
 <li><strong>data_type</strong> (<em>str</em>) – ‘val’ or ‘train’</li>
 <li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
-<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
-<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
-<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
-the output of the accumilate function will follow any specified data_key data in the output</li>
-<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>input_keys</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_keys</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumulate</strong> (<em>function</em>) – An accumulator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumulator
+the output of the  accumulate function will follow any specified data_key data in the output</li>
 <li><strong>return_prediction</strong> (<em>bool</em>) – Whether or not to return predictions</li>
+<li><strong>custom_objects</strong> (<em>dict of classes</em>) – A dictionary of objects created by the user keyed by their name. For example custom layers.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
+<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…, accumulate, predictions)</p>
 </td>
 </tr>
 </tbody>
@@ -333,7 +357,7 @@ the output of the accumilate function will follow any specified data_key data in
 <span id="reshape-utilities"></span><h2>Reshape Utilities<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="CMS_Deep_Learning.io.flatten">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">flatten</code><span class="sig-paren">(</span><em>items</em>, <em>seqtypes=(&lt;type ‘list’&gt;</em>, <em>&lt;type ‘tuple’&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.flatten" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">flatten</code><span class="sig-paren">(</span><em>items</em>, <em>seqtypes=(&lt;type ‘list’&gt;</em>, <em>&lt;type ‘tuple’&gt;)</em>, <em>inplace=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.flatten" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flattens an arbitrary nesting of lists</p>
 </dd></dl>
 

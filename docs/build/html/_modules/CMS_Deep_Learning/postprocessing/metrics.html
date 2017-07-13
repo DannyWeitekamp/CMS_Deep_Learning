@@ -72,7 +72,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="build_accumilator"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.build_accumilator">[docs]</a><span class="k">def</span> <span class="nf">build_accumilator</span><span class="p">(</span><span class="n">char</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">build_accumulator</span><span class="p">(</span><span class="n">char</span><span class="p">,</span>
                       <span class="n">observ</span><span class="p">,</span>
                       <span class="n">objects</span><span class="p">,</span>
                       <span class="n">char2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -85,7 +85,7 @@
                                            <span class="s2">&quot;ObjFt1&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt2&quot;</span><span class="p">,</span> <span class="s2">&quot;ObjFt3&quot;</span><span class="p">],</span>
                       <span class="n">object_ordering</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;EFlowPhoton&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowNeutralHadron&quot;</span><span class="p">,</span> <span class="s2">&quot;EFlowTrack&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span> <span class="s2">&quot;MuonTight&quot;</span><span class="p">,</span>
                                        <span class="s2">&quot;MissingET&quot;</span><span class="p">]):</span>
-    <span class="sd">&#39;&#39;&#39; Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute</span>
+    <span class="sd">&#39;&#39;&#39; Builds an accumulator function, a functional of some list of numpy inputs, that can be used to compute</span>
 <span class="sd">        data characteristics.</span>
 
 <span class="sd">        :param char: Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics</span>
@@ -97,7 +97,7 @@
 <span class="sd">                                in the sample, otherwise the &quot;observ&quot; argument will not select the intended column in the data.</span>
 <span class="sd">        :param object_ordering: A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles</span>
 <span class="sd">                            when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</span>
-<span class="sd">        :returns: the accumilator function</span>
+<span class="sd">        :returns: the accumulator function</span>
 <span class="sd">        &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">objects</span><span class="p">]</span>
     <span class="n">objects</span> <span class="o">=</span> <span class="p">[</span><span class="n">o</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">object_ordering</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">]</span>
@@ -128,7 +128,7 @@
         <span class="n">batch_chars</span> <span class="o">=</span> <span class="n">char2</span><span class="p">(</span><span class="n">obj_chars</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">batch_chars</span>
 
-    <span class="k">return</span> <span class="n">accum</span></div>
+    <span class="k">return</span> <span class="n">accum</span>
 
 
 <div class="viewcode-block" id="bin_metric_vs_char"><a class="viewcode-back" href="../../../postprocessing.html#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">[docs]</a><span class="k">def</span> <span class="nf">bin_metric_vs_char</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="p">[],</span>
@@ -154,7 +154,7 @@
 <span class="sd">                  weights=? must be given.</span>
 <span class="sd">        - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights</span>
 <span class="sd">        - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user</span>
-<span class="sd">        - **accumilate** (``function``) -- an accumilator function build by build_accumilator</span>
+<span class="sd">        - **accumulate** (``function``) -- an accumulator function build by build_accumulator</span>
 
 
 <span class="sd">        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</span>
@@ -169,8 +169,8 @@
 
     <span class="n">inp</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="s1">&#39;accumilate&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">],</span><span class="n">data_dict</span><span class="o">=</span><span class="n">inp</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="s1">&#39;accumulate&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">],</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to write code for getting characteristics strait from EventChars collection&quot;</span><span class="p">)</span>
 
@@ -327,7 +327,7 @@
         <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
-        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">],</span><span class="n">data_dict</span><span class="o">=</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">],</span><span class="o">**</span><span class="n">inp</span><span class="p">)</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -433,10 +433,10 @@
 <span class="c1">#         return model.test_on_batch(X,Y)</span>
 <span class="c1"># </span>
 <span class="c1">#     if (isTrial):</span>
-<span class="c1">#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)</span>
+<span class="c1">#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumulate=accum)</span>
 <span class="c1">#     else:</span>
 <span class="c1">#         dItr = DataIterator(data, return_X=False, return_Y=False,</span>
-<span class="c1">#                             num_samples=num_samples, accumilate=accum)</span>
+<span class="c1">#                             num_samples=num_samples, accumulate=accum)</span>
 <span class="c1"># </span>
 <span class="c1">#     batch_metrics = dItr.as_list()</span>
 <span class="c1"># </span>

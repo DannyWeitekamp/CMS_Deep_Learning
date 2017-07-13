@@ -2,7 +2,7 @@ from CMS_Deep_Learning.io import simple_grab
 import numpy as np
 
 
-def build_accumilator(char,
+def build_accumulator(char,
                       observ,
                       objects,
                       char2=None,
@@ -15,7 +15,7 @@ def build_accumilator(char,
                                            "ObjFt1", "ObjFt2", "ObjFt3"],
                       object_ordering=["EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack", "Electron", "MuonTight",
                                        "MissingET"]):
-    ''' Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute
+    ''' Builds an accumulator function, a functional of some list of numpy inputs, that can be used to compute
         data characteristics.
 
         :param char: Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
@@ -27,7 +27,7 @@ def build_accumilator(char,
                                 in the sample, otherwise the "observ" argument will not select the intended column in the data.
         :param object_ordering: A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
                             when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.
-        :returns: the accumilator function
+        :returns: the accumulator function
         '''
     if (not isinstance(objects, list)): objects = [objects]
     objects = [o if isinstance(o, int) or isinstance(o, dict) else object_ordering.index(o) for o in objects]
@@ -84,7 +84,7 @@ def bin_metric_vs_char(args=[],
                   weights=? must be given.
         - **weights** (``numpy.ndarry``,``str``) -- the model weights, or a path to the weights
         - **custom_objects** (``dict``) -- A dictionary of classes used inside a keras model that have been made by the user
-        - **accumilate** (``function``) -- an accumilator function build by build_accumilator
+        - **accumulate** (``function``) -- an accumulator function build by build_accumulator
 
 
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
@@ -99,7 +99,7 @@ def bin_metric_vs_char(args=[],
 
     inp = inputs[0]
 
-    if (inp['accumilate'] != None):
+    if (inp['accumulate'] != None):
         y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],**inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
@@ -363,10 +363,10 @@ def get_roc_data(**kargs):
 #         return model.test_on_batch(X,Y)
 # 
 #     if (isTrial):
-#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumilate=accum)
+#         dItr = TrialIterator(trial, return_X=False, return_Y=False, return_prediction=False, accumulate=accum)
 #     else:
 #         dItr = DataIterator(data, return_X=False, return_Y=False,
-#                             num_samples=num_samples, accumilate=accum)
+#                             num_samples=num_samples, accumulate=accum)
 # 
 #     batch_metrics = dItr.as_list()
 # 

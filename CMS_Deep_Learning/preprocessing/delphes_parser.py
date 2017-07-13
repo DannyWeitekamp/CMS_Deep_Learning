@@ -447,7 +447,7 @@ def delphes_to_pandas(filepath, verbosity=1, fixedNum=None, requireLepton=True):
         (leaf, branch) = leaves_by_object[obj]['Phi']
         total_values = 0
 
-        #Loop over all the Phi values (since everything has Phi) and accumilate
+        #Loop over all the Phi values (since everything has Phi) and accumulate
         #   the total number of values for each object type
         for entry in range(n_entries):
             branch.GetEntry(entry)

@@ -60,7 +60,7 @@
   <ul>
 <li><a class="reference internal" href="#">CMS_Deep_Learning.postprocessing</a><ul>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.colors">colors</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.metrics">metrics</a></li>
+<li><a class="reference internal" href="#metrics">metrics</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.postprocessing.plot">plot</a></li>
 </ul>
 </li>
@@ -107,9 +107,9 @@
 <dd></dd></dl>
 
 </div>
-<div class="section" id="module-CMS_Deep_Learning.postprocessing.metrics">
-<span id="metrics"></span><h2>metrics<a class="headerlink" href="#module-CMS_Deep_Learning.postprocessing.metrics" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<div class="section" id="metrics">
+<h2>metrics<a class="headerlink" href="#metrics" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-CMS_Deep_Learning.postprocessing.metrics"></span><dl class="function">
 <dt id="CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char">
 <code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">bin_metric_vs_char</code><span class="sig-paren">(</span><em>args=[]</em>, <em>nb_bins=20</em>, <em>equalBins=False</em>, <em>plot=False</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#bin_metric_vs_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.bin_metric_vs_char" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes event features and and returns binned data about the accuracy of a model against those features. Also computes the standard error for each bin.</p>
@@ -144,42 +144,13 @@ will be very unusual, varying significantly in their domain.</li>
 </li>
 <li><strong>weights</strong> (<code class="docutils literal"><span class="pre">numpy.ndarry</span></code>,“str“) – the model weights, or a path to the weights</li>
 <li><strong>custom_objects</strong> (<code class="docutils literal"><span class="pre">dict</span></code>) – A dictionary of classes used inside a keras model that have been made by the user</li>
-<li><strong>accumilate</strong> (<code class="docutils literal"><span class="pre">function</span></code>) – an accumilator function build by build_accumilator</li>
+<li><strong>accumulate</strong> (<code class="docutils literal"><span class="pre">function</span></code>) – an accumulator function build by build_accumulator</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.postprocessing.metrics.build_accumilator">
-<code class="descclassname">CMS_Deep_Learning.postprocessing.metrics.</code><code class="descname">build_accumilator</code><span class="sig-paren">(</span><em>char, observ, objects, char2=None, observable_ordering=[‘E/c’, ‘Px’, ‘Py’, ‘Pz’, ‘PT_ET’, ‘Eta’, ‘Phi’, ‘MaxLepDeltaEta’, ‘MaxLepDeltaPhi’, ‘MaxLepDeltaR’, ‘MaxLepKt’, ‘MaxLepAntiKt’, ‘METDeltaEta’, ‘METDeltaPhi’, ‘METDeltaR’, ‘METKt’, ‘METAntiKt’, ‘Charge’, ‘X’, ‘Y’, ‘Z’, ‘Dxy’, ‘Ehad’, ‘Eem’, ‘MuIso’, ‘EleIso’, ‘ChHadIso’, ‘NeuHadIso’, ‘GammaIso’, ‘ObjFt1’, ‘ObjFt2’, ‘ObjFt3’], object_ordering=[‘EFlowPhoton’, ‘EFlowNeutralHadron’, ‘EFlowTrack’, ‘Electron’, ‘MuonTight’, ‘MissingET’]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/postprocessing/metrics.html#build_accumilator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.postprocessing.metrics.build_accumilator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds an accumilator function, a functional of some list of numpy inputs, that can be used to compute
-data characteristics.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>char</strong> – Any numpy function that reduces data along an axis, (i.e np.sum, np.avg, np.std). This is the 1st reduction of the characteristics
-reducing the data within each object type of a sample.</li>
-<li><strong>observ</strong> – The observable to be reduced (i.e PT_ET, E/c, Phi).</li>
-<li><strong>objects</strong> – What objects should be included in the characteristic computation.</li>
-<li><strong>char2</strong> – Defaults to the same as char. A numpy function that reduces data along an axis. In this case to reduce between objects.</li>
-<li><strong>observable_ordering</strong> – A list of the observables in each sample ordered as they are in the sample. It is IMPORTANT that this matches the observables
-in the sample, otherwise the “observ” argument will not select the intended column in the data.</li>
-<li><strong>object_ordering</strong> – A list of the possible objects in the data ordered as they are in the sample. This corresponds to the ordering of the ObjectProfiles
-when the data was created. If this argument does not match the data then the wrong objects will be selected for analysis.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the accumilator function</p>
-</td>
 </tr>
 </tbody>
 </table>
