@@ -7,6 +7,8 @@ from six import string_types,reraise
 from CMS_Deep_Learning.storage.archiving import DataProcedure,KerasTrial
 
 
+
+
 #-----------------------------IO Utils----------------------------------------
 def load_hdf5_dataset(data):
     """ based off - https://github.com/duanders/mpi_learn -- train/data.py
@@ -189,7 +191,7 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
 
     while True:
         for i, elmt in enumerate(lst):
-            out = retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)
+            out = assert_list(retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose))
             tot_set = _size_set(out)  
             assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
             tot = list(tot_set)[0]
@@ -200,16 +202,9 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
                 
 #--------------------------------------------------------------
 
-
-#-----------------------------Iterator------------------------
-if (sys.version_info[0] > 2):
-    from inspect import signature
-
-    getNumParams = lambda f: len(signature(f).parameters)
-else:
-    from inspect import getargspec
-
-    getNumParams = lambda f: len(getargspec(f)[0])
+#---------------------UTILS-------------------------------
+def assert_list(x,seqtypes=(list, tuple)):
+    return x if isinstance(x,seqtypes) else [x]
 
 
 def flatten(items, seqtypes=(list, tuple)):
@@ -233,6 +228,19 @@ def restructure(flattened, data_keys, seqtypes=(list, tuple)):
         out.append(restructure(flattened[pos:pos + k], key))
         pos += k
     return out
+#--------------------------------------------------------
+
+
+#-----------------------------Iterator------------------------
+if (sys.version_info[0] > 2):
+    from inspect import signature
+
+    getNumParams = lambda f: len(signature(f).parameters)
+else:
+    from inspect import getargspec
+
+    getNumParams = lambda f: len(getargspec(f)[0])
+
 
 
 class DataIterator:
