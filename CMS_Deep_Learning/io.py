@@ -209,7 +209,7 @@ def repr_structure(x):
     elif isinstance(x,tuple):
         return "(" + ",".join([repr_structure(y) for y in x]) + ")"
     elif(isinstance(x,np.ndarray)):
-        return "<" + str(X.shape) + ">"
+        return "<" + str(x.shape) + ">"
     else:
         return str(x)
 
