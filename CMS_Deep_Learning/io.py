@@ -607,12 +607,12 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
         :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
         :returns: the data requested in to_return'''
-    
-    assert len(to_return) > 0, 'to_return must be a nonempty list of return type_strings'
+    flat_to_return = flatten(to_return)
+    assert len(flat_to_return) > 0, 'to_return must be a nonempty list of return type_strings'
     if (len(kargs) != 0): data_dict = kargs
     data_to_check = set([])
     sat_dict = {}
-    for req in to_return:
+    for req in flat_to_return:
         if not req in REQ_DICT:
             raise ValueError("Requirement %r not recognized" % req)
         satisfiers = REQ_DICT[req]
@@ -627,6 +627,6 @@ def simple_grab(to_return, data_dict={}, **kargs):
             data_to_check.add(x)
 
     data_dict = _checkAndAssert(data_dict, data_to_check)
-    data_dict = _call_iters(data_dict, to_return, sat_dict)
+    data_dict = _call_iters(data_dict, flat_to_return, sat_dict)
 
     return restructure([data_dict[r] for r in to_return], to_return)
