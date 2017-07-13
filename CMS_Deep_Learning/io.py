@@ -629,4 +629,4 @@ def simple_grab(to_return, data_dict={}, **kargs):
     data_dict = _checkAndAssert(data_dict, data_to_check)
     data_dict = _call_iters(data_dict, flat_to_return, sat_dict)
 
-    return restructure([data_dict[r] for r in to_return], to_return)
+    return restructure([data_dict[r] for r in flat_to_return], to_return)
