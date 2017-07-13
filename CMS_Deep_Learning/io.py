@@ -7,9 +7,6 @@ import itertools
 from six import string_types,reraise
 from CMS_Deep_Learning.storage.archiving import DataProcedure,KerasTrial
 
-
-
-
 #-----------------------------IO Utils----------------------------------------
 def load_hdf5_dataset(data):
     """ based off - https://github.com/duanders/mpi_learn -- train/data.py
