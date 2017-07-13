@@ -372,7 +372,7 @@ class DataIterator:
             if (pos >= self.num_samples):
                 break
             out = self._assert_raw(d, verbose=verbose)
-            flat_out = flatten(out[:])
+            flat_out = flatten(out)
             L = flat_out[0].shape[0]
             for i, Z in enumerate(out):
                 if (isinstance(Z, tuple)): Z = list(Z)
@@ -593,7 +593,7 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
         :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
         :returns: the data requested in to_return'''
-    flat_to_return = flatten(to_return[:])
+    flat_to_return = flatten(to_return)
     assert len(flat_to_return) > 0, 'to_return must be a nonempty list of return type_strings'
     if (len(kargs) != 0): data_dict = kargs
     data_to_check = set([])
