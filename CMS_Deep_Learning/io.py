@@ -251,7 +251,6 @@ else:
     getNumParams = lambda f: len(getargspec(f)[0])
 
 
-
 class DataIterator:
     '''A tool for retrieving inputs, labels,prediction values and functions of data.
         Unlike gen_from_data aggregates data from multiple files together into a single list. 
@@ -282,8 +281,8 @@ class DataIterator:
         self.accumilate = accumilate
         self.prediction_model = prediction_model
         self.data_keys = data_keys
-        self.input_keys = input_keys #if isinstance(input_keys, list) else [input_keys]
-        self.label_keys = label_keys #if isinstance(input_keys, list) else [input_keys]
+        self.input_keys = input_keys
+        self.label_keys = label_keys
 
         # Make sure the data is some kind of list 
         if (not isinstance(data, list)):
@@ -292,18 +291,16 @@ class DataIterator:
             else:
                 data = [data]
 
-        # Resolve source_data_keys
-        # if (isinstance(data[0], DataProcedure)):
-        #     if (source_data_keys == None): source_data_keys = data[0].data_keys
-        # if (source_data_keys == None): source_data_keys = [self.input_keys , self.label_keys ]
-
         # Resolve the full set of data that needs to be read
         if (self.accumilate != None): self.num_params = getNumParams(self.accumilate)
         self.x_required = self.prediction_model != None or self.accumilate != None
         self.y_required = self.accumilate != None and self.num_params > 1
 
         self.input_index, self.label_index = -1, -1
-        self.union_keys = self.data_keys[:]
+        if (not isinstance(self.data_keys, (list, tuple))):
+            self.key_singluar, self.union_keys = True, [self.data_keys[:]]
+        else:
+            self.key_singluar, self.union_keys = False, self.data_keys[:]
         if (self.x_required):
             if (not self.input_keys in self.union_keys):
                 self.union_keys.append(self.input_keys)
@@ -312,9 +309,6 @@ class DataIterator:
             if (not self.label_keys in self.union_keys):
                 self.union_keys.append(self.label_keys)
             self.label_index = self.union_keys.index(self.label_keys)
-
-        # self.subset_ind = [source_data_keys.index(key)
-        #                    for key in self.union_keys]
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
@@ -329,7 +323,7 @@ class DataIterator:
             first_data = peek
 
         self.data = data
-        if (len(self.union_keys) != len(first_data)):
+        if (len(flatten(self.union_keys)) != len(first_data)):
             raise ValueError("source_data_keys %r do not match data size of %r" % \
                              (source_data_keys, len(first_data)))
 
@@ -357,16 +351,12 @@ class DataIterator:
     def _assert_raw(self, d, verbose=0):
         '''Makes sure that the data is raw and not a string or DataProcdedure'''
         if (isinstance(d, DataProcedure) or isinstance(d, string_types)):
-            d = self._retrieve_data(d,
-                                    data_keys=self.union_keys)  # d.get_data(data_keys=self.union_keys,verbose=verbose)
-        # else:
-        #     d = tuple([d[x] for x in self.subset_ind])
+            d = self._retrieve_data(d, data_keys=self.union_keys)
         return d
 
     def as_list(self, verbose=0):
         '''Return the data as a list of lists/numpy arrays'''
         pos = 0
-
         flat_union_keys = flatten(self.union_keys)
         samples_outs = [None] * len(self.union_keys)
 
@@ -411,19 +401,18 @@ class DataIterator:
                     acc_out[pos + j] = acc[j]
             pos += L
         out = []
-        for key in self.data_keys:
+        for key in assert_list(self.data_keys):
             Z_out = samples_outs[self.union_keys.index(key)]
             if (Z_out != None):
                 for j, zo in enumerate(Z_out):
                     Z_out[j] = np.array(zo)
                 Z_out = restructure(Z_out, key)
-                # Z_out = Z_out if isinstance(Z_out, list) else [Z_out]
                 out.append(Z_out)
         if (pred_out != None):
             out.append(np.array(pred_out))
         if (acc_out != None):
             out.append(np.array(acc_out))
-        return tuple(out) if len(out) > 1 else out[0]
+        return out[0] if len(out) == 1 and self.key_singluar else tuple(out)
 
     def next(self):
         raise NotImplementedError("Need to actually make this an iterator")
