@@ -37,7 +37,7 @@
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CMS_Deep_Learning 1.0.0 documentation" href="index.html"/>
         <link rel="next" title="IO Example" href="io_example.html"/>
-        <link rel="prev" title="CMS_Deep_Learning.utils package" href="utils.html"/> 
+        <link rel="prev" title="CMS_Deep_Learning package" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -90,15 +90,7 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="io.html">CMS_Deep_Learning.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils package</a></li>
-</ul>
-<ul class="current">
+              <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Postprocessing Example</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#add-directory-containing-cms-deep-learning-repo-to-the-sys-path-repo-docs">Add directory containing CMS_Deep_Learning repo to the sys path. repo docs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#import-stuff">Import stuff</a></li>
@@ -119,6 +111,14 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="io_example.html">IO Example</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="io.html">CMS_Deep_Learning.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils</a></li>
 </ul>
 
             
@@ -215,7 +215,7 @@
 </div>
 </div>
 <div class="section" id="plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data">
-<h2>Plot a ROC Curve with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_bins">plot_roc_curve</a> (be patient, it takes a long time to grab the data)<a class="headerlink" href="#plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data" title="Permalink to this headline">¶</a></h2>
+<h2>Plot a ROC Curve with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve">plot_roc_curve</a> (be patient, it takes a long time to grab the data)<a class="headerlink" href="#plot-a-roc-curve-with-plot-roc-curve-be-patient-it-takes-a-long-time-to-grab-the-data" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">_</span><span class="p">,</span><span class="n">roc_dicts</span> <span class="o">=</span> <span class="n">plot_roc_curve</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MaxLepDeltaR&quot;</span><span class="p">,</span>
                 <span class="n">input_keys</span><span class="o">=</span><span class="s2">&quot;Particles&quot;</span><span class="p">,</span> <span class="c1">#Or [&quot;HCAL&quot;, &quot;ECAL&quot;]</span>
                 <span class="n">label_keys</span><span class="o">=</span><span class="s2">&quot;Labels&quot;</span><span class="p">,</span> <span class="c1">#Or [&quot;target&quot;]</span>
@@ -453,7 +453,7 @@ thresholds</p>
 </div>
 </div>
 <div class="section" id="using-the-simple-grab-class-to-simplify-grabbing-data">
-<h2>Using the <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab">simple_grab</a> class to simplify grabbing data<a class="headerlink" href="#using-the-simple-grab-class-to-simplify-grabbing-data" title="Permalink to this headline">¶</a></h2>
+<h2>Using the <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.simple_grab">simple_grab</a> class to simplify grabbing data<a class="headerlink" href="#using-the-simple-grab-class-to-simplify-grabbing-data" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.io</span> <span class="k">import</span> <span class="n">simple_grab</span>
 <span class="n">y</span><span class="p">,</span><span class="n">pred</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span>
                     <span class="n">input_keys</span><span class="o">=</span><span class="s2">&quot;Particles&quot;</span><span class="p">,</span> <span class="c1">#Or [&quot;HCAL&quot;, &quot;ECAL:]</span>
@@ -496,7 +496,7 @@ thresholds</p>
         <a href="io_example.html" class="btn btn-neutral float-right" title="IO Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="utils.html" class="btn btn-neutral" title="CMS_Deep_Learning.utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="CMS_Deep_Learning package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

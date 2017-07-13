@@ -13,7 +13,7 @@ metrics
 ---------------------------------------------------
 
 .. automodule:: CMS_Deep_Learning.postprocessing.metrics
-    :members: bin_metric_vs_char, build_accumilator, get_roc_data, get_roc_points
+    :members: bin_metric_vs_char, build_accumulator, get_roc_data, get_roc_points
     :undoc-members:
     :show-inheritance:
 

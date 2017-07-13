@@ -36,6 +36,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="CMS_Deep_Learning 1.0.0 documentation" href="index.html"/>
+        <link rel="next" title="CMS_Deep_Learning.io" href="io.html"/>
         <link rel="prev" title="Postprocessing Example" href="postprocessing_example.html"/> 
 
   
@@ -89,15 +90,7 @@
               
             
             
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="io.html">CMS_Deep_Learning.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils package</a></li>
-</ul>
-<ul class="current">
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="postprocessing_example.html">Postprocessing Example</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">IO Example</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#grab-data-from-a-single-file-with-retrieve-data">Grab data from a single file with retrieve_data</a></li>
@@ -108,6 +101,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure">And finally we can use flatten and restructure if we would like to change our nesting structure.</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="io.html">CMS_Deep_Learning.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">CMS_Deep_Learning.preprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">CMS_Deep_Learning.layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="storage.html">CMS_Deep_Learning.storage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">CMS_Deep_Learning.postprocessing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">CMS_Deep_Learning.utils</a></li>
 </ul>
 
             
@@ -199,7 +200,7 @@
 </pre></div>
 </div>
 <div class="section" id="grab-data-from-a-single-file-with-retrieve-data">
-<h2>Grab data from a single file with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a><a class="headerlink" href="#grab-data-from-a-single-file-with-retrieve-data" title="Permalink to this headline">¶</a></h2>
+<h2>Grab data from a single file with <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a><a class="headerlink" href="#grab-data-from-a-single-file-with-retrieve-data" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">file_dat_v1</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;target&#39;</span><span class="p">]))</span>
 <span class="n">file_dat_v2</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;target&#39;</span><span class="p">]))</span>
 <span class="n">file_dat_v3</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">))</span>
@@ -215,7 +216,7 @@
 </div>
 </div>
 <div class="section" id="if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs">
-<h2>If we need the length of as single file (i.e number of samples) of the file we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a> with just_length=True or <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.nb_samples_from_h5">nb_samples_from_h5</a> which also works with pandas tables. Also see <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.size_from_meta">size_from_meta</a>, which caches the sizes of files for quicker reads on big jobs.<a class="headerlink" href="#if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs" title="Permalink to this headline">¶</a></h2>
+<h2>If we need the length of as single file (i.e number of samples) of the file we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.retrieve_data">retrieve_data</a> with just_length=True or <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.nb_samples_from_h5">nb_samples_from_h5</a> which also works with pandas tables. Also see <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.size_from_meta">size_from_meta</a>, which caches the sizes of files for quicker reads on big jobs.<a class="headerlink" href="#if-we-need-the-length-of-as-single-file-i-e-number-of-samples-of-the-file-we-can-use-retrieve-data-with-just-length-true-or-nb-samples-from-h5-which-also-works-with-pandas-tables-also-see-size-from-meta-which-caches-the-sizes-of-files-for-quicker-reads-on-big-jobs" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">file_size_v1</span> <span class="o">=</span> <span class="n">repr_structure</span><span class="p">(</span><span class="n">retrieve_data</span><span class="p">(</span><span class="n">dat_file</span><span class="p">,[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;target&#39;</span><span class="p">],</span><span class="n">just_length</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 <span class="n">file_size_v2</span> <span class="o">=</span> <span class="n">nb_samples_from_h5</span><span class="p">(</span><span class="n">dat_file</span><span class="p">)</span>
 
@@ -245,7 +246,7 @@
 </div>
 </div>
 <div class="section" id="use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights">
-<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab">simple_grab</a> for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.<a class="headerlink" href="#use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights" title="Permalink to this headline">¶</a></h2>
+<h2>Use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.simple_grab">simple_grab</a> for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.<a class="headerlink" href="#use-simple-grab-for-grabbing-predictions-or-data-for-making-plots-remember-to-pass-any-information-that-you-need-for-example-if-you-need-predictions-then-you-need-to-pass-the-data-model-and-weights" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="n">Y</span><span class="p">,</span><span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;/val&quot;</span><span class="p">,</span>
             <span class="n">model</span><span class="o">=</span><span class="n">example_dir</span> <span class="o">+</span><span class="s2">&quot;model.json&quot;</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">example_dir</span><span class="o">+</span><span class="s2">&quot;weights.h5&quot;</span><span class="p">,</span>
            <span class="n">input_keys</span><span class="o">=</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span><span class="n">label_keys</span><span class="o">=</span><span class="s1">&#39;Labels&#39;</span><span class="p">)</span>
@@ -295,7 +296,7 @@
 </div>
 </div>
 <div class="section" id="and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure">
-<h2>And finally we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.flatten">flatten</a> and <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.restructure">restructure</a> if we would like to change our nesting structure.<a class="headerlink" href="#and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure" title="Permalink to this headline">¶</a></h2>
+<h2>And finally we can use <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.flatten">flatten</a> and <a class="reference external" href="https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.restructure">restructure</a> if we would like to change our nesting structure.<a class="headerlink" href="#and-finally-we-can-use-flatten-and-restructure-if-we-would-like-to-change-our-nesting-structure" title="Permalink to this headline">¶</a></h2>
 <div class="code ipython2 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">flatten</span><span class="p">([</span><span class="mi">0</span><span class="p">,[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,[</span><span class="mi">5</span><span class="p">]]]))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">restructure</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span><span class="s1">&#39;F&#39;</span><span class="p">,[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span><span class="s1">&#39;f&#39;</span><span class="p">],[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span><span class="s1">&#39;B&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span><span class="s1">&#39;D&#39;</span><span class="p">]))</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">restructure</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="p">[[</span><span class="s1">&#39;HCAL&#39;</span><span class="p">,</span> <span class="s1">&#39;ECAL&#39;</span><span class="p">],</span> <span class="s1">&#39;HCAL&#39;</span><span class="p">]))</span>
@@ -318,6 +319,8 @@
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="io.html" class="btn btn-neutral float-right" title="CMS_Deep_Learning.io" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="postprocessing_example.html" class="btn btn-neutral" title="Postprocessing Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

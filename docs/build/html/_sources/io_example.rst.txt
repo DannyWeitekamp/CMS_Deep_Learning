@@ -29,8 +29,8 @@ IO Example
     example_dir = '/bigdata/shared/Delphes/postproc_ex/'
     ex_subset = glob.glob(example_dir + "/val/*.h5")[:2]
 
-Grab data from a single file with `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data>`__
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Grab data from a single file with `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.retrieve_data>`__
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
@@ -49,8 +49,8 @@ Grab data from a single file with `retrieve\_data <https://dannyweitekamp.github
     <(9902, 25, 25, 25)>
 
 
-If we need the length of as single file (i.e number of samples) of the file we can use `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.retrieve_data>`__ with just\_length=True or `nb\_samples\_from\_h5 <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.nb_samples_from_h5>`__ which also works with pandas tables. Also see `size\_from\_meta <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.size_from_meta>`__, which caches the sizes of files for quicker reads on big jobs.
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+If we need the length of as single file (i.e number of samples) of the file we can use `retrieve\_data <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.retrieve_data>`__ with just\_length=True or `nb\_samples\_from\_h5 <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.nb_samples_from_h5>`__ which also works with pandas tables. Also see `size\_from\_meta <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.size_from_meta>`__, which caches the sizes of files for quicker reads on big jobs.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
@@ -87,8 +87,8 @@ Create a generator with `gen\_from\_data <https://dannyweitekamp.github.io/CMS_D
     <(100, 25, 25, 25)>
 
 
-Use `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab>`__ for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Use `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.simple_grab>`__ for grabbing predictions or data for making plots. Remember to pass any information that you need, for example if you need predictions then you need to pass the data, model, and weights.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
@@ -148,8 +148,8 @@ This time we output with a nested structure and give it a list of files.
     ((15000, 801, 19), (15000, 3))
 
 
-And finally we can use `flatten <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.flatten>`__ and `restructure <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.restructure>`__ if we would like to change our nesting structure.
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+And finally we can use `flatten <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.flatten>`__ and `restructure <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.restructure>`__ if we would like to change our nesting structure.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 

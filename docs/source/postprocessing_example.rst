@@ -35,8 +35,8 @@ We will make plots from a subset of the data data here on the culture-plate mach
     dirr = '/bigdata/shared/Delphes/postproc_ex'
     data_subset = glob.glob(dirr+"/val/*.h5")[:5]
 
-Plot a ROC Curve with `plot\_roc\_curve <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_bins>`__ (be patient, it takes a long time to grab the data)
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Plot a ROC Curve with `plot\_roc\_curve <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.postprocessing.plot.plot_roc_curve>`__ (be patient, it takes a long time to grab the data)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
@@ -390,8 +390,8 @@ And the class contaminations for the 'false' classes individually
 
 
 
-Using the `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/postprocessing.html#CMS_Deep_Learning.io.simple_grab>`__ class to simplify grabbing data
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Using the `simple\_grab <https://dannyweitekamp.github.io/CMS_Deep_Learning/build/html/io.html#CMS_Deep_Learning.io.simple_grab>`__ class to simplify grabbing data
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 .. code:: ipython2
 
