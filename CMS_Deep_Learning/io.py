@@ -50,7 +50,8 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
         f_path = os.path.abspath(data) if not ish5 else data.filename
         h5_file = h5py.File(f_path, 'r') if not ish5 else data
         out = []
-        for data_key in data_keys:
+        it = data_keys if isinstance(data_keys,(list,tuple)) else [data_keys]
+        for data_key in it:
             if isinstance(data_key, list):
                 # Get Recursively keys are list
                 ret = retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False)
@@ -69,7 +70,7 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
                 nxt = [nxt] if (assert_list and not isinstance(nxt, list)) else nxt
                 out.append(nxt)
 
-        return f_ret(tuple(out) if len(out) > 1 else out)
+        return f_ret(restructure(out,data_keys))
     else:
         return f_ret(data)
 
