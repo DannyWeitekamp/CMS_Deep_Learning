@@ -69,7 +69,7 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
                 nxt = [nxt] if (assert_list and not isinstance(nxt, list)) else nxt
                 out.append(nxt)
 
-        return f_ret(tuple(out))
+        return f_ret(tuple(out) if len(out) > 1 else out)
     else:
         return f_ret(data)
 
@@ -195,7 +195,8 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
                 # yield tuple([[x[start:end] for x in X] for X in out])
-                yield tuple(restructure([x[start:end] for x in flatten(out)], data_keys))
+                out = tuple(restructure([x[start:end] for x in flatten(out)], data_keys))
+                yield out if len(out) > 1 else out[0]
                 
 #--------------------------------------------------------------
 
@@ -405,7 +406,7 @@ class DataIterator:
             out.append(np.array(pred_out))
         if (acc_out != None):
             out.append(np.array(acc_out))
-        return tuple(out)
+        return tuple(out) if len(out) > 1 else out[0]
 
     def next(self):
         raise NotImplementedError("Need to actually make this an iterator")
@@ -585,7 +586,8 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
         :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
         :returns: the data requested in to_return'''
-
+    
+    assert len(to_return) > 0, 'to_return must be a nonempty list of return type_strings'
     if (len(kargs) != 0): data_dict = kargs
     data_to_check = set([])
     sat_dict = {}
@@ -606,5 +608,5 @@ def simple_grab(to_return, data_dict={}, **kargs):
     data_dict = _checkAndAssert(data_dict, data_to_check)
     data_dict = _call_iters(data_dict, to_return, sat_dict)
     # out = []
-
-    return tuple([data_dict[r] for r in to_return])
+    out = tuple([data_dict[r] for r in to_return])
+    return out if len(out) > 1 else out[0]
