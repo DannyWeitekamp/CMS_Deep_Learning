@@ -615,6 +615,5 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
     data_dict = _checkAndAssert(data_dict, data_to_check)
     data_dict = _call_iters(data_dict, to_return, sat_dict)
-    # out = []
-    out = tuple([data_dict[r] for r in to_return])
-    return out if len(out) > 1 else out[0]
+
+    return restructure([data_dict[r] for r in to_return], to_return)
