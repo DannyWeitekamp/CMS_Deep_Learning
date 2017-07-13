@@ -219,6 +219,8 @@ def assert_list(x,seqtypes=(list, tuple)):
 
 def flatten(items, seqtypes=(list, tuple)):
     '''Flattens an arbitrary nesting of lists'''
+    import copy
+    items = copy.deepcopy(items)
     items = assert_list(items,seqtypes=seqtypes)
     for i, x in enumerate(items):
         while i < len(items) and isinstance(items[i], seqtypes):
@@ -591,7 +593,7 @@ def simple_grab(to_return, data_dict={}, **kargs):
 
         :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples
         :returns: the data requested in to_return'''
-    flat_to_return = flatten(to_return)
+    flat_to_return = flatten(to_return[:])
     assert len(flat_to_return) > 0, 'to_return must be a nonempty list of return type_strings'
     if (len(kargs) != 0): data_dict = kargs
     data_to_check = set([])
