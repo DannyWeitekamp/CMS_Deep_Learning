@@ -56,6 +56,19 @@
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CMS_Deep_Learning.io</a><ul>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.io">Single File IO</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.io">Simplified IO</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.io">Generators</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.io">Efficient Size Finding</a></li>
+<li><a class="reference internal" href="#stiching-together-multifile-datasets">Stiching Together Multifile Datasets</a></li>
+<li><a class="reference internal" href="#module-CMS_Deep_Learning.io">Reshape Utilities</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
                         title="previous chapter">CMS_Deep_Learning package</a></p>
@@ -87,78 +100,13 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-CMS_Deep_Learning.io">
-<span id="cms-deep-learning-io"></span><h1>CMS_Deep_Learning.io<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="CMS_Deep_Learning.io.gen_from_data">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">gen_from_data</code><span class="sig-paren">(</span><em>lst, batch_size, data_keys=[‘Particles’, ‘Labels’], prep_func=None, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#gen_from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.gen_from_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets a generator that generates data of batch_size from a list of .h5 files or DataProcedures,
-or a directory containing .h5 files.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>lst</strong> (<em>str</em><em> or </em><em>list</em>) – a list of .h5 filepaths and/or DataProcedures or a directory path</li>
-<li><strong>batch_size</strong> (<em>int</em>) – The number of samples to grab at each call to next()</li>
-<li><strong>data_keys</strong> (<em>list of str</em>) – The keys to draw from in the .h5 files. (order matters)</li>
-<li><strong>prep_func</strong> – a function that takes in the tuple of outputs and returns some light transformation
-on them, for example reshaping or padding.</li>
-<li><strong>prep_func</strong> – function</li>
-<li><strong>verbose</strong> (<em>int</em>) – whether or not to print out info to the user.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator that runs through the given data</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.io.get_sizes_meta_dict">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">get_sizes_meta_dict</code><span class="sig-paren">(</span><em>directory</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#get_sizes_meta_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.get_sizes_meta_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictionary of the number of sample points contained in each .h5 file in a directory</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>directory</strong> – The directory where the .h5 files are</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the sizes dictionary</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.io.load_hdf5_dataset">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">load_hdf5_dataset</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#load_hdf5_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.load_hdf5_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>based off - <a class="reference external" href="https://github.com/duanders/mpi_learn">https://github.com/duanders/mpi_learn</a> – train/data.py
-Converts an HDF5 structure to nested lists of databases which can be
-copied to get numpy arrays or lists of numpy arrays.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.io.nb_samples_from_h5">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">nb_samples_from_h5</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#nb_samples_from_h5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.nb_samples_from_h5" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the number of samples contained in any .h5 file; numpy or pandas.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – The file_path</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the number of samples</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+  <div class="section" id="cms-deep-learning-io">
+<h1>CMS_Deep_Learning.io<a class="headerlink" href="#cms-deep-learning-io" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-CMS_Deep_Learning.io">
+<span id="single-file-io"></span><h2>Single File IO<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="CMS_Deep_Learning.io.retrieve_data">
-<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">retrieve_data</code><span class="sig-paren">(</span><em>data</em>, <em>data_keys</em>, <em>just_length=False</em>, <em>assert_list=True</em>, <em>prep_func=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#retrieve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.retrieve_data" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">retrieve_data</code><span class="sig-paren">(</span><em>data</em>, <em>data_keys</em>, <em>just_length=False</em>, <em>assert_list=False</em>, <em>prep_func=None</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#retrieve_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.retrieve_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Grabs raw data from a DataProcedure or file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -186,6 +134,102 @@ on them, for example reshaping or padding.</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="CMS_Deep_Learning.io.load_hdf5_dataset">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">load_hdf5_dataset</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#load_hdf5_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.load_hdf5_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>based off - <a class="reference external" href="https://github.com/duanders/mpi_learn">https://github.com/duanders/mpi_learn</a> – train/data.py
+Converts an HDF5 structure to nested lists of databases which can be
+copied to get numpy arrays or lists of numpy arrays.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.io">
+<span id="simplified-io"></span><span id="iosimplification"></span><h2>Simplified IO<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.simple_grab">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">simple_grab</code><span class="sig-paren">(</span><em>to_return</em>, <em>data_dict={}</em>, <em>**kargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#simple_grab"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.simple_grab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the data requested in to_return given that the data can be found/derived from the given inputs.
+for example one can derive predictions from a model path, weights path, and X (input data).</p>
+<blockquote>
+<div>Input information includes [‘trial’, ‘model,’data,’X’,’Y’, accumilate,’predictions’, ‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’].
+outputs include [‘predictions’,’characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’].</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>to_return</strong> – A set of requirements, options: predictions,X,Y,model,num_samples</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the data requested in to_return</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.io">
+<span id="generators"></span><h2>Generators<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.gen_from_data">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">gen_from_data</code><span class="sig-paren">(</span><em>lst, batch_size, data_keys=[‘Particles’, ‘Labels’], prep_func=None, verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#gen_from_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.gen_from_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a generator that generates data of batch_size from a list of .h5 files or DataProcedures,
+or a directory containing .h5 files.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>lst</strong> (<em>str</em><em> or </em><em>list</em>) – a list of .h5 filepaths and/or DataProcedures or a directory path</li>
+<li><strong>batch_size</strong> (<em>int</em>) – The number of samples to grab at each call to next()</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – The keys to draw from in the .h5 files. (order matters)</li>
+<li><strong>prep_func</strong> – a function that takes in the tuple of outputs and returns some light transformation
+on them, for example reshaping or padding.</li>
+<li><strong>prep_func</strong> – function</li>
+<li><strong>verbose</strong> (<em>int</em>) – whether or not to print out info to the user.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a generator that runs through the given data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.io">
+<span id="efficient-size-finding"></span><h2>Efficient Size Finding<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.nb_samples_from_h5">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">nb_samples_from_h5</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#nb_samples_from_h5"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.nb_samples_from_h5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the number of samples contained in any .h5 file; numpy or pandas.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> – The file_path</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the number of samples</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.get_sizes_meta_dict">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">get_sizes_meta_dict</code><span class="sig-paren">(</span><em>directory</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#get_sizes_meta_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.get_sizes_meta_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of the number of sample points contained in each .h5 file in a directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>directory</strong> – The directory where the .h5 files are</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the sizes dictionary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="CMS_Deep_Learning.io.size_from_meta">
 <code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">size_from_meta</code><span class="sig-paren">(</span><em>filename</em>, <em>sizesDict=None</em>, <em>zero_errors=True</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#size_from_meta"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.size_from_meta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quickly resolves the number of entries in a file from metadata, making sure to update the metadata if necessary</p>
@@ -206,6 +250,100 @@ on them, for example reshaping or padding.</li>
 </table>
 </dd></dl>
 
+</div>
+<div class="section" id="stiching-together-multifile-datasets">
+<h2>Stiching Together Multifile Datasets<a class="headerlink" href="#stiching-together-multifile-datasets" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-CMS_Deep_Learning.io"></span><dl class="class">
+<dt id="CMS_Deep_Learning.io.DataIterator">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data, num_samples=None, data_keys=[], input_keys=[‘X’], label_keys=[‘Y’], accumilate=None, source_data_keys=None, prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>A tool for retrieving inputs, labels,prediction values and functions of data.
+Unlike gen_from_data aggregates data from multiple files together into a single list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>lst</em><em> or </em><em>str</em>) – A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</li>
+<li><strong>num_samples</strong> (<em>uint</em>) – If using a generator, must specify now many samples to read</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
+<li><strong>input_key</strong> – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_key</strong> – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+the output of the accumilate function will follow any specified data_key data in the output</li>
+<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>prediction_model</strong> (<em>Model</em>) – A compiled model from which to get the predictions. If specified then predictions are returned</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="CMS_Deep_Learning.io.DataIterator.as_list">
+<code class="descname">as_list</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator.as_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator.as_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the data as a list of lists/numpy arrays</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.io.DataIterator.length">
+<code class="descname">length</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator.length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator.length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the length of the iterator if taken as a single list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="CMS_Deep_Learning.io.DataIterator.next">
+<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#DataIterator.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.DataIterator.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="CMS_Deep_Learning.io.TrialIterator">
+<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>input_keys=’X’</em>, <em>label_keys=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.TrialIterator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.io.DataIterator" title="CMS_Deep_Learning.io.DataIterator"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.io.DataIterator</span></code></a></p>
+<p>A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>trial</strong> (<a class="reference internal" href="storage.html#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>KerasTrial</em></a>) – A KerasTrial from which the model, and data can be assumed</li>
+<li><strong>data_type</strong> (<em>str</em>) – ‘val’ or ‘train’</li>
+<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
+<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
+<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
+<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
+the output of the accumilate function will follow any specified data_key data in the output</li>
+<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
+<li><strong>return_prediction</strong> (<em>bool</em>) – Whether or not to return predictions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-CMS_Deep_Learning.io">
+<span id="reshape-utilities"></span><h2>Reshape Utilities<a class="headerlink" href="#module-CMS_Deep_Learning.io" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.flatten">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">flatten</code><span class="sig-paren">(</span><em>items</em>, <em>seqtypes=(&lt;type ‘list’&gt;</em>, <em>&lt;type ‘tuple’&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.flatten" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flattens an arbitrary nesting of lists</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="CMS_Deep_Learning.io.restructure">
+<code class="descclassname">CMS_Deep_Learning.io.</code><code class="descname">restructure</code><span class="sig-paren">(</span><em>flattened</em>, <em>data_keys</em>, <em>seqtypes=(&lt;type ‘list’&gt;</em>, <em>&lt;type ‘tuple’&gt;)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/io.html#restructure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.io.restructure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Structures a flattened list into the structure of data_keys</p>
+</dd></dl>
+
+</div>
 </div>
 
 

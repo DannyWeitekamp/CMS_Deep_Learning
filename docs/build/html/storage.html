@@ -62,8 +62,6 @@
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.MPIArchiving">MPIArchiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.archiving">archiving</a></li>
 <li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.batch">batch</a></li>
-<li><a class="reference internal" href="#iterators">iterators</a></li>
-<li><a class="reference internal" href="#module-CMS_Deep_Learning.storage.input_handler">input_handler</a></li>
 </ul>
 </li>
 </ul>
@@ -504,7 +502,7 @@ If a group has more than one key, we give its datasets alphabetically by key</p>
 
 <dl class="function">
 <dt id="CMS_Deep_Learning.storage.archiving.get_trials_by_name">
-<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_trials_by_name</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>name</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_trials_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_trials_by_name" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">CMS_Deep_Learning.storage.archiving.</code><code class="descname">get_trials_by_name</code><span class="sig-paren">(</span><em>archive_dir</em>, <em>name</em>, <em>assert_complete=False</em>, <em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/archiving.html#get_trials_by_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.archiving.get_trials_by_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all the trials with a particluar name or that match a given regular expression</p>
 </dd></dl>
 
@@ -560,130 +558,6 @@ DPs have completed their preprocessing and archived the result.</p>
 <code class="descclassname">CMS_Deep_Learning.storage.batch.</code><code class="descname">batchExecuteAndTestTrials</code><span class="sig-paren">(</span><em>tups</em>, <em>time_str=‘24:00:00’</em>, <em>repo=’/scratch/snx3000/dweiteka/CMS_Deep_Learning/’</em>, <em>trial_out_dir=’/scratch/snx3000/dweiteka/trial_out/’</em>, <em>use_mpi=False</em>, <em>verbose=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/batch.html#batchExecuteAndTestTrials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.batch.batchExecuteAndTestTrials" title="Permalink to this definition">¶</a></dt>
 <dd><p>Takes in a list of tuples ‘tups’ of the form (trial (a KerasTrial), test (a DataProcedure), num_test (an Integer), deps (a list)), and executes/tests 
 each trial, either in in order or in separate batches in the case of CSCS.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="iterators">
-<h2>iterators<a class="headerlink" href="#iterators" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-CMS_Deep_Learning.storage.iterators"></span><dl class="class">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">DataIterator</code><span class="sig-paren">(</span><em>data</em>, <em>num_samples=None</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>prediction_model=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="Permalink to this definition">¶</a></dt>
-<dd><p>A tool for retrieving inputs, labels,prediction values and functions of data</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>lst</em><em> or </em><em>str</em>) – A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</li>
-<li><strong>num_samples</strong> (<em>uint</em>) – If using a generator, must specify now many samples to read</li>
-<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
-<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
-<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
-<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
-the output of the accumilate function will follow any specified data_key data in the output</li>
-<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
-<li><strong>prediction_model</strong> (<em>Model</em>) – A compiled model from which to get the predictions. If specified then predictions are returned</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="method">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.as_list">
-<code class="descname">as_list</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.as_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.as_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the data as a list of lists/numpy arrays</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.length">
-<code class="descname">length</code><span class="sig-paren">(</span><em>verbose=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.length" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the length of the iterator if taken as a single list</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="CMS_Deep_Learning.storage.iterators.DataIterator.next">
-<code class="descname">next</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#DataIterator.next"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.DataIterator.next" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="CMS_Deep_Learning.storage.iterators.TrialIterator">
-<em class="property">class </em><code class="descclassname">CMS_Deep_Learning.storage.iterators.</code><code class="descname">TrialIterator</code><span class="sig-paren">(</span><em>trial</em>, <em>data_type=’val’</em>, <em>data_keys=[]</em>, <em>input_key=’X’</em>, <em>label_key=’Y’</em>, <em>accumilate=None</em>, <em>source_data_keys=None</em>, <em>return_prediction=False</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/iterators.html#TrialIterator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.iterators.TrialIterator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#CMS_Deep_Learning.storage.iterators.DataIterator" title="CMS_Deep_Learning.storage.iterators.DataIterator"><code class="xref py py-class docutils literal"><span class="pre">CMS_Deep_Learning.storage.iterators.DataIterator</span></code></a></p>
-<p>A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>trial</strong> (<a class="reference internal" href="#CMS_Deep_Learning.storage.archiving.KerasTrial" title="CMS_Deep_Learning.storage.archiving.KerasTrial"><em>KerasTrial</em></a>) – A KerasTrial from which the model, and data can be assumed</li>
-<li><strong>data_type</strong> (<em>str</em>) – ‘val’ or ‘train’</li>
-<li><strong>data_keys</strong> (<em>list of str</em>) – Which keys to grab from the data_store, these will be the first outputs of the iterator</li>
-<li><strong>input_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the input data</li>
-<li><strong>label_key</strong> (<em>str</em>) – The key in the source hdf5 store that corresponds to the label data</li>
-<li><strong>accumilate</strong> (<em>function</em>) – An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator
-the output of the accumilate function will follow any specified data_key data in the output</li>
-<li><strong>source_data_keys</strong> (<em>list of str</em>) – Specifies the keys of the source hdf5 store… sometimes necessary</li>
-<li><strong>return_prediction</strong> (<em>bool</em>) – Whether or not to return predictions</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Output format:</th><td class="field-body"><p class="first last">(data_keys outputs…,acummilate, predictions)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-<div class="section" id="module-CMS_Deep_Learning.storage.input_handler">
-<span id="input-handler"></span><h2>input_handler<a class="headerlink" href="#module-CMS_Deep_Learning.storage.input_handler" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.input_handler.assertModel">
-<code class="descclassname">CMS_Deep_Learning.storage.input_handler.</code><code class="descname">assertModel</code><span class="sig-paren">(</span><em>model</em>, <em>weights=None</em>, <em>loss=’categorical_crossentropy’</em>, <em>optimizer=’rmsprop’</em>, <em>custom_objects={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/input_handler.html#assertModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.input_handler.assertModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Asserts that the inputs create a valid keras model and returns that model</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>model</strong> (<em>str</em><em> or </em><em>Model</em>) – a keras Model or the path to a model .json</li>
-<li><strong>weights</strong> (<em>str</em><em> or </em><em>weights</em>) – the model weights or path to the stored weights</li>
-<li><strong>loss</strong> (<em>str</em>) – the loss function to compile the model with</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<p>:param : the optimizer to compile the model with
-:type optimizer: str
-:param custom_objects: a dictionary of user defined classes
-:type custom_objects: dict of classes
-:returns: A compiled model</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="CMS_Deep_Learning.storage.input_handler.inputHandler">
-<code class="descclassname">CMS_Deep_Learning.storage.input_handler.</code><code class="descname">inputHandler</code><span class="sig-paren">(</span><em>req_info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/CMS_Deep_Learning/storage/input_handler.html#inputHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#CMS_Deep_Learning.storage.input_handler.inputHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns an inputHandler function with a set of requirements. The inputHandler function will try
-to derive the required information from the given information, for example it can derive predictions
-from a model path,weights path, and X (input data). Input information includes [‘trial’, ‘model,’data,’X’,’Y’,
-accumilate,’predictions’, ‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’], outputs include [‘predictions’,
-‘characteristics’, ‘X’, ‘Y’, ‘model’, ‘num_samples’]</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>req_info</strong> – A set of requirements, options: predictions,X,Y,model,num_samples</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">an inputHandler function with input options predictions,X,Y,model,num_samples,weights,trial,data</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>

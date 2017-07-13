@@ -74,9 +74,10 @@
 <span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span><span class="p">,</span><span class="n">reraise</span>
-<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span>
+<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span><span class="n">KerasTrial</span>
 
 
+<span class="c1">#-----------------------------IO Utils----------------------------------------</span>
 <div class="viewcode-block" id="load_hdf5_dataset"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.load_hdf5_dataset">[docs]</a><span class="k">def</span> <span class="nf">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; based off - https://github.com/duanders/mpi_learn -- train/data.py</span>
 <span class="sd">        Converts an HDF5 structure to nested lists of databases which can be</span>
@@ -87,7 +88,7 @@
     <span class="k">return</span> <span class="n">data</span></div>
 
 
-<div class="viewcode-block" id="retrieve_data"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.retrieve_data">[docs]</a><span class="k">def</span> <span class="nf">retrieve_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_keys</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">assert_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">prep_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="retrieve_data"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.retrieve_data">[docs]</a><span class="k">def</span> <span class="nf">retrieve_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_keys</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">assert_list</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">prep_func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Grabs raw data from a DataProcedure or file</span>
 
 <span class="sd">        :param data: the data to get the raw verion of. If not str or DataProcedure returns itself</span>
@@ -107,37 +108,42 @@
 <span class="sd">        :returns: The raw data as numpy.ndarray</span>
 
 <span class="sd">        &#39;&#39;&#39;</span>
-    <span class="k">assert</span> <span class="n">prep_func</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prep_func</span><span class="p">,</span><span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">),</span>\
+    <span class="k">assert</span> <span class="n">prep_func</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prep_func</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">FunctionType</span><span class="p">),</span> \
         <span class="s2">&quot;prep_func must be function type but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">prep_func</span><span class="p">)</span>
-    <span class="c1">#Applies prep_func if it does exists</span>
+    <span class="c1"># Applies prep_func if it does exists</span>
     <span class="n">f_ret</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">prep_func</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">if</span> <span class="n">prep_func</span> <span class="o">!=</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">x</span>
-    
+
     <span class="n">ish5</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">f_ret</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
     <span class="k">elif</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ish5</span><span class="p">):</span>
-        <span class="n">h5_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ish5</span> <span class="k">else</span> <span class="n">data</span>
+        <span class="n">f_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ish5</span> <span class="k">else</span> <span class="n">data</span><span class="o">.</span><span class="n">filename</span>
+        <span class="n">h5_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">f_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ish5</span> <span class="k">else</span> <span class="n">data</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">data_key</span> <span class="ow">in</span> <span class="n">data_keys</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="c1">#Get Recursively keys are list</span>
-                <span class="n">ret</span> <span class="o">=</span> <span class="n">retrieve_data</span><span class="p">(</span><span class="n">h5_file</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_key</span><span class="p">,</span> <span class="n">assert_list</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="p">)</span>
+                <span class="c1"># Get Recursively keys are list</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">retrieve_data</span><span class="p">(</span><span class="n">h5_file</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_key</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="n">just_length</span><span class="p">,</span> <span class="n">assert_list</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1">#Grab directly from the HDF5 store</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">h5_file</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span>
+                <span class="c1"># Grab directly from the HDF5 store</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">h5_file</span><span class="p">[</span><span class="n">data_key</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No such key </span><span class="si">%r</span><span class="s2"> in H5 store </span><span class="si">%r</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_key</span><span class="p">,</span> <span class="n">f_path</span><span class="p">))</span>
+                <span class="n">dataset</span> <span class="o">=</span> <span class="n">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">just_length</span><span class="p">):</span>
-                    <span class="n">nxt</span> <span class="o">=</span> <span class="n">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+                    <span class="n">nxt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">nxt</span> <span class="o">=</span> <span class="n">load_hdf5_dataset</span><span class="p">(</span><span class="n">data</span><span class="p">)[:]</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">assert_list</span><span class="p">):</span>
-                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nxt</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nxt</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">nxt</span><span class="p">])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nxt</span><span class="p">)</span>
+                    <span class="n">nxt</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">[:]</span>
+                <span class="n">nxt</span> <span class="o">=</span> <span class="p">[</span><span class="n">nxt</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">assert_list</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nxt</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="k">else</span> <span class="n">nxt</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nxt</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">f_ret</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">f_ret</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<span class="c1"># ---------------------------------------------------------------------</span>
 
 
 <span class="c1"># --------------------------SIZE UTILS-------------------------------</span>
@@ -206,6 +212,8 @@
 
 <span class="c1"># -------------------------------------------------------------</span>
 
+<span class="c1">#-----------------------------GENERATOR------------------------</span>
+
 <span class="k">def</span> <span class="nf">_size_set</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;A helper method that makes a set of the number of samples in a tree grabbed data</span>
 <span class="sd">        if all is well the set should only have one element (i.e. all of the datasets </span>
@@ -241,20 +249,435 @@
         <span class="n">lst</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)):</span> <span class="n">lst</span> <span class="o">=</span> <span class="p">[</span><span class="n">lst</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">d</span><span class="p">))):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;list element expected path or DataProcedure but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">d</span><span class="p">)))</span> <span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)):</span>
+                <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;No such file </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;List elements should be existing file path or DataProcedure but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+            
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">elmt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">retrieve_data</span><span class="p">(</span><span class="n">elmt</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span> <span class="n">prep_func</span><span class="o">=</span><span class="n">prep_func</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-            <span class="c1"># print(out[0][0].shape,out[0][1].shape,out[1][0].shape)</span>
-            <span class="n">tot_set</span> <span class="o">=</span> <span class="n">_size_set</span><span class="p">(</span>
-                <span class="n">out</span><span class="p">)</span>  <span class="c1"># set([x[0].shape[0] if not isinstance(x,list) else x[0][0].shape[0] for x in out])</span>
-            <span class="n">tot</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tot_set</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">tot_set</span> <span class="o">=</span> <span class="n">_size_set</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tot_set</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;datasets (i.e Particle,Labels,HLF) to not have same number of elements&quot;</span>
+            <span class="n">tot</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tot_set</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tot</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
                 <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">tot</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
-                <span class="k">yield</span> <span class="nb">tuple</span><span class="p">([[</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">X</span><span class="p">]</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">out</span><span class="p">])</span></div>
+                <span class="c1"># yield tuple([[x[start:end] for x in X] for X in out])</span>
+                <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">restructure</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">out</span><span class="p">)],</span> <span class="n">data_keys</span><span class="p">))</span></div>
+                
+<span class="c1">#--------------------------------------------------------------</span>
+
+
+<span class="c1">#-----------------------------Iterator------------------------</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+
+    <span class="n">getNumParams</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">signature</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">getargspec</span>
+
+    <span class="n">getNumParams</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">getargspec</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">seqtypes</span><span class="o">=</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+    <span class="sd">&#39;&#39;&#39;Flattens an arbitrary nesting of lists&#39;&#39;&#39;</span>
+    <span class="n">items</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">items</span><span class="p">):</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">seqtypes</span><span class="p">):</span>
+            <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">items</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">items</span></div>
+
+
+<div class="viewcode-block" id="restructure"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.restructure">[docs]</a><span class="k">def</span> <span class="nf">restructure</span><span class="p">(</span><span class="n">flattened</span><span class="p">,</span> <span class="n">data_keys</span><span class="p">,</span> <span class="n">seqtypes</span><span class="o">=</span><span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+    <span class="sd">&#39;&#39;&#39;Structures a flattened list into the structure of data_keys&#39;&#39;&#39;</span>
+    <span class="c1"># print(flattened,data_keys)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_keys</span><span class="p">,</span> <span class="n">seqtypes</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">flattened</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flattened</span><span class="p">,</span> <span class="n">seqtypes</span><span class="p">)</span> <span class="k">else</span> <span class="n">flattened</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data_keys</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">key</span><span class="p">))</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">seqtypes</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">restructure</span><span class="p">(</span><span class="n">flattened</span><span class="p">[</span><span class="n">pos</span><span class="p">:</span><span class="n">pos</span> <span class="o">+</span> <span class="n">k</span><span class="p">],</span> <span class="n">key</span><span class="p">))</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="n">k</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="DataIterator"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.DataIterator">[docs]</a><span class="k">class</span> <span class="nc">DataIterator</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;A tool for retrieving inputs, labels,prediction values and functions of data.</span>
+<span class="sd">        Unlike gen_from_data aggregates data from multiple files together into a single list. </span>
+
+<span class="sd">        :param data: A generator, list of DataProcedures and/or file paths, or a directory path in which to find the data</span>
+<span class="sd">        :type data: lst or str</span>
+<span class="sd">        :param num_samples: If using a generator, must specify now many samples to read</span>
+<span class="sd">        :type num_samples: uint</span>
+<span class="sd">        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator</span>
+<span class="sd">        :type data_keys: list of str</span>
+<span class="sd">        :param input_key: The key in the source hdf5 store that corresponds to the input data</span>
+<span class="sd">        :type input_keys: str</span>
+<span class="sd">        :param label_key: The key in the source hdf5 store that corresponds to the label data</span>
+<span class="sd">        :type label_keys: str</span>
+<span class="sd">        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator</span>
+<span class="sd">            the output of the accumilate function will follow any specified data_key data in the output</span>
+<span class="sd">        :type accumilate: function</span>
+<span class="sd">        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary</span>
+<span class="sd">        :type source_data_keys: list of str</span>
+<span class="sd">        :param prediction_model: A compiled model from which to get the predictions. If specified then predictions are returned</span>
+<span class="sd">        :type prediction_model: Model</span>
+<span class="sd">        :Output format: (data_keys outputs...,acummilate, predictions)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">input_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">],</span> <span class="n">label_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">],</span> <span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">source_data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">num_samples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">=</span> <span class="n">accumilate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">=</span> <span class="n">prediction_model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span> <span class="o">=</span> <span class="n">data_keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_keys</span> <span class="o">=</span> <span class="n">input_keys</span> <span class="c1">#if isinstance(input_keys, list) else [input_keys]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_keys</span> <span class="o">=</span> <span class="n">label_keys</span> <span class="c1">#if isinstance(input_keys, list) else [input_keys]</span>
+
+        <span class="c1"># Make sure the data is some kind of list </span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">))</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">))):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/*.h5&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">]</span>
+
+        <span class="c1"># Resolve source_data_keys</span>
+        <span class="c1"># if (isinstance(data[0], DataProcedure)):</span>
+        <span class="c1">#     if (source_data_keys == None): source_data_keys = data[0].data_keys</span>
+        <span class="c1"># if (source_data_keys == None): source_data_keys = [self.input_keys , self.label_keys ]</span>
+
+        <span class="c1"># Resolve the full set of data that needs to be read</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">=</span> <span class="n">getNumParams</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_required</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">&gt;</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span><span class="p">[:]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_required</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_keys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_keys</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_keys</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y_required</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_keys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_keys</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_keys</span><span class="p">)</span>
+
+        <span class="c1"># self.subset_ind = [source_data_keys.index(key)</span>
+        <span class="c1">#                    for key in self.union_keys]</span>
+
+        <span class="c1"># Peek at the first part of the data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">string_types</span><span class="p">)):</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_data</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># If it is a generator undo the peeking with chain</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">first_data</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">GeneratorType</span><span class="p">)):</span>
+            <span class="n">peek</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">first_data</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="n">peek</span><span class="p">],</span> <span class="n">first_data</span><span class="p">)</span>
+            <span class="n">first_data</span> <span class="o">=</span> <span class="n">peek</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_data</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;source_data_keys </span><span class="si">%r</span><span class="s2"> do not match data size of </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                             <span class="p">(</span><span class="n">source_data_keys</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">first_data</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_retrieve_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Just a helper method for error better error handling retrieve_data.&#39;&#39;&#39;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">retrieve_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot; If these key names are unfamiliar please try setting &quot;</span> <span class="o">+</span>
+                                                         <span class="s2">&quot;input_keys=, label_keys= in the calling method. (e.g. input_keys=[[&#39;ECAL&#39;, &#39;HCAL&#39;]] )&quot;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="DataIterator.length"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.DataIterator.length">[docs]</a>    <span class="k">def</span> <span class="nf">length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Finds the length of the iterator if taken as a single list&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="n">lengths</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">,</span> <span class="n">just_length</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">))</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Collection lengths mismatch </span><span class="si">%r</span><span class="s2">, with lengths </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                                               <span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">),</span> <span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">))</span>
+                <span class="n">num_samples</span> <span class="o">+=</span> <span class="n">lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">=</span> <span class="n">num_samples</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span></div>
+
+    <span class="k">def</span> <span class="nf">_assert_raw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Makes sure that the data is raw and not a string or DataProcdedure&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">DataProcedure</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_retrieve_data</span><span class="p">(</span><span class="n">d</span><span class="p">,</span>
+                                    <span class="n">data_keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>  <span class="c1"># d.get_data(data_keys=self.union_keys,verbose=verbose)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     d = tuple([d[x] for x in self.subset_ind])</span>
+        <span class="k">return</span> <span class="n">d</span>
+
+<div class="viewcode-block" id="DataIterator.as_list"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.DataIterator.as_list">[docs]</a>    <span class="k">def</span> <span class="nf">as_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the data as a list of lists/numpy arrays&#39;&#39;&#39;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">flat_union_keys</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>
+        <span class="n">samples_outs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="p">)</span>
+
+        <span class="c1"># Just make sure that self.num_samples is resolved</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">()</span>
+
+        <span class="n">acc_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">pred_out</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Loop through the data, compute predictions and accum and put it in a list</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span><span class="p">):</span>
+                <span class="k">break</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assert_raw</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="n">flat_out</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="n">flat_out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">Z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span> <span class="n">Z</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span> <span class="n">Z</span> <span class="o">=</span> <span class="p">[</span><span class="n">Z</span><span class="p">]</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_index</span><span class="p">):</span> <span class="n">X</span> <span class="o">=</span> <span class="n">Z</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_index</span><span class="p">):</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">Z</span>
+
+                <span class="n">flat_Z</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span>
+                                       <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_Z</span><span class="p">))]</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flat_Z</span><span class="p">):</span>
+                    <span class="n">Zj_out</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+                        <span class="n">Zj_out</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prediction_model</span><span class="o">.</span><span class="n">predict_on_batch</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+                    <span class="n">pred_out</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_params</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">accumilate</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="p">):</span>
+                    <span class="n">acc_out</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">acc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">pos</span> <span class="o">+=</span> <span class="n">L</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_keys</span><span class="p">:</span>
+            <span class="n">Z_out</span> <span class="o">=</span> <span class="n">samples_outs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">union_keys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">key</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Z_out</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">zo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Z_out</span><span class="p">):</span>
+                    <span class="n">Z_out</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zo</span><span class="p">)</span>
+                <span class="n">Z_out</span> <span class="o">=</span> <span class="n">restructure</span><span class="p">(</span><span class="n">Z_out</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                <span class="c1"># Z_out = Z_out if isinstance(Z_out, list) else [Z_out]</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Z_out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">pred_out</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pred_out</span><span class="p">))</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">acc_out</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">acc_out</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="DataIterator.next"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.DataIterator.next">[docs]</a>    <span class="k">def</span> <span class="nf">next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to actually make this an iterator&quot;</span><span class="p">)</span></div>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    def _listNext():</span>
+<span class="sd">        for p in self.proc:</span>
+<span class="sd">            X,Y = p.getData()</span>
+<span class="sd">            pred = self.prediction_model.predict_on_batch(X) if self.prediction_model != None else None</span>
+<span class="sd">            acc = self.accumilate(X) if self.accumilate != None else None</span>
+<span class="sd">            for  in</span>
+<span class="sd">                yield next(self.proc)</span>
+<span class="sd">        return StopIteration()</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to actually make this an iterator&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="TrialIterator"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.TrialIterator">[docs]</a><span class="k">class</span> <span class="nc">TrialIterator</span><span class="p">(</span><span class="n">DataIterator</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A tool for retrieving inputs, labels,prediction values and functions of data from a KerasTrial instance</span>
+
+<span class="sd">        :param trial: A KerasTrial from which the model, and data can be assumed</span>
+<span class="sd">        :type trial: KerasTrial</span>
+<span class="sd">        :param data_type: &#39;val&#39; or &#39;train&#39;</span>
+<span class="sd">        :type data_type: str</span>
+<span class="sd">        :param data_keys: Which keys to grab from the data_store, these will be the first outputs of the iterator</span>
+<span class="sd">        :type data_keys: list of str</span>
+<span class="sd">        :param input_key: The key in the source hdf5 store that corresponds to the input data</span>
+<span class="sd">        :type input_key: str</span>
+<span class="sd">        :param label_key: The key in the source hdf5 store that corresponds to the label data</span>
+<span class="sd">        :type label_key: str</span>
+<span class="sd">        :param accumilate: An accumilator function built from CMS_Deep_Learning.postprocessing.metrics.build_accumilator</span>
+<span class="sd">            the output of the accumilate function will follow any specified data_key data in the output</span>
+<span class="sd">        :type accumilate: function</span>
+<span class="sd">        :param source_data_keys: Specifies the keys of the source hdf5 store... sometimes necessary</span>
+<span class="sd">        :type source_data_keys: list of str</span>
+<span class="sd">        :param return_prediction: Whether or not to return predictions</span>
+<span class="sd">        :type return_prediction: bool</span>
+<span class="sd">        :Output format: (data_keys outputs...,acummilate, predictions)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trial</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="s2">&quot;val&quot;</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">input_keys</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="n">label_keys</span><span class="o">=</span><span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="n">accumilate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">source_data_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_prediction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;val&quot;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_val</span><span class="p">()</span>
+            <span class="n">num_samples</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">nb_val_samples</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">data_type</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">get_train</span><span class="p">()</span>
+            <span class="n">num_samples</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">samples_per_epoch</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data_type must be either val or train but got </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">data_type</span><span class="p">)</span>
+
+        <span class="c1"># print(data, trial.get_val(), trial.get_train)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">return_prediction</span><span class="p">):</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">trial</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loadweights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
+        <span class="n">DataIterator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">num_samples</span><span class="p">,</span> <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span>
+                              <span class="n">input_keys</span><span class="o">=</span><span class="n">input_keys</span><span class="p">,</span> <span class="n">label_keys</span><span class="o">=</span><span class="n">label_keys</span><span class="p">,</span> <span class="n">source_data_keys</span><span class="o">=</span><span class="n">source_data_keys</span><span class="p">,</span>
+                              <span class="n">accumilate</span><span class="o">=</span><span class="n">accumilate</span><span class="p">,</span> <span class="n">prediction_model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span></div>
+
+<span class="c1">#--------------------------------------------------------------------</span>
+
+<span class="c1">#--------------------------------SIMPLE GRAB-----------------------------------</span>
+
+<span class="n">REQ_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;predictions&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">]],</span>
+            <span class="s2">&quot;characteristics&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">,</span> <span class="s1">&#39;accumilate&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;accumilate&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;accumilate&#39;</span><span class="p">]],</span>
+            <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]],</span>
+            <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]],</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">]],</span>
+            <span class="s2">&quot;num_samples&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s1">&#39;trial&#39;</span><span class="p">]]}</span>
+<span class="n">ITERATOR_REQS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;num_samples&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">assertModel</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s1">&#39;categorical_crossentropy&#39;</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;rmsprop&#39;</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="sd">&#39;&#39;&#39;Asserts that the inputs create a valid keras model and returns that model</span>
+
+<span class="sd">        :param model: a keras Model or the path to a model .json</span>
+<span class="sd">        :type model: str or Model</span>
+<span class="sd">        :param weights: the model weights or path to the stored weights</span>
+<span class="sd">        :type weights: str or weights</span>
+<span class="sd">        :param loss: the loss function to compile the model with</span>
+<span class="sd">        :type loss: str</span>
+<span class="sd">        :param : the optimizer to compile the model with</span>
+<span class="sd">        :type optimizer: str</span>
+<span class="sd">        :param custom_objects: a dictionary of user defined classes</span>
+<span class="sd">        :type custom_objects: dict of classes</span>
+<span class="sd">        :returns: A compiled model</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+    <span class="kn">from</span> <span class="nn">keras.engine.training</span> <span class="k">import</span> <span class="n">Model</span>
+    <span class="kn">from</span> <span class="nn">keras.models</span> <span class="k">import</span> <span class="n">model_from_json</span>
+    <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+    <span class="sd">&#39;&#39;&#39;Takes a model and weights, path and weights, json_sting and weights, or compiled model</span>
+<span class="sd">        and outputs a compiled model&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">loss</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">loss</span> <span class="o">=</span> <span class="s1">&#39;categorical_crossentropy&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">optimizer</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span> <span class="n">optimizer</span> <span class="o">=</span> <span class="s1">&#39;rmsprop&#39;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">model</span><span class="p">)):</span>
+            <span class="n">model_str</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_str</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_from_json</span><span class="p">(</span><span class="n">model_str</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
+    <span class="c1"># If not compiled</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;test_function&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot compile without weights&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">weights</span><span class="p">)):</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span> <span class="nf">assertType</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Asserts that x is of type t and raises an error if not&#39;&#39;&#39;</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">),</span> <span class="s2">&quot;expected </span><span class="si">%r</span><span class="s2"> but got type </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_checkAndAssert</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">data_to_check</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A helper function for simple_grab that checks and asserts the correct data types&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;model&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">assertModel</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">],</span>
+                                         <span class="n">weights</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;weights&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                         <span class="n">loss</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                         <span class="n">optimizer</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                         <span class="n">custom_objects</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;custom_objects&#39;</span><span class="p">,</span> <span class="p">{})</span>
+                                         <span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;trial&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span> <span class="n">assertType</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;trial&#39;</span><span class="p">],</span> <span class="n">KerasTrial</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;X&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span> <span class="n">assertType</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;Y&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span> <span class="n">assertType</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;predictions&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span> <span class="n">assertType</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;predictions&#39;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;num_samples&quot;</span> <span class="ow">in</span> <span class="n">data_to_check</span><span class="p">):</span> <span class="n">assertType</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;num_samples&#39;</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_dict</span>
+
+
+<span class="k">def</span> <span class="nf">_call_iters</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">to_return</span><span class="p">,</span> <span class="n">sat_dict</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;A helper function for simple_grab that calls the DataIterators if necessary&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">to_return</span><span class="p">),</span> <span class="nb">set</span><span class="p">(</span><span class="n">ITERATOR_REQS</span><span class="p">)))</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">to_get</span> <span class="o">=</span> <span class="p">[</span><span class="n">req</span> <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">to_return</span> <span class="k">if</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">ITERATOR_REQS</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">req</span> <span class="o">==</span> <span class="n">sat_dict</span><span class="p">[</span><span class="n">req</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">to_get</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">data_keys</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;X&#39;</span> <span class="ow">in</span> <span class="n">to_get</span><span class="p">):</span> <span class="n">data_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_keys&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Y&#39;</span> <span class="ow">in</span> <span class="n">to_get</span><span class="p">):</span> <span class="n">data_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label_keys&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">))</span>
+            <span class="n">accumilate</span> <span class="o">=</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;accumilate&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># if(&#39;accumilate&#39; in to_get) else None</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sat_dict</span><span class="p">[</span><span class="n">to_get</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;trial&#39;</span><span class="p">):</span>
+                <span class="n">dItr</span> <span class="o">=</span> <span class="n">TrialIterator</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s1">&#39;trial&#39;</span><span class="p">],</span>
+                                     <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span>
+                                     <span class="n">input_keys</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_keys&#39;</span><span class="p">,</span><span class="s1">&#39;X&#39;</span><span class="p">),</span>
+                                     <span class="n">label_keys</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label_keys&#39;</span><span class="p">,</span><span class="s1">&#39;Y&#39;</span><span class="p">),</span>
+                                     <span class="n">return_prediction</span><span class="o">=</span><span class="s1">&#39;predictions&#39;</span> <span class="ow">in</span> <span class="n">to_get</span><span class="p">,</span>
+                                     <span class="n">accumilate</span><span class="o">=</span><span class="n">accumilate</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">dItr</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dItr</span> <span class="o">=</span> <span class="n">DataIterator</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                    <span class="n">data_keys</span><span class="o">=</span><span class="n">data_keys</span><span class="p">,</span>
+                                    <span class="n">num_samples</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_samples&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                    <span class="n">input_keys</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_keys&#39;</span><span class="p">,</span> <span class="s1">&#39;X&#39;</span><span class="p">),</span>
+                                    <span class="n">label_keys</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;label_keys&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">),</span>
+                                    <span class="n">prediction_model</span><span class="o">=</span><span class="n">data_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                                    <span class="n">accumilate</span><span class="o">=</span><span class="n">accumilate</span><span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">dItr</span><span class="o">.</span><span class="n">as_list</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">to_get</span><span class="p">):</span>
+                <span class="n">data_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data_dict</span>
+
+
+<div class="viewcode-block" id="simple_grab"><a class="viewcode-back" href="../../io.html#CMS_Deep_Learning.io.simple_grab">[docs]</a><span class="k">def</span> <span class="nf">simple_grab</span><span class="p">(</span><span class="n">to_return</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Returns the data requested in to_return given that the data can be found/derived from the given inputs.</span>
+<span class="sd">        for example one can derive predictions from a model path, weights path, and X (input data).</span>
+<span class="sd">         Input information includes [&#39;trial&#39;, &#39;model,&#39;data,&#39;X&#39;,&#39;Y&#39;, accumilate,&#39;predictions&#39;, &#39;characteristics&#39;, &#39;X&#39;, &#39;Y&#39;, &#39;model&#39;, &#39;num_samples&#39;].</span>
+<span class="sd">         outputs include [&#39;predictions&#39;,&#39;characteristics&#39;, &#39;X&#39;, &#39;Y&#39;, &#39;model&#39;, &#39;num_samples&#39;].</span>
+
+
+
+<span class="sd">        :param to_return: A set of requirements, options: predictions,X,Y,model,num_samples</span>
+<span class="sd">        :returns: the data requested in to_return&#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">kargs</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="n">data_dict</span> <span class="o">=</span> <span class="n">kargs</span>
+    <span class="n">data_to_check</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="n">sat_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">to_return</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">REQ_DICT</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Requirement </span><span class="si">%r</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">req</span><span class="p">)</span>
+        <span class="n">satisfiers</span> <span class="o">=</span> <span class="n">REQ_DICT</span><span class="p">[</span><span class="n">req</span><span class="p">]</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="p">[</span><span class="ow">not</span> <span class="kc">False</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x</span> <span class="ow">in</span> <span class="n">data_dict</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sat</span><span class="p">]</span> \
+              <span class="k">for</span> <span class="n">sat</span> <span class="ow">in</span> <span class="n">satisfiers</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">data_dict</span> <span class="ow">and</span> <span class="ow">not</span> <span class="kc">True</span> <span class="ow">in</span> <span class="n">ok</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;To handle requirement </span><span class="si">%r</span><span class="s1"> need (</span><span class="si">%s</span><span class="s1">) or </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> \
+                             <span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">req</span><span class="p">,</span> <span class="s1">&#39; or &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;(&#39;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">satisfiers</span><span class="p">])))</span>
+        <span class="n">satisfier</span> <span class="o">=</span> <span class="n">req</span> <span class="k">if</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">data_dict</span> <span class="k">else</span> <span class="n">satisfiers</span><span class="p">[</span><span class="n">ok</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">True</span><span class="p">)]</span>
+        <span class="n">sat_dict</span><span class="p">[</span><span class="n">req</span><span class="p">]</span> <span class="o">=</span> <span class="n">satisfier</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">satisfier</span><span class="p">:</span>
+            <span class="n">data_to_check</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="n">_checkAndAssert</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">data_to_check</span><span class="p">)</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="n">_call_iters</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">to_return</span><span class="p">,</span> <span class="n">sat_dict</span><span class="p">)</span>
+    <span class="c1"># out = []</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">data_dict</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">to_return</span><span class="p">])</span></div>
 </pre></div>
 
           </div>

@@ -68,10 +68,7 @@
           <div class="body" role="main">
             
   <h1>Source code for CMS_Deep_Learning.postprocessing.metrics</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.input_handler</span> <span class="k">import</span> <span class="n">inputHandler</span>
-
-<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.archiving</span> <span class="k">import</span> <span class="n">DataProcedure</span><span class="p">,</span> <span class="n">KerasTrial</span>
-<span class="kn">from</span> <span class="nn">CMS_Deep_Learning.storage.iterators</span> <span class="k">import</span> <span class="n">TrialIterator</span><span class="p">,</span> <span class="n">DataIterator</span>
+<span></span><span class="kn">from</span> <span class="nn">CMS_Deep_Learning.io</span> <span class="k">import</span> <span class="n">simple_grab</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -173,8 +170,7 @@
     <span class="n">inp</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="s1">&#39;accumilate&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">inputHandler</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">])</span>
-        <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">y_vals</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">characteristics</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">,</span> <span class="s1">&#39;characteristics&#39;</span><span class="p">],</span><span class="n">data_dict</span><span class="o">=</span><span class="n">inp</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Need to write code for getting characteristics strait from EventChars collection&quot;</span><span class="p">)</span>
 
@@ -331,8 +327,7 @@
         <span class="n">fpr</span><span class="p">,</span> <span class="n">tpr</span><span class="p">,</span> <span class="n">thres</span><span class="p">,</span> <span class="n">roc_auc</span> <span class="o">=</span> <span class="n">inp</span><span class="p">[</span><span class="s2">&quot;ROC_data&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">roc_curve</span><span class="p">,</span> <span class="n">auc</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">inputHandler</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">])</span>
-        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">h</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+        <span class="n">labels</span><span class="p">,</span> <span class="n">predictions</span> <span class="o">=</span> <span class="n">simple_grab</span><span class="p">([</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;predictions&#39;</span><span class="p">],</span><span class="n">data_dict</span><span class="o">=</span><span class="n">inp</span><span class="p">)</span>
         <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">true_class_index</span> <span class="o">=</span> <span class="n">kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;true_class_index&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
