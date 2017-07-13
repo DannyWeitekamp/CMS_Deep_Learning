@@ -319,6 +319,7 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
+            print(data[0],self.union_keys)
             out = self._retrieve_data(data[0], self.union_keys)
             print(repr_structure(out))
             first_data = assert_list(out)
