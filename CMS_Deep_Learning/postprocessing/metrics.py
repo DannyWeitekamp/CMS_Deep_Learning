@@ -1,4 +1,5 @@
 from CMS_Deep_Learning.io import simple_grab
+from CMS_Deep_Learning.preprocessing.pandas_to_numpy import PARTICLE_OBSERVS
 import numpy as np
 
 
@@ -6,13 +7,7 @@ def build_accumulator(char,
                       observ,
                       objects,
                       char2=None,
-                      observable_ordering=['E/c', 'Px', 'Py', 'Pz', 'PT_ET', 'Eta', 'Phi',
-                                           "MaxLepDeltaEta", "MaxLepDeltaPhi", 'MaxLepDeltaR', 'MaxLepKt',
-                                           'MaxLepAntiKt',
-                                           "METDeltaEta", "METDeltaPhi", 'METDeltaR', 'METKt', 'METAntiKt',
-                                           'Charge', 'X', 'Y', 'Z',
-                                           'Dxy', 'Ehad', 'Eem', 'MuIso', 'EleIso', 'ChHadIso', 'NeuHadIso', 'GammaIso',
-                                           "ObjFt1", "ObjFt2", "ObjFt3"],
+                      observable_ordering=PARTICLE_OBSERVS,
                       object_ordering=["EFlowPhoton", "EFlowNeutralHadron", "EFlowTrack", "Electron", "MuonTight",
                                        "MissingET"]):
     ''' Builds an accumulator function, a functional of some list of numpy inputs, that can be used to compute
