@@ -203,6 +203,16 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
 #--------------------------------------------------------------
 
 #---------------------UTILS-------------------------------
+def repr_structure(x):
+    if isinstance(x,list):
+        return "[" + ",".join([repr_structure(y) for y in x]) + "]"
+    elif isinstance(x,tuple):
+        return "(" + ",".join([repr_structure(y) for y in x]) + ")"
+    elif(isinstance(x,np.ndarray)):
+        return "<" + str(X.shape) + ">"
+    else:
+        return str(x)
+
 def assert_list(x,seqtypes=(list, tuple)):
     return x if isinstance(x,seqtypes) else [x]
 
@@ -309,7 +319,9 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
-            first_data = self._retrieve_data(data[0], self.union_keys)
+            out = self._retrieve_data(data[0], self.union_keys)
+            print(repr_structure(out))
+            first_data = assert_list(out)
         else:
             first_data = data[0]
 
