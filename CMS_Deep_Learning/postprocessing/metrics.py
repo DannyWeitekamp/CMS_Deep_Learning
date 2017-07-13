@@ -253,7 +253,6 @@ def get_roc_data(**kargs):
     else:
         from sklearn.metrics import roc_curve, auc
         labels, predictions = simple_grab(['Y', 'predictions'],**inp)
-        labels = labels[0]
         true_class_index = kargs.get("true_class_index", None)
 
         assert labels.shape == predictions.shape, "labels and predictions should have \
