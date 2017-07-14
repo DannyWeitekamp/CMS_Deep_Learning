@@ -56,12 +56,12 @@ def build_accumulator(char,
     return accum
 
 
-def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50,equalBins=False,):
+def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
     '''Takes a numpy array of sample characteristics with shape (N,1) and 
         distributes the elements of some other (N,...) like arrays that correspond
         to the same samples into a list of numpy arrays of shape (d_i,...) where d_i
         corresponds the the size of the i_th bin in the output list.
-        
+
         :param bin_by: numpy array of sample characteristics with shape (N,1)
         :type bin_by: numpy.array
         :param to_distribute: A list of numpy arrays with shape shape (N,...)
@@ -71,7 +71,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50,equalBins=False,):
         :param equalBins: Whether force the binning to put the number of
                     samples in each bin.
         :type equalBins: bool
-        
+
         :returns: tuple (split_vals, ...) 
             WHERE
             **split_vals** A list of the values at which the bins were split including 
@@ -82,7 +82,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50,equalBins=False,):
 
     sorted_indicies = np.argsort(bin_by)
     sorted_chars = bin_by[sorted_indicies]
-    
+
     min_char = sorted_chars[0]
     max_char = sorted_chars[sorted_chars.shape[0] - 1]
     if (not equalBins):
@@ -92,19 +92,20 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50,equalBins=False,):
     else:
         stride = sorted_chars.shape[0] / float(nb_bins)
         split_at = [int(stride * float(i + 1)) for i in range(nb_bins - 1)]
-        split_vals = [sorted_chars[0]] + [sorted_chars[i] for i in split_at] + [sorted_chars[-1]] 
+        split_vals = [sorted_chars[0]] + [sorted_chars[i] for i in split_at] + [sorted_chars[-1]]
 
     to_distribute = [x[sorted_indicies] for x in to_distribute]
-    return tuple([split_vals] + [np.split(x,split_at) for x in to_distribute])
+    return tuple([[min_char] + split_vals + [max_char]] + [np.split(x, split_at) for x in to_distribute])
+
 
 def prediction_statistics(target, predictions, true_class_index, threshold=-1):
     '''Returns a dictionary containing a wide variety of statistics about a set of predictions and targets.'''
     from sklearn.metrics import confusion_matrix
-    
-    p,y = predictions,target
+
+    p, y = predictions, target
 
     if (threshold == -1): threshold = 1.0 / max(y.shape[-1], 2)
-    
+
     b = {}
     argmax_p = np.argmax(p, axis=-1)
     argmax_y = np.argmax(y, axis=-1)
@@ -140,16 +141,14 @@ def prediction_statistics(target, predictions, true_class_index, threshold=-1):
     b["fn"] = np.sum(fn_list)
     pos_pop = max(b["tp"] + b["fn"], 1)
     neg_pop = max(b["tn"] + b["fp"], 1)
+    nb_pred_pos = max(b["fp"] + b["tp"], 1)
     b["tpr"] = float(b["tp"]) / pos_pop
     b["fpr"] = float(b["fp"]) / neg_pop
-    b["ppv"] = float(b["tp"]) / max(b["fp"] + b["tp"], 1)
+    b["ppv"] = float(b["tp"]) / nb_pred_pos
     b["acc"] = np.mean(tf_list)
-    b["acc_std"] = np.std(tf_list)
-    b["tpr_std"] = np.std(tp_list)
-    b["fpr_std"] = np.std(fp_list)
-    b["acc_error"] = b["acc_std"] / np.sqrt(num)
-    b["tpr_error"] = b["tpr_std"] / np.sqrt(pos_pop)
-    b["fpr_error"] = b["fpr_std"] / np.sqrt(neg_pop)
+    b["acc_error"] = np.sqrt(b['acc'] * (1.0 - b['acc']) / num)
+    b["tpr_error"] = np.sqrt(b['tpr'] * (1.0 - b['tpr']) / pos_pop)
+    b["fpr_error"] = np.sqrt(b['fpr'] * (1.0 - b['fpr']) / neg_pop)
     unique, counts = np.unique(cont_list, return_counts=True)
     cont_classes_d = dict(zip(unique, counts))
     cont_classes_d = {indx: cont_classes_d.get(indx, 0)
@@ -160,9 +159,13 @@ def prediction_statistics(target, predictions, true_class_index, threshold=-1):
     b["norm_cont_split"] = {key: float(val) / freq_dict[key] if freq_dict[key] != 0 else 0
                             for key, val in cont_classes_d.items() if
                             key != true_class_index}
-    
+    b["norm_cont_split_error"] = {key: np.sqrt(val * (1.0 - val) / freq_dict[key])
+    if freq_dict[key] > 0.0 else 0.0
+                                  for key, val in b["norm_cont_split"].items()}
+
     b["num_samples"] = num
     return b
+
 
 def bin_metric_vs_char(args=[],
                        nb_bins=20,
@@ -183,7 +186,7 @@ def bin_metric_vs_char(args=[],
         :param true_class_index: The index in the output vector corresponding to the True class element.All other classes are collectively the False class.
         :type true_class_index: int
         :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**, **characteristics**
-        
+
         :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_Deep_Learning.postprocessing.plot.plot_bins
             '''
 
@@ -195,11 +198,11 @@ def bin_metric_vs_char(args=[],
     inp = inputs[0]
 
     if (inp['accumulate'] != None):
-        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],**inp)
+        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'], **inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
-    
-    if(isinstance(y_vals,(list,tuple))):
+
+    if (isinstance(y_vals, (list, tuple))):
         raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
 
     true_class_index = inp.get('true_class_index', -1)
@@ -209,18 +212,15 @@ def bin_metric_vs_char(args=[],
     elif (true_class_index == -1):
         raise ValueError("Must provide a true_class_index.")
 
-    split_vals, y_bins, predict_bins = distribute_to_bins(characteristics,(y_vals,predictions))
+    split_vals, y_bins, predict_bins = distribute_to_bins(characteristics, (y_vals, predictions))
 
     out_bins = []
     prevmax = split_vals[0]
     max_char = split_vals[-1]
     for i, (p, y) in enumerate(zip(predict_bins, y_bins)):
-        b = prediction_statistics(target=y, predictions=p, true_class_index=true_class_index,threshold=threshold)
+        b = prediction_statistics(target=y, predictions=p, true_class_index=true_class_index, threshold=threshold)
         b["min_bin_x"] = prevmax
-        if (i == len(predict_bins) - 1):
-            b["max_bin_x"] = max_char
-        else:
-            b["max_bin_x"] = prevmax = split_vals[i+1]#split_at[i]]
+        b["max_bin_x"] = prevmax = split_vals[i + 1] 
         out_bins.append(b)
 
     return out_bins
