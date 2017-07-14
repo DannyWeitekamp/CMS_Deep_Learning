@@ -472,9 +472,9 @@ def plot_bins(bins,
         ys = [b[y_val] for b in bs if (b["num_samples"] >= min_samples)]
         errors = None if not (y_val + "_error") in bs[0] \
             else [b[y_val + "_error"] for b in bs if (b["num_samples"] >= min_samples)]
-
         ys = _expand_multi_vals(ys, binlabel, class_labels, normalize)
-        # errors = _expand_multi_vals(errors,binlabel,class_labels)
+        if errors != None:
+            errors = _expand_multi_vals(errors,binlabel,class_labels)
         items = ys.items()
         if (mode == 'bar' or mode == 'histo'): items = sorted(items, key=lambda x: -np.average(x[1]))
         for j, (label, y) in enumerate(items):
@@ -496,7 +496,7 @@ def plot_bins(bins,
             else:
                 s = shapes[i % len(colors)]
                 ax.plot(xs, y, color=colors[j % len(colors)], label=label, marker=s, linestyle='None')
-                ax.errorbar(xs, y, yerr=errors, color=colors[j % len(colors)], ecolor=colors[j % len(colors)],
+                ax.errorbar(xs, y, yerr=errors[label], color=colors[j % len(colors)], ecolor=colors[j % len(colors)],
                             alpha=alpha, fmt='',
                             linestyle='None')
                 if (log): ax.set_yscale("log")
