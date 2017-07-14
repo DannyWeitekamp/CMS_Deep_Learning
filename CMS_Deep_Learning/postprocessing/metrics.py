@@ -216,7 +216,6 @@ def bin_metric_vs_char(args=[],
 
     out_bins = []
     prevmax = split_vals[0]
-    max_char = split_vals[-1]
     for i, (p, y) in enumerate(zip(predict_bins, y_bins)):
         b = prediction_statistics(target=y, predictions=p, true_class_index=true_class_index, threshold=threshold)
         b["min_bin_x"] = prevmax
@@ -226,38 +225,66 @@ def bin_metric_vs_char(args=[],
     return out_bins
 
 
-def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
+def get_roc_points(tpr=[], fpr=[], thresh=[], class_labels=None, suppress_warnings=False, verbose=0, **kargs):
     '''Finds the tpr,fpr, and threshold holding one of them constant.
-    
-        :param args: a list of kargs dictionaries for trials to evaluate
+
         :param tpr: a list of true positive rates to hold constant
         :param fpr: a list of false positive rates to hold constant
         :param thresh: a list of thesholds to hold constant
         :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,
                     and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
-        
+
         :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials
-        '''
-    if(len(args) == 0): args = [kargs]
-    out = []
-    for inp in args:
-        roc_data = get_roc_data(**inp)
-        #print(roc_dict)
-        _fpr, _tpr, _thresh,auc = roc_data
-        indicies = []
-        for y in fpr:
-            index, elmt = min(enumerate(_fpr), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        for y in tpr:
-            index, elmt = min(enumerate(_tpr), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        for y in thresh:
-            index, elmt = min(enumerate(_thresh), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        fpr,tpr,thresh = [None]*len(indicies),[None]*len(indicies),[None]*len(indicies)
-        for i,indx in enumerate(indicies):
-            fpr[i],tpr[i],thresh[i] = _fpr[indx], _tpr[indx], _thresh[indx]
-        out.append({"tpr": tpr, "fpr":fpr, "thresh": thresh})
+    '''
+    # --------------------- Grabbing Data -------------------------
+    try:
+        kargs["Y"], kargs["predictions"] = simple_grab(['Y', 'predictions'], **kargs)
+    except Exception as e:
+        if (verbose > 0): print(e)
+    roc_data = get_roc_data(**kargs)
+    _fpr, _tpr, _thresh, auc = roc_data
+
+    # ------------------------------------------------------------
+
+    # ------------------------Find the closest points-------------------
+    def indxClosest(target, lst):
+        index, elmt = min(enumerate(lst), key=lambda x: abs(x[1] - target))
+        return index
+
+    indicies = []
+    indicies += [indxClosest(y, _fpr) for y in fpr]
+    indicies += [indxClosest(y, _tpr) for y in tpr]
+    indicies += [indxClosest(y, _thresh) for y in thresh]
+
+    fpr, tpr, thresh = [None] * len(indicies), [None] * len(indicies), [None] * len(indicies)
+    for i, indx in enumerate(indicies):
+        fpr[i], tpr[i], thresh[i] = _fpr[indx], _tpr[indx], _thresh[indx]
+    tpr, fpr, thresh = zip(*sorted(zip(tpr, fpr, thresh), key=lambda x: x[0]))
+    out = {"tpr": tpr, "fpr": fpr, "thresh": thresh}
+
+    # -----------------------------------------------------------------
+
+
+    # --------------------Decompose contamination by class---------------------
+    print("Y" in kargs, "predictions" in kargs, "true_class_index" in kargs)
+    if ("Y" in kargs and "predictions" in kargs and "true_class_index" in kargs):
+        for thr in thresh:
+            stats = prediction_statistics(kargs['Y'], kargs['predictions'],
+                                          true_class_index=kargs['true_class_index'],
+                                          threshold=thr)
+            class_fpr = stats['norm_cont_split']
+            for j in range(kargs['Y'].shape[-1]):
+                if (j != kargs['true_class_index']):
+                    label = class_labels[j] if class_labels != None else str(j)
+                    label = "fpr:" + label
+                    out[label] = out.get(label, []) + [class_fpr[j]]
+    elif (not suppress_warnings):
+        import warnings
+        warnings.warn("Cannot compute CLASS CONTAMINATIONS unless user inputs necessary data " + \
+                      "for computing Y and predictions, in addition to true_class_index")
+    # -------------------------------------------------------------------
+
+
     return out
 
 
