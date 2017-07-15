@@ -39,7 +39,8 @@ def build_LSTM_model(name, input_width,out_width, depth, lstm_activation="tanh",
                  dropout_W=lstm_dropout,
                  dropout_U=lstm_dropout,
                  activation=lstm_activation,
-		 kernel_regularizer=regularizers.l1(l1_reg),
+                 #implementation=2,
+		 W_regularizer=regularizers.l1(l1_reg),
                  name = "gru_" +str(i))(a)
         if(dropout > 0.0):
             a =  Dropout(dropout, name="dropout_"+str(i))(a)
@@ -199,7 +200,7 @@ def trials_from_HPsweep(archive_dir,
                         else activation.__name__
                     for lstm_dropout in [0.0]:
                         swit = int(sys.argv[5])
-                        l1_sets = [[0.01,0.025],[0.05,0.75],[0.1,0.25]]
+                        l1_sets = [[0.01,0.025],[0.05,0.075],[0.1,0.25]]
                         for l1_reg in l1_sets[swit]:
                             dropout = 0.0
                             for ntf in n_train_files:
