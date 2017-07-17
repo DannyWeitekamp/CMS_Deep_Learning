@@ -31,12 +31,12 @@ class Ptr_Layer(Layer):
         super(Ptr_Layer, self).__init__(**kwargs)
 
     def build(self, input_shape):
-        assert len(input_shape) == 3
+        assert len(input_shape) >= 2
 
         self.W1 = self.add_weight((self.attention_width ,input_shape[1][-1]),
                                  initializer=self.init,
                                  name='{}_W1'.format(self.name))
-        self.W2 = self.add_weight((self.attention_width ,input_shape[2][-1]),
+        self.W2 = self.add_weight((self.attention_width ,input_shape[2][-1] if len(input_shape) > 2 else input_shape[1][-1]),
                                   initializer=self.init,
                                   name='{}_W2'.format(self.name))
 
@@ -56,9 +56,13 @@ class Ptr_Layer(Layer):
         return None
 
     def call(self, X, mask=None):
-        assert isinstance(X,list) and len(X) ==3, "Bad input expecting list of input,encoder,decoder"
+        assert isinstance(X,list) and len(X) >= 2, "Bad input expecting list of input,encoder,decoder"
         
-        x,e,d = X
+        if(len(X) == 3):
+            x,e,d = X
+        elif(len(X) == 2):
+            x,e = X
+            d = e
         
         n = e.shape[1]
         # n = theano.printing.Print('n')(n)
