@@ -227,7 +227,7 @@ def trials_from_HPsweep(archive_dir,
                                          nb_epoch=100,
                                          batch_size=batch_size,
                                          callbacks=[earlyStopping],
-                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg',
+                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','recurrent_width',
                                                          'activation', 'dropout', 'lstm_dropout',
                                                          'patience', "n_train_files"],
                                          sort_on=sort_on,
@@ -235,7 +235,7 @@ def trials_from_HPsweep(archive_dir,
                                          activation=activation,
                                          labels=labels,
                                          n_train_files=40,#ntf,
-                                         l1_reg=l1_reg,
+                                         
                                          patience=patience
                                          )
                                     model = build_LSTM_model(**inps)
