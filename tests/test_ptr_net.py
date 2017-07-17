@@ -19,8 +19,8 @@ def test_works():
     # s = Slice('[-1,:]')(e)
     # s = theano.printing.Print("s")(s)
     # r = RepeatVector(3)(s)
-    d = GRU(100,return_sequences=True)(e)
-    p  = Ptr_Layer(10)([x,e,d])
+    # d = GRU(100,return_sequences=True)(e)
+    p  = Ptr_Layer(10)([x,e])
     
     model = Model(input=x, output=p, name='test')
     
