@@ -648,7 +648,7 @@ def simple_grab(to_return, **kargs):
               for sat in satisfiers]
         if (not req in data_dict and not True in ok):
             raise ValueError('To handle requirement %r need (%s) or %s' % \
-                             (req, req, ' or '.join(['(' + ",".join(x+"=?") + ')' for x in satisfiers])))
+                             (req, req, ' or '.join(['(' + ",".join(x) + ')' for x in satisfiers])))
         satisfier = req if req in data_dict else satisfiers[ok.index(True)]
         sat_dict[req] = satisfier
         for x in satisfier:
