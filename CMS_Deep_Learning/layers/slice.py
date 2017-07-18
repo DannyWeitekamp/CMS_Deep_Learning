@@ -45,9 +45,13 @@ class Slice(Layer):
         l = list(input_shape)
         for i in range(1,len(input_shape)):
             splits = self.splits[i-1]
-            start,end,step = 
-            if(end == None): end = input_shape[i]
-            l[i] = max((end-start),1) // step
+            if(isinstance(splits,tuple)):
+                start,end,step = splits
+                if(end == None): end = input_shape[i]
+                l[i] = max((end-start),1) // step
+            else:
+                l[i] = 'remove'
+        l = [x for x in l if not x == 'remove']
         # return (input_shape[0], self.output_dim)
         # return (input_shape[0], input_shape[1], self.stop-self.start)
         return tuple(l)
