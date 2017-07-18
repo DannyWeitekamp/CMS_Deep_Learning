@@ -81,7 +81,7 @@ class Ptr_Layer(Layer):
 
         E = K.repeat_elements(K.expand_dims(K.dot(e, self.W1.T),dim=1), n, axis=1)
 
-        # E = theano.printing.Print('E', attrs=['shape'])(E)
+        # E = theano.printing.Print('E')(E)
         
         D = K.repeat_elements(K.expand_dims(K.dot(d,self.W2.T), dim=1), n, axis=1)
         
@@ -89,7 +89,7 @@ class Ptr_Layer(Layer):
 
         D_T = K.permute_dimensions(D,(0,2,1,3))
 
-        # D_T = theano.printing.Print('D_T', attrs=['shape'])(D_T)
+        # D_T = theano.printing.Print('D_T')(D_T)
         # self.v = theano.printing.Print('v', attrs=['shape'])(self.v)
         
         # moop = K.tanh(E + D_T)
