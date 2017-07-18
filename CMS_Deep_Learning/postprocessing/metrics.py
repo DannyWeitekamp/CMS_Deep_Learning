@@ -56,6 +56,117 @@ def build_accumulator(char,
     return accum
 
 
+def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
+    '''Takes a numpy array of sample characteristics with shape (N,1) and 
+        distributes the elements of some other (N,...) like arrays that correspond
+        to the same samples into a list of numpy arrays of shape (d_i,...) where d_i
+        corresponds the the size of the i_th bin in the output list.
+
+        :param bin_by: numpy array of sample characteristics with shape (N,1)
+        :type bin_by: numpy.array
+        :param to_distribute: A list of numpy arrays with shape shape (N,...)
+        :type to_distribute: list of numpy.array
+        :param nb_bins: the number of bins to split into
+        :type nb_bins: int
+        :param equalBins: Whether force the binning to put the number of
+                    samples in each bin.
+        :type equalBins: bool
+
+        :returns: tuple (split_vals, ...) 
+            WHERE
+            **split_vals** A list of the values at which the bins were split including 
+                the minimum of the first bin, and the maximum of the last bin.
+            **..** arrays given in **to_distribute** split into a list of numpy arrays
+                each corresponding to a bin.
+        '''
+
+    sorted_indicies = np.argsort(bin_by)
+    sorted_chars = bin_by[sorted_indicies]
+
+    min_char = sorted_chars[0]
+    max_char = sorted_chars[sorted_chars.shape[0] - 1]
+    if (not equalBins):
+        stride = (max_char - min_char) / nb_bins
+        split_vals = [min_char + stride * (i + 1) for i in range(nb_bins - 1)]
+        split_at = sorted_chars.searchsorted(split_vals)
+    else:
+        stride = sorted_chars.shape[0] / float(nb_bins)
+        split_at = [int(stride * float(i + 1)) for i in range(nb_bins - 1)]
+        split_vals = [sorted_chars[0]] + [sorted_chars[i] for i in split_at] + [sorted_chars[-1]]
+
+    to_distribute = [x[sorted_indicies] for x in to_distribute]
+    return tuple([[min_char] + split_vals + [max_char]] + [np.split(x, split_at) for x in to_distribute])
+
+
+def prediction_statistics(target, predictions, true_class_index, threshold=-1):
+    '''Returns a dictionary containing a wide variety of statistics about a set of predictions and targets.'''
+    from sklearn.metrics import confusion_matrix
+
+    p, y = predictions, target
+
+    if (threshold == -1): threshold = 1.0 / max(y.shape[-1], 2)
+
+    b = {}
+    argmax_p = np.argmax(p, axis=-1)
+    argmax_y = np.argmax(y, axis=-1)
+
+    # The indicies corresponding to the 'positive' and 'negative' classes
+    PosClassPop_indicies = [j for j, v in enumerate(argmax_y == true_class_index) if v]
+    NegClassPop_indicies = [j for j, v in enumerate(argmax_y != true_class_index) if v]
+
+    # True-pos,False-pos,True-neg,False-neg
+    tp_list = (p[:, true_class_index] >= threshold)[PosClassPop_indicies].astype("int")
+    fp_list = (p[:, true_class_index] >= threshold)[NegClassPop_indicies].astype("int")
+    tn_list = (p[:, true_class_index] < threshold)[NegClassPop_indicies].astype("int")
+    fn_list = (p[:, true_class_index] < threshold)[PosClassPop_indicies].astype("int")
+
+    # Contamination of 'positive' predictions with 'negative' classes
+    cont_list = (argmax_y)[np.where(p[:, true_class_index] >= threshold)]
+
+    # Counts of each class in the bin
+    freq_dict = {x: np.sum(argmax_y == x) for x in range(y.shape[-1])}
+
+    # True/False (i.e correct=1 incorrect=0)
+    tf_list = np.equal(argmax_p, argmax_y).astype("float64")
+    num = tf_list.shape[0]
+
+    # Confusion matrix for this class C_ij = 
+    # http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
+    b['confusion'] = confusion_matrix(argmax_y, argmax_p)
+    b['norm_confusion'] = b['confusion'].astype('float') / b['confusion'].sum(axis=1)[:, np.newaxis]
+
+    b["tp"] = np.sum(tp_list)
+    b["fp"] = np.sum(fp_list)
+    b["tn"] = np.sum(tn_list)
+    b["fn"] = np.sum(fn_list)
+    pos_pop = max(b["tp"] + b["fn"], 1)
+    neg_pop = max(b["tn"] + b["fp"], 1)
+    nb_pred_pos = max(b["fp"] + b["tp"], 1)
+    b["tpr"] = float(b["tp"]) / pos_pop
+    b["fpr"] = float(b["fp"]) / neg_pop
+    b["ppv"] = float(b["tp"]) / nb_pred_pos
+    b["acc"] = np.mean(tf_list)
+    b["acc_error"] = np.sqrt(b['acc'] * (1.0 - b['acc']) / num)
+    b["tpr_error"] = np.sqrt(b['tpr'] * (1.0 - b['tpr']) / pos_pop)
+    b["fpr_error"] = np.sqrt(b['fpr'] * (1.0 - b['fpr']) / neg_pop)
+    unique, counts = np.unique(cont_list, return_counts=True)
+    cont_classes_d = dict(zip(unique, counts))
+    cont_classes_d = {indx: cont_classes_d.get(indx, 0)
+                      for indx in range(y.shape[-1]) if indx != true_class_index}
+    b["freq"] = freq_dict
+    b["cont_split"] = {key: float(val) for key, val in cont_classes_d.items() if
+                       key != true_class_index}
+    b["norm_cont_split"] = {key: float(val) / freq_dict[key] if freq_dict[key] != 0 else 0
+                            for key, val in cont_classes_d.items() if
+                            key != true_class_index}
+    b["norm_cont_split_error"] = {key: np.sqrt(val * (1.0 - val) / freq_dict[key])
+    if freq_dict[key] > 0.0 else 0.0
+                                  for key, val in b["norm_cont_split"].items()}
+
+    b["num_samples"] = num
+    return b
+
+
 def bin_metric_vs_char(args=[],
                        nb_bins=20,
                        equalBins=False,
@@ -75,158 +186,105 @@ def bin_metric_vs_char(args=[],
         :param true_class_index: The index in the output vector corresponding to the True class element.All other classes are collectively the False class.
         :type true_class_index: int
         :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**, **characteristics**
-        
-        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_SURF_2016
+
+        :returns: A list of dictionaries each containing information about a bin. The output of this can be plotted with CMS_Deep_Learning.postprocessing.plot.plot_bins
             '''
 
-    from sklearn.metrics import confusion_matrix
     inputs = args
     if (len(args) == 0):
         inputs = [kargs]
     else:
         raise NotImplementedError("Have not written to take multiple inputs")
-
     inp = inputs[0]
 
     if (inp['accumulate'] != None):
-        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'],**inp)
+        y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'], **inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
-    
-    if(isinstance(y_vals,(list,tuple))):
+
+    if (isinstance(y_vals, (list, tuple))):
         raise ValueError("Error multiple outputs is ambiguous, got %r outputs" % len(y_vals))
 
     true_class_index = inp.get('true_class_index', -1)
+    threshold = inp.get('threshold', -1)
     if (len(y_vals.shape) == 1 or y_vals.shape[-1] == 1):
         true_class_index = 0
     elif (true_class_index == -1):
         raise ValueError("Must provide a true_class_index.")
 
-    sorted_indicies = np.argsort(characteristics)
-
-    characteristics = characteristics[sorted_indicies]
-    predictions = predictions[sorted_indicies]
-    y_vals = y_vals[sorted_indicies]
-
-    min_char = characteristics[0]
-    max_char = characteristics[characteristics.shape[0] - 1]
-    if (not equalBins):
-        stride = (max_char - min_char) / nb_bins
-        split_vals = [min_char + stride * (i + 1) for i in range(nb_bins - 1)]
-        split_at = characteristics.searchsorted(split_vals)
-    else:
-        stride = characteristics.shape[0] / float(nb_bins)
-        split_at = [int(stride * float(i + 1)) for i in range(nb_bins - 1)]
-
-    predict_bins = np.split(predictions, split_at)
-    y_bins = np.split(y_vals, split_at)
-
-    threshold = inp.get('threshold', -1)
-    if (threshold == -1): threshold = 1.0 / max(y_vals.shape[-1], 2)
+    split_vals, y_bins, predict_bins = distribute_to_bins(characteristics, (y_vals, predictions))
 
     out_bins = []
-    prevmax = min_char
+    prevmax = split_vals[0]
     for i, (p, y) in enumerate(zip(predict_bins, y_bins)):
-        b = {}
-        argmax_p = np.argmax(p, axis=-1)
-        argmax_y = np.argmax(y, axis=-1)
-
-        # The indicies corresponding to the 'positive' and 'negative' classes
-        PosClassPop_indicies = [j for j, v in enumerate(argmax_y == true_class_index) if v]
-        NegClassPop_indicies = [j for j, v in enumerate(argmax_y != true_class_index) if v]
-
-        # True-pos,False-pos,True-neg,False-neg
-        tp_list = (p[:, true_class_index] >= threshold)[PosClassPop_indicies].astype("int")
-        fp_list = (p[:, true_class_index] >= threshold)[NegClassPop_indicies].astype("int")
-        tn_list = (p[:, true_class_index] < threshold)[NegClassPop_indicies].astype("int")
-        fn_list = (p[:, true_class_index] < threshold)[PosClassPop_indicies].astype("int")
-
-        # Contamination of 'positive' predictions with 'negative' classes
-        cont_list = (argmax_y)[np.where(p[:, true_class_index] >= threshold)]
-
-        # Counts of each class in the bin
-        freq_dict = {x: np.sum(argmax_y == x) for x in range(y_vals.shape[-1])}
-
-        # True/False (i.e correct=1 incorrect=0)
-        tf_list = np.equal(argmax_p, argmax_y).astype("float64")
-        num = tf_list.shape[0]
-
-        # Confusion matrix for this class C_ij = 
-        # http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
-        b['confusion'] = confusion_matrix(argmax_y, argmax_p)
-        b['norm_confusion'] = b['confusion'].astype('float') / b['confusion'].sum(axis=1)[:, np.newaxis]
-
-        b["tp"] = np.sum(tp_list)
-        b["fp"] = np.sum(fp_list)
-        b["tn"] = np.sum(tn_list)
-        b["fn"] = np.sum(fn_list)
-        pos_pop = max(b["tp"] + b["fn"], 1)
-        neg_pop = max(b["tn"] + b["fp"], 1)
-        b["tpr"] = float(b["tp"]) / pos_pop
-        b["fpr"] = float(b["fp"]) / neg_pop
-        b["ppv"] = float(b["tp"]) / max(b["fp"] + b["tp"], 1)
-        b["acc"] = np.mean(tf_list)
-        b["acc_std"] = np.std(tf_list)
-        b["tpr_std"] = np.std(tp_list)
-        b["fpr_std"] = np.std(fp_list)
-        b["acc_error"] = b["acc_std"] / np.sqrt(num)
-        b["tpr_error"] = b["tpr_std"] / np.sqrt(pos_pop)
-        b["fpr_error"] = b["fpr_std"] / np.sqrt(neg_pop)
-        unique, counts = np.unique(cont_list, return_counts=True)
-        cont_classes_d = dict(zip(unique, counts))
-        cont_classes_d = {indx: cont_classes_d.get(indx, 0)
-                          for indx in range(y_vals.shape[-1]) if indx != true_class_index}
-        b["freq"] = freq_dict
-        b["cont_split"] = {key: float(val) for key, val in cont_classes_d.items() if
-                           key != true_class_index}
-        b["norm_cont_split"] = {key: float(val) / freq_dict[key] if freq_dict[key] != 0 else 0
-                                for key, val in cont_classes_d.items() if
-                                key != true_class_index}
-        # print(b["cont_classes"])
-
-        b["num_samples"] = num
+        b = prediction_statistics(target=y, predictions=p, true_class_index=true_class_index, threshold=threshold)
         b["min_bin_x"] = prevmax
-        if (i == len(predict_bins) - 1):
-            b["max_bin_x"] = max_char
-        else:
-            b["max_bin_x"] = prevmax = characteristics[split_at[i]]
+        b["max_bin_x"] = prevmax = split_vals[i + 1] 
         out_bins.append(b)
 
     return out_bins
 
 
-def get_roc_points(args=[],tpr=[],fpr=[],thresh=[],**kargs):
+def get_roc_points(tpr=[], fpr=[], thresh=[], class_labels=None, suppress_warnings=False, verbose=0, **kargs):
     '''Finds the tpr,fpr, and threshold holding one of them constant.
-    
-        :param args: a list of kargs dictionaries for trials to evaluate
+
         :param tpr: a list of true positive rates to hold constant
         :param fpr: a list of false positive rates to hold constant
         :param thresh: a list of thesholds to hold constant
         :param *: Any argument available to :py:func:`CMS_Deep_Learning.postprocessing.metrics.get_roc_data` to get **ROC_data**,
                     and by extension any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
-        
+
         :returns: a list of lists of tuples correspondind to the ROC points evaluated for the different trials
-        '''
-    if(len(args) == 0): args = [kargs]
-    out = []
-    for inp in args:
-        roc_data = get_roc_data(**inp)
-        #print(roc_dict)
-        _fpr, _tpr, _thresh,auc = roc_data
-        indicies = []
-        for y in fpr:
-            index, elmt = min(enumerate(_fpr), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        for y in tpr:
-            index, elmt = min(enumerate(_tpr), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        for y in thresh:
-            index, elmt = min(enumerate(_thresh), key=lambda x:abs(x[1]-y))
-            indicies.append(index)
-        fpr,tpr,thresh = [None]*len(indicies),[None]*len(indicies),[None]*len(indicies)
-        for i,indx in enumerate(indicies):
-            fpr[i],tpr[i],thresh[i] = _fpr[indx], _tpr[indx], _thresh[indx]
-        out.append({"tpr": tpr, "fpr":fpr, "thresh": thresh})
+    '''
+    # --------------------- Grabbing Data -------------------------
+    try:
+        kargs["Y"], kargs["predictions"] = simple_grab(['Y', 'predictions'], **kargs)
+    except Exception as e:
+        if (verbose > 0): print(e)
+    roc_data = get_roc_data(**kargs)
+    _fpr, _tpr, _thresh, auc = roc_data
+
+    # ------------------------------------------------------------
+
+    # ------------------------Find the closest points-------------------
+    def indxClosest(target, lst):
+        index, elmt = min(enumerate(lst), key=lambda x: abs(x[1] - target))
+        return index
+
+    indicies = []
+    indicies += [indxClosest(y, _fpr) for y in fpr]
+    indicies += [indxClosest(y, _tpr) for y in tpr]
+    indicies += [indxClosest(y, _thresh) for y in thresh]
+
+    fpr, tpr, thresh = [None] * len(indicies), [None] * len(indicies), [None] * len(indicies)
+    for i, indx in enumerate(indicies):
+        fpr[i], tpr[i], thresh[i] = _fpr[indx], _tpr[indx], _thresh[indx]
+    tpr, fpr, thresh = zip(*sorted(zip(tpr, fpr, thresh), key=lambda x: x[0]))
+    out = {"tpr": tpr, "fpr": fpr, "thresh": thresh}
+
+    # -----------------------------------------------------------------
+
+
+    # --------------------Decompose contamination by class---------------------
+    print("Y" in kargs, "predictions" in kargs, "true_class_index" in kargs)
+    if ("Y" in kargs and "predictions" in kargs and "true_class_index" in kargs):
+        for thr in thresh:
+            stats = prediction_statistics(kargs['Y'], kargs['predictions'],
+                                          true_class_index=kargs['true_class_index'],
+                                          threshold=thr)
+            class_fpr = stats['norm_cont_split']
+            for j in range(kargs['Y'].shape[-1]):
+                if (j != kargs['true_class_index']):
+                    label = class_labels[j] if class_labels != None else str(j)
+                    label = "fpr:" + label
+                    out[label] = out.get(label, []) + [class_fpr[j]]
+    elif (not suppress_warnings):
+        import warnings
+        warnings.warn("Cannot compute CLASS CONTAMINATIONS unless user inputs necessary data " + \
+                      "for computing Y and predictions, in addition to true_class_index")
+    # -------------------------------------------------------------------
+
+
     return out
 
 
@@ -236,15 +294,7 @@ def get_roc_data(**kargs):
         
         :param ROC_data: a tuple (fpr, tpr,thres,roc_auc) containing the roc parametrization and the auc
         :param *: Any argument available to :py:func:`CMS_Deep_Learning.io.simple_grab` to get **Y**, **predictions**
-        '''
-        # :param trial: a KerasTrial instance from which the model/predictions and validation set will be inferred
-        # :param Y: The data labels numpy.ndarray
-        # :param predictions: the predictions numpy.ndarray
-        # :param model: a compiled model, uncompiled model or path to model json. For the latter options
-        #               weights=? must be given.
-        # :param weights: the model weights, or a path to the weights
-        # :param custom_objects: A dictionary of classes used inside a keras model that have been made by the user
-        
+        '''        
     inp = kargs
     if ("ROC_data" in inp):
         fpr, tpr, thres, roc_auc = inp["ROC_data"]
