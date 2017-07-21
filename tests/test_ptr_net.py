@@ -16,6 +16,8 @@ import theano
 from keras.engine.topology import Layer,initializations,Merge
 from keras import backend as K
 from keras import optimizers
+from keras.regularizers import Regularizer
+
 # from keras import losses
 
 

@@ -1,6 +1,6 @@
-from keras.engine.topology import Layer,initializations
-from keras import backend as K
-import theano
+from keras.engine.topology import Layer, initializations
+from keras import backend as K  
+ 
 
 def softmax(x, axis=-1):
     """Softmax activation function.
@@ -13,167 +13,150 @@ def softmax(x, axis=-1):
         ValueError: In case `dim(x) == 1`.
     """
     ndim = K.ndim(x)
-    if ndim == 2:
-        return K.softmax(x)
-    elif ndim > 2:
+    # if ndim == 2:
+    #    return K.softmax(x)
+    if ndim >= 2:
         e = K.exp(x - K.max(x, axis=axis, keepdims=True))
         s = K.sum(e, axis=axis, keepdims=True)
         return e / s
     else:
         raise ValueError('Cannot apply softmax to a tensor that is 1D')
 
-# def softmax(x_):
-#     maxes = K.max(x_, axis=0, keepdims=True)
-#     e = K.exp(x_ - maxes)
-#     dist = e / K.sum(e, axis=0)
-#     return dist
+
+def giniSparsity(softmax_matrix, sparsity_coeff=.025):
+    return sparsity_coeff * K.sum(K.sum(K.sum(softmax_matrix * (1.0 - softmax_matrix)))) / K.prod(
+        K.cast((K.shape(softmax_matrix)), 'float32'))
+
+
+# K.eval(giniSparsity(.002*np.random.random((100,100,100))) ) 
 
 class Ptr_Layer(Layer):
-    def __init__(self, attention_width,**kwargs):
+    def __init__(self, attention_width, implementation='custom', seq_len=None, sparsity_coeff=1000.0, **kwargs):
+
         self.supports_masking = True
         self.init = initializations.get('glorot_uniform')
         self.attention_width = attention_width
+        self.sparsity_coeff = sparsity_coeff
+        self.implementation = implementation
+        self.seq_len = seq_len
         super(Ptr_Layer, self).__init__(**kwargs)
 
     def build(self, input_shape):
         assert len(input_shape) >= 2
-        # self.attention_width = input_shape[1][-1]
-        self.W1 = self.add_weight((self.attention_width ,input_shape[1][-1]),
-                                 initializer=self.init,
-                                 name='{}_W1'.format(self.name))
-        self.W2 = self.add_weight((self.attention_width ,input_shape[2][-1] if len(input_shape) > 2 else input_shape[1][-1]),
-                                  initializer=self.init,
-                                  name='{}_W2'.format(self.name))
 
-        self.v = self.add_weight((self.attention_width,),
+        if (self.implementation == 'custom'):
+            assert self.attention_width == input_shape[1][-2], "attention width %r != seq size %r" % (
+            self.attention_width, input_shape[1][-2])
+
+        # self.attention_width = input_shape[1][-1]
+        self.W1 = self.add_weight((self.attention_width, input_shape[1][-1]),  # (att_dim, recurrent_dim)
                                   initializer=self.init,
-                                  name='{}_v'.format(self.name))
-        self.trainable_weights = [self.W1,self.W2]
-        # if self.bias:
-        #     self.b = self.add_weight((self.attention_width,1),
-        #                              initializer='zero',
-        #                              name='{}_b'.format(self.name))
-        # else:
-        #     self.b = None
+                                  name='{}_W1'.format(self.name))
+        self.W2 = self.add_weight(
+            (self.attention_width, input_shape[2][-1] if len(input_shape) > 2 else input_shape[1][-1]),
+            # (att_dim, recurrent_dim)
+            initializer=self.init,
+            name='{}_W2'.format(self.name))
+        if (self.implementation != 'custom'):
+            self.v = self.add_weight((self.attention_width, 1),
+                                     initializer=self.init,
+                                     name='{}_v'.format(self.name))
 
     def compute_mask(self, input, input_mask=None):
         # do not pass the mask to the next layers
         return None
 
     def call(self, X, mask=None):
-        assert isinstance(X,list) and len(X) >= 2, "Bad input expecting list of input,encoder,decoder"
-        
-        if(len(X) == 3):
-            x,e,d = X
-        elif(len(X) == 2):
-            x,e = X
-            d = e
-        # e = x
-        n = e.shape[1]
+        assert isinstance(X, list) and len(X) >= 2, "Bad input expecting list of input,encoder,decoder"
+
+        if (len(X) == 3):
+            x_T, e_T, d_T = X
+        elif (len(X) == 2):
+            x_T, e_T = X
+            d_T = e_T
+        # (batch_size ,sequence_len, feature_dim) -> (batch_size ,feature_dim,sequence_len)
+        x = K.permute_dimensions(x_T, (0, 2, 1))
+        # print("SHAPE!!!!", K.eval(x.shape))
+        # x_T = theano.printing.Print('x_T',attrs=['shape'])(x_T)
+        if (K.backend() == "tensorflow"):
+            assert self.seq_len != None, 'Must set Ptr_Layer(seq_len=?) if using Tensorflow'
+            seq_len = self.seq_len
+        else:
+            seq_len = K.shape(e_T)[1]
         # Shape key:
-        # x:  #(batch_size ,sequence_len, feature_dim)
-        # e:  #(batch_size ,sequence_len, recurrent_dim)
-        # d:  #(batch_size ,sequence_len, recurrent_dim)
+        # x_T:  #(batch_size ,sequence_len, feature_dim)
+        # e_T:  #(batch_size ,sequence_len, recurrent_dim)
+        # d_T:  #(batch_size ,sequence_len, recurrent_dim)
 
+        # (batch_size ,sequence_len, recurrent_dim) * (recurrent_dim,att_dim) -> #(batch_size ,sequence_len,att_dim)
+        _e_T, _d_T = K.dot(e_T, K.transpose(self.W1)), K.dot(d_T, K.transpose(
+            self.W2))  # (batch_size ,sequence_len, att_dim)
+        _e, _d = K.permute_dimensions(_e_T, (0, 2, 1)), K.permute_dimensions(_d_T, (
+        0, 2, 1))  # (batch_size ,att_dim, sequence_len)
 
-        # 
-        # def _ptr_probs(e,d):
-        #     # xemb = p[x_, tensor.arange(n_samples), :]  # n_samples * dim_proj
-        #     # h, c = _lstm(xm_, xemb, h_, c_, 'lstm_de')
-        #     e = theano.printing.Print('e', attrs=['shape'])(e)
-        #     d = theano.printing.Print('d', attrs=['shape'])(d)
-        #     n = e.shape[0]
-        #     u = K.repeat_elements(K.dot(e, self.W1),n) + K.repeat_elements(K.dot(d, self.W2),n).T  # n_steps * n_samples * dim
-        #     u = K.tanh(u)  # n_sizes * n_samples * dim_proj
-        #     u = K.dot(u, self.v)  # n_sizes * n_samples
-        #     # prob = tensor.nnet.softmax(u.T).T  # n_sizes * n_samples
-        #     u = theano.printing.Print('u', attrs=['shape'])(u)
-        #     prob = softmax(u)
-        #     prob = theano.printing.Print('prob', attrs=['shape'])(prob)
-        #     
-        #     return prob
-        # 
-        # # x = K.permute_dimensions(K.batch_dot(x,u, axes=[1,2]),(0,2,1))
-        # # d = theano.printing.Print('d', attrs=['shape'])(d)
-        # 
-        # u,_ = theano.scan(_ptr_probs,sequences=[e,d])
-        # 
-        # u = theano.printing.Print('U', attrs=['shape'])(u)
-        # 
-        # 
-        # x = x + K.sum(K.sum(K.sum(u, axis=-1))) #+ K.sum(K.sum(e, axis=-1))
-        # 
+        # _e = theano.printing.Print('_e', attrs=['shape'])(_e)
+        # _d = theano.printing.Print('_d', attrs=['shape'])(_d)
 
-        # if False:
-        # n = theano.printing.Print('n')(n)
-        # 
-        
-        
-        # x = theano.printing.Print('x', attrs=['shape'])(x) #(batch_size ,sequence_len, feature_dim)
-        # e = theano.printing.Print('e', attrs=['shape'])(e) #(batch_size ,sequence_len, recurrent_dim)
-        # d = theano.printing.Print('d', attrs=['shape'])(d) #(batch_size ,sequence_len, recurrent_dim)
-        
-        # Stack v.T into an (n,d) matrix
-        # v_stacked = K.repeat_elements(self.v.T, n, axis=0)
-        # E = 
+        def Tmap(fn, arrays, dtype='float32'):
+            # assumes all arrays have same leading dim
+            indices = K.range(K.shape(arrays[0])[0])
+            out = K.map_fn(lambda ii: fn(*[array[ii] for array in arrays]), indices, dtype=dtype)
+            return out
 
-        # E = theano.printing.Print('E', attrs=['shape'])(E)
-        # E = 
-        # E = theano.printing.Print('E', attrs=['shape'])(E)
+        if (self.implementation == 'ptr_net'):
+            print("PTR_NET")
 
-        # e = theano.printing.Print('e')(e)
-        if(False):
-            dot_e, dot_d = K.dot(e, self.W1.T), K.dot(d, self.W2.T) # (batch_size ,sequence_len, recurrent_dim)
-            # dot_e = theano.printing.Print('dot_e')(dot_e)
-            # dot_d = theano.printing.Print('dot_d')(dot_d)
-            # # e = theano.printing.Print('e', attrs=['shape'])(e)  
-            E = K.repeat_elements(K.expand_dims(dot_e,dim=1), n, axis=1) # (batch_size ,sequence_len, sequence_len, recurrent_dim)
-            D = K.repeat_elements(K.expand_dims(dot_d, dim=1), n, axis=1) # (batch_size ,sequence_len, sequence_len, recurrent_dim)
-            
-            # D = theano.printing.Print('D', attrs=['shape'])(D)
-    
-            D_T = K.permute_dimensions(D,(0,2,1,3)) # (batch_size ,sequence_len, sequence_len, recurrent_dim)
-    
-            # D_T = theano.printing.Print('D_T',attrs=['shape'])(D_T) # (batch_size ,sequence_len, sequence_len, recurrent_dim) transposed
-            # self.v = theano.printing.Print('v', attrs=['shape'])(self.v)
-            
-            # moop = K.tanh(E + D_T)
-            # moop = theano.printing.Print('moop', attrs=['shape'])(moop)
-            u = K.dot(K.tanh(E + D_T),self.v) # (batch_size ,sequence_len, sequence_len)
-            # u = theano.printing.Print('U', attrs=['shape'])(u) 
-    
-            u = K.permute_dimensions(softmax(u,axis=1), (0,2,1))#softmax(u,axis=1)# 
-        u = K.tanh(K.dot(e, self.W1.T) + K.permute_dimensions(K.dot(d, self.W2.T),(0,2,1)))
-        u = K.permute_dimensions(softmax(u,axis=1), (0,2,1))
-        
-        # indicies = K.argmax(x,axis=-1)
-        # x = K.gather(x, indicies)
-        # u = theano.printing.Print('U', attrs=['shape'])(u)
-        # x = theano.printing.Print('X', attrs=['shape'])(x)
-        # u = theano.printing.Print('U')(u)
-        
+            E_T = K.repeat_elements(K.expand_dims(_e_T, dim=1), seq_len,
+                                    axis=1)  # (batch_size ,sequence_len, sequence_len, att_dim)
+            D_T = K.repeat_elements(K.expand_dims(_d_T, dim=1), seq_len,
+                                    axis=1)  # (batch_size ,sequence_len, sequence_len, att_dim)
 
-        # s = K.sum(K.sum(K.sum(d,axis=-1))) +  K.sum(K.sum(e,axis=-1))
-        # s = K.sum(K.sum(K.sum(K.sum(u,axis=-1))))#K.sum(K.sum(K.sum(K.sum(D,axis=-1)))) +  K.sum(K.sum(K.sum(E,axis=-1)))
-        
-        
-        # x = x + K.sum(K.sum(K.sum(u, axis=-1))) #+ K.sum(K.sum(e, axis=-1))#K.batch_dot(u,x, axes=[1,2])#K.permute_dimensions(K.batch_dot(x,u, axes=[1,2]),(0,2,1))
-        
-    
-            # x = theano.printing.Print('X', attrs=['shape'])(x)
-            # x = theano.printing.Print('X')(x)
-            
-            # x = x
+            D = K.permute_dimensions(D_T, (0, 2, 1, 3))  # (batch_size ,sequence_len, sequence_len, att_dim)
 
-        # x = theano.printing.Print('X_BEFORE')(x)
-        soft_sorted_x = K.batch_dot(x, u, axes=[1, 2])
-        # soft_sorted_x = theano.printing.Print('soft_sorted_x', attrs=['shape'])(soft_sorted_x)
-        
-        x = K.permute_dimensions(soft_sorted_x, (0, 2, 1))
-        # x = theano.printing.Print('X_AFTER')(x)
-        return x 
+            u = K.squeeze(K.dot(K.tanh(E_T + D), self.v), axis=-1)  # (batch_size ,sequence_len, sequence_len)
+            u = K.permute_dimensions(u, (0, 2, 1))
+            # axis=2 is row axis therefore u*x has columns that are linear combos of x
+            u = softmax(u, axis=2)  # (batch_size ,sequence_len, sequence_len) 
+        elif (self.implementation == 'ptr_net_scan'):
+            def _ptr_net_u(_e_T, _d_T):
+                __E_T = K.repeat_elements(K.expand_dims(_e_T, dim=0), seq_len,
+                                          axis=0)  # (sequence_len, sequence_len, att_dim)
+                __D_T = K.repeat_elements(K.expand_dims(_d_T, dim=0), seq_len,
+                                          axis=0)  # (sequence_len, sequence_len, att_dim)
+
+                __D = K.permute_dimensions(__D_T, (1, 0, 2))  # (sequence_len, sequence_len, att_dim)
+
+                u = K.dot(K.tanh(__E_T + __D), self.v)  # (sequence_len, sequence_len)
+                u = K.squeeze(u, axis=-1)
+                u = K.permute_dimensions(u, (1, 0))
+                u = softmax(u, axis=1)  # (sequence_len, sequence_len) 
+
+                return u
+
+            assert K.backend() == 'tensorflow', 'ptr_net_scan only works with tensorflow backend'
+            import tensorflow as tf
+            u = tf.map_fn(lambda x: _ptr_net_u(x[0], x[1]), (_e_T, _d_T), dtype=tf.float32)
+
+        elif (self.implementation == 'custom'):
+
+            # only onto if att_dim == sequence_len
+            u = _e + _d_T  ## (batch_size ,att_dim, att_dim)
+            u = softmax(u, axis=2)  ## (batch_size ,att_dim, att_dim)  
+        else:
+            raise ValueError("implementation not recognized: %r" % self.implementation)
+
+        self.add_loss(giniSparsity(u, self.sparsity_coeff))
+
+        soft_sorted_x = K.batch_dot(u, x, axes=[1, 2])
+
+        # x_T = K.permute_dimensions(soft_sorted_x, (0, 2, 1))
+        return soft_sorted_x  # +K.sum(K.sum(K.sum(u)))#+ K.sum(K.sum(K.sum(_e))) + K.sum(K.sum(K.sum(_d))) 
 
     def get_output_shape_for(self, input_shape):
         return tuple(input_shape[0])
+
+
+
+
 
 
