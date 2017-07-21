@@ -27,14 +27,14 @@ from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking,GRU
 from keras.callbacks import EarlyStopping
 from keras import regularizers
 
-def build_LSTM_model(name, input_width,out_width, depth, lstm_activation="tanh", lstm_dropout = 0.0,
+def build_LSTM_model(name, input_width,out_width, depth,recurrent_width, lstm_activation="tanh", lstm_dropout = 0.0,
                      dropout=0.0, output_activation="softmax", single_list=False, l1_reg=0.0, **kargs):
     inputs = []
     a = Input(shape=(None , input_width), name="input")
     inputs.append(a)
     for i in range(depth):
         a = Masking(mask_value=0.0)(a)
-        a = GRU(input_width,
+        a = GRU(recurrent_width,
                  input_shape=(None, input_width),
                  dropout_W=lstm_dropout,
                  dropout_U=lstm_dropout,
@@ -167,10 +167,10 @@ def trials_from_HPsweep(archive_dir,
               output_activation = "softmax",
               loss='categorical_crossentropy',
               optimizer_options = ['adam'],
-              sortings = #[("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
+              sortings = [("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
                          # ("PT_ET", False), ("PT_ET", True),
-                         [ ('MaxLepDeltaR', False), ('MaxLepDeltaR', True), ('random', False)],
-                         # ('MaxLepKt',False),('MaxLepKt',True),
+                         #[ ('MaxLepDeltaR', False), ('MaxLepDeltaR', True), ('random', False)],
+                          ('MaxLepKt',False),('MaxLepKt',True)],
                          # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
                          # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
@@ -203,7 +203,7 @@ def trials_from_HPsweep(archive_dir,
                     activation_name = activation if isinstance(activation, string_types) \
                         else activation.__name__
                     for lstm_dropout in [0.0]:
-                        swit = int(sys.argv[5])
+#                        swit = int(sys.argv[5])
                         #l1_sets = [[0.01,0.025],[0.05,0.075],[0.1,0.25]]
                         #for data_dir in data_dirs:#l1_sets[swit]
                         for l1_reg in [0.0]:#l1_sets[swit]:
@@ -222,6 +222,7 @@ def trials_from_HPsweep(archive_dir,
                                          input_width=len(PARTICLE_OBSERVS),
                                          out_width=3,
                                          depth=1,
+                                         recurrent_width=50,
                                          lstm_activation=activation,
                                          lstm_dropout=lstm_dropout,
                                          dropout=dropout,
@@ -233,7 +234,7 @@ def trials_from_HPsweep(archive_dir,
                                          nb_epoch=100,
                                          batch_size=batch_size,
                                          callbacks=[earlyStopping],
-                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg',
+                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg','recurrent_width',
                                                          'activation', 'dropout', 'lstm_dropout',
                                                          'patience', "n_train_files"],
                                          sort_on=sort_on,
