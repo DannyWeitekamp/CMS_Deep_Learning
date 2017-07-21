@@ -154,6 +154,12 @@ class Ptr_Layer(Layer):
 
     def get_output_shape_for(self, input_shape):
         return tuple(input_shape[0])
+    
+    def get_config(self):
+        base_config = Layer.get_config(self)
+        config = {'attention_width':self.attention_width, 'implementation':self.implementation, 'seq_len':self.seq_len, 'sparsity_coeff': self.sparsity_coeff}
+        return dict(list(base_config.items()) + list(config.items()))
+
 
 
 
