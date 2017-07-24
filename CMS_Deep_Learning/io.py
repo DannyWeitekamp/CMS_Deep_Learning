@@ -180,7 +180,9 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
         :returns: a generator that runs through the given data
     '''
     if (isinstance(lst, string_types) and os.path.isdir(lst)):
-        lst = glob.glob(os.path.abspath(lst) + "/*.h5")
+        path = os.path.abspath(lst) + "/*.h5"
+        lst = glob.glob(path)
+        if(len(lst) == 0): raise IOError("No .h5 files found in directory %r" % path)
     if (isinstance(lst, DataProcedure) or isinstance(lst, string_types)): lst = [lst]
     for d in lst:
         if (not (isinstance(d, DataProcedure) or (isinstance(d, string_types) and os.path.exists(d))) ):
@@ -299,7 +301,9 @@ class DataIterator:
         # Make sure the data is some kind of list 
         if (not isinstance(data, list)):
             if (os.path.exists(os.path.abspath(data)) and os.path.isdir(os.path.abspath(data))):
-                data = sorted(glob.glob(os.path.abspath(data) + "/*.h5"))
+                path = os.path.abspath(data) + "/*.h5"
+                data = sorted(glob.glob(path))
+                if (len(data) == 0): raise IOError("No .h5 files found in directory %r" % path)
             else:
                 data = [data]
 
