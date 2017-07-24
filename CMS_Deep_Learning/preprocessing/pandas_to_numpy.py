@@ -1,6 +1,7 @@
 import sys,os
 from six import string_types
 from types import NoneType
+
 if __package__ is None:
     #sys.path.append(os.path.realpath("../"))
     sys.path.append(os.path.realpath(__file__+"/../../../"))
@@ -23,6 +24,7 @@ DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS }
 
 import pandas as pd
 import numpy as np
+import numpy.ma as ma
 
 #----------------------------IO-----------------------------
 def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, observ_types=DEFAULT_OBSERVS,rows_per_event=DEFAULT_RPE):
@@ -289,17 +291,25 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
                 particles = sort_numpy(particles, sort_columns, sort_ascending, observ_types["Particles"])
                 
                 #-----------------STANDARDIZATION --------------------------------------
+                #Mask out the padding so that it is not altered during standarization
+                if(not isinstance(particle_mean,NoneType) or not isinstance(particle_std,NoneType)):
+                    mask = (particles == 0.0).all(axis=-1)
+                    mask_extended = np.expand_dims(mask, axis=-1)
+                    mask_extruded = np.repeat(mask_extended, len(PARTICLE_OBSERVS), axis=-1)
+                    particles = ma.masked_array(particles, mask=mask_extruded)
+                
+                #Apply standardization
                 if(not isinstance(particle_mean,NoneType)):
-                    particles = particles - particle_mean.reshape(1,1, len(PARTICLE_OBSERVS))
+                    particles = particles - particle_mean.reshape(1,len(PARTICLE_OBSERVS))
                 if(not isinstance(particle_std,NoneType)):
-                    particles = particles / particle_std.reshape(1,1, len(PARTICLE_OBSERVS))
+                    particles = particles / particle_std.reshape(1,len(PARTICLE_OBSERVS))
                 if (not isinstance(hlf_mean, NoneType)):
-                    hlf = hlf - hlf_mean.reshape(1, len(HLF_OBSERVS))
+                    hlf = hlf - hlf_mean
                 if (not isinstance(hlf_std, NoneType)):
-                    hlf = hlf / hlf_std.reshape(1, len(HLF_OBSERVS))
+                    hlf = hlf / hlf_std
                 #------------------------------------------------------------------------
 
-                X_train[X_train_index + s] = particles
+                X_train[X_train_index + s] = np.array(particles)
                 HLF_train[X_train_index + s] = hlf
 
             X_train_index += samples_to_read
