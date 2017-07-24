@@ -66,7 +66,8 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
         if (rpe > 1):
             n_rows, n_columns = x.shape
             x = x.reshape((n_rows / rpe, rpe, n_columns))
-            assert np.array([len(np.unique(x))==1 for x in evtIDS.reshape(n_rows / rpe, rpe,rpe)]).all(), "FAIL, reshape does not correctly group event ids"
+            print(evtIDS.shape, (n_rows / rpe, rpe,rpe))
+            assert np.array([len(np.unique(x))==1 for x in evtIDS.reshape((n_rows / rpe, rpe,rpe))]).all(), "FAIL, reshape does not correctly group event ids"
 
         values[key] = x
     store.close()
