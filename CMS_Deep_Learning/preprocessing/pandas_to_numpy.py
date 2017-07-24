@@ -66,8 +66,7 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
         if (rpe > 1):
             n_rows, n_columns = x.shape
             x = x.reshape((n_rows / rpe, rpe, n_columns))
-            print(evtIDS.shape, (n_rows / rpe, rpe))
-            assert np.array([len(np.unique(x))==1 for x in evtIDS.reshape((n_rows / rpe, rpe))]).all(), "FAIL, reshape does not correctly group event ids"
+            assert np.array([len(np.unique(y))==1 for y in evtIDS.reshape((n_rows / rpe, rpe))]).all(), "FAIL, reshape does not correctly group event ids"
 
         values[key] = x
     store.close()
@@ -454,8 +453,8 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     if(standardize):
         N_MANY_SAMPLES = 10000
         particles, _, hlf = pandas_to_numpy(sources,0,N_MANY_SAMPLES)
-        particles_flat = particles.reshape(len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS))
-        hlf_flat = particles.reshape(len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS))
+        particles_flat = particles.reshape((len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS)))
+        hlf_flat = particles.reshape((len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS)))
         particle_mean = np.mean(particles_flat)
         particles_std = np.std(particles_flat)
         hlf_mean = np.mean(hlf_flat)
