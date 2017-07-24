@@ -407,7 +407,7 @@ def check_enough_data(sources, num_samples):
 
 def make_datasets(sources, output_dir, num_samples, size=1000,
                   num_processes=1, sort_on=None, sort_ascending=False,
-                  v_split=0.0, force=False, standardize=False):
+                  v_split=0.0, force=False, standardize_particles=False, standardize_hlf=False):
     '''Creates a data set in the output_dir folder with /train and /val subdirectories
     
         :param sources: a list of source directories of pandas .h5 files. Order matters; 
@@ -429,6 +429,10 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
         :param v_split: the proportion of the total data to use for validation, 
                         or the total number of events to use (the rest goes to training)
         :type v_split: float or int
+        :param standardize_particles: If True substract particle features by mean sample
+                                mean (of large sample) and divide by std.
+        :param standardize_hlf: If True substract HLF features by mean sample
+                                mean (of large sample) and divide by std.
         
         
         
@@ -450,7 +454,8 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     if (not os.path.exists(output_dir)):
         os.mkdir(output_dir)
         
-    if(standardize):
+    if(standardize_particles or standardize_hlf):
+        print("Computing mean & std from sample:")
         N_MANY_SAMPLES = 10000
         particles, _, hlf = pandas_to_numpy(sources,0,N_MANY_SAMPLES)
         particles_flat = particles.reshape((len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS)))
@@ -482,9 +487,10 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
             kargs = {'data_dirs': sources, 'start': start, 'samples_per_class': samples_per_class,
                      'observ_types': DEFAULT_OBSERVS, 'sort_columns': [sort_on], 'sort_ascending': sort_ascending,
                      'verbose': 1}
-            if(standardize):
+            if(standardize_particles):
                 kargs['particle_mean'] = particle_mean
                 kargs['particle_std'] = particle_std
+            if(standardize_hlf):
                 kargs['hlf_mean'] = hlf_mean
                 kargs['hlf_std'] = hlf_std
                 
@@ -539,7 +545,9 @@ def main(argv):
                         help='To sort ascending')
     parser.add_argument('--sort_descending', action='store_false', default=False, dest='sort_ascending',
                         help='To sort descending')
-    parser.add_argument('--standardize', action='store_true', default=False, dest='standardize',
+    parser.add_argument('--standardize_particles', action='store_true', default=False, dest='standardize_particles',
+                        help='To standardize the data (translate by the feature mean and divide each feature by its std)')
+    parser.add_argument('--standardize_hlf', action='store_true', default=False, dest='standardize_hlf',
                         help='To standardize the data (translate by the feature mean and divide each feature by its std)')
     
     try:
@@ -547,7 +555,8 @@ def main(argv):
     except Exception:
         parser.print_usage()
     make_datasets(args.sources, args.output_dir, args.num_samples, size=args.size, num_processes=args.num_processes,
-                  sort_on=args.sort_on, sort_ascending=args.sort_ascending, v_split=args.v_split, force=args.force)
+                  sort_on=args.sort_on, sort_ascending=args.sort_ascending, v_split=args.v_split, force=args.force,
+                  standardize_particles=args.standardize_particles, standardize_hlf=args.standardize_hlf)
         
 
 if __name__ == "__main__":
