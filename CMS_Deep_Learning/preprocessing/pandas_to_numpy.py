@@ -1,5 +1,7 @@
 import sys,os
 from six import string_types
+from types import NoneType
+
 if __package__ is None:
     #sys.path.append(os.path.realpath("../"))
     sys.path.append(os.path.realpath(__file__+"/../../../"))
@@ -16,11 +18,13 @@ PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 'Charge',
                     'isChHad', 'isEle', 'isGamma', 'isMu', 'isNeuHad',
                     'vtxX', 'vtxY', 'vtxZ']
 HLF_OBSERVS = ['HT', 'MET', 'MT', 'PhiMET', 'bJets', 'nJets']
+#ROWS PER EVENT
 DEFAULT_RPE = {"Particles": 801, "HLF": 1}
 DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS }
 
 import pandas as pd
 import numpy as np
+import numpy.ma as ma
 
 #----------------------------IO-----------------------------
 def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, observ_types=DEFAULT_OBSERVS,rows_per_event=DEFAULT_RPE):
@@ -57,10 +61,12 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
 
         x = frame.values
         if (observ_types != None):
+            evtIDS = x[:,columns.index("evtID")]
             x = np.take(x, [columns.index(o) for o in observ_types[key]], axis=-1)
         if (rpe > 1):
             n_rows, n_columns = x.shape
             x = x.reshape((n_rows / rpe, rpe, n_columns))
+            assert np.array([len(np.unique(x))==1 for x in evtIDS.reshape(n_rows / rpe, rpe,rpe)]).all(), "FAIL, reshape does not correctly group event ids"
 
         values[key] = x
     store.close()
@@ -197,7 +203,7 @@ import glob
 
 
 def pandas_to_numpy(data_dirs, start, samples_per_class,
-                    observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, verbose=1):
+                    observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, particle_mean=None, particle_std=None, hlf_mean=None, hlf_std=None, verbose=1):
     '''Builds a trainable (particle level) sorted and (event level) shuffled numpy array from directories of pandas .h5 files.
     
         :param data_dirs: 
@@ -213,6 +219,10 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
         :param sort_columns: The columns to sort by, or special quantities including [MaxLepDeltaPhi,
                             MaxLepDeltaEta,MaxLepDeltaR,MaxLepKt,MaxLepAntiKt]
         :param sort_ascending: If True sort in ascending order, false decending  
+        :param particle_mean: The mean of the particle features to be used for centering the data. Default None indicates no centering
+        :param particle_std: The std of the particle features to be used for standardizing the data.Default None indicates no standardization
+        :param hlf_mean: The mean of the HLF features to be used for centering the data. Default None indicates no centering
+        :param hlf_std: The std of the HLF features to be used for standardizing the data. Default None indicates no standardization
         :returns: (X_train, Y_train, HFL_train) 
     '''
     if (isinstance(data_dirs, dict)): data_dirs = sorted(data_dirs.values(), key=lambda x: x.join(x.split("/")[::-1]))
@@ -279,8 +289,27 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
                 count += 1
                 # ------------------------------------------
                 particles = sort_numpy(particles, sort_columns, sort_ascending, observ_types["Particles"])
+                
+                #-----------------STANDARDIZATION --------------------------------------
+                #Mask out the padding so that it is not altered during standarization
+                if(not isinstance(particle_mean,NoneType) or not isinstance(particle_std,NoneType)):
+                    mask = (particles == 0.0).all(axis=-1)
+                    mask_extended = np.expand_dims(mask, axis=-1)
+                    mask_extruded = np.repeat(mask_extended, len(PARTICLE_OBSERVS), axis=-1)
+                    particles = ma.masked_array(particles, mask=mask_extruded)
+                
+                #Apply standardization
+                if(not isinstance(particle_mean,NoneType)):
+                    particles = particles - particle_mean.reshape(1,len(PARTICLE_OBSERVS))
+                if(not isinstance(particle_std,NoneType)):
+                    particles = particles / particle_std.reshape(1,len(PARTICLE_OBSERVS))
+                if (not isinstance(hlf_mean, NoneType)):
+                    hlf = hlf - hlf_mean
+                if (not isinstance(hlf_std, NoneType)):
+                    hlf = hlf / hlf_std
+                #------------------------------------------------------------------------
 
-                X_train[X_train_index + s] = particles
+                X_train[X_train_index + s] = np.array(particles)
                 HLF_train[X_train_index + s] = hlf
 
             X_train_index += samples_to_read
@@ -378,7 +407,7 @@ def check_enough_data(sources, num_samples):
 
 def make_datasets(sources, output_dir, num_samples, size=1000,
                   num_processes=1, sort_on=None, sort_ascending=False,
-                  v_split=0.0, force=False):
+                  v_split=0.0, force=False, standardize=False):
     '''Creates a data set in the output_dir folder with /train and /val subdirectories
     
         :param sources: a list of source directories of pandas .h5 files. Order matters; 
@@ -420,6 +449,18 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
 
     if (not os.path.exists(output_dir)):
         os.mkdir(output_dir)
+        
+    if(standardize):
+        N_MANY_SAMPLES = 10000
+        particles, _, hlf = pandas_to_numpy(sources,0,N_MANY_SAMPLES)
+        particles_flat = particles.reshape(len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS))
+        hlf_flat = particles.reshape(len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS))
+        particle_mean = np.mean(particles_flat)
+        particles_std = np.std(particles_flat)
+        hlf_mean = np.mean(hlf_flat)
+        hlf_std = np.std(hlf_flat)
+        
+
     jobs = []
     for i, sn in enumerate(SNs):
         folder = os.path.abspath(output_dir) + ("/train" if (i == 0) else '/val')
@@ -435,11 +476,18 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
             os.mkdir(folder)
         order_of_mag = max(int(math.log(sn[1] / stride + 1, 10)), 3)
         end = sn[0] + sn[1]
+        
         for j, start in enumerate(range(sn[0], end, stride)):
             samples_per_class = min(stride, end - start)
             kargs = {'data_dirs': sources, 'start': start, 'samples_per_class': samples_per_class,
                      'observ_types': DEFAULT_OBSERVS, 'sort_columns': [sort_on], 'sort_ascending': sort_ascending,
                      'verbose': 1}
+            if(standardize):
+                kargs['particle_mean'] = particle_mean
+                kargs['particles_std'] = particles_std
+                kargs['hlf_mean'] = hlf_mean
+                kargs['hlf_std'] = hlf_std
+                
             dest = os.path.abspath(folder + ("/%0" + str(order_of_mag) + "d.h5") % j)
             jobs.append((kargs, dest))
 
@@ -491,6 +539,8 @@ def main(argv):
                         help='To sort ascending')
     parser.add_argument('--sort_descending', action='store_false', default=False, dest='sort_ascending',
                         help='To sort descending')
+    parser.add_argument('--standardize', action='store_true', default=False, dest='standardize',
+                        help='To standardize the data (translate by the feature mean and divide each feature by its std)')
     
     try:
         args = parser.parse_args(argv)
