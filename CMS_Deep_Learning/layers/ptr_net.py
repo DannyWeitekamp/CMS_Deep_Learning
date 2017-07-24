@@ -141,7 +141,10 @@ class Ptr_Layer(Layer):
 
             # only onto if att_dim == sequence_len
             u = _e + _d_T  ## (batch_size ,att_dim, att_dim)
-            u = softmax(u, axis=2)  ## (batch_size ,att_dim, att_dim)  
+            u = softmax(u, axis=2)  ## (batch_size ,att_dim, att_dim) 
+        elif(self.implementation == 'custom_T'):
+            u = _e_T + _d  ## (batch_size ,att_dim, att_dim)
+            u = softmax(u, axis=2)  ## (batch_size ,att_dim, att_dim)
         else:
             raise ValueError("implementation not recognized: %r" % self.implementation)
 
