@@ -44,7 +44,7 @@ class Ptr_Layer(Layer):
     def build(self, input_shape):
         assert len(input_shape) >= 2
 
-        if (self.implementation == 'custom'):
+        if (self.implementation == 'custom' or self.implementation == 'custom_T'):
             assert self.attention_width == input_shape[1][-2], "attention width %r != seq size %r" % (
             self.attention_width, input_shape[1][-2])
 
@@ -57,7 +57,7 @@ class Ptr_Layer(Layer):
             # (att_dim, recurrent_dim)
             initializer=self.init,
             name='{}_W2'.format(self.name))
-        if (self.implementation != 'custom'):
+        if (self.implementation != 'custom' and self.implementation != 'custom_T'):
             self.v = self.add_weight((self.attention_width, 1),
                                      initializer=self.init,
                                      name='{}_v'.format(self.name))
