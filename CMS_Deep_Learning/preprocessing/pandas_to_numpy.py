@@ -454,11 +454,11 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
         N_MANY_SAMPLES = 10000
         particles, _, hlf = pandas_to_numpy(sources,0,N_MANY_SAMPLES)
         particles_flat = particles.reshape((len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS)))
-        hlf_flat = particles.reshape((len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS)))
-        particle_mean = np.mean(particles_flat)
-        particles_std = np.std(particles_flat)
-        hlf_mean = np.mean(hlf_flat)
-        hlf_std = np.std(hlf_flat)
+        hlf_flat = hlf.reshape((len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS)))
+        particle_mean = np.mean(particles_flat,axis=0)
+        particle_std = np.std(particles_flat,axis=0)
+        hlf_mean = np.mean(hlf_flat,axis=0)
+        hlf_std = np.std(hlf_flat,axis=0)
         
 
     jobs = []
@@ -484,7 +484,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
                      'verbose': 1}
             if(standardize):
                 kargs['particle_mean'] = particle_mean
-                kargs['particles_std'] = particles_std
+                kargs['particle_std'] = particle_std
                 kargs['hlf_mean'] = hlf_mean
                 kargs['hlf_std'] = hlf_std
                 
@@ -512,10 +512,10 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
         sleep(.001)
     try:
         f(splits[0])
-    except Exception as e:
+    except Exception:
         for p in processes:
             p.terminate()
-        raise e
+        raise
     for p in processes:
         p.join()
 
