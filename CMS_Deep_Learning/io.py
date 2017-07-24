@@ -181,7 +181,7 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
     '''
     if (isinstance(lst, string_types) and os.path.isdir(lst)):
         path = os.path.abspath(lst) + "/*.h5"
-        lst = glob.glob(path)
+        lst = sorted(glob.glob(path))
         if(len(lst) == 0): raise IOError("No .h5 files found in directory %r" % path)
     if (isinstance(lst, DataProcedure) or isinstance(lst, string_types)): lst = [lst]
     for d in lst:
