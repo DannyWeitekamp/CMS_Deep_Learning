@@ -61,7 +61,7 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
 
         x = frame.values
         if (observ_types != None):
-            evtIDS = x[:,columns.index("evtID")]
+            evtIDS = x[:,columns.index("EvtId")]
             x = np.take(x, [columns.index(o) for o in observ_types[key]], axis=-1)
         if (rpe > 1):
             n_rows, n_columns = x.shape
