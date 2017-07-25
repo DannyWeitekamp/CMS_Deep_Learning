@@ -517,3 +517,99 @@ def plot_bins(bins,
 
     if (show): plt.show()
     return plt
+
+
+def predToProjGeom(preds, index_positions=[0, 1, 2]):
+    k = preds.shape[-1]
+    assert k == 3, 'Really only works for 3'
+    vecs = []
+    i_s = 1.0 / np.sqrt(2)
+    Q, R = np.linalg.qr([[1, 1, 0],
+                         [1, -i_s, 1],
+                         [1, -i_s, 0]])
+    projected = np.dot(preds[:, index_positions], Q[:, 1:])
+
+    return projected
+
+
+def plotFanoPlane(preds, targets, index_positions=[0, 1, 2],
+                  index_colors={0: 'r', 1: 'g', 2: 'b'},
+                  bin_res=300,
+                  showChannels=False, thresholds=[]):
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap, to_rgb
+    import scipy
+    import scipy.ndimage
+    projdata = predToProjGeom(preds, index_positions)
+    x, y = projdata[:, 1], projdata[:, 0]
+
+    # Magic values based on the maximum in each dir
+    w1 = np.sqrt(2.0) / 2
+    w2 = 0.81649658092772592  # np.sqrt(3.0)/2
+    w3 = 0.40824829046386313
+
+    plt.rcParams['axes.facecolor'] = 'black'
+
+    # ------------DRAW ONE CHANNEL FOR EACH TARGET-------------------
+    channels = []
+    for i, x_i, y_i in zip(index_positions, [x_0, x_1, x_2], [y_0, y_1, y_2]):
+        indicies = [j for j, t in enumerate(targets) if np.argmax(t) == i]
+        x_i, y_i = x[indicies], y[indicies]
+        color = to_rgb(index_colors[i])
+        cmap_i = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
+        c_i, _, _, im = plt.hist2d(x_i, y_i, cmap=cmap_i, bins=bin_res, norm=LogNorm(), range=[[-w1, w1], [-w3, w2]])
+        channels.append((c_i, color))
+    # ------------------------------------------------------------
+
+    # ------------DRAW THESHOLD LINES-------------------
+    overlays = []
+    for key, thres in thresholds:
+        if (isinstance(thres, tuple)):
+            thres, color = thres
+        else:
+            color = 'w'
+        color = to_rgb(color)
+
+        pts = []
+        # for t in [thres]:
+        for t in np.linspace(thres - 1.0 / bin_res, thres + 1.0 / bin_res, num=3):
+            diff = 1.0 - t
+            for x in np.linspace(0.0, diff, num=200):
+                y = diff - x
+                pts.append(np.insert(np.array([x, y]), key, t))
+        pts = np.array(pts)
+
+        projdata = predToProjGeom(pts, index_positions)
+        x, y = projdata[:, 1], projdata[:, 0]
+
+        cmap = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
+        c, _, _, im = plt.hist2d(x, y, cmap=cmap, bins=bin_res, norm=LogNorm(), range=[[-w1, w1], [-w3, w2]])
+        overlays.append((c, color))
+    # ---------------------------------------------
+
+    plt.xlim(-w1, w1)
+    plt.ylim(-w3, w2)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.show()
+
+    # -------------SHOW EACH CHANNEL---------------
+    if (showChannels):
+        cmap_white = LinearSegmentedColormap.from_list('mycmap', [(0.0, 'k'), (.01, 'w'), (1.0, 'w')])
+        for c, color in channels:
+            plt.rcParams['axes.facecolor'] = 'black'
+            plt.imshow(c, cmap=cmap_white)
+            plt.show()
+    # ---------------------------------------------
+
+    combined = np.sum([np.expand_dims(c, axis=-1) * np.array(color).reshape(1, 1, 3) for c, color in channels], axis=0,
+                      keepdims=False)
+
+    for o, color in overlays:
+        o = np.expand_dims(o, axis=-1) * np.array(color).reshape(1, 1, 3)
+        np.place(combined, o, color)
+
+    combined = scipy.ndimage.rotate(combined, 90)
+
+    plt.imshow(combined, interpolation='nearest', aspect='auto')
+    plt.show()
