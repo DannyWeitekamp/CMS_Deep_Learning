@@ -552,7 +552,7 @@ def plotFanoPlane(preds, targets, index_positions=[0, 1, 2],
 
     # ------------DRAW ONE CHANNEL FOR EACH TARGET-------------------
     channels = []
-    for i, x_i, y_i in zip(index_positions, [x_0, x_1, x_2], [y_0, y_1, y_2]):
+    for i in index_positions:
         indicies = [j for j, t in enumerate(targets) if np.argmax(t) == i]
         x_i, y_i = x[indicies], y[indicies]
         color = to_rgb(index_colors[i])
