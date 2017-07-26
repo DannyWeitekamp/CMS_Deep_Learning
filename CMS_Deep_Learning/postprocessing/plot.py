@@ -519,7 +519,12 @@ def plot_bins(bins,
     return plt
 
 
-def to_proj_geom(preds, index_positions=[0, 1, 2]):
+def to_proj_geom(preds, index_positions=[0, 1, 2], log_scale=False, log_intesity=50.0):
+    if (log_scale):
+        f = lambda x: (1.0 - np.log(2.0) / np.log(2.0 + log_intesity * x)) / (
+        1.0 - np.log(2.0) / np.log(2.0 + log_intesity))
+        preds = f(preds)
+
     k = preds.shape[-1]
     assert k == 3, 'Really only works for 3'
     vecs = []
@@ -535,18 +540,24 @@ def to_proj_geom(preds, index_positions=[0, 1, 2]):
 def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     index_colors={0: 'r', 1: 'g', 2: 'b'},
                     bin_res=300, background_color='black',
+                    show_plot=False,
+                    show_image=True,
+                    log_scale=False,
+                    log_intesity=50.0,
+                    thicken_lines=True,
                     showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
-    from matplotlib.colors import LinearSegmentedColormap, to_rgb,LogNorm
+    from matplotlib.colors import LinearSegmentedColormap, to_rgb, LogNorm
     import scipy
     import scipy.ndimage
-    projdata = to_proj_geom(preds, index_positions)
+    projdata = to_proj_geom(preds, index_positions, log_scale=log_scale, log_intesity=log_intesity)
+
     x, y = projdata[:, 1], projdata[:, 0]
 
     # Magic values based on the maximum in each dir
     w1 = np.sqrt(2.0) / 2
     w2 = 0.81649658092772592  # np.sqrt(3.0)/2
-    w3 = 0.40824829046386313
+    w3 = 0.40824829046386313 if not log_scale else 1.0
 
     plt.rcParams['axes.facecolor'] = background_color
 
@@ -572,14 +583,16 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
 
         pts = []
         # for t in [thres]:
-        for t in np.linspace(thres - 1.0 / bin_res, thres + 1.0 / bin_res, num=3):
+        thres_span = np.linspace(thres - 1.0 / bin_res, thres + 1.0 / bin_res, num=3) \
+            if thicken_lines else [thres]
+        for t in thres_span:
             diff = 1.0 - t
-            for x in np.linspace(0.0, diff, num=200):
+            for x in np.linspace(0.0, diff, num=bin_res):
                 y = diff - x
                 pts.append(np.insert(np.array([x, y]), key, t))
         pts = np.array(pts)
 
-        projdata = to_proj_geom(pts, index_positions)
+        projdata = to_proj_geom(pts, index_positions, log_scale=log_scale)
         x, y = projdata[:, 1], projdata[:, 0]
 
         cmap = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
@@ -591,7 +604,12 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     plt.ylim(-w3, w2)
     plt.xlabel("x")
     plt.ylabel("y")
-    plt.show()
+    # Show histo version
+    if (show_plot):
+        plt.show()
+    else:
+        plt.cla()
+        plt.clf()
 
     # -------------SHOW EACH CHANNEL---------------
     if (showChannels):
@@ -602,9 +620,20 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
             plt.show()
     # ---------------------------------------------
 
+    # --------------DISPLAY SEPARATE CHANNELS IMAGE-----------------
+    background = np.ones((channels[0][0].shape[0], channels[0][0].shape[1], 3)) * np.array(
+        to_rgb(background_color)).reshape(1, 1, 3)
+
+    # Combine all the channels by summing
     combined = np.sum([np.expand_dims(c, axis=-1) * np.array(color).reshape(1, 1, 3) for c, color in channels], axis=0,
                       keepdims=False)
 
+    # Create mask for the background
+    mask = ~np.any(combined, axis=-1)
+    mask = np.expand_dims(mask, axis=-1)
+    mask = np.repeat(mask, 3, axis=-1)
+    # Add the background
+    np.copyto(combined, background, where=mask)
     for o, color in overlays:
         o = np.expand_dims(o, axis=-1) * np.array(color).reshape(1, 1, 3)
         np.place(combined, o, color)
@@ -612,4 +641,5 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     combined = scipy.ndimage.rotate(combined, 90)
 
     plt.imshow(combined, interpolation='nearest', aspect='auto')
-    plt.show()
+    if (show_image): plt.show()
+    # --------------------------------------------------------
