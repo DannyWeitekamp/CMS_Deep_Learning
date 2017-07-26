@@ -537,7 +537,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     bin_res=300,
                     showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
-    from matplotlib.colors import LinearSegmentedColormap, to_rgb
+    from matplotlib.colors import LinearSegmentedColormap, to_rgb,LogNorm
     import scipy
     import scipy.ndimage
     projdata = to_proj_geom(preds, index_positions)
