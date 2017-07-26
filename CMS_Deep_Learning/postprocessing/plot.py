@@ -534,7 +534,7 @@ def to_proj_geom(preds, index_positions=[0, 1, 2]):
 
 def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     index_colors={0: 'r', 1: 'g', 2: 'b'},
-                    bin_res=300,
+                    bin_res=300, background_color='black',
                     showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap, to_rgb,LogNorm
@@ -548,7 +548,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     w2 = 0.81649658092772592  # np.sqrt(3.0)/2
     w3 = 0.40824829046386313
 
-    plt.rcParams['axes.facecolor'] = 'black'
+    plt.rcParams['axes.facecolor'] = background_color
 
     # ------------DRAW ONE CHANNEL FOR EACH TARGET-------------------
     channels = []
