@@ -328,7 +328,9 @@ class DataIterator:
 
         # Peek at the first part of the data
         if (isinstance(data[0], DataProcedure) or isinstance(data[0], string_types)):
-            first_data = assert_list(self._retrieve_data(data[0], self.union_keys))
+            first_data = self._retrieve_data(data[0], self.union_keys)
+            if (not isinstance(first_data, types.GeneratorType)):
+                first_data = assert_list(first_data)
         else:
             first_data = data[0]
 

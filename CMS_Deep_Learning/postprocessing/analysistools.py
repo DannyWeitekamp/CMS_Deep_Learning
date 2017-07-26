@@ -43,7 +43,7 @@ def sortOnMetric(trials, sortMetric='val_acc'):
     def getKey(trial):
         return trial.get_from_record(sortMetric)
 
-    trials.sort(key=getKey, reverse=True)
+    return trials.sort(key=getKey, reverse=True)
 
 
 def print_by_labels(trials, num_print=None, sortMetric='val_acc'):
