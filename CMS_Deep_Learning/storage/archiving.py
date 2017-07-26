@@ -1322,7 +1322,7 @@ def get_data_by_function(func, archive_dir,verbose=0):
 
 def get_all_trials(archive_dir, verbose=0):
     '''Get all the trials listed in the trial_record'''
-    return get_trials_by_name('.', archive_dir, verbose=verbose)
+    return get_trials_by_name(archive_dir, '.', verbose=verbose)
 
 def get_trials_by_name(archive_dir,name,assert_complete=False,verbose=0):
     '''Get all the trials with a particluar name or that match a given regular expression'''
