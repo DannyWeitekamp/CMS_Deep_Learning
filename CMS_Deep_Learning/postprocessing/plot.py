@@ -519,7 +519,7 @@ def plot_bins(bins,
     return plt
 
 
-def predToProjGeom(preds, index_positions=[0, 1, 2]):
+def to_proj_geom(preds, index_positions=[0, 1, 2]):
     k = preds.shape[-1]
     assert k == 3, 'Really only works for 3'
     vecs = []
@@ -532,15 +532,15 @@ def predToProjGeom(preds, index_positions=[0, 1, 2]):
     return projected
 
 
-def plotFanoPlane(preds, targets, index_positions=[0, 1, 2],
-                  index_colors={0: 'r', 1: 'g', 2: 'b'},
-                  bin_res=300,
-                  showChannels=False, thresholds=[]):
+def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
+                    index_colors={0: 'r', 1: 'g', 2: 'b'},
+                    bin_res=300,
+                    showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap, to_rgb
     import scipy
     import scipy.ndimage
-    projdata = predToProjGeom(preds, index_positions)
+    projdata = to_proj_geom(preds, index_positions)
     x, y = projdata[:, 1], projdata[:, 0]
 
     # Magic values based on the maximum in each dir
@@ -579,7 +579,7 @@ def plotFanoPlane(preds, targets, index_positions=[0, 1, 2],
                 pts.append(np.insert(np.array([x, y]), key, t))
         pts = np.array(pts)
 
-        projdata = predToProjGeom(pts, index_positions)
+        projdata = to_proj_geom(pts, index_positions)
         x, y = projdata[:, 1], projdata[:, 0]
 
         cmap = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
