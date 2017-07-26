@@ -136,7 +136,7 @@ def build_trial(name,
 
 def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets', processes=1):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import make_datasets
-    dir = dataset_dir + "/" + sort_on + '_' + ('asc' if sort_ascending else 'dec')
+    dir = dataset_dir + "/" + sort_on + '_' + ('asc' if sort_ascending else 'des')
     dir = os.path.abspath(dir)
     if(not os.path.exists(dir)):
         raise IOError("NOPE")
@@ -191,7 +191,7 @@ def trials_from_HPsweep(archive_dir,
     trials = []
     for sort_on, sort_ascending in sortings:
         # data_dir = assert_write_datasets(sort_on,sort_ascending)
-        data_dir = '/bigdata/shared/Delphes/np_datasets/3_way/MaxLepDeltaR_dec'
+        data_dir = '/bigdata/shared/Delphes/np_datasets/3_way/MaxLepDeltaR_des_norm'
         for optimizer in optimizer_options:
             for depth in [1]:
                 
@@ -226,10 +226,11 @@ def trials_from_HPsweep(archive_dir,
                                          nb_epoch=100,
                                          batch_size=batch_size,
                                          callbacks=[earlyStopping],
-                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg',
+                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg','normalize',
                                                          'activation', 'dropout', 'lstm_dropout',
                                                          'patience', "n_train_files"],
                                          sort_on=sort_on,
+                                         normalize=True,
                                          sort_ascending=sort_ascending,
                                          activation=activation,
                                          labels=labels,
