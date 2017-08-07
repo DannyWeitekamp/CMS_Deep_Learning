@@ -11,25 +11,27 @@ import time, math,re,h5py,shutil
 import argparse
 from multiprocessing import Process
 from time import sleep
-from CMS_Deep_Learning.preprocessing.preprocessing import size_from_meta,get_sizes_meta_dict
+from CMS_Deep_Learning.io import size_from_meta,get_sizes_meta_dict
 
 PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 'Charge',
                     'ChPFIso', 'GammaPFIso', 'NeuPFIso',
                     'isChHad', 'isEle', 'isGamma', 'isMu', 'isNeuHad',
                     'vtxX', 'vtxY', 'vtxZ']
 HLF_OBSERVS = ['HT', 'MET', 'MT', 'PhiMET', 'bJets', 'nJets']
-#ROWS PER EVENT
+# ROWS PER EVENT
 DEFAULT_RPE = {"Particles": 801, "HLF": 1}
-DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS }
+DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS}
 
 import pandas as pd
 import numpy as np
 import numpy.ma as ma
 
-#----------------------------IO-----------------------------
-def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, observ_types=DEFAULT_OBSERVS,rows_per_event=DEFAULT_RPE):
-    '''Helper Function - Gets a numpy array from a pandas .h5 file
-    
+
+# ----------------------------IO-----------------------------
+def numpy_from_h5(f, file_start_read, samples_to_read, file_total_events=-1, format='numpy',
+                  observ_types=DEFAULT_OBSERVS, rows_per_event=DEFAULT_RPE):
+    '''Helper Function - Gets a numpy array from a pandas or numpy .h5 file
+
         :param f: The filepath of the pandas file
         :type f: str
         :param file_start_read: what samples to start reading with
@@ -44,7 +46,10 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
         :type rows_per_event: dict
         :returns: the numpy array
     '''
-    store = pd.HDFStore(f)
+    if (format == "pandas"):
+        store = pd.HDFStore(f)
+    else:
+        store = h5py.File(f)
 
     values = {}
     for key, rpe in rows_per_event.items():
@@ -52,29 +57,38 @@ def get_from_pandas(f, file_start_read, samples_to_read, file_total_events=-1, o
         select_start = file_start_read * rpe
         select_stop = select_start + samples_to_read * rpe
 
-        if (samples_to_read == file_total_events):
-            frame = store.get('/' + key)
+        if (format == 'pandas'):
+            if (samples_to_read == file_total_events):
+                frame = store.get('/' + key)
+            else:
+                frame = store.select('/' + key, start=select_start, stop=select_stop)
+            columns = list(frame.columns)
+            x = frame.values
         else:
-            frame = store.select('/' + key, start=select_start, stop=select_stop)
+            if (samples_to_read == file_total_events):
+                x = store[key][:]
+            else:
+                x = store[key][select_start:select_stop]
+            columns = ["EvtId"] + DEFAULT_OBSERVS[key]
 
-        columns = list(frame.columns)
-
-        x = frame.values
         if (observ_types != None):
-            evtIDS = x[:,columns.index("EvtId")]
+            evtIDS = x[:, columns.index("EvtId")]
             x = np.take(x, [columns.index(o) for o in observ_types[key]], axis=-1)
         if (rpe > 1):
             n_rows, n_columns = x.shape
             x = x.reshape((n_rows / rpe, rpe, n_columns))
-            assert np.array([len(np.unique(y))==1 for y in evtIDS.reshape((n_rows / rpe, rpe))]).all(), "FAIL, reshape does not correctly group event ids"
-
+            assert np.array([len(np.unique(y)) == 1 for y in evtIDS.reshape(
+                (n_rows / rpe, rpe))]).all(), "FAIL, reshape does not correctly group event ids"
+        values["Sources"] = np.array([[f] * len(evtIDS), np.array(evtIDS, dtype='int')]).T
         values[key] = x
     store.close()
     return values
-#------------------------------------------------------------
 
 
-#---------------------------HELPERS---------------------------
+# ------------------------------------------------------------
+
+
+# ---------------------------HELPERS---------------------------
 def _gen_label_vecs(data_dirs):
     num_labels = len(data_dirs)
     label_vecs = {}
@@ -91,8 +105,11 @@ def _initializeArrays(data_dirs, samples_per_class):
     X_train = [None] * (samples_per_class * num_classes)
     y_train = [None] * (samples_per_class * num_classes)
     HLF_train = [None] * (samples_per_class * num_classes)
-    return X_train, y_train, HLF_train
-#-------------------------------------------------------------
+    sources_train = [None] * (samples_per_class * num_classes)
+    return X_train, y_train, HLF_train, sources_train
+
+
+# -------------------------------------------------------------
 
 
 def _check_inputs(data_dirs, observ_types):
@@ -104,17 +121,18 @@ def _check_inputs(data_dirs, observ_types):
             raise ValueError("Using EvtId in observ_types can result in skewed training results. Just don't.")
 
 
-
-#--------------------SORTING UTILS--------------------------------
+# --------------------SORTING UTILS--------------------------------
 def maxLepPtEtaPhi(X, locs):
     for x in X:
         if (x[locs['isEle']] or x[locs["isMu"]]):
             return x[locs['Pt']], x[locs['Eta']], x[locs['Phi']]
-        
+
+
 def assertZerosBack(sort_slice, x, locs, sort_ascending):
     from numpy import inf
     sort_slice[np.all(x == 0.0, axis=1)] = inf if sort_ascending else -inf
     return sort_slice
+
 
 def resolveMetric(s, locs, sort_ascending):
     if s in SORT_METRICS:
@@ -123,7 +141,7 @@ def resolveMetric(s, locs, sort_ascending):
         raise ValueError("Unrecognized sorting metric %r" % s)
 
 
-def _sortBy(x, sorts, sort_ascending):  
+def _sortBy(x, sorts, sort_ascending):
     if (sorts != None):
         for s in reversed(sorts):
             if (isinstance(s, int)):
@@ -153,12 +171,14 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             # KLUGE FIX
             x[x[:, locs["Energy"]] == 0] = 0.0
             # Sort
-            x = _sortBy(x, sorts, sort_ascending)  
+            x = _sortBy(x, sorts, sort_ascending)
 
     return x
-#------------------------------------------------------------------
 
-#-------------------------SORTINGS---------------------------------
+
+# ------------------------------------------------------------------
+
+# -------------------------SORTINGS---------------------------------
 def MaxLepDeltaPhi(X, locs, mlpep=None):
     maxLepPt, maxLepEta, maxLepPhi = maxLepPtEtaPhi(X, locs) if isinstance(mlpep, type(None)) else mlpep
     out = maxLepPhi - X[:, locs["Phi"]]
@@ -193,7 +213,7 @@ def MaxLepAntiKt(X, locs):
 
 SORT_METRICS = {f.__name__: f for f in
                 [MaxLepDeltaPhi, MaxLepDeltaEta, MaxLepDeltaR, MaxLepKt, MaxLepAntiKt]}
-#---------------------------------------------------------------------
+# ---------------------------------------------------------------------
 
 
 
@@ -202,10 +222,11 @@ SORT_METRICS = {f.__name__: f for f in
 import glob
 
 
-def pandas_to_numpy(data_dirs, start, samples_per_class,
-                    observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, particle_mean=None, particle_std=None, hlf_mean=None, hlf_std=None, verbose=1):
+def to_shuffled_numpy(data_dirs, start, samples_per_class,
+                      observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, particle_mean=None,
+                      particle_std=None, hlf_mean=None, hlf_std=None, verbose=1):
     '''Builds a trainable (particle level) sorted and (event level) shuffled numpy array from directories of pandas .h5 files.
-    
+
         :param data_dirs: 
             A list of pandas directories containing pandas .h5 files, tuples of ('label','dir'),
             or dictionary with .values() equal to such a list. The order indicates which
@@ -230,7 +251,7 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
     _check_inputs(data_dirs, observ_types)
 
     label_vecs = _gen_label_vecs(data_dirs)
-    X_train, y_train, HLF_train = _initializeArrays(data_dirs, samples_per_class)
+    X_train, y_train, HLF_train, sources_train = _initializeArrays(data_dirs, samples_per_class)
     X_train_index = 0
 
     y_train_start = 0
@@ -242,7 +263,7 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
         sizesDict = get_sizes_meta_dict(data_dir)
 
         last_time = time.clock() - 1.0
-        count,last_count = 0,0
+        count, last_count = 0, 0
         # Loop the files associated with the current label
         for f in files:
             file_total_events = size_from_meta(f, sizesDict=sizesDict)  # len(num_val_frame.index)
@@ -262,16 +283,16 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
             samples_to_read = min(samples_per_class - samples_read, file_total_events - file_start_read)
             assert samples_to_read >= 0
 
-            d = get_from_pandas(f, file_start_read=file_start_read,
-                                       samples_to_read=samples_to_read,
-                                       file_total_events=file_total_events,
-                                       rows_per_event=DEFAULT_RPE,
-                                       observ_types=observ_types)
-            Particles, HLF = d["Particles"], d["HLF"]
+            d = numpy_from_h5(f, file_start_read=file_start_read,
+                              samples_to_read=samples_to_read,
+                              file_total_events=file_total_events,
+                              rows_per_event=DEFAULT_RPE,
+                              observ_types=observ_types)
+            Particles, HLF, sources = d["Particles"], d["HLF"], d["Sources"]
 
-            for s, (particles, hlf) in enumerate(zip(Particles, HLF)):
+            for s, (particles, hlf, source) in enumerate(zip(Particles, HLF, sources)):
                 # ----------pretty progress bar---------------
-                
+
                 if (verbose >= 1):
                     c = time.clock()
                     if (c > last_time + .25):
@@ -280,37 +301,38 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
                         sys.stdout.write('\r')
                         sys.stdout.write("[%-20s] %r/%r  %r(Event/sec)" % ('=' * int(20 * percent), prog,
                                                                            int(samples_per_class) * len(data_dirs),
-                                                                           4 * (count-last_count)))
+                                                                           4 * (count - last_count)))
                         sys.stdout.flush()
-                        #prev_sample = s
+                        # prev_sample = s
                         last_time = c
                         last_count = count
 
                 count += 1
                 # ------------------------------------------
                 particles = sort_numpy(particles, sort_columns, sort_ascending, observ_types["Particles"])
-                
-                #-----------------STANDARDIZATION --------------------------------------
-                #Mask out the padding so that it is not altered during standarization
-                if(not isinstance(particle_mean,NoneType) or not isinstance(particle_std,NoneType)):
+
+                # -----------------STANDARDIZATION --------------------------------------
+                # Mask out the padding so that it is not altered during standarization
+                if (not isinstance(particle_mean, NoneType) or not isinstance(particle_std, NoneType)):
                     mask = (particles == 0.0).all(axis=-1)
                     mask_extended = np.expand_dims(mask, axis=-1)
                     mask_extruded = np.repeat(mask_extended, len(PARTICLE_OBSERVS), axis=-1)
                     particles = ma.masked_array(particles, mask=mask_extruded)
-                
-                #Apply standardization
-                if(not isinstance(particle_mean,NoneType)):
-                    particles = particles - particle_mean.reshape(1,len(PARTICLE_OBSERVS))
-                if(not isinstance(particle_std,NoneType)):
-                    particles = particles / particle_std.reshape(1,len(PARTICLE_OBSERVS))
+
+                # Apply standardization
+                if (not isinstance(particle_mean, NoneType)):
+                    particles = particles - particle_mean.reshape(1, len(PARTICLE_OBSERVS))
+                if (not isinstance(particle_std, NoneType)):
+                    particles = particles / particle_std.reshape(1, len(PARTICLE_OBSERVS))
                 if (not isinstance(hlf_mean, NoneType)):
                     hlf = hlf - hlf_mean
                 if (not isinstance(hlf_std, NoneType)):
                     hlf = hlf / hlf_std
-                #------------------------------------------------------------------------
+                # ------------------------------------------------------------------------
 
                 X_train[X_train_index + s] = np.array(particles)
                 HLF_train[X_train_index + s] = hlf
+                sources_train[X_train_index + s] = source
 
             X_train_index += samples_to_read
 
@@ -338,8 +360,9 @@ def pandas_to_numpy(data_dirs, start, samples_per_class,
     X_train = np.array(X_train)[indices]
     HLF_train = np.array(HLF_train)[indices]
     y_train = y_train[indices]
+    sources_train = np.array(sources_train)[indices]
 
-    return X_train, y_train, HLF_train
+    return X_train, y_train, HLF_train, sources_train
 
 def splitsFromVal(v,n_samples):
     if(v == 0.0): return (n_samples,)
@@ -408,7 +431,7 @@ def check_enough_data(sources, num_samples):
 def make_datasets(sources, output_dir, num_samples, size=1000,
                   num_processes=1, sort_on=None, sort_ascending=False,
                   v_split=0.0, force=False, standardize_particles=False, standardize_hlf=False):
-    '''Creates a data set in the output_dir folder with /train and /val subdirectories
+    '''Creates a data set in the output_dir folder with /train and /val subdirectories. Uses sources in equal amounts.
     
         :param sources: a list of source directories of pandas .h5 files. Order matters; 
                         the first source corresponds to [1,0,..,0], the second to [0,1,..,0],etc.
@@ -457,7 +480,7 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
     if(standardize_particles or standardize_hlf):
         print("Computing mean & std from sample:")
         N_MANY_SAMPLES = 10000
-        particles, _, hlf = pandas_to_numpy(sources,0,N_MANY_SAMPLES)
+        particles, _, hlf,_ = to_shuffled_numpy(sources, 0, N_MANY_SAMPLES)
         particles_flat = particles.reshape((len(sources)*N_MANY_SAMPLES*DEFAULT_RPE['Particles'], len(PARTICLE_OBSERVS)))
         hlf_flat = hlf.reshape((len(sources) * N_MANY_SAMPLES*DEFAULT_RPE['HLF'], len(HLF_OBSERVS)))
         particle_mean = np.mean(particles_flat,axis=0)
@@ -499,9 +522,9 @@ def make_datasets(sources, output_dir, num_samples, size=1000,
 
     def f(jobs):
         for kargs, dest in jobs:
-            x = pandas_to_numpy(**kargs)
+            x = to_shuffled_numpy(**kargs)
             h5f = h5py.File(dest, 'w')
-            for D, key in zip(x, ["Particles", "Labels", "HLF"]):
+            for D, key in zip(x, ["Particles", "Labels", "HLF","Sources"]):
                 h5f.create_dataset(key, data=D)
             h5f.close()
             print("Done: %s/%s" % tuple(dest.split("/")[-2:]))

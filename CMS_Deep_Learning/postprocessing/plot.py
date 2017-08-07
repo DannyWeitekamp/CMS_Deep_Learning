@@ -492,6 +492,7 @@ def plot_bins(bins,
                     y = [0] + list(y) + [0]
 
                     ax.plot(_xs, y, ls='steps', color=colors[j % len(colors)], label=label, alpha=alpha)
+                    if (log): ax.set_yscale("log")
                 if (stack): bot += y
             else:
                 s = shapes[i % len(colors)]
@@ -501,9 +502,9 @@ def plot_bins(bins,
                             linestyle='None')
                 if (log): ax.set_yscale("log")
 
-    ax.set_title(title, size=16)
-    ax.set_xlabel(xlabel, size=14)
-    ax.set_ylabel(ylabel, size=14)
+    ax.set_title(title, size=18)
+    ax.set_xlabel(xlabel, size=16)
+    ax.set_ylabel(ylabel, size=16)
     if (legendBelow):
         legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),
                            fancybox=True, ncol=2)
