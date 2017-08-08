@@ -13,11 +13,14 @@ from multiprocessing import Process
 from time import sleep
 from CMS_Deep_Learning.io import size_from_meta,get_sizes_meta_dict
 
-PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 'Charge',
+PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 
+                    'vtxX', 'vtxY', 'vtxZ'
                     'ChPFIso', 'GammaPFIso', 'NeuPFIso',
-                    'isChHad', 'isEle', 'isGamma', 'isMu', 'isNeuHad',
-                    'vtxX', 'vtxY', 'vtxZ']
-HLF_OBSERVS = ['HT', 'MET', 'MT', 'PhiMET', 'bJets', 'nJets']
+                    'isChHad', 'isNeuHad', 'isGamma', 'isEle',  'isMu', 
+                    'Charge']
+HLF_OBSERVS = ['HT', 'MET', 'PhiMET', 'MT', 'nJets', 'bJets', 'LepPt',
+       'LepEta', 'LepPhi', 'LepIsoCh','LepIsoGamma', 'LepIsoNeu',
+       'LepCharge', 'LepIsEle']
 # ROWS PER EVENT
 DEFAULT_RPE = {"Particles": 801, "HLF": 1}
 DEFAULT_OBSERVS = {"Particles": PARTICLE_OBSERVS, "HLF": HLF_OBSERVS}
