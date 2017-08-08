@@ -56,20 +56,23 @@ def numpy_from_h5(f, file_start_read, samples_to_read, file_total_events=-1, for
         # Where to start reading the table based on the sum of the selection start 
         select_start = file_start_read * rpe
         select_stop = select_start + samples_to_read * rpe
-
-        if (format == 'pandas'):
-            if (samples_to_read == file_total_events):
-                frame = store.get('/' + key)
+        try:
+            if (format == 'pandas'):
+                if (samples_to_read == file_total_events):
+                    frame = store.get('/' + key)
+                else:
+                    frame = store.select('/' + key, start=select_start, stop=select_stop)
+                columns = list(frame.columns)
+                x = frame.values
             else:
-                frame = store.select('/' + key, start=select_start, stop=select_stop)
-            columns = list(frame.columns)
-            x = frame.values
-        else:
-            if (samples_to_read == file_total_events):
-                x = store[key][:]
-            else:
-                x = store[key][select_start:select_stop]
-            columns = ["EvtId"] + DEFAULT_OBSERVS[key]
+                if (samples_to_read == file_total_events):
+                    x = store[key][:]
+                else:
+                    x = store[key][select_start:select_stop]
+                columns = ["EvtId"] + DEFAULT_OBSERVS[key]
+        except IOError:
+            store.close()
+            raise
 
         if (observ_types != None):
             evtIDS = x[:, columns.index("EvtId")]
@@ -282,12 +285,15 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
             # How many rows we will read from this table each corresponds to one entry
             samples_to_read = min(samples_per_class - samples_read, file_total_events - file_start_read)
             assert samples_to_read >= 0
-
-            d = numpy_from_h5(f, file_start_read=file_start_read,
-                              samples_to_read=samples_to_read,
-                              file_total_events=file_total_events,
-                              rows_per_event=DEFAULT_RPE,
-                              observ_types=observ_types)
+            
+            try:
+                d = numpy_from_h5(f, file_start_read=file_start_read,
+                                  samples_to_read=samples_to_read,
+                                  file_total_events=file_total_events,
+                                  rows_per_event=DEFAULT_RPE,
+                                  observ_types=observ_types)
+            except IOError:
+                raise IOError("File %r is corrupted. Script cannot proceed unless it is removed." % f)
             Particles, HLF, sources = d["Particles"], d["HLF"], d["Sources"]
 
             for s, (particles, hlf, source) in enumerate(zip(Particles, HLF, sources)):
