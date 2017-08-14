@@ -63,6 +63,30 @@ class Aggregate(Layer):
         for l in self.layers:
             input_shape = l.get_output_shape_for(input_shape)
         return input_shape
+    
+    def get_config(self):
+        layers = []
+        for layer in self.layers:       
+            layers.append({'class_name': layer.__class__.__name__,
+                                'config': layer.get_config()})
+        config = {'layers': layers}
+        base_config = super(Aggregate, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+    @classmethod
+    def from_config(cls, config):
+        from keras.utils.layer_utils import layer_from_config
+        layers = config['layers']
+        compiled_layers = []
+        for layer_dict in layers:
+            # layer_config = layer_dict["config"]
+            layer_class = layer_from_config(layer_dict )
+            compiled_layers.append(layer_class)
+            #config = layer_dict[']
+            # layer = [cls(layer_class,**config)]
+        config['layers'] = compiled_layers
+        return cls(cls, **config)
+
 
 
 def null_cost(y_true, y_pred):
@@ -148,3 +172,8 @@ class HardSort(Layer):
 
     def get_output_shape_for(self, input_shape):
         return input_shape[1]
+    
+    def get_config(self):
+        base_config = Layer.get_config(self)
+        config = {'seq_len': self.seq_len}
+        return dict(list(base_config.items()) + list(config.items()))
