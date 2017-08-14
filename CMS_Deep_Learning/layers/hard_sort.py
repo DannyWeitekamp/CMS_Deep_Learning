@@ -79,13 +79,10 @@ class Aggregate(Layer):
         layers = config['layers']
         compiled_layers = []
         for layer_dict in layers:
-            # layer_config = layer_dict["config"]
-            layer_class = layer_from_config(layer_dict )
-            compiled_layers.append(layer_class)
-            #config = layer_dict[']
-            # layer = [cls(layer_class,**config)]
-        config['layers'] = compiled_layers
-        return cls(cls, **config)
+            layer_compiled = layer_from_config(layer_dict )
+            compiled_layers.append(layer_compiled)
+        del config['layers']
+        return cls(layers=compiled_layers,**config)
 
 
 
