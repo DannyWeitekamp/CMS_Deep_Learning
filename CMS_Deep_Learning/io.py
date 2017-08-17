@@ -384,7 +384,14 @@ class DataIterator:
         pred_out = [None] * self.length(verbose=verbose) if (self.prediction_model != None) else None
 
         # Loop through the data, compute predictions and accum and put it in a list
-        for d in self.data:
+        nb_data = len(self.data)
+        for chunk_nb ,d in enumerate(self.data):
+            if(verbose > 0):
+                percent = float(chunk_nb)/nb_data
+                sys.stdout.write('\r')
+                sys.stdout.write("[%-20s] %r/%r " % ('=' * int(20 * percent), chunk_nb,nb_data) )                                 
+                sys.stdout.flush()
+            
             if (pos >= self.num_samples):
                 break
             out = self._assert_raw(d, verbose=verbose)
@@ -566,7 +573,7 @@ def _checkAndAssert(data_dict, data_to_check):
     return data_dict
 
 
-def _call_iters(data_dict, to_return, sat_dict):
+def _call_iters(data_dict, to_return, sat_dict,verbose=0):
     '''A helper function for simple_grab that calls the DataIterators if necessary'''
     if (len(set.intersection(set(to_return), set(ITERATOR_REQS))) != 0):
         to_get = [req for req in to_return if req in ITERATOR_REQS and not req == sat_dict[req]]
@@ -582,7 +589,7 @@ def _call_iters(data_dict, to_return, sat_dict):
                                      label_keys=data_dict.get('label_keys','Y'),
                                      return_prediction='predictions' in to_get,
                                      accumulate=accumulate)
-                out = dItr.as_list(verbose=0)
+                out = dItr.as_list(verbose=verbose)
             else:
                 dItr = DataIterator(data_dict.get('data', None),
                                     data_keys=data_keys,
@@ -591,14 +598,14 @@ def _call_iters(data_dict, to_return, sat_dict):
                                     label_keys=data_dict.get('label_keys', 'Y'),
                                     prediction_model=data_dict.get('model', None),
                                     accumulate=accumulate)
-                out = dItr.as_list(verbose=0)
+                out = dItr.as_list(verbose=verbose)
             out = assert_list(out)
             for i, key in enumerate(to_get):
                 data_dict[key] = out[i]
     return data_dict
 
 
-def simple_grab(to_return, **kargs):
+def simple_grab(to_return, verbose=0,**kargs):
     '''Returns the data requested in **to_return** given that the data can be found or derived from the given inputs.
         for example one can derive predictions from a model path, weights path, and X (input data).
         **See inputs below**. Outputs include **predictions**, **characteristics**, **X**, **Y**, **model**, **num_samples**.
@@ -661,5 +668,5 @@ def simple_grab(to_return, **kargs):
             data_to_check.add(x)
 
     data_dict = _checkAndAssert(data_dict, data_to_check)
-    data_dict = _call_iters(data_dict, flat_to_return, sat_dict)
+    data_dict = _call_iters(data_dict, flat_to_return, sat_dict,verbose=verbose)
     return restructure([data_dict[r] for r in flat_to_return], to_return)
