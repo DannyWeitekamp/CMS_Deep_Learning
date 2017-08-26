@@ -56,4 +56,6 @@ def main(argv):
     f.create_dataset('hlf_mean', data=hlf_mean)
     f.create_dataset('hlf_std', data=hlf_std)
     f.close()
-    
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
