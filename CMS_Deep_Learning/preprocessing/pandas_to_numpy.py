@@ -14,7 +14,7 @@ from time import sleep
 from CMS_Deep_Learning.io import size_from_meta,get_sizes_meta_dict
 
 PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi', 
-                    'vtxX', 'vtxY', 'vtxZ'
+                    'vtxX', 'vtxY', 'vtxZ',
                     'ChPFIso', 'GammaPFIso', 'NeuPFIso',
                     'isChHad', 'isNeuHad', 'isGamma', 'isEle',  'isMu', 
                     'Charge']
