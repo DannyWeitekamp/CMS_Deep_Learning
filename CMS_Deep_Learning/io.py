@@ -234,7 +234,7 @@ def flatten(items, seqtypes=(list, tuple),inplace=False):
 
 
 def restructure(flattened, data_keys, seqtypes=(list, tuple)):
-    '''Structures a flattened list into the structure of data_keys'''
+    '''Structures a flattened list into the nested list structure given in data_keys'''
     if (not isinstance(data_keys, seqtypes)):
         return flattened[0] if isinstance(flattened, seqtypes) else flattened
     pos = 0
