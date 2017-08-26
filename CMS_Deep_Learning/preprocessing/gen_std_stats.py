@@ -1,6 +1,6 @@
 import numpy as np
 import glob,os,sys,argparse
-from CMS_Deep_Learning.io import get_sizes_meta_dict,size_from_meta
+from ..io import get_sizes_meta_dict,size_from_meta
 from .pandas_to_numpy import to_shuffled_numpy,PARTICLE_OBSERVS,HLF_OBSERVS,DEFAULT_RPE,_checkDir
 import h5py
 
