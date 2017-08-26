@@ -1,7 +1,12 @@
 import numpy as np
 import glob,os,sys,argparse
-from ..io import get_sizes_meta_dict,size_from_meta
-from .pandas_to_numpy import to_shuffled_numpy,PARTICLE_OBSERVS,HLF_OBSERVS,DEFAULT_RPE,_checkDir
+
+if __package__ is None:
+    #sys.path.append(os.path.realpath("../"))
+    sys.path.append(os.path.realpath(__file__+"/../../../"))
+
+from CMS_Deep_Learning.io import get_sizes_meta_dict,size_from_meta
+from CMS_Deep_Learning.preprocessing.pandas_to_numpy import to_shuffled_numpy,PARTICLE_OBSERVS,HLF_OBSERVS,DEFAULT_RPE,_checkDir
 import h5py
 
 
