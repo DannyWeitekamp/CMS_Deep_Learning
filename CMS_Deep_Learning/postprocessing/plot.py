@@ -546,6 +546,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     log_scale=False,
                     log_intesity=50.0,
                     thicken_lines=True,
+                    line_color='w',
                     showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap, to_rgb, LogNorm
@@ -579,7 +580,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
         if (isinstance(thres, tuple)):
             thres, color = thres
         else:
-            color = 'w'
+            color = line_color
         color = to_rgb(color)
 
         pts = []
