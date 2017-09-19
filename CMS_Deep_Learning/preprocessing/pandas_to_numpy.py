@@ -87,7 +87,7 @@ def numpy_from_h5(f, file_start_read, samples_to_read, file_total_events=-1, for
             else:
                 evtIDS = np.arange(len(x));
             x = np.take(x, [columns.index(o) for o in observ_types[key]], axis=-1)
-        if (rpe > 1 and format == 'pandas'):
+        if (rpe > 1 and len(x.shape) < 3):
             n_rows, n_columns = x.shape
             x = x.reshape((n_rows / rpe, rpe, n_columns))
             assert np.array([len(np.unique(y)) == 1 for y in evtIDS.reshape(
