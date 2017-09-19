@@ -1256,7 +1256,7 @@ def read_json_obj(directory, filename, verbose=0):
     try:
         obj = json.load(open( "/".join([directory, filename]), "r" ))
         if(verbose >= 1): print('Sucessfully loaded %r at %r' % (filename, directory))
-    except (IOError, EOFError):
+    except (IOError, EOFError,ValueError):
         obj = {}
         if(verbose >= 1): print('Failed to load %r at %r' % (filename, directory))
     return obj
