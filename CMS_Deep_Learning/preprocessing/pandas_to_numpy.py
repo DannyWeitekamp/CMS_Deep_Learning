@@ -172,6 +172,7 @@ def sort_numpy(x, sort_columns, sort_ascending, observ_types):
             assert not False in [isinstance(s, string_types) for s in sort_columns], \
                 "Type should be string got %s" % (",".join([str(type(s)) for s in sort_columns]))
             locs = {t: s for s, t in enumerate(observ_types)}
+            #Sort either by a feature or by some predefined metric (i.e. resolveMetric)
             sorts = [locs[s] if s in observ_types else resolveMetric(s, locs, sort_ascending)
                      for s in sort_columns]
             # KLUGE FIX
@@ -224,9 +225,12 @@ SORT_METRICS = {f.__name__: f for f in
 
 
 
+def selection(hlf):
+    return hlf[HLF_OBSERVS.index("LepPt")] > 25
+    
+
 
 import glob
-
 
 def to_shuffled_numpy(data_dirs, start, samples_per_class,
                       observ_types=DEFAULT_OBSERVS, sort_columns=None, sort_ascending=True, particle_mean=None,
@@ -299,9 +303,13 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
                 raise IOError("File %r is corrupted. Script cannot proceed unless it is removed." % f)
             Particles, HLF, sources = d["Particles"], d["HLF"], d["Sources"]
 
-            for s, (particles, hlf, source) in enumerate(zip(Particles, HLF, sources)):
+            s = 0 
+            for particles, hlf, source in zip(Particles, HLF, sources):
                 # ----------pretty progress bar---------------
-
+                if(not selection(hlf)):
+                    continue;
+                
+                
                 if (verbose >= 1):
                     c = time.clock()
                     if (c > last_time + .25):
@@ -342,6 +350,7 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
                 X_train[X_train_index + s] = np.array(particles)
                 HLF_train[X_train_index + s] = hlf
                 sources_train[X_train_index + s] = source
+                s += 1
 
             X_train_index += samples_to_read
 

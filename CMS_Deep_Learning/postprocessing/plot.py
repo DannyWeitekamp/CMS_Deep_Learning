@@ -523,7 +523,7 @@ def plot_bins(bins,
 def to_proj_geom(preds, index_positions=[0, 1, 2], log_scale=False, log_intesity=50.0):
     if (log_scale):
         f = lambda x: (1.0 - np.log(2.0) / np.log(2.0 + log_intesity * x)) / (
-        1.0 - np.log(2.0) / np.log(2.0 + log_intesity))
+                       1.0 - np.log(2.0) / np.log(2.0 + log_intesity))
         preds = f(preds)
 
     k = preds.shape[-1]
