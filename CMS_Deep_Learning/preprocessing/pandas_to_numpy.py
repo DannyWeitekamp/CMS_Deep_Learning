@@ -19,7 +19,7 @@ PARTICLE_OBSERVS = ['Energy', 'Px', 'Py', 'Pz', 'Pt', 'Eta', 'Phi',
                     'isChHad', 'isNeuHad', 'isGamma', 'isEle',  'isMu', 
                     'Charge']
 HLF_OBSERVS = ['HT', 'MET', 'PhiMET', 'MT', 'nJets', 'bJets', 'LepPt',
-       'LepEta', 'LepPhi', 'LepIsoCh','LepIsoGamma', 'LepIsoNeu',
+       'LepEta', 'LepPhi', 'LepIsoCh', 'LepIsoGamma', 'LepIsoNeu',
        'LepCharge', 'LepIsEle']
 # ROWS PER EVENT
 DEFAULT_RPE = {"Particles": 801, "HLF": 1}
@@ -226,7 +226,7 @@ SORT_METRICS = {f.__name__: f for f in
 
 
 def selection(hlf):
-    return hlf[HLF_OBSERVS.index("LepPt")] > 25
+    return hlf[HLF_OBSERVS.index("LepPt")] > 25.0
     
 
 
@@ -303,7 +303,7 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
                 raise IOError("File %r is corrupted. Script cannot proceed unless it is removed." % f)
             Particles, HLF, sources = d["Particles"], d["HLF"], d["Sources"]
 
-            s = 0 
+            n_read = 0 
             for particles, hlf, source in zip(Particles, HLF, sources):
                 # ----------pretty progress bar---------------
                 if(not selection(hlf)):
@@ -313,14 +313,14 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
                 if (verbose >= 1):
                     c = time.clock()
                     if (c > last_time + .25):
-                        prog = X_train_index + s
+                        prog = X_train_index + n_read
                         percent = float(prog) / (samples_per_class * len(data_dirs))
                         sys.stdout.write('\r')
                         sys.stdout.write("[%-20s] %r/%r  %r(Event/sec)" % ('=' * int(20 * percent), prog,
                                                                            int(samples_per_class) * len(data_dirs),
                                                                            4 * (count - last_count)))
                         sys.stdout.flush()
-                        # prev_sample = s
+                        # prev_sample = n_read
                         last_time = c
                         last_count = count
 
@@ -347,15 +347,14 @@ def to_shuffled_numpy(data_dirs, start, samples_per_class,
                     hlf = hlf / hlf_std
                 # ------------------------------------------------------------------------
 
-                X_train[X_train_index + s] = np.array(particles)
-                HLF_train[X_train_index + s] = hlf
-                sources_train[X_train_index + s] = source
-                s += 1
+                X_train[X_train_index + n_read] = np.array(particles)
+                HLF_train[X_train_index + n_read] = hlf
+                sources_train[X_train_index + n_read] = source
+                n_read += 1
 
-            X_train_index += samples_to_read
-
+            X_train_index += n_read
             location += file_total_events
-            samples_read += samples_to_read
+            samples_read += n_read
             if (samples_read >= samples_per_class):
                 assert samples_read == samples_per_class
                 break
