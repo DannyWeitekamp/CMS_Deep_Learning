@@ -74,7 +74,7 @@ def numpy_from_h5(f, file_start_read, samples_to_read, file_total_events=-1, for
                     x = store[key][select_start:select_stop]
                     
                 columns = observ_types[key]
-                if(x.shape[-1] == len(observ_types[key]+1)):
+                if(x.shape[-1] == len(observ_types[key])+1):
                     columns = ["EvtId"] + observ_types[key]
                     
         except IOError:
