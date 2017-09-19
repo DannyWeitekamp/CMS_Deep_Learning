@@ -21,6 +21,7 @@ from CMS_Deep_Learning.preprocessing.preprocessing import DataProcedure
 from CMS_Deep_Learning.storage.archiving import KerasTrial
 # from CMS_Deep_Learning.storage.MPIArchiving import *
 from CMS_Deep_Learning.postprocessing.analysistools import findsubsets
+from CMS_Deep_Learning.layers.standardize import Standardize
 
 from keras.models import Model
 from keras.layers import Dense, Dropout, merge, Input, LSTM, Masking,GRU
@@ -34,6 +35,7 @@ def build_LSTM_model(name, input_width,out_width, depth,recurrent_width, lstm_ac
     inputs.append(a)
     for i in range(depth):
         a = Masking(mask_value=0.0)(a)
+        a = Standardize("/bigdata/shared/Delphes/np_datasets_9_18/3_way/std_stats.h5")(a)
         a = GRU(recurrent_width,
                  input_shape=(None, input_width),
                  dropout_W=lstm_dropout,
@@ -134,7 +136,7 @@ def build_trial(name,
     trial.to_record({k:kargs[k] for k in keys_to_record})
     return  trial
 
-def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets', processes=1):
+def assert_write_datasets(sort_on,sort_ascending,dataset_dir='/bigdata/shared/Delphes/np_datasets_9_18', processes=1):
     from CMS_Deep_Learning.preprocessing.pandas_to_numpy import make_datasets
     dir = dataset_dir + "/" + sort_on + '_' + ('asc' if sort_ascending else 'dec')
     dir = os.path.abspath(dir)
@@ -167,11 +169,15 @@ def trials_from_HPsweep(archive_dir,
               output_activation = "softmax",
               loss='categorical_crossentropy',
               optimizer_options = ['adam'],
-              sortings = [("MaxLepDeltaPhi", False) ,("MaxLepDeltaEta", False),
-                         # ("PT_ET", False), ("PT_ET", True),
-                         #[ ('MaxLepDeltaR', False), ('MaxLepDeltaR', True), ('random', False)],
-                          ('MaxLepKt',False),('MaxLepKt',True)],
-                         # ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
+              sortings = [                       
+                          ('MaxLepDeltaR', False), ('MaxLepDeltaR', True), ('random', False),
+                          ("Pt", False), ("Pt", True),
+                          ("MaxLepDeltaPhi", True) ,("MaxLepDeltaEta", True),
+                          #('MaxLepKt',False),('MaxLepKt',True),
+                          ('MaxLepAntiKt',False),('MaxLepAntiKt',True),
+                         ],
+                      
+
                          # ('shuffle',False)],#, ('METDeltaR', False), ('METKt',False), ('METAntiKt',False),
                             #("METDeltaPhi", False), ("METDeltaEta", False)],
                 n_train_files = [50],
@@ -191,7 +197,7 @@ def trials_from_HPsweep(archive_dir,
     trials = []
     for sort_on, sort_ascending in sortings:
         # data_dir = assert_write_datasets(sort_on,sort_ascending)
-        data_up_dir = '/bigdata/shared/Delphes/np_datasets/3_way/'
+        data_up_dir = '/bigdata/shared/Delphes/np_datasets_9_18/3_way/'
         data_dir = os.path.abspath(data_up_dir + sort_on + ("_asc" if sort_ascending else '_des'))
         
         if(sort_on in ['random','shuffled']): data_dir = os.path.abspath(data_up_dir + sort_on)
@@ -234,8 +240,8 @@ def trials_from_HPsweep(archive_dir,
                                          nb_epoch=100,
                                          batch_size=batch_size,
                                          callbacks=[earlyStopping],
-                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','l1_reg','recurrent_width',
-                                                         'activation', 'dropout', 'lstm_dropout',
+                                         keys_to_record=['labels', 'depth', 'sort_on', 'sort_ascending','recurrent_width',
+                                                         'activation', 
                                                          'patience', "n_train_files"],
                                          sort_on=sort_on,
                                          sort_ascending=sort_ascending,
@@ -259,6 +265,7 @@ def trials_from_HPsweep(archive_dir,
     # trial_tups[0][0].execute()
     #batchExecuteAndTestTrials(trial_tups, time_str="1:00:00", use_mpi=workers > 1)
     
+# archive_dir, nb_Kfolds, foldindex, CUDA_DEVICE   
 if __name__ == '__main__':
     argv = sys.argv
     #os.environ["CUDA_VISIBLE_DEVICES"] = str(argv[3])
@@ -268,4 +275,4 @@ if __name__ == '__main__':
         print(trial.summary())
     for trial in trials:
         print(trial.summary())
-        trial.execute()
+        trial.execute(custom_objects={'Standardize':Standardize})
