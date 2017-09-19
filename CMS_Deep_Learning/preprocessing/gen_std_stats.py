@@ -39,7 +39,7 @@ def gen_std_stats(sources):
 
 def main(argv):
     parser = argparse.ArgumentParser(
-        description='Convert ROOT data to numpy arrays stored as HDF5 for Machine Learning use.')
+        description='')
     parser.add_argument('sources', type=str, nargs='+')
     parser.add_argument('-o', '--output_dir', type=str, dest='output_dir', required=True)
     try:

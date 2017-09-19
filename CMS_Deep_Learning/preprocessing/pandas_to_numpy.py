@@ -72,13 +72,20 @@ def numpy_from_h5(f, file_start_read, samples_to_read, file_total_events=-1, for
                     x = store[key][:]
                 else:
                     x = store[key][select_start:select_stop]
-                columns = ["EvtId"] + DEFAULT_OBSERVS[key]
+                    
+                columns = observ_types[key]
+                if(x.shape[-1] == len(observ_types[key]+1)):
+                    columns = ["EvtId"] + observ_types[key]
+                    
         except IOError:
             store.close()
             raise
 
         if (observ_types != None):
-            evtIDS = x[:, columns.index("EvtId")]
+            if("EvtId" in columns):
+                evtIDS = x[:, columns.index("EvtId")]
+            else:
+                evtIDS = np.arange(len(x));
             x = np.take(x, [columns.index(o) for o in observ_types[key]], axis=-1)
         if (rpe > 1):
             n_rows, n_columns = x.shape
