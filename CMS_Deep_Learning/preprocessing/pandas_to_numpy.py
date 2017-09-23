@@ -1,6 +1,6 @@
 import sys,os
 from six import string_types
-from types import NoneType
+NoneType = type(None)
 
 if __package__ is None:
     #sys.path.append(os.path.realpath("../"))
