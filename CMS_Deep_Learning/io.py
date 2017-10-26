@@ -94,7 +94,7 @@ def nb_samples_from_h5(file_path):
         raise IOError(str(e) + " at %r" % file_path)
     try:
         while not isinstance(d, h5py.Dataset):
-            keys = d.keys()
+            keys = list(d.keys())
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
     except IOError as e:
