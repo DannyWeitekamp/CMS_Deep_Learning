@@ -289,7 +289,7 @@ def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set=
         plt.figure()
         lw = 2
         plt.plot(fpr, tpr, color=colors[i], \
-                 lw=lw, label='%r (AUC): %0.4f' % (name, roc_auc))
+                 lw=lw, label='%s (AUC): %0.4f' % (name, roc_auc))
         roc_dicts.append({"name": name, "ROC_data": (fpr, tpr, thres, roc_auc)})
 
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
