@@ -588,8 +588,7 @@ def _call_iters(data_dict, to_return, sat_dict,verbose=0):
                                      input_keys=data_dict.get('input_keys','X'),
                                      label_keys=data_dict.get('label_keys','Y'),
                                      return_prediction='predictions' in to_get,
-                                     accumulate=accumulate,
-                                     custom_objects=data_dict.get('custom_objects',{}))
+                                     accumulate=accumulate)
                 out = dItr.as_list(verbose=verbose)
             else:
                 dItr = DataIterator(data_dict.get('data', None),
@@ -598,8 +597,7 @@ def _call_iters(data_dict, to_return, sat_dict,verbose=0):
                                     input_keys=data_dict.get('input_keys', 'X'),
                                     label_keys=data_dict.get('label_keys', 'Y'),
                                     prediction_model=data_dict.get('model', None),
-                                    accumulate=accumulate,
-                                    custom_objects=data_dict.get('custom_objects', {}))
+                                    accumulate=accumulate)
                 out = dItr.as_list(verbose=verbose)
             out = assert_list(out)
             for i, key in enumerate(to_get):
