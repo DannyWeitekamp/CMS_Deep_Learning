@@ -196,7 +196,7 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
         for i, elmt in enumerate(lst):
             flat_out = flatten(assert_list(retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)),inplace=True)
             tot_set = _size_set(flat_out)  
-            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) to not have same number of elements"
+            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) do not have same number of elements"
             tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
@@ -588,7 +588,8 @@ def _call_iters(data_dict, to_return, sat_dict,verbose=0):
                                      input_keys=data_dict.get('input_keys','X'),
                                      label_keys=data_dict.get('label_keys','Y'),
                                      return_prediction='predictions' in to_get,
-                                     accumulate=accumulate)
+                                     accumulate=accumulate,
+                                     custom_objects=data_dict.get('custom_objects',{}))
                 out = dItr.as_list(verbose=verbose)
             else:
                 dItr = DataIterator(data_dict.get('data', None),
@@ -597,7 +598,8 @@ def _call_iters(data_dict, to_return, sat_dict,verbose=0):
                                     input_keys=data_dict.get('input_keys', 'X'),
                                     label_keys=data_dict.get('label_keys', 'Y'),
                                     prediction_model=data_dict.get('model', None),
-                                    accumulate=accumulate)
+                                    accumulate=accumulate,
+                                    custom_objects=data_dict.get('custom_objects', {}))
                 out = dItr.as_list(verbose=verbose)
             out = assert_list(out)
             for i, key in enumerate(to_get):
