@@ -5,8 +5,8 @@
 # CMS_Deep_Learning
 Machine Learning for LHC event classification
 
-Hosted Here:  https://github.com/DannyWeitekamp/CMS_Deep_Learning/
-Wiki Here:    https://github.com/DannyWeitekamp/CMS_Deep_Learning/wiki
+Hosted Here:  https://github.com/DannyWeitekamp/CMS_Deep_Learning/  
+Documentation Here: https://dannyweitekamp.github.io/CMS_Deep_Learning/ 
 
 Preprocessing Dependencies:  
     pyROOT - for parser   

@@ -94,7 +94,7 @@ def nb_samples_from_h5(file_path):
         raise IOError(str(e) + " at %r" % file_path)
     try:
         while not isinstance(d, h5py.Dataset):
-            keys = d.keys()
+            keys = list(d.keys())
             d = d['axis1' if 'axis1' in keys else keys[0]]
         out = d.len()
     except IOError as e:
@@ -668,5 +668,10 @@ def simple_grab(to_return, verbose=0,**kargs):
             data_to_check.add(x)
 
     data_dict = _checkAndAssert(data_dict, data_to_check)
+
     data_dict = _call_iters(data_dict, flat_to_return, sat_dict,verbose=verbose)
     return restructure([data_dict[r] for r in flat_to_return], to_return)
+
+
+
+
