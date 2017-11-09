@@ -10,13 +10,13 @@ class Standardize(Layer):
         self.take_particles = take_particles
         self.take_HLF = take_HLF
         with h5py.File(std_stats) as f:
-            print(f.keys())
+            # print(f.keys())
             self.particle_mean = np.array(f['particle_mean'][:])
             self.particle_std = np.array(f['particle_std'][:])
             self.hlf_mean = np.array(f['hlf_mean'][:])
             self.hlf_std = np.array(f['hlf_std'][:])
-        print(self.particle_mean)
-        print(self.particle_std)
+        # print(self.particle_mean)
+        # print(self.particle_std)
         self.particle_mean = self.particle_mean.reshape((1, self.particle_mean.shape[-1]))
         self.particle_std = self.particle_std.reshape((1, self.particle_std.shape[-1]))
         # self.hlf_mean = self.hlf_mean.reshape(1, self.hlf_mean[-1])

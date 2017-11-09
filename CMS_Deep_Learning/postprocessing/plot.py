@@ -286,7 +286,6 @@ def plot_roc_curve(args=[], true_class_index=None, title="ROC_Curve", color_set=
         inp["true_class_index"] = true_class_index
         fpr, tpr, thres, roc_auc = get_roc_data(**inp)
 
-        plt.figure()
         lw = 2
         plt.plot(fpr, tpr, color=colors[i], \
                  lw=lw, label='%s (AUC): %0.4f' % (name, roc_auc))
