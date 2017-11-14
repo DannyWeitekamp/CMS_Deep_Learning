@@ -479,7 +479,7 @@ def plot_bins(bins,
         if errors != None:
             errors = _expand_multi_vals(errors, binlabel, class_labels)
         items = ys.items()
-        if (mode == 'bar' or mode == 'histo'): items = sorted(items, key=lambda x: -np.average(x[1]))
+        if (not stack and (mode == 'bar' or mode == 'histo')): items = sorted(items, key=lambda x: -np.average(x[1]))
         for j, (label, y) in enumerate(items):
             k = len(items) * i + j
 
@@ -506,7 +506,7 @@ def plot_bins(bins,
                             alpha=alpha, fmt='',
                             linestyle='None')
                 if (log): ax.set_yscale("log")
-
+    
     ax.set_title(title, size=18)
     ax.set_xlabel(xlabel, size=16)
     ax.set_ylabel(ylabel, size=16)
