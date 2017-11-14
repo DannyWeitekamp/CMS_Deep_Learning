@@ -521,9 +521,7 @@ def plot_bins(bins,
 
 def to_proj_geom(preds, index_positions=[0, 1, 2], log_scale=False, log_intesity=50.0):
     if (log_scale):
-        f = lambda x: (1.0 - np.log(2.0) / np.log(2.0 + log_intesity * x)) / (
-                       1.0 - np.log(2.0) / np.log(2.0 + log_intesity))
-        preds = f(preds)
+        preds = apply_log_scale(preds, log_intesity=log_intesity)
 
     k = preds.shape[-1]
     assert k == 3, 'Really only works for 3'
@@ -537,6 +535,18 @@ def to_proj_geom(preds, index_positions=[0, 1, 2], log_scale=False, log_intesity
     return projected
 
 
+def apply_log_scale(x, log_intesity=50.0):
+    numerator = (1.0 - np.log(2.0) / np.log(2.0 + log_intesity * x))
+    denominator = (1.0 - np.log(2.0) / np.log(2.0 + log_intesity))
+    return numerator / denominator
+
+
+def inv_log_scale(x, log_intesity=50.0):
+    C = 1.0 - np.log(2.0) / np.log(2.0 + log_intesity)
+    D = np.log(2.0) / (1.0 - x * C)
+    return (np.exp(D) - 2.0) / (log_intesity)
+
+
 def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     index_colors={0: 'r', 1: 'g', 2: 'b'},
                     bin_res=300, background_color='black',
@@ -545,7 +555,8 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
                     log_scale=False,
                     log_intesity=50.0,
                     thicken_lines=True,
-                    line_color='w',
+                    line_color='black',
+                    binary_bins=True,
                     showChannels=False, thresholds=[]):
     import matplotlib.pyplot as plt
     from matplotlib.colors import LinearSegmentedColormap, to_rgb, LogNorm
@@ -554,11 +565,11 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     projdata = to_proj_geom(preds, index_positions, log_scale=log_scale, log_intesity=log_intesity)
 
     x, y = projdata[:, 1], projdata[:, 0]
-
-    # Magic values based on the maximum in each dir
+    # Magic values based on the boundaries of the plot in each direction
     w1 = np.sqrt(2.0) / 2
     w2 = 0.81649658092772592  # np.sqrt(3.0)/2
-    w3 = 0.40824829046386313 if not log_scale else 1.0
+    w3 = -min(y)
+    # w3 = 0.0
 
     plt.rcParams['axes.facecolor'] = background_color
 
@@ -570,6 +581,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
         color = to_rgb(index_colors[i])
         cmap_i = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
         c_i, _, _, im = plt.hist2d(x_i, y_i, cmap=cmap_i, bins=bin_res, norm=LogNorm(), range=[[-w1, w1], [-w3, w2]])
+        if (binary_bins): c_i = np.minimum(c_i, 1)
         channels.append((c_i, color))
     # ------------------------------------------------------------
 
@@ -583,21 +595,30 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
         color = to_rgb(color)
 
         pts = []
-        # for t in [thres]:
-        thres_span = np.linspace(thres - 1.0 / bin_res, thres + 1.0 / bin_res, num=3) \
-            if thicken_lines else [thres]
+        if (thicken_lines):
+            thres_span = np.linspace(thres - 1.0 / bin_res, thres + 1.0 / bin_res, num=3)
+        else:
+            thres_span = [thres]
         for t in thres_span:
             diff = 1.0 - t
-            for x in np.linspace(0.0, diff, num=bin_res):
+            it = np.linspace(0.0, diff, num=bin_res)
+            if (log_scale):
+                # Kind of a kludge: fill in from different sides sampling from inv_log_scale
+                it = [x for x in it]
+                it += [diff * inv_log_scale(x / diff, log_intesity=log_intesity) for x in it]
+                it += [diff * (1.0 - inv_log_scale(x / diff, log_intesity=log_intesity)) for x in it]
+            for x in it:
                 y = diff - x
                 pts.append(np.insert(np.array([x, y]), key, t))
         pts = np.array(pts)
 
-        projdata = to_proj_geom(pts, index_positions, log_scale=log_scale)
+        projdata = to_proj_geom(pts, index_positions, log_scale=log_scale, log_intesity=log_intesity)
         x, y = projdata[:, 1], projdata[:, 0]
 
+        # Single tone Colormap
         cmap = LinearSegmentedColormap.from_list('mycmap' + str(i), [(0.0, color), (1.0, color)])
         c, _, _, im = plt.hist2d(x, y, cmap=cmap, bins=bin_res, norm=LogNorm(), range=[[-w1, w1], [-w3, w2]])
+        c = np.minimum(c, 1)
         overlays.append((c, color))
     # ---------------------------------------------
 
@@ -605,6 +626,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     plt.ylim(-w3, w2)
     plt.xlabel("x")
     plt.ylabel("y")
+
     # Show histo version
     if (show_plot):
         plt.show()
@@ -612,7 +634,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
         plt.cla()
         plt.clf()
 
-    # -------------SHOW EACH CHANNEL---------------
+    # -------------SHOW EACH CHANNEL SEPARATELY---------------
     if (showChannels):
         cmap_white = LinearSegmentedColormap.from_list('mycmap', [(0.0, 'k'), (.01, 'w'), (1.0, 'w')])
         for c, color in channels:
@@ -621,7 +643,7 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
             plt.show()
     # ---------------------------------------------
 
-    # --------------DISPLAY SEPARATE CHANNELS IMAGE-----------------
+    # --------------DISPLAY COMBINED CHANNELS IMAGE-----------------
     background = np.ones((channels[0][0].shape[0], channels[0][0].shape[1], 3)) * np.array(
         to_rgb(background_color)).reshape(1, 1, 3)
 
@@ -636,8 +658,9 @@ def plot_fano_plane(preds, targets, index_positions=[0, 1, 2],
     # Add the background
     np.copyto(combined, background, where=mask)
     for o, color in overlays:
-        o = np.expand_dims(o, axis=-1) * np.array(color).reshape(1, 1, 3)
-        np.place(combined, o, color)
+        o = np.expand_dims(o, axis=-1)
+        o = np.repeat(o, 3, axis=-1)
+        np.place(combined, mask=o, vals=color)
 
     combined = scipy.ndimage.rotate(combined, 90)
 
