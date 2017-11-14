@@ -57,12 +57,12 @@ def build_accumulator(char,
 
 
 def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
-    '''Takes a numpy array of sample characteristics with shape (N,1) and 
+    '''Takes a numpy array of sample characteristics with shape (N,) and 
         distributes the elements of some other (N,...) like arrays that correspond
         to the same samples into a list of numpy arrays of shape (d_i,...) where d_i
         corresponds the the size of the i_th bin in the output list.
 
-        :param bin_by: numpy array of sample characteristics with shape (N,1)
+        :param bin_by: numpy array of sample characteristics with shape (N,)
         :type bin_by: numpy.array
         :param to_distribute: A list of numpy arrays with shape shape (N,...)
         :type to_distribute: list of numpy.array
