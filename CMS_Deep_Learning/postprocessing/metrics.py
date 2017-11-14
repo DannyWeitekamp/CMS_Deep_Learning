@@ -79,7 +79,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
             **..** arrays given in **to_distribute** split into a list of numpy arrays
                 each corresponding to a bin.
         '''
-    if(len(bin_by.shape) == 1): bin_by = np.expand_dims(bin_by,axis=1)
+    if(len(bin_by.shape) > 1): bin_by = np.squeeze(bin_by)
     sorted_indicies = np.argsort(bin_by)
     sorted_chars = bin_by[sorted_indicies]
 
@@ -88,7 +88,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
     if (not equalBins):
         stride = (max_char - min_char) / nb_bins
         split_vals = [min_char + stride * (i + 1) for i in range(nb_bins - 1)]
-        split_at = sorted_chars.searchsorted(split_vals)
+        split_at = np.searchsorted(sorted_chars,split_vals)
     else:
         stride = sorted_chars.shape[0] / float(nb_bins)
         split_at = [int(stride * float(i + 1)) for i in range(nb_bins - 1)]
@@ -96,6 +96,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
 
     to_distribute = [x[sorted_indicies] for x in to_distribute]
     return tuple([[min_char] + split_vals + [max_char]] + [np.split(x, split_at) for x in to_distribute])
+
 
 
 def prediction_statistics(target, predictions, true_class_index, threshold=-1):
