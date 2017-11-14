@@ -197,7 +197,7 @@ def bin_metric_vs_char(args=[],
         raise NotImplementedError("Have not written to take multiple inputs")
     inp = inputs[0]
 
-    if (inp.get('accumulate',None) != None):
+    if (not isinstance(inp.get('characteristics',None),type(None)) or not isinstance(inp.get('accumulate',None),type(None))):
         y_vals, predictions, characteristics = simple_grab(['Y', 'predictions', 'characteristics'], **inp)
     else:
         raise NotImplementedError("Need to write code for getting characteristics strait from EventChars collection")
