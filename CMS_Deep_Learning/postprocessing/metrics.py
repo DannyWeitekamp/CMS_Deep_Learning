@@ -79,7 +79,7 @@ def distribute_to_bins(bin_by, to_distribute=[], nb_bins=50, equalBins=False, ):
             **..** arrays given in **to_distribute** split into a list of numpy arrays
                 each corresponding to a bin.
         '''
-
+    if(len(bin_by.shape) == 1): bin_by = np.expand_dims(bin_by,axis=1)
     sorted_indicies = np.argsort(bin_by)
     sorted_chars = bin_by[sorted_indicies]
 
