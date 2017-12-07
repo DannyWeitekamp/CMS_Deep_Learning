@@ -405,7 +405,8 @@ def plot_bins(bins,
               ylabel='',
               class_labels=None,
               legendTitle=None,
-              legendBelow=False,
+              legendLoc="best",
+              legendAnchor=None,
               alpha=.8,
               colors="colors_contrasting1",
               shapes=None,
@@ -506,15 +507,12 @@ def plot_bins(bins,
                             alpha=alpha, fmt='',
                             linestyle='None')
                 if (log): ax.set_yscale("log")
-    
+
     ax.set_title(title, size=18)
     ax.set_xlabel(xlabel, size=16)
     ax.set_ylabel(ylabel, size=16)
-    if (legendBelow):
-        legend = ax.legend(title=legendTitle, fontsize=12, loc='upper center', bbox_to_anchor=(0.5, -0.15),
-                           fancybox=True, ncol=2)
-    else:
-        legend = ax.legend(title=legendTitle, fontsize=12, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    legend = ax.legend(title=legendTitle, fontsize=12, loc=legendLoc, bbox_to_anchor=legendAnchor)
 
     if (legendTitle != None): plt.setp(legend.get_title(), fontsize=14)
 
