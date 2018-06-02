@@ -184,7 +184,6 @@ def _size_set(x, s=None):
     if (isinstance(x, (list, tuple))):
         for y in x:
             _size_set(y, s)
-
     else:
         s.add(x.shape[0])
     return s
@@ -228,10 +227,11 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], prep_func=
                 retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, data_format=data_format,
                               verbose=verbose)), inplace=True)
             tot_set = _size_set(flat_out)
-            assert len(tot_set) == 1, "datasets (i.e Particle, Labels, HLF) do not have same number of elements"
+            assert len(tot_set) == 1, "datasets (i.e %r) do not have same number of elements" % flatten(data_keys)[:3]
             tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
+                if end <= start: continue
                 # yield tuple([[x[start:end] for x in X] for X in out])
                 yield restructure([x[start:end] for x in flat_out], data_keys)
 
