@@ -7,20 +7,23 @@ import itertools
 from six import string_types,reraise
 from CMS_Deep_Learning.storage.archiving import DataProcedure,KerasTrial
 
-#-----------------------------IO Utils----------------------------------------
+
+# -----------------------------IO Utils----------------------------------------
 def load_hdf5_dataset(data):
     """ based off - https://github.com/duanders/mpi_learn -- train/data.py
         Converts an HDF5 structure to nested lists of databases which can be
         copied to get numpy arrays or lists of numpy arrays.
-        
+
         :param data: and h5py Group or Dataset"""
     if isinstance(data, h5py.Group):
+        print("h5 group")
         sorted_keys = sorted(data.keys())
         data = [data[key] for key in sorted_keys]
+
     return data
 
 
-def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_func=None, verbose=0):
+def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_func=None, data_format='h5', verbose=0):
     '''Grabs raw data from a DataProcedure or file
 
         :param data: the data to get the raw verion of. If not str or DataProcedure returns itself
@@ -36,9 +39,10 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
         :param prep_func: a function that takes in the tuple of outputs and returns some light transformation
                         on them, for example reshaping or padding.
         :type prep_func: function
+        :param data_format: 'pandas' or 'h5' depending on how file was created
+        :type data_format: string
         :param verbose: whether or not to print out extra internal information
         :type verbose: int
-        
         :returns: The raw data as numpy.ndarray
 
         '''
@@ -48,35 +52,58 @@ def retrieve_data(data, data_keys, just_length=False, assert_list=False, prep_fu
     f_ret = lambda x: prep_func(x) if prep_func != None else x
 
     ish5 = isinstance(data, h5py.File)
+    isPandas = "HDFStore" in type(data).__name__
+    isFileObject = ish5 or isPandas
+    if (ish5): data_format = "h5"
+    if (isPandas): data_format = "pandas"
+
     if (isinstance(data, DataProcedure)):
         return f_ret(data.get_data(data_keys=data_keys, verbose=verbose))
-    elif (isinstance(data, string_types) or ish5):
-        f_path = os.path.abspath(data) if not ish5 else data.filename
-        h5_file = h5py.File(f_path, 'r') if not ish5 else data
-        it = data_keys if isinstance(data_keys,(list,tuple)) else [data_keys]
-        #for data_key in it:
-        if isinstance(data_keys, (list,tuple)):
+
+    elif (isFileObject or isinstance(data, string_types)):
+        if (isFileObject):
+            h5_file = data
+        else:
+            f_path = os.path.abspath(data)
+            if (data_format == 'h5'):
+                h5_file = h5py.File(f_path, 'r') if not ish5 else data
+            elif (data_format == 'pandas'):
+                import pandas as pd
+                h5_file = pd.HDFStore(f_path, 'r') if not isPandas else data
+            else:
+                raise ValueError("No such data_format %r. Choose 'h5' or 'pandas'" % data_format)
+
+        if isinstance(data_keys, (list, tuple)):
             # Get Recursively if keys are list
-            out = [retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False)
+            out = [retrieve_data(h5_file, data_keys=data_key, just_length=just_length, assert_list=False,
+                                 data_format=data_format)
                    for data_key in data_keys]
         else:
             # Grab directly from the HDF5 store
             data_key = data_keys
             try:
-                data = h5_file[data_key]
+                if (data_format == 'h5'):
+                    data = h5_file[data_key]
+                    dataset = load_hdf5_dataset(data)
+                elif (data_format == 'pandas'):
+                    data = h5_file.get('/data')[data_key]
+                    dataset = data.values
+
             except KeyError:
                 raise KeyError("No such key %r in H5 store %r." % (data_key, f_path))
-            dataset = load_hdf5_dataset(data)
+
             if (just_length):
                 nxt = len(dataset) if not isinstance(dataset, list) else [len(x) for x in dataset]
             else:
                 nxt = dataset[:]
+
             nxt = [nxt] if (assert_list and not isinstance(nxt, list)) else nxt
             out = nxt
 
         return f_ret(out)
     else:
         return f_ret(data)
+
 
 # ---------------------------------------------------------------------
 
@@ -147,7 +174,7 @@ def size_from_meta(filename, sizesDict=None, zero_errors=True, verbose=0):
 
 # -------------------------------------------------------------
 
-#-----------------------------GENERATOR------------------------
+# -----------------------------GENERATOR------------------------
 
 def _size_set(x, s=None):
     '''A helper method that contructs a set of the number of samples in a nested list of data samples
@@ -157,12 +184,13 @@ def _size_set(x, s=None):
     if (isinstance(x, (list, tuple))):
         for y in x:
             _size_set(y, s)
+
     else:
         s.add(x.shape[0])
     return s
 
 
-def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=None, verbose=1):
+def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"], prep_func=None, data_format='h5', verbose=1):
     '''Gets a generator that generates data of **batch_size** from a list of .h5 files or DataProcedures,
         or a directory containing .h5 files.
 
@@ -174,7 +202,9 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
         :type data_keys: list of str
         :param prep_func: a function that takes in the tuple of outputs and returns some light transformation
                         on them, for example reshaping or padding.
-        :param prep_func: function
+        :type prep_func: function
+        :param data_format: 'pandas' or 'h5' depending on how file was created
+        :type data_format: string
         :param verbose: whether or not to print out info to the user.
         :type verbose: int
         :returns: a generator that runs through the given data
@@ -182,28 +212,31 @@ def gen_from_data(lst, batch_size, data_keys=["Particles", "Labels"],prep_func=N
     if (isinstance(lst, string_types) and os.path.isdir(lst)):
         path = os.path.abspath(lst) + "/*.h5"
         lst = sorted(glob.glob(path))
-        if(len(lst) == 0): raise IOError("No .h5 files found in directory %r" % path)
+        if (len(lst) == 0): raise IOError("No .h5 files found in directory %r" % path)
+
     if (isinstance(lst, DataProcedure) or isinstance(lst, string_types)): lst = [lst]
     for d in lst:
-        if (not (isinstance(d, DataProcedure) or (isinstance(d, string_types) and os.path.exists(d))) ):
-            if(isinstance(d, string_types)):
+        if (not (isinstance(d, DataProcedure) or (isinstance(d, string_types) and os.path.exists(d)))):
+            if (isinstance(d, string_types)):
                 raise IOError("No such file %r" % d)
             else:
                 raise TypeError("List elements should be existing file path or DataProcedure but got %r" % type(d))
-            
 
     while True:
         for i, elmt in enumerate(lst):
-            flat_out = flatten(assert_list(retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, verbose=verbose)),inplace=True)
-            tot_set = _size_set(flat_out)  
-            assert len(tot_set) == 1, "datasets (i.e Particle,Labels,HLF) do not have same number of elements"
+            flat_out = flatten(assert_list(
+                retrieve_data(elmt, data_keys=data_keys, prep_func=prep_func, data_format=data_format,
+                              verbose=verbose)), inplace=True)
+            tot_set = _size_set(flat_out)
+            assert len(tot_set) == 1, "datasets (i.e Particle, Labels, HLF) do not have same number of elements"
             tot = list(tot_set)[0]
             for start in range(0, tot, batch_size):
                 end = start + min(batch_size, tot - start)
                 # yield tuple([[x[start:end] for x in X] for X in out])
                 yield restructure([x[start:end] for x in flat_out], data_keys)
-                
-#--------------------------------------------------------------
+
+
+# --------------------------------------------------------------
 
 #---------------------UTILS-------------------------------
 def repr_structure(x):
